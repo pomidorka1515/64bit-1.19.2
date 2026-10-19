@@ -1,6 +1,9 @@
 package net.minecraft.core;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import it.unimi.dsi.fastutil.HashCommon;
+import java.util.stream.LongStream;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -13,6 +16,14 @@ import javax.annotation.concurrent.Immutable;
  */
 @Immutable
 public final class Int128 implements Comparable<Int128> {
+    /** Exactly two longs in high, low order; legacy single-long values are not accepted. */
+    public static final Codec<Int128> CODEC = Codec.LONG_STREAM.comapFlatMap(stream -> {
+        long[] halves = stream.limit(3L).toArray();
+        return halves.length == 2
+            ? DataResult.success(of(halves[0], halves[1]))
+            : DataResult.error("Int128 requires exactly 2 longs [hi, lo]");
+    }, value -> LongStream.of(value.hi, value.lo));
+
     public static final Int128 ZERO = new Int128(0L, 0L);
     public static final Int128 ONE = new Int128(0L, 1L);
     /** {@code 2^127 - 1}. */

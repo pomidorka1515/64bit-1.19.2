@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.mojang.serialization.JsonOps;
+import com.google.gson.JsonArray;
 import java.math.BigInteger;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -13,6 +15,32 @@ import java.util.Random;
 import org.junit.jupiter.api.Test;
 
 class Int128Test {
+    @Test
+    void codecRoundTripsExactlyTwoLongs() {
+        for (Int128 value : new Int128[] {Int128.ZERO, Int128.ONE, Int128.MIN, Int128.MAX,
+                Int128.fromLong(-1L), Int128.of(123456789L, Long.MIN_VALUE)}) {
+            var encoded = Int128.CODEC.encodeStart(JsonOps.INSTANCE, value).result().orElseThrow();
+            assertEquals(2, encoded.getAsJsonArray().size());
+            assertEquals(value.hi(), encoded.getAsJsonArray().get(0).getAsLong());
+            assertEquals(value.lo(), encoded.getAsJsonArray().get(1).getAsLong());
+            assertEquals(value, Int128.CODEC.parse(JsonOps.INSTANCE, encoded).result().orElseThrow());
+        }
+    }
+
+    @Test
+    void codecRejectsWrongLengthsWithoutPartialValues() {
+        for (int size : new int[] {0, 1, 3, 4}) {
+            JsonArray input = new JsonArray();
+            for (int i = 0; i < size; ++i) {
+                input.add(-1L);
+            }
+            var decoded = Int128.CODEC.parse(JsonOps.INSTANCE, input);
+            assertTrue(decoded.result().isEmpty());
+            assertTrue(decoded.error().orElseThrow().message().contains("exactly 2 longs"));
+            assertTrue(decoded.resultOrPartial(message -> {}).isEmpty());
+        }
+    }
+
     @Test
     void constantsMatchTheSigned128BitRange() {
         assertEquals(0L, Int128.ZERO.hi());

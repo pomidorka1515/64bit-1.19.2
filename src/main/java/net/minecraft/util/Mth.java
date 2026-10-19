@@ -1,5 +1,6 @@
 package net.minecraft.util;
 
+import it.unimi.dsi.fastutil.HashCommon;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.function.IntPredicate;
@@ -381,6 +382,16 @@ public class Mth {
         long i = (long) (pX * 3129871) ^ (long) pZ * 116129781L ^ (long) pY;
         i = i * i * 42317861L + i * 11L;
         return i >> 16;
+    }
+
+    /** Folds a coordinate into a seed word, preserving sign-extended 64-bit values. */
+    public static long mixCoordinate(long hi, long lo) {
+        long extendedBits = hi ^ (lo < 0L ? -1L : 0L);
+        return lo ^ HashCommon.mix(extendedBits);
+    }
+
+    public static long getSeed(long xHi, long xLo, int y, long zHi, long zLo) {
+        return getSeed(mixCoordinate(xHi, xLo), y, mixCoordinate(zHi, zLo));
     }
 
     public static UUID createInsecureUUID(RandomSource pRandom) {

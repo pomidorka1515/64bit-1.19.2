@@ -96,6 +96,30 @@ class Int128LinkedMapTest {
     }
 
     @Test
+    void shiftedEntryRemainsPredecessorOfItsSuccessor() {
+        var map = new Int128LinkedMap<Integer>(16);
+        long[] keys = new long[3];
+        int count = 0;
+        for (long k = 1; count < keys.length; ++k) {
+            if (((int)Long.rotateLeft(HashCommon.mix(k), 32) & 31) == 31) keys[count++] = k;
+        }
+        for (int i = 0; i < keys.length; ++i) map.put(0, keys[i], i);
+        // Both survivors relocate across the wrapped probe chain. The last one's prev
+        // must name the middle entry's new slot, not the deleted entry's predecessor.
+        assertEquals(0, map.remove(0, keys[0]));
+        assertEquals(2, map.getAndMoveToFirst(0, keys[2]));
+        var cursor = map.cursor();
+        assertTrue(cursor.advance());
+        assertEquals(keys[2], cursor.lo());
+        assertTrue(cursor.advance());
+        assertEquals(keys[1], cursor.lo());
+        assertFalse(cursor.advance());
+        assertEquals(1, map.removeLast());
+        assertEquals(2, map.removeFirst());
+        assertTrue(map.isEmpty());
+    }
+
+    @Test
     void cursorContracts() {
         var map = new Int128LinkedMap<Integer>();
         map.put(0, 0, 1); map.put(1, 0, 2);

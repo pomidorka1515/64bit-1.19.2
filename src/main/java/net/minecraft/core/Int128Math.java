@@ -1,0 +1,146 @@
+package net.minecraft.core;
+
+/** Primitive two-long arithmetic. Hot callers keep results in their own locals. */
+public final class Int128Math {
+    /** Shared physics span; hard ceiling is (1L << 52) - 1 to retain fractional precision. */
+    public static final long MAX_SAFE_LOCAL_SPAN = 1L << 20;
+
+    private Int128Math() {
+    }
+
+    public static int compare(long aHi, long aLo, long bHi, long bLo) {
+        int high = Long.compare(aHi, bHi);
+        return high != 0 ? high : Long.compareUnsigned(aLo, bLo);
+    }
+
+    public static long addCarry(long aLo, long bLo, long resultLo) {
+        return Long.compareUnsigned(resultLo, aLo) < 0 ? 1L : 0L;
+    }
+
+    public static long subtractBorrow(long aLo, long bLo) {
+        return Long.compareUnsigned(aLo, bLo) < 0 ? 1L : 0L;
+    }
+
+    /** resultHi already includes carry, which must be zero or one. */
+    public static boolean addOverflowed(long aHi, long bHi, long carry, long resultHi) {
+        return ((aHi ^ resultHi) & (bHi ^ resultHi)) < 0L;
+    }
+
+    /** resultHi already includes borrow, which must be zero or one. */
+    public static boolean subtractOverflowed(long aHi, long bHi, long borrow, long resultHi) {
+        return ((aHi ^ bHi) & (aHi ^ resultHi)) < 0L;
+    }
+
+    public static long rightShiftHi(long hi) {
+        return rightShiftHi(hi, 4);
+    }
+
+    public static long rightShiftLo(long hi, long lo) {
+        return rightShiftLo(hi, lo, 4);
+    }
+
+    public static long rightShiftHi(long hi, int bits) {
+        checkShift(bits);
+        return bits < 64 ? hi >> bits : hi >> 63;
+    }
+
+    /** Reads the original high half. Counts above 127 sign-fill. */
+    public static long rightShiftLo(long hi, long lo, int bits) {
+        checkShift(bits);
+        if (bits == 0) return lo;
+        if (bits < 64) return (lo >>> bits) | (hi << (64 - bits));
+        return bits < 128 ? hi >> (bits - 64) : hi >> 63;
+    }
+
+    public static long leftShiftLo(long lo, int bits) {
+        checkShift(bits);
+        return bits < 64 ? lo << bits : 0L;
+    }
+
+    /** Wrapping high half; saturation is determined by a right-shift round trip. */
+    public static long leftShiftHi(long hi, long lo, int bits) {
+        checkShift(bits);
+        if (bits == 0) return hi;
+        if (bits < 64) return (hi << bits) | (lo >>> (64 - bits));
+        return bits < 128 ? lo << (bits - 64) : 0L;
+    }
+
+    private static void checkShift(int bits) {
+        if (bits < 0) throw new IllegalArgumentException("Negative shift count: " + bits);
+    }
+
+    /** Only valid after proving that the true signed span fits the local bound. */
+    public static double lowSignedDifference(long aLo, long bLo) {
+        return (double) (aLo - bLo);
+    }
+
+    /** Saturates to a signed long, including differences requiring 129 signed bits. */
+    public static long signedDifferenceAsLong(long aHi, long aLo, long bHi, long bLo) {
+        long lo = aLo - bLo;
+        long borrow = subtractBorrow(aLo, bLo);
+        long hi = aHi - bHi - borrow;
+        if (subtractOverflowed(aHi, bHi, borrow, hi)) {
+            return aHi < 0L ? Long.MIN_VALUE : Long.MAX_VALUE;
+        }
+        if (hi == (lo < 0L ? -1L : 0L)) return lo;
+        return hi < 0L ? Long.MIN_VALUE : Long.MAX_VALUE;
+    }
+
+    public static boolean signedDifferenceExact(long aHi, long aLo, long bHi, long bLo) {
+        long difference = signedDifferenceAsLong(aHi, aLo, bHi, bLo);
+        return difference >= -MAX_SAFE_LOCAL_SPAN && difference <= MAX_SAFE_LOCAL_SPAN;
+    }
+
+    /** Out-of-span values are signed long-limit sentinels for hints only. Reuse exactOut. */
+    public static double signedDifference(long aHi, long aLo, long bHi, long bLo, boolean[] exactOut) {
+        long difference = signedDifferenceAsLong(aHi, aLo, bHi, bLo);
+        boolean exact = difference >= -MAX_SAFE_LOCAL_SPAN && difference <= MAX_SAFE_LOCAL_SPAN;
+        exactOut[0] = exact;
+        return exact ? (double) difference : difference < 0L ? (double) Long.MIN_VALUE : (double) Long.MAX_VALUE;
+    }
+
+    public static double signedDifference(Int128 a, Int128 b, boolean[] exactOut) {
+        return signedDifference(a.hi(), a.lo(), b.hi(), b.lo(), exactOut);
+    }
+
+    public static boolean signedDifferenceExact(Int128 a, Int128 b) {
+        return signedDifferenceExact(a.hi(), a.lo(), b.hi(), b.lo());
+    }
+
+    /** Nonnegative distance, saturated at Long.MAX_VALUE. */
+    public static long distance(long aHi, long aLo, long bHi, long bLo) {
+        return compare(aHi, aLo, bHi, bLo) >= 0
+            ? signedDifferenceAsLong(aHi, aLo, bHi, bLo)
+            : signedDifferenceAsLong(bHi, bLo, aHi, aLo);
+    }
+
+    public static long distancePlusOne(long aHi, long aLo, long bHi, long bLo) {
+        long distance = distance(aHi, aLo, bHi, bLo);
+        return distance == Long.MAX_VALUE ? distance : distance + 1L;
+    }
+
+    /** Nonnegative span product; negative operands are caller errors. */
+    public static long safeProduct(long first, long second) {
+        if (first < 0L || second < 0L) throw new IllegalArgumentException("Negative span");
+        return second != 0L && first > Long.MAX_VALUE / second ? Long.MAX_VALUE : first * second;
+    }
+
+    /** Cold boundary returning a value object. Floors before saturated addition. */
+    public static Int128 addDoubleBlockOffset(long hi, long lo, double offset) {
+        if (Double.isNaN(offset)) return Int128.of(hi, lo);
+        if (offset >= 0x1.0p128) return Int128.MAX;
+        if (offset <= -0x1.0p128) return Int128.MIN;
+        // A delta outside the signed domain can still cancel the original coordinate.
+        if (offset >= 0x1.0p127) {
+            Int128 remainder = Int128.fromDoubleFloorSaturated(offset - 0x1.0p127);
+            if (hi >= 0L) return Int128.MAX;
+            return Int128.of(hi ^ Long.MIN_VALUE, lo).addSaturated(remainder);
+        }
+        if (offset < -0x1.0p127) {
+            Int128 remainder = Int128.fromDoubleFloorSaturated(offset + 0x1.0p127);
+            if (hi < 0L) return Int128.MIN;
+            return Int128.of(hi ^ Long.MIN_VALUE, lo).addSaturated(remainder);
+        }
+        return Int128.of(hi, lo).addSaturated(Int128.fromDoubleFloorSaturated(offset));
+    }
+}

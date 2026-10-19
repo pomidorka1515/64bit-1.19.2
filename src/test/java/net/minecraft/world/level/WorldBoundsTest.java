@@ -6,16 +6,102 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Cursor3D;
+import net.minecraft.core.Int128;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import org.junit.jupiter.api.Test;
 
 class WorldBoundsTest {
+    @Test
+    void fullWidthChunkDomainContainsExactlyTheRepresentableBlocks() {
+        assertEquals(Int128.MIN, WorldBounds.MIN_BLOCK_128);
+        assertEquals(Int128.MAX, WorldBounds.MAX_BLOCK_128);
+        assertEquals(Int128.of(Long.MIN_VALUE >> 4, 0L), WorldBounds.MIN_CHUNK_128);
+        assertEquals(Int128.of(Long.MAX_VALUE >> 4, -1L), WorldBounds.MAX_CHUNK_128);
+        assertEquals(Int128.MIN, WorldBounds.chunkToBlock(WorldBounds.MIN_CHUNK_128));
+        assertEquals(Int128.MAX.subtract(Int128.fromLong(15L)), WorldBounds.chunkToBlock(WorldBounds.MAX_CHUNK_128));
+        assertEquals(WorldBounds.MIN_CHUNK_128, WorldBounds.clampChunk(Int128.MIN));
+        assertEquals(WorldBounds.MAX_CHUNK_128, WorldBounds.clampChunk(Int128.MAX));
+        assertEquals(Int128.MIN, WorldBounds.chunkToBlock(Int128.MIN));
+        assertEquals(Int128.MAX.subtract(Int128.fromLong(15L)), WorldBounds.chunkToBlock(Int128.MAX));
+        assertEquals(Int128.fromLong(-16L), WorldBounds.chunkToBlock(Int128.fromLong(-1L)));
+    }
+
+    @Test
+    void fullWidthChunkOffsetsSaturateOrRejectAtTheEdges() {
+        for (long offset : new long[] {1L, Long.MAX_VALUE}) {
+            assertEquals(WorldBounds.MAX_CHUNK_128, WorldBounds.addChunkOffset(WorldBounds.MAX_CHUNK_128, offset));
+            assertNull(WorldBounds.tryAddChunkOffset(WorldBounds.MAX_CHUNK_128, offset));
+        }
+        for (long offset : new long[] {-1L, Long.MIN_VALUE}) {
+            assertEquals(WorldBounds.MIN_CHUNK_128, WorldBounds.addChunkOffset(WorldBounds.MIN_CHUNK_128, offset));
+            assertNull(WorldBounds.tryAddChunkOffset(WorldBounds.MIN_CHUNK_128, offset));
+        }
+        for (Int128 edge : new Int128[] {WorldBounds.MIN_CHUNK_128, WorldBounds.MAX_CHUNK_128}) {
+            assertEquals(edge, WorldBounds.tryAddChunkOffset(edge, 0L));
+        }
+        assertEquals(WorldBounds.MAX_CHUNK_128.subtract(Int128.ONE),
+                WorldBounds.tryAddChunkOffset(WorldBounds.MAX_CHUNK_128, -1L));
+        assertEquals(WorldBounds.MIN_CHUNK_128.add(Int128.ONE),
+                WorldBounds.tryAddChunkOffset(WorldBounds.MIN_CHUNK_128, 1L));
+        assertNull(WorldBounds.tryAddChunkOffset(Int128.MAX, Long.MIN_VALUE));
+        assertNull(WorldBounds.tryAddChunkOffset(Int128.MIN, Long.MAX_VALUE));
+        assertEquals(WorldBounds.MAX_CHUNK_128, WorldBounds.addChunkOffset(Int128.MAX, Long.MAX_VALUE));
+        assertEquals(WorldBounds.MIN_CHUNK_128, WorldBounds.addChunkOffset(Int128.MIN, Long.MIN_VALUE));
+    }
+
+    @Test
+    void fullWidthConversionsAndOffsetsMatchBigInteger() {
+        BigInteger minBlock = BigInteger.ONE.shiftLeft(127).negate();
+        BigInteger maxBlock = BigInteger.ONE.shiftLeft(127).subtract(BigInteger.ONE);
+        BigInteger minChunk = minBlock.shiftRight(4);
+        BigInteger maxChunk = maxBlock.shiftRight(4);
+        Random random = new Random(0x5201L);
+        for (int i = 0; i < 1000; ++i) {
+            Int128 coordinate = Int128.of(random.nextLong(), random.nextLong());
+            BigInteger value = new BigInteger(coordinate.toString());
+            BigInteger clamped = value.max(minChunk).min(maxChunk);
+            assertEquals(clamped.toString(), WorldBounds.clampChunk(coordinate).toString());
+            assertEquals(clamped.shiftLeft(4).toString(), WorldBounds.chunkToBlock(coordinate).toString());
+
+            Int128 chunk = coordinate.shiftRight(4);
+            assertEquals(value.shiftRight(4).toString(), chunk.toString());
+            long offset = random.nextLong();
+            BigInteger sum = value.shiftRight(4).add(BigInteger.valueOf(offset));
+            assertEquals(sum.max(minChunk).min(maxChunk).toString(), WorldBounds.addChunkOffset(chunk, offset).toString());
+            if (sum.compareTo(minChunk) < 0 || sum.compareTo(maxChunk) > 0) {
+                assertNull(WorldBounds.tryAddChunkOffset(chunk, offset));
+            } else {
+                assertEquals(sum.toString(), WorldBounds.tryAddChunkOffset(chunk, offset).toString());
+            }
+
+            // Legal region coordinates round-trip their chunk and local index exactly.
+            Int128 region = chunk.shiftRight(5);
+            long local = chunk.lo() & 31L;
+            assertEquals(chunk, WorldBounds.regionToChunk(region, local));
+        }
+    }
+
+    @Test
+    void fullWidthRegionConversionSaturatesWithoutWrapping() {
+        assertEquals(Int128.MAX, WorldBounds.regionToChunk(Int128.MAX, Long.MAX_VALUE));
+        assertEquals(Int128.MIN, WorldBounds.regionToChunk(Int128.MIN, Long.MIN_VALUE));
+        assertEquals(Int128.MAX.subtract(Int128.ONE), WorldBounds.regionToChunk(Int128.MAX, -1L));
+        assertEquals(Int128.MIN.add(Int128.ONE), WorldBounds.regionToChunk(Int128.MIN, 1L));
+        assertEquals(Int128.fromLong(-1L), WorldBounds.regionToChunk(Int128.fromLong(-1L), 31L));
+        assertEquals(WorldBounds.MIN_CHUNK_128,
+                WorldBounds.regionToChunk(WorldBounds.MIN_CHUNK_128.shiftRight(5), 0L));
+        assertEquals(WorldBounds.MAX_CHUNK_128,
+                WorldBounds.regionToChunk(WorldBounds.MAX_CHUNK_128.shiftRight(5), 31L));
+    }
+
     @Test
     void chunkDomainIsTheDomainOfChunksContainingLongBlocks() {
         assertEquals(Long.MIN_VALUE >> 4, WorldBounds.MIN_CHUNK);

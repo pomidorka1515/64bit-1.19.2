@@ -1,13 +1,16 @@
 package net.minecraft.world.level;
 
+import net.minecraft.core.Int128;
+
 /**
- * The representable horizontal coordinate limits of the long-coordinate world.
+ * The representable horizontal coordinate limits of the world.
  *
  * <p>A block coordinate is a signed long.  Dividing the two block limits by
  * sixteen gives the only chunk coordinates that can contain a representable
  * block.  Keeping these values in one place is important: an overflowing
  * {@code long} subtraction must never turn a request at an edge of the world
- * into a request at the opposite edge.</p>
+ * into a request at the opposite edge. The additive {@code Int128} overloads
+ * and {@code _128} constants provide the full-width domain during migration.</p>
  */
 public final class WorldBounds {
     public static final long MIN_BLOCK = Long.MIN_VALUE;
@@ -15,7 +18,41 @@ public final class WorldBounds {
     public static final long MIN_CHUNK = MIN_BLOCK >> 4;
     public static final long MAX_CHUNK = MAX_BLOCK >> 4;
 
+    public static final Int128 MIN_BLOCK_128 = Int128.MIN;
+    public static final Int128 MAX_BLOCK_128 = Int128.MAX;
+    public static final Int128 MIN_CHUNK_128 = MIN_BLOCK_128.shiftRight(4);
+    public static final Int128 MAX_CHUNK_128 = MAX_BLOCK_128.shiftRight(4);
+
     private WorldBounds() {
+    }
+
+    public static Int128 clampChunk(Int128 chunk) {
+        if (chunk.compareTo(MIN_CHUNK_128) < 0)
+            return MIN_CHUNK_128;
+        if (chunk.compareTo(MAX_CHUNK_128) > 0)
+            return MAX_CHUNK_128;
+        return chunk;
+    }
+
+    /** Converts a chunk coordinate to its first block without overflowing. */
+    public static Int128 chunkToBlock(Int128 chunk) {
+        return clampChunk(chunk).shiftLeftSaturated(4);
+    }
+
+    /** Adds a chunk offset, saturating to the representable chunk interval. */
+    public static Int128 addChunkOffset(Int128 chunk, long offset) {
+        return clampChunk(chunk.addSaturated(Int128.fromLong(offset)));
+    }
+
+    /** Returns null when the offset would leave the representable chunk range. */
+    public static Int128 tryAddChunkOffset(Int128 chunk, long offset) {
+        Int128 result = chunk.addSaturated(Int128.fromLong(offset));
+        return result.compareTo(MIN_CHUNK_128) < 0 || result.compareTo(MAX_CHUNK_128) > 0 ? null : result;
+    }
+
+    /** Converts a region and local chunk offset, saturating each operation to 128 bits. */
+    public static Int128 regionToChunk(Int128 region, long localChunk) {
+        return region.shiftLeftSaturated(5).addSaturated(Int128.fromLong(localChunk));
     }
 
     public static long clampChunk(long chunk) {

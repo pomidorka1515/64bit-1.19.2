@@ -19,6 +19,126 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import org.junit.jupiter.api.Test;
 
 class WorldBoundsTest {
+    private static final BigInteger MIN_128 = BigInteger.ONE.shiftLeft(127).negate();
+    private static final BigInteger MAX_128 = BigInteger.ONE.shiftLeft(127).subtract(BigInteger.ONE);
+
+    private static BigInteger wide(Int128 value) {
+        return new BigInteger(value.toString());
+    }
+
+    private static BigInteger clamp128(BigInteger value) {
+        return value.max(MIN_128).min(MAX_128);
+    }
+
+    private static long clampLong(BigInteger value) {
+        return value.max(BigInteger.valueOf(Long.MIN_VALUE)).min(BigInteger.valueOf(Long.MAX_VALUE)).longValue();
+    }
+
+    @Test
+    void fullWidthArithmeticMatchesBigInteger() {
+        Int128[] edges = {Int128.MIN, Int128.MIN.add(Int128.ONE), Int128.fromLong(Long.MIN_VALUE),
+                Int128.fromLong(-1L), Int128.ZERO, Int128.ONE, Int128.fromLong(Long.MAX_VALUE),
+                Int128.of(1L, 0L), Int128.MAX.subtract(Int128.ONE), Int128.MAX};
+        long[] offsets = {Long.MIN_VALUE, Integer.MIN_VALUE, -1L, 0L, 1L, Integer.MAX_VALUE, Long.MAX_VALUE};
+        for (Int128 a : edges) {
+            for (long offset : offsets) {
+                assertFullWidthOffset(a, offset);
+            }
+            for (Int128 b : edges) {
+                assertEquals(clamp128(wide(a).add(wide(b))).toString(), WorldBounds.addBlockOffset(a, b).toString());
+                for (long factor : offsets) {
+                    for (long otherFactor : offsets) {
+                        BigInteger firstProduct = clamp128(wide(a).multiply(BigInteger.valueOf(factor)));
+                        BigInteger secondProduct = clamp128(wide(b).multiply(BigInteger.valueOf(otherFactor)));
+                        assertEquals(clamp128(firstProduct.subtract(secondProduct)).toString(),
+                                WorldBounds.crossComponent(a, factor, b, otherFactor).toString());
+                    }
+                }
+                for (Int128 c : edges) {
+                    assertEquals(clamp128(wide(a).add(wide(b)).subtract(wide(c))).toString(),
+                            WorldBounds.addSubtract(a, b, c).toString());
+                }
+            }
+            for (int offset : new int[] {Integer.MIN_VALUE, -1, 0, 1, Integer.MAX_VALUE}) {
+                assertEquals(WorldBounds.addBlockOffset(a, (long) offset), WorldBounds.addBlockOffset(a, offset));
+                assertEquals(WorldBounds.subtractBlockOffset(a, (long) offset), WorldBounds.subtractBlockOffset(a, offset));
+                assertEquals(WorldBounds.multiplySaturated(a, (long) offset), WorldBounds.multiplySaturated(a, offset));
+            }
+        }
+        Random random = new Random(0x5202L);
+        for (int i = 0; i < 1000; ++i) {
+            Int128 a = Int128.of(random.nextLong(), random.nextLong());
+            Int128 b = Int128.of(random.nextLong(), random.nextLong());
+            Int128 c = Int128.of(random.nextLong(), random.nextLong());
+            long factor = random.nextLong();
+            long otherFactor = random.nextLong();
+            assertFullWidthOffset(a, factor);
+            assertEquals(clamp128(wide(a).add(wide(b))).toString(), WorldBounds.addBlockOffset(a, b).toString());
+            assertEquals(clamp128(wide(a).add(wide(b)).subtract(wide(c))).toString(),
+                    WorldBounds.addSubtract(a, b, c).toString());
+            BigInteger firstProduct = clamp128(wide(a).multiply(BigInteger.valueOf(factor)));
+            BigInteger secondProduct = clamp128(wide(b).multiply(BigInteger.valueOf(otherFactor)));
+            assertEquals(clamp128(firstProduct.subtract(secondProduct)).toString(),
+                    WorldBounds.crossComponent(a, factor, b, otherFactor).toString());
+        }
+        assertEquals(Int128.ZERO, WorldBounds.crossComponent(Int128.MAX, 2L, Int128.MAX, 2L));
+        assertEquals(Int128.MAX, WorldBounds.addSubtract(Int128.MAX, Int128.MAX, Int128.MAX));
+    }
+
+    private static void assertFullWidthOffset(Int128 coordinate, long offset) {
+        BigInteger value = wide(coordinate);
+        BigInteger delta = BigInteger.valueOf(offset);
+        assertEquals(clamp128(value.add(delta)).toString(), WorldBounds.addBlockOffset(coordinate, offset).toString());
+        assertEquals(clamp128(value.subtract(delta)).toString(), WorldBounds.subtractBlockOffset(coordinate, offset).toString());
+        assertEquals(clamp128(value.multiply(delta)).toString(), WorldBounds.multiplySaturated(coordinate, offset).toString());
+    }
+
+    @Test
+    void legacyCompoundArithmeticPreservesCancellation() {
+        long[] edges = {Long.MIN_VALUE, Long.MIN_VALUE + 1L, -1L, 0L, 1L, Long.MAX_VALUE - 1L, Long.MAX_VALUE};
+        for (long a : edges) {
+            for (long b : edges) {
+                for (long c : edges) {
+                    assertEquals(clampLong(BigInteger.valueOf(a).add(BigInteger.valueOf(b)).subtract(BigInteger.valueOf(c))),
+                            WorldBounds.addSubtract(a, b, c));
+                    for (long d : edges) {
+                        assertEquals(clampLong(BigInteger.valueOf(a).multiply(BigInteger.valueOf(b))
+                                        .subtract(BigInteger.valueOf(c).multiply(BigInteger.valueOf(d)))),
+                                WorldBounds.crossComponent(a, b, c, d));
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    void absoluteDoubleIngressUsesFullWidthBounds() {
+        assertEquals(0.0D, WorldBounds.clampAbsoluteDouble(Double.NaN));
+        for (double value : new double[] {Double.NEGATIVE_INFINITY, -Double.MAX_VALUE, -0x1p127}) {
+            assertEquals(-0x1p127, WorldBounds.clampAbsoluteDouble(value));
+        }
+        for (double value : new double[] {Double.POSITIVE_INFINITY, Double.MAX_VALUE, 0x1p127}) {
+            assertEquals(Math.nextDown(0x1p127), WorldBounds.clampAbsoluteDouble(value));
+        }
+        for (double value : new double[] {-0x1p100, -0.5D, 0.0D, 0x1p63, 0x1p100, Math.nextDown(0x1p127)}) {
+            assertEquals(value, WorldBounds.clampAbsoluteDouble(value));
+        }
+    }
+
+    @Test
+    void fullWidthNoiseUsesOnlyTheLegacyLowWordProjection() {
+        for (long high : new long[] {Long.MIN_VALUE, -1L, 0L, 1L, Long.MAX_VALUE}) {
+            for (long low : new long[] {Long.MIN_VALUE, -1L, 0L, 1L, Long.MAX_VALUE}) {
+                Int128 coordinate = Int128.of(high, low);
+                double expected = Math.max(-0x1p63, Math.min(Math.nextDown(0x1p63), (double) low));
+                assertEquals(expected, WorldBounds.noiseCoordinate(coordinate));
+                for (double scale : new double[] {-Double.MAX_VALUE, -1.0D, 0.0D, 0.5D, Double.MAX_VALUE, Double.NaN, Double.POSITIVE_INFINITY}) {
+                    assertEquals(WorldBounds.scaledNoiseCoordinate(low, scale), WorldBounds.scaledNoiseCoordinate(coordinate, scale));
+                }
+            }
+        }
+    }
+
     @Test
     void fullWidthChunkDomainContainsExactlyTheRepresentableBlocks() {
         assertEquals(Int128.MIN, WorldBounds.MIN_BLOCK_128);

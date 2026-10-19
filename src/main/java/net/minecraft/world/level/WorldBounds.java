@@ -55,6 +55,57 @@ public final class WorldBounds {
         return region.shiftLeftSaturated(5).addSaturated(Int128.fromLong(localChunk));
     }
 
+    /** Adds a block offset, saturating only at the signed 128-bit edges. */
+    public static Int128 addBlockOffset(Int128 block, long offset) {
+        return addBlockOffset(block, Int128.fromLong(offset));
+    }
+
+    public static Int128 addBlockOffset(Int128 block, int offset) {
+        return addBlockOffset(block, (long) offset);
+    }
+
+    public static Int128 addBlockOffset(Int128 block, Int128 offset) {
+        return block.addSaturated(offset);
+    }
+
+    public static Int128 subtractBlockOffset(Int128 block, long offset) {
+        return block.subtractSaturated(Int128.fromLong(offset));
+    }
+
+    public static Int128 subtractBlockOffset(Int128 block, int offset) {
+        return subtractBlockOffset(block, (long) offset);
+    }
+
+    public static Int128 multiplySaturated(Int128 coordinate, long factor) {
+        return coordinate.multiplySaturated(factor);
+    }
+
+    public static Int128 multiplySaturated(Int128 coordinate, int factor) {
+        return multiplySaturated(coordinate, (long) factor);
+    }
+
+    /** Saturates each product and then their difference in the horizontal domain. */
+    public static Int128 crossComponent(Int128 a, long b, Int128 c, long d) {
+        return a.multiplySaturated(b).subtractSaturated(c.multiplySaturated(d));
+    }
+
+    /** Adds two coordinates and subtracts a third, clamping only the final result. */
+    public static Int128 addSubtract(Int128 first, Int128 second, Int128 subtrahend) {
+        // Same-sign subtraction cannot overflow; do it first to preserve cancellation.
+        if ((first.hi() < 0L) == (subtrahend.hi() < 0L))
+            return first.subtract(subtrahend).addSaturated(second);
+        return first.addSaturated(second).subtractSaturated(subtrahend);
+    }
+
+    /** Low-64 projection for the deferred world-generation seam. */
+    public static double noiseCoordinate(Int128 coordinate) {
+        return noiseCoordinate(coordinate.toLongLow());
+    }
+
+    public static double scaledNoiseCoordinate(Int128 coordinate, double scale) {
+        return scaledNoiseCoordinate(coordinate.toLongLow(), scale);
+    }
+
     public static long clampChunk(long chunk) {
         return Math.max(MIN_CHUNK, Math.min(MAX_CHUNK, chunk));
     }
@@ -66,7 +117,7 @@ public final class WorldBounds {
 
     /** Converts an X/Z block coordinate to a finite noise input. */
     public static double noiseCoordinate(long coordinate) {
-        return clampAbsoluteDouble((double) coordinate);
+        return clampProjectedNoiseCoordinate((double) coordinate);
     }
 
     /** Scales an X/Z coordinate without allowing infinity into a noise sampler. */
@@ -76,7 +127,11 @@ public final class WorldBounds {
             return 0.0D;
         if (!Double.isFinite(result))
             return result < 0.0D ? -0x1.0p63 : Math.nextDown(0x1.0p63);
-        return clampAbsoluteDouble(result);
+        return clampProjectedNoiseCoordinate(result);
+    }
+
+    private static double clampProjectedNoiseCoordinate(double coordinate) {
+        return Math.max(-0x1.0p63, Math.min(Math.nextDown(0x1.0p63), coordinate));
     }
 
     /** Clamps an inclusive Y coordinate to a build-height interval. */
@@ -117,22 +172,20 @@ public final class WorldBounds {
 
     /** Computes a determinant before clamping, preserving cancellation. */
     public static long crossComponent(long a, long b, long c, long d) {
-        java.math.BigInteger result = java.math.BigInteger.valueOf(a).multiply(java.math.BigInteger.valueOf(b))
-                .subtract(java.math.BigInteger.valueOf(c).multiply(java.math.BigInteger.valueOf(d)));
-        return result.max(java.math.BigInteger.valueOf(Long.MIN_VALUE))
-                .min(java.math.BigInteger.valueOf(Long.MAX_VALUE)).longValue();
+        return clampToLong(crossComponent(Int128.fromLong(a), b, Int128.fromLong(c), d));
     }
 
     /** Adds two coordinates and subtracts a third, clamping only the final result. */
     public static long addSubtract(long first, long second, long subtrahend) {
-        try {
-            return Math.subtractExact(Math.addExact(first, second), subtrahend);
-        } catch (ArithmeticException overflow) {
-            java.math.BigInteger result = java.math.BigInteger.valueOf(first).add(java.math.BigInteger.valueOf(second))
-                    .subtract(java.math.BigInteger.valueOf(subtrahend));
-            return result.max(java.math.BigInteger.valueOf(Long.MIN_VALUE))
-                    .min(java.math.BigInteger.valueOf(Long.MAX_VALUE)).longValue();
-        }
+        return clampToLong(addSubtract(Int128.fromLong(first), Int128.fromLong(second), Int128.fromLong(subtrahend)));
+    }
+
+    private static long clampToLong(Int128 value) {
+        if (value.compareTo(Int128.fromLong(Long.MIN_VALUE)) < 0)
+            return Long.MIN_VALUE;
+        if (value.compareTo(Int128.fromLong(Long.MAX_VALUE)) > 0)
+            return Long.MAX_VALUE;
+        return value.toLongLow();
     }
 
     /**
@@ -412,11 +465,11 @@ public final class WorldBounds {
     public static double clampAbsoluteDouble(double coordinate) {
         if (Double.isNaN(coordinate))
             return 0.0D;
-        if (coordinate == Double.NEGATIVE_INFINITY || coordinate < (double) MIN_BLOCK)
-            return (double) MIN_BLOCK;
-        // 2^63 itself has no valid floor block.  The next representable double
-        // below it is still inside the last block and is the correct safe edge.
-        double upperExclusive = 0x1.0p63;
+        if (coordinate == Double.NEGATIVE_INFINITY || coordinate < -0x1.0p127)
+            return -0x1.0p127;
+        // 2^127 itself has no valid floor block. The next representable double
+        // below it has a representable floor block and is the correct safe edge.
+        double upperExclusive = 0x1.0p127;
         if (coordinate == Double.POSITIVE_INFINITY || coordinate >= upperExclusive)
             return Math.nextDown(upperExclusive);
         return coordinate;

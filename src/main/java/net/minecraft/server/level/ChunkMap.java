@@ -240,8 +240,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     /** Visits a small, edge-clipped rectangular chunk range without overflowing. */
     private static void forEachChunkBox(long centerX1, long centerZ1, long centerX2, long centerZ2,
             long edgeRadius, Consumer<ChunkPos> action) {
-        if (edgeRadius < 0L || !WorldBounds.isValidChunk(centerX1, centerZ1)
-                || !WorldBounds.isValidChunk(centerX2, centerZ2)) {
+        if (edgeRadius < 0L) {
             return;
         }
         long minX = WorldBounds.addChunkOffset(Math.min(centerX1, centerX2), -edgeRadius);

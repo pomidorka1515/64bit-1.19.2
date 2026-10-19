@@ -29,7 +29,6 @@ import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.LocalMobCapCalculator;
@@ -113,8 +112,6 @@ public class ServerChunkCache extends ChunkSource {
 
     @Nullable
     public ChunkAccess getChunk(long pChunkX, long pChunkZ, ChunkStatus pRequiredStatus, boolean pLoad) {
-        if (!WorldBounds.isValidChunk(pChunkX, pChunkZ))
-            return null;
         if (Thread.currentThread() != this.mainThread) {
             return CompletableFuture.supplyAsync(() -> {
                                         return this.getChunk(pChunkX, pChunkZ, pRequiredStatus, pLoad);
@@ -161,7 +158,7 @@ public class ServerChunkCache extends ChunkSource {
     */
     @Nullable
     public ChunkAccess getChunkNow(long pChunkX, long pChunkZ, ChunkStatus status) {
-        if (!WorldBounds.isValidChunk(pChunkX, pChunkZ) || Thread.currentThread() != this.mainThread) {
+        if (Thread.currentThread() != this.mainThread) {
             return null;
         }
 
@@ -192,14 +189,12 @@ public class ServerChunkCache extends ChunkSource {
     }
 
     private void clearCache() {
-        Arrays.fill(this.lastChunkPos, ChunkPos.INVALID_CHUNK_POS);
+        Arrays.fill(this.lastChunkPos, null);
         Arrays.fill(this.lastChunkStatus, (Object) null);
         Arrays.fill(this.lastChunk, (Object) null);
     }
 
     public CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> getChunkFuture(long p_8432_, long p_8433_, ChunkStatus p_8434_, boolean p_8435_) {
-        if (!WorldBounds.isValidChunk(p_8432_, p_8433_))
-            return ChunkHolder.UNLOADED_CHUNK_FUTURE;
         boolean flag = Thread.currentThread() == this.mainThread;
         CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> completablefuture;
         if (flag) {
@@ -237,21 +232,17 @@ public class ServerChunkCache extends ChunkSource {
         return this.chunkAbsent(chunkholder, j) ? ChunkHolder.UNLOADED_CHUNK_FUTURE : chunkholder.getOrScheduleFuture(p_8459_, this.chunkMap);
     }
 
-    private boolean chunkAbsent(@Nullable ChunkHolder p_8417_, int p_8418_) {
+    static boolean chunkAbsent(@Nullable ChunkHolder p_8417_, int p_8418_) {
         return p_8417_ == null || p_8417_.getTicketLevel() > p_8418_;
     }
 
     public boolean hasChunk(long pX, long pZ) {
-        if (!WorldBounds.isValidChunk(pX, pZ))
-            return false;
         ChunkHolder chunkholder = this.getVisibleChunkIfPresent(new ChunkPos(pX, pZ));
         int i = 33 + ChunkStatus.getDistance(ChunkStatus.FULL);
         return !this.chunkAbsent(chunkholder, i);
     }
 
     public BlockGetter getChunkForLighting(long pChunkX, long pChunkZ) {
-        if (!WorldBounds.isValidChunk(pChunkX, pChunkZ))
-            return null;
         ChunkPos i = new ChunkPos(pChunkX, pChunkZ);
         ChunkHolder chunkholder = this.getVisibleChunkIfPresent(i);
         if (chunkholder == null) {

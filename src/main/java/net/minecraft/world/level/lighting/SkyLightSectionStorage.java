@@ -9,7 +9,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.chunk.DataLayer;
 import net.minecraft.world.level.chunk.LightChunkGetter;
 
@@ -111,9 +110,6 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
     }
 
     protected void enableLightSources(SectionPos column, boolean enabled) {
-        if (!WorldBounds.isValidChunk(column.x(), column.z()))
-            return;
-
         this.runAllUpdates();
         if (enabled && this.columnsWithSkySources.add(column)) {
             int topSection = this.updatingSectionData.topSections.getOrDefault(column, this.updatingSectionData.currentLowestY);

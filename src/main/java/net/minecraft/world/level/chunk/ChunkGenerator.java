@@ -629,7 +629,7 @@ public abstract class ChunkGenerator {
 
         for (long j1 = firstX;; j1 = WorldBounds.addChunkOffset(j1, 1L)) {
             for (long k1 = firstZ;; k1 = WorldBounds.addChunkOffset(k1, 1L)) {
-                if (WorldBounds.isValidChunk(j1, k1)) {
+                if (pLevel.hasChunk(j1, k1)) {
                     ChunkPos l1 = new ChunkPos(j1, k1);
 
                     for (StructureStart structurestart : pLevel.getChunk(j1, k1).getAllStarts().values()) {

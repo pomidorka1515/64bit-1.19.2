@@ -690,7 +690,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
     public void handleLevelChunkWithLight(ClientboundLevelChunkWithLightPacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
-        if (!WorldBounds.isValidChunk(pPacket.getX(), pPacket.getZ()))
+        if (!this.level.getChunkSource().isInViewRange(pPacket.getX(), pPacket.getZ()))
             return;
         this.updateLevelChunk(pPacket.getX(), pPacket.getZ(), pPacket.getChunkData());
         this.queueLightUpdate(pPacket.getX(), pPacket.getZ(), pPacket.getLightData());
@@ -702,6 +702,8 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
     private void queueLightUpdate(long pX, long pZ, ClientboundLightUpdatePacketData pData) {
         this.level.queueLightUpdate(() -> {
+            if (!this.level.getChunkSource().isInViewRange(pX, pZ))
+                return;
             this.applyLightData(pX, pZ, pData);
             LevelChunk levelchunk = this.level.getChunkSource().getChunk(pX, pZ, false);
             if (levelchunk != null) {
@@ -730,8 +732,6 @@ public class ClientPacketListener implements ClientGamePacketListener {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
         long i = pPacket.getX();
         long j = pPacket.getZ();
-        if (!WorldBounds.isValidChunk(i, j))
-            return;
         ClientChunkCache clientchunkcache = this.level.getChunkSource();
         clientchunkcache.drop(i, j);
         this.queueLightUpdate(pPacket);
@@ -2098,12 +2098,14 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
     public void handleLightUpdatePacket(ClientboundLightUpdatePacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
-        if (!WorldBounds.isValidChunk(pPacket.getX(), pPacket.getZ()))
+        if (!this.level.getChunkSource().isInViewRange(pPacket.getX(), pPacket.getZ()))
             return;
         long i = pPacket.getX();
         long j = pPacket.getZ();
         ClientboundLightUpdatePacketData clientboundlightupdatepacketdata = pPacket.getLightData();
         this.level.queueLightUpdate(() -> {
+            if (!this.level.getChunkSource().isInViewRange(i, j))
+                return;
             this.applyLightData(i, j, clientboundlightupdatepacketdata);
         });
     }

@@ -56,9 +56,11 @@ public class ClientChunkCache extends ChunkSource {
         }
     }
 
+    public boolean isInViewRange(long chunkX, long chunkZ) {
+        return this.storage.inRange(chunkX, chunkZ);
+    }
+
     public void drop(long i2, long j) {
-        if (!WorldBounds.isValidChunk(i2, j))
-            return;
         if (this.storage.inRange(i2, j)) {
             int i = this.storage.getIndex(i2, j);
             LevelChunk levelchunk = this.storage.getChunk(i);
@@ -70,8 +72,6 @@ public class ClientChunkCache extends ChunkSource {
 
     @Nullable
     public LevelChunk getChunk(long pChunkX, long pChunkZ, ChunkStatus pRequiredStatus, boolean pLoad) {
-        if (!WorldBounds.isValidChunk(pChunkX, pChunkZ))
-            return null;
         if (this.storage.inRange(pChunkX, pChunkZ)) {
             LevelChunk levelchunk = this.storage.getChunk(this.storage.getIndex(pChunkX, pChunkZ));
             if (isValidChunk(levelchunk, pChunkX, pChunkZ)) {
@@ -88,8 +88,6 @@ public class ClientChunkCache extends ChunkSource {
 
     @Nullable
     public LevelChunk replaceWithPacketData(long pX, long pZ, FriendlyByteBuf pBuffer, CompoundTag pTag, Consumer<ClientboundLevelChunkPacketData.BlockEntityTagOutput> pConsumer) {
-        if (!WorldBounds.isValidChunk(pX, pZ))
-            return null;
         if (!this.storage.inRange(pX, pZ)) {
             LOGGER.warn("Ignoring chunk since it's not in the view range: {}, {}", pX, pZ);
             return null;

@@ -53,9 +53,6 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
     default Holder<Biome> getNoiseBiome(long pX, int pY, long pZ) {
         long sectionX = QuartPos.toSection(pX);
         long sectionZ = QuartPos.toSection(pZ);
-        if (!WorldBounds.isValidChunk(sectionX, sectionZ)) {
-            return this.getUncachedNoiseBiome(pX, pY, pZ);
-        }
         ChunkAccess chunkaccess = this.getChunk(sectionX, sectionZ, ChunkStatus.BIOMES, false);
         return chunkaccess != null ? chunkaccess.getNoiseBiome(pX, pY, pZ) : this.getUncachedNoiseBiome(pX, pY, pZ);
     }
@@ -211,9 +208,6 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
     /** @deprecated */
     @Deprecated
     default boolean hasChunksAt(long pFromX, long pFromZ, long pToX, long pToZ) {
-        if (!WorldBounds.isValidBlock(pFromX, pFromZ) || !WorldBounds.isValidBlock(pToX, pToZ)) {
-            return false;
-        }
         long minX = Math.min(pFromX, pToX);
         long maxX = Math.max(pFromX, pToX);
         long minZ = Math.min(pFromZ, pToZ);

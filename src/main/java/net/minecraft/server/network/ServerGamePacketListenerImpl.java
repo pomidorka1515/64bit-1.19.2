@@ -473,11 +473,11 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                 for (long z = box.minBlockZForRange();; z = WorldBounds.addBlockOffset(z, 1L)) {
                     if (!entity.level.getBlockState(new BlockPos(x, y, z)).isAir())
                         return false;
-                    if (z == box.maxBlockZForRangeInclusive() || z == Long.MAX_VALUE)
+                    if (!WorldBounds.canAdvanceBlock(z, box.maxBlockZForRangeInclusive()))
                         break;
                 }
             }
-            if (x == box.maxBlockXForRangeInclusive() || x == Long.MAX_VALUE)
+            if (!WorldBounds.canAdvanceBlock(x, box.maxBlockXForRangeInclusive()))
                 break;
         }
         return true;
@@ -554,7 +554,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
             BaseCommandBlock basecommandblock = null;
             CommandBlockEntity commandblockentity = null;
             BlockPos blockpos = pPacket.getPos();
-            if (!WorldBounds.isValidBlock(blockpos.getX(), blockpos.getZ()))
+            if (!this.player.level.isLoaded(blockpos))
                 return;
             BlockEntity blockentity = this.player.level.getBlockEntity(blockpos);
             if (blockentity instanceof CommandBlockEntity) {
@@ -1148,8 +1148,6 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
     public void handlePlayerAction(ServerboundPlayerActionPacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
         BlockPos blockpos = pPacket.getPos();
-        if (!WorldBounds.isValidBlock(blockpos.getX(), blockpos.getZ()))
-            return;
         this.player.resetLastActionTime();
         ServerboundPlayerActionPacket.Action serverboundplayeractionpacket$action = pPacket.getAction();
         switch (serverboundplayeractionpacket$action) {
@@ -1180,6 +1178,8 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
             case START_DESTROY_BLOCK:
             case ABORT_DESTROY_BLOCK:
             case STOP_DESTROY_BLOCK:
+                if (!this.player.level.isLoaded(blockpos))
+                    return;
                 this.player.gameMode.handleBlockBreakAction(blockpos, serverboundplayeractionpacket$action, pPacket.getDirection(), this.player.level.getMaxBuildHeight(), pPacket.getSequence());
                 this.player.connection.ackBlockChangesUpTo(pPacket.getSequence());
                 return;
@@ -1206,7 +1206,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         BlockHitResult blockhitresult = pPacket.getHitResult();
         Vec3 vec3 = blockhitresult.getLocation();
         BlockPos blockpos = blockhitresult.getBlockPos();
-        if (!WorldBounds.isValidBlock(blockpos.getX(), blockpos.getZ()))
+        if (!serverlevel.isLoaded(blockpos))
             return;
         Vec3 vec31 = Vec3.atCenterOf(blockpos);
         SectorVec3 exactBlockCenter = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D,

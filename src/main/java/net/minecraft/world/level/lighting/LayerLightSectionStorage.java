@@ -46,29 +46,22 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
         this.visibleSectionData.disableCache();
     }
 
-    private static boolean isValidSection(SectionPos sectionPos) {
-        return WorldBounds.isValidChunk(sectionPos.x(), sectionPos.z());
-    }
-
     protected boolean storingLightForSection(SectionPos pSectionPos) {
-        return isValidSection(pSectionPos) && this.getDataLayer(pSectionPos, true) != null;
+        return this.getDataLayer(pSectionPos, true) != null;
     }
 
     @Nullable
     protected DataLayer getDataLayer(SectionPos pSectionPos, boolean pCached) {
-        return isValidSection(pSectionPos) ? this.getDataLayer((M) (pCached ? this.updatingSectionData : this.visibleSectionData), pSectionPos) : null;
+        return this.getDataLayer((M) (pCached ? this.updatingSectionData : this.visibleSectionData), pSectionPos);
     }
 
     @Nullable
     protected DataLayer getDataLayer(M pMap, SectionPos pSectionPos) {
-        return isValidSection(pSectionPos) ? pMap.getLayer(pSectionPos) : null;
+        return pMap.getLayer(pSectionPos);
     }
 
     @Nullable
     public DataLayer getDataLayerData(SectionPos pSectionPos) {
-        if (!isValidSection(pSectionPos))
-            return null;
-
         DataLayer datalayer = this.queuedSections.get(pSectionPos);
         return datalayer != null ? datalayer : this.getDataLayer(pSectionPos, false);
     }
@@ -95,7 +88,7 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
     }
 
     protected int getLevel(SectionPos pSectionPos) {
-        if (pSectionPos == null || !isValidSection(pSectionPos)) {
+        if (pSectionPos == null) {
             return 2;
         } else if (this.dataSectionSet.contains(pSectionPos)) {
             return 0;
@@ -105,9 +98,7 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
     }
 
     protected int getLevelFromSource(SectionPos pPos) {
-        if (!isValidSection(pPos)) {
-            return 2;
-        } else if (this.toMarkNoData.contains(pPos)) {
+        if (this.toMarkNoData.contains(pPos)) {
             return 2;
         } else {
             return !this.dataSectionSet.contains(pPos) && !this.toMarkData.contains(pPos) ? 2 : 0;
@@ -115,9 +106,6 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
     }
 
     protected void setLevel(SectionPos pSectionPos, int pLevel) {
-        if (!isValidSection(pSectionPos))
-            return;
-
         int i = this.getLevel(pSectionPos);
         if (i != 0 && pLevel == 0) {
             this.dataSectionSet.add(pSectionPos);
@@ -313,9 +301,6 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
     }
 
     public void retainData(SectionPos pSectionColumnPos, boolean pRetain) {
-        if (!isValidSection(pSectionColumnPos))
-            return;
-
         if (pRetain) {
             this.columnsToRetainQueuedDataFor.add(pSectionColumnPos);
         } else {
@@ -324,9 +309,6 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
     }
 
     protected void queueSectionData(SectionPos pSectionPos, @Nullable DataLayer pArray, boolean pIsTrusted) {
-        if (!isValidSection(pSectionPos))
-            return;
-
         if (pArray != null) {
             this.queuedSections.put(pSectionPos, pArray);
             if (!pIsTrusted) {
@@ -338,9 +320,6 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
     }
 
     protected void updateSectionStatus(SectionPos pSectionPos, boolean pIsEmpty) {
-        if (!isValidSection(pSectionPos))
-            return;
-
         boolean flag = this.dataSectionSet.contains(pSectionPos);
         if (!flag && !pIsEmpty) {
             this.toMarkData.add(pSectionPos);

@@ -150,15 +150,11 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     public boolean isInWorldBounds(BlockPos pPos) {
-        return !this.isOutsideBuildHeight(pPos) && isInWorldBoundsHorizontal(pPos);
+        return !this.isOutsideBuildHeight(pPos);
     }
 
     public static boolean isInSpawnableBounds(BlockPos pPos) {
-        return !isOutsideSpawnableHeight(pPos.getY()) && isInWorldBoundsHorizontal(pPos);
-    }
-
-    private static boolean isInWorldBoundsHorizontal(BlockPos pPos) {
-        return WorldBounds.isValidBlock(pPos.getX(), pPos.getZ());
+        return !isOutsideSpawnableHeight(pPos.getY());
     }
 
     private static boolean isOutsideSpawnableHeight(int pY) {
@@ -175,8 +171,6 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
     @Nullable
     public ChunkAccess getChunk(long pX, long pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
-        if (!WorldBounds.isValidChunk(pX, pZ))
-            return null;
         if (!pNonnull && this instanceof ServerLevel serverLevel) {
             return serverLevel.getChunkSource().getChunkNow(pX, pZ);
         }
@@ -193,7 +187,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     public boolean setBlock(BlockPos pPos, BlockState pState, int pFlags, int pRecursionLeft) {
-        if (!WorldBounds.isValidBlock(pPos.getX(), pPos.getZ()) || this.isOutsideBuildHeight(pPos)) {
+        if (this.isOutsideBuildHeight(pPos)) {
             return false;
         } else if (!this.isClientSide && this.isDebug()) {
             return false;
@@ -306,8 +300,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
     public int getHeight(Heightmap.Types pHeightmapType, long pX, long pZ) {
         int i;
-        if (WorldBounds.isValidBlock(pX, pZ)
-                && this.hasChunk(SectionPos.blockToSectionCoord(pX), SectionPos.blockToSectionCoord(pZ))) {
+        if (this.hasChunk(SectionPos.blockToSectionCoord(pX), SectionPos.blockToSectionCoord(pZ))) {
             LevelChunk chunk = this.getChunk(SectionPos.blockToSectionCoord(pX), SectionPos.blockToSectionCoord(pZ));
             i = chunk == null ? this.getMinBuildHeight()
                               : chunk.getHeight(pHeightmapType, (int) (pX & 15), (int) (pZ & 15)) + 1;
@@ -323,9 +316,6 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     public BlockState getBlockState(BlockPos pPos) {
-        if (!WorldBounds.isValidBlock(pPos.getX(), pPos.getZ())) {
-            return Blocks.VOID_AIR.defaultBlockState();
-        }
         if (this.isOutsideBuildHeight(pPos)) {
             return Blocks.VOID_AIR.defaultBlockState();
         }
@@ -348,9 +338,6 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     public FluidState getFluidState(BlockPos pPos) {
-        if (!WorldBounds.isValidBlock(pPos.getX(), pPos.getZ())) {
-            return Fluids.EMPTY.defaultFluidState();
-        }
         if (this.isOutsideBuildHeight(pPos)) {
             return Fluids.EMPTY.defaultFluidState();
         }
@@ -536,7 +523,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
     @Nullable
     public BlockEntity getBlockEntity(BlockPos pPos) {
-        if (this.isOutsideBuildHeight(pPos) || !WorldBounds.isValidBlock(pPos.getX(), pPos.getZ())
+        if (this.isOutsideBuildHeight(pPos)
                 || !this.isClientSide && Thread.currentThread() != this.thread) {
             return null;
         }
@@ -546,7 +533,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
     public void setBlockEntity(BlockEntity pBlockEntity) {
         BlockPos blockpos = pBlockEntity.getBlockPos();
-        if (!this.isOutsideBuildHeight(blockpos) && WorldBounds.isValidBlock(blockpos.getX(), blockpos.getZ())) {
+        if (!this.isOutsideBuildHeight(blockpos)) {
             LevelChunk chunk = this.getChunkAt(blockpos);
             if (chunk != null)
                 chunk.addAndRegisterBlockEntity(pBlockEntity);
@@ -554,7 +541,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     public void removeBlockEntity(BlockPos pPos) {
-        if (!this.isOutsideBuildHeight(pPos) && WorldBounds.isValidBlock(pPos.getX(), pPos.getZ())) {
+        if (!this.isOutsideBuildHeight(pPos)) {
             LevelChunk chunk = this.getChunkAt(pPos);
             if (chunk != null)
                 chunk.removeBlockEntity(pPos);
@@ -562,8 +549,8 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     public boolean isLoaded(BlockPos pPos) {
-        return this.isOutsideBuildHeight(pPos) || !WorldBounds.isValidBlock(pPos.getX(), pPos.getZ()) ? false
-                                                                                                                  : this.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(pPos.getX()), SectionPos.blockToSectionCoord(pPos.getZ()));
+        return !this.isOutsideBuildHeight(pPos)
+                && this.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(pPos.getX()), SectionPos.blockToSectionCoord(pPos.getZ()));
     }
 
     public boolean loadedAndEntityCanStandOnFace(BlockPos pPos, Entity pEntity, Direction pDirection) {
@@ -618,9 +605,6 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
     @Nullable
     public BlockGetter getChunkForCollisions(long pChunkX, long pChunkZ) {
-        if (!WorldBounds.isValidChunk(pChunkX, pChunkZ)) {
-            return null;
-        }
         if (this instanceof ServerLevel serverLevel) {
             return serverLevel.getChunkSource().getChunkNow(pChunkX, pChunkZ);
         }

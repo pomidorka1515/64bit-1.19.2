@@ -2,10 +2,6 @@ package net.minecraft.world.level.levelgen.structure;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.LongArrayList;
-import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -19,8 +15,10 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import net.minecraft.Util;
+import net.minecraft.core.Int128;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldBounds;
@@ -79,8 +77,8 @@ public class LegacyStructureDataHandler {
 
     public CompoundTag updateFromLegacy(CompoundTag pTag) {
         CompoundTag compoundtag = pTag.getCompound("Level");
-        ChunkPos chunkpos = new ChunkPos(compoundtag.getInt("xPos"), compoundtag.getInt("zPos"));
-        if (this.isUnhandledStructureStart(chunkpos.x, chunkpos.z)) {
+        ChunkPos chunkpos = readChunkPos(compoundtag, "xPos", "zPos");
+        if (this.isUnhandledStructureStart(chunkpos.x(), chunkpos.z())) {
             pTag = this.updateStructureStart(pTag, chunkpos);
         }
 
@@ -89,27 +87,27 @@ public class LegacyStructureDataHandler {
 
         for (String s : this.currentKeys) {
             boolean flag = OLD_STRUCTURE_REGISTRY_KEYS.contains(s.toLowerCase(Locale.ROOT));
-            if (!compoundtag2.contains(s, 12) && flag) {
+            if (!compoundtag2.contains(s) && flag) {
                 int i = 8;
                 ObjectList<ChunkPos> longlist = new ObjectArrayList<>();
 
-                long j = WorldBounds.addChunkOffset(chunkpos.x, -8L);
-                long k = WorldBounds.addChunkOffset(chunkpos.x, 8L);
-                long l = WorldBounds.addChunkOffset(chunkpos.z, -8L);
-                long i1 = WorldBounds.addChunkOffset(chunkpos.z, 8L);
+                Int128 j = WorldBounds.addChunkOffset(chunkpos.x(), -8L);
+                Int128 k = WorldBounds.addChunkOffset(chunkpos.x(), 8L);
+                Int128 l = WorldBounds.addChunkOffset(chunkpos.z(), -8L);
+                Int128 i1 = WorldBounds.addChunkOffset(chunkpos.z(), 8L);
 
-                for (long j1 = j;; j1 = WorldBounds.addChunkOffset(j1, 1L)) {
-                    for (long k1 = l;; k1 = WorldBounds.addChunkOffset(k1, 1L)) {
+                for (Int128 j1 = j;; j1 = WorldBounds.addChunkOffset(j1, 1L)) {
+                    for (Int128 k1 = l;; k1 = WorldBounds.addChunkOffset(k1, 1L)) {
                         if (this.hasLegacyStart(j1, k1, s)) {
                             longlist.add(new ChunkPos(j1, k1));
                         }
 
-                        if (k1 == i1) {
+                        if (k1.equals(i1)) {
                             break;
                         }
                     }
 
-                    if (j1 == k) {
+                    if (j1.equals(k)) {
                         break;
                     }
                 }
@@ -128,14 +126,14 @@ public class LegacyStructureDataHandler {
         ListTag tag = new ListTag();
         for (ChunkPos chunkPos : longlist) {
             CompoundTag tag2 = new CompoundTag();
-            tag2.putLong("x", chunkPos.x);
-            tag2.putLong("z", chunkPos.z);
+            NbtUtils.writeInt128(tag2, "x", chunkPos.x());
+            NbtUtils.writeInt128(tag2, "z", chunkPos.z());
             tag.add(tag2);
         }
         return tag;
     }
 
-    private boolean hasLegacyStart(long pChunkX, long pChunkZ, String pKey) {
+    private boolean hasLegacyStart(Int128 pChunkX, Int128 pChunkZ, String pKey) {
         if (!this.hasLegacyData) {
             return false;
         } else {
@@ -143,7 +141,7 @@ public class LegacyStructureDataHandler {
         }
     }
 
-    private boolean isUnhandledStructureStart(long pChunkX, long pChunkZ) {
+    private boolean isUnhandledStructureStart(Int128 pChunkX, Int128 pChunkZ) {
         if (!this.hasLegacyData) {
             return false;
         } else {
@@ -195,7 +193,7 @@ public class LegacyStructureDataHandler {
 
                 for (String s1 : compoundtag.getAllKeys()) {
                     CompoundTag compoundtag1 = compoundtag.getCompound(s1);
-                    ChunkPos i = new ChunkPos(compoundtag1.getLong("ChunkX"), compoundtag1.getLong("ChunkZ"));
+                    ChunkPos i = readChunkPos(compoundtag1, "ChunkX", "ChunkZ");
                     ListTag listtag = compoundtag1.getList("Children", 10);
                     if (!listtag.isEmpty()) {
                         String s3 = listtag.getCompound(0).getString("id");
@@ -221,13 +219,22 @@ public class LegacyStructureDataHandler {
 
                     for (String s2 : compoundtag.getAllKeys()) {
                         CompoundTag compoundtag2 = compoundtag.getCompound(s2);
-                        structurefeatureindexsaveddata1.addIndex(new ChunkPos(compoundtag2.getLong("ChunkX"), compoundtag2.getLong("ChunkZ")));
+                        structurefeatureindexsaveddata1.addIndex(readChunkPos(compoundtag2, "ChunkX", "ChunkZ"));
                     }
 
                     structurefeatureindexsaveddata1.setDirty();
                 }
             }
         }
+    }
+
+    private static ChunkPos readChunkPos(CompoundTag tag, String xKey, String zKey) {
+        Int128 x = NbtUtils.readInt128(tag, xKey);
+        Int128 z = NbtUtils.readInt128(tag, zKey);
+        if (!WorldBounds.clampChunk(x).equals(x) || !WorldBounds.clampChunk(z).equals(z)) {
+            throw new IllegalArgumentException("Structure chunk outside chunk domain");
+        }
+        return new ChunkPos(x, z);
     }
 
     public static LegacyStructureDataHandler getLegacyStructureHandler(ResourceKey<Level> pLevel, @Nullable DimensionDataStorage pStorage) {

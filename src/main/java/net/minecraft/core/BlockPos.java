@@ -24,8 +24,8 @@ import org.slf4j.Logger;
 @Immutable
 public class BlockPos extends Vec3i {
     public static final Codec<BlockPos> CODEC = Codec.LONG_STREAM.comapFlatMap((p_121967_) -> { return Util.fixedSize(p_121967_, 3).map((p_175270_) -> {
-                                                                                                    return new BlockPos(p_175270_[0], p_175270_[1], p_175270_[2]);
-                                                                                                }); }, (p_121924_) -> { return LongStream.of(p_121924_.getX(), p_121924_.getY(), p_121924_.getZ()); }).stable();
+                                                                                                     return new BlockPos(p_175270_[0], (int) p_175270_[1], p_175270_[2]);
+                                                                                                 }); }, (p_121924_) -> { return LongStream.of(p_121924_.getXLo(), p_121924_.getY(), p_121924_.getZLo()); }).stable();
     private static final Logger LOGGER = LogUtils.getLogger();
     public static final BlockPos ZERO = new BlockPos(0, 0, 0);
     private static final int PACKED_X_LENGTH = 1 + Mth.log2(Mth.smallestEncompassingPowerOfTwo(30000000));
@@ -42,12 +42,16 @@ public class BlockPos extends Vec3i {
         super(pX, pY, pZ);
     }
 
+    public BlockPos(Int128 pX, int pY, Int128 pZ) {
+        super(pX, pY, pZ);
+    }
+
     public BlockPos(double pX, double pY, double pZ) {
         super(pX, pY, pZ);
     }
 
     public BlockPos(Vec3 pVector) {
-        this(net.minecraft.world.phys.ExactVec3.position(pVector).blockX(), Mth.floor(pVector.y), net.minecraft.world.phys.ExactVec3.position(pVector).blockZ());
+        this(net.minecraft.world.phys.SectorVec3.fromApproximate(pVector).blockPosition());
     }
 
     public BlockPos(Position pPos) {
@@ -70,8 +74,13 @@ public class BlockPos extends Vec3i {
         return this.offset(pVector.getX(), pVector.getY(), pVector.getZ());
     }
 
+    public BlockPos offset(Int128 pDx, int pDy, Int128 pDz) {
+        return pDx.equals(Int128.ZERO) && pDy == 0 && pDz.equals(Int128.ZERO) ? this
+                : new BlockPos(this.getX().addSaturated(pDx), this.getY() + pDy, this.getZ().addSaturated(pDz));
+    }
+
     public BlockPos subtract(Vec3i pVector) {
-        return new BlockPos(WorldBounds.subtractBlockOffset(this.getX(), pVector.getX()), this.getY() - pVector.getY(), WorldBounds.subtractBlockOffset(this.getZ(), pVector.getZ()));
+        return new BlockPos(this.getX().subtractSaturated(pVector.getX()), this.getY() - pVector.getY(), this.getZ().subtractSaturated(pVector.getZ()));
     }
 
     public BlockPos multiply(int pScalar) {
@@ -157,16 +166,16 @@ public class BlockPos extends Vec3i {
             default:
                 return this;
             case CLOCKWISE_90:
-                return new BlockPos(WorldBounds.subtractBlockOffset(0L, this.getZ()), this.getY(), this.getX());
+                return new BlockPos(this.getZ().negate(), this.getY(), this.getX());
             case CLOCKWISE_180:
-                return new BlockPos(WorldBounds.subtractBlockOffset(0L, this.getX()), this.getY(), WorldBounds.subtractBlockOffset(0L, this.getZ()));
+                return new BlockPos(this.getX().negate(), this.getY(), this.getZ().negate());
             case COUNTERCLOCKWISE_90:
-                return new BlockPos(this.getZ(), this.getY(), WorldBounds.subtractBlockOffset(0L, this.getX()));
+                return new BlockPos(this.getZ(), this.getY(), this.getX().negate());
         }
     }
 
     public BlockPos cross(Vec3i pVector) {
-        return new BlockPos(WorldBounds.crossComponent(this.getY(), pVector.getZ(), this.getZ(), pVector.getY()), (int) Math.max(Integer.MIN_VALUE, Math.min(Integer.MAX_VALUE, WorldBounds.crossComponent(this.getZ(), pVector.getX(), this.getX(), pVector.getZ()))), WorldBounds.crossComponent(this.getX(), pVector.getY(), this.getY(), pVector.getX()));
+        return new BlockPos(super.cross(pVector));
     }
 
     public BlockPos atY(int pY) {
@@ -186,19 +195,21 @@ public class BlockPos extends Vec3i {
     }
 
     public static Iterable<BlockPos> randomBetweenClosed(RandomSource pRandom, int pAmount, long pMinX, int pMinY, long pMinZ, long pMaxX, int pMaxY, long o) {
-        long i = WorldBounds.inclusiveBlockSpan(pMinX, pMaxX);
-        int j = pMaxY - pMinY + 1;
-        long k = WorldBounds.inclusiveBlockSpan(pMinZ, o);
+        return randomBetweenClosed(pRandom, pAmount, Int128.fromLong(pMinX), pMinY, Int128.fromLong(pMinZ), Int128.fromLong(pMaxX), pMaxY, Int128.fromLong(o));
+    }
+
+    public static Iterable<BlockPos> randomBetweenClosed(RandomSource pRandom, int pAmount, Int128 pMinX, int pMinY, Int128 pMinZ, Int128 pMaxX, int pMaxY, Int128 pMaxZ) {
+        boolean valid = pMinX.compareTo(pMaxX) <= 0 && pMinY <= pMaxY && pMinZ.compareTo(pMaxZ) <= 0;
         return () -> {
             return new AbstractIterator<BlockPos>() {
                 final BlockPos.MutableBlockPos nextPos = new BlockPos.MutableBlockPos();
                 int counter = pAmount;
 
                 protected BlockPos computeNext() {
-                    if (this.counter <= 0 || i == 0L || j <= 0 || k == 0L) {
+                    if (this.counter <= 0 || !valid) {
                         return this.endOfData();
                     } else {
-                        BlockPos blockpos = this.nextPos.set(randomCoordinate(pRandom, pMinX, pMaxX, i), pMinY + pRandom.nextInt(j), randomCoordinate(pRandom, pMinZ, o, k));
+                        BlockPos blockpos = this.nextPos.set(randomCoordinate(pRandom, pMinX, pMaxX), (int) randomCoordinate(pRandom, Int128.fromLong(pMinY), Int128.fromLong(pMaxY)).lo(), randomCoordinate(pRandom, pMinZ, pMaxZ));
                         --this.counter;
                         return blockpos;
                     }
@@ -207,22 +218,27 @@ public class BlockPos extends Vec3i {
         };
     }
 
-    private static long randomCoordinate(RandomSource random, long min, long max, long span) {
-        if (span == Long.MAX_VALUE) {
-            long coordinate;
-            do {
-                coordinate = random.nextLong();
-            } while (coordinate < min || coordinate > max);
-            return coordinate;
-        }
-        return WorldBounds.addBlockOffset(min, Math.floorMod(random.nextLong(), span));
+    private static Int128 randomCoordinate(RandomSource random, Int128 min, Int128 max) {
+        // Unsigned width preserves spans larger than the signed domain. Masked
+        // rejection samples a power-of-two envelope without modulo bias.
+        Int128 width = max.subtract(min);
+        int bits = width.hi() != 0L ? 128 - Long.numberOfLeadingZeros(width.hi())
+                : 64 - Long.numberOfLeadingZeros(width.lo());
+        Int128 sample;
+        do {
+            long hi = bits > 64 ? random.nextLong() >>> (128 - bits) : 0L;
+            long lo = bits >= 64 ? random.nextLong() : bits == 0 ? 0L : random.nextLong() >>> (64 - bits);
+            sample = Int128.of(hi, lo);
+        } while (Long.compareUnsigned(sample.hi(), width.hi()) > 0
+                || sample.hi() == width.hi() && Long.compareUnsigned(sample.lo(), width.lo()) > 0);
+        return min.add(sample);
     }
 
     public static Iterable<BlockPos> withinManhattan(BlockPos pPos, int pXSize, int pYSize, int pZSize) {
         int i = pXSize + pYSize + pZSize;
-        long j = pPos.getX();
+        Int128 j = pPos.getX();
         int k = pPos.getY();
-        long l = pPos.getZ();
+        Int128 l = pPos.getZ();
         return () -> {
             return new AbstractIterator<BlockPos>() {
                 private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
@@ -232,13 +248,17 @@ public class BlockPos extends Vec3i {
                 private int x;
                 private int y;
                 private boolean zMirror;
+                private int mirrorOffset;
 
                 protected BlockPos computeNext() {
                     if (this.zMirror) {
                         this.zMirror = false;
-                        this.cursor.setZ(WorldBounds.subtractBlockOffset(l, WorldBounds.subtractBlockOffset(this.cursor.getZ(), l)));
-                        return this.cursor;
-                    } else {
+                        if (canOffset(l, -this.mirrorOffset)) {
+                            this.cursor.setZ(WorldBounds.addBlockOffset(l, -this.mirrorOffset));
+                            return this.cursor;
+                        }
+                    }
+                    {
                         BlockPos blockpos;
                         for (blockpos = null; blockpos == null; ++this.y) {
                             if (this.y > this.maxY) {
@@ -260,9 +280,14 @@ public class BlockPos extends Vec3i {
                             int i1 = this.x;
                             int j1 = this.y;
                             int k1 = this.currentDepth - Math.abs(i1) - Math.abs(j1);
-                            if (k1 <= pZSize) {
-                                this.zMirror = k1 != 0;
-                                blockpos = this.cursor.set(WorldBounds.addBlockOffset(j, i1), k + j1, WorldBounds.addBlockOffset(l, k1));
+                            if (k1 <= pZSize && canOffset(j, i1) && (long) k + j1 >= Integer.MIN_VALUE && (long) k + j1 <= Integer.MAX_VALUE) {
+                                if (canOffset(l, k1)) {
+                                    this.zMirror = k1 != 0;
+                                    this.mirrorOffset = k1;
+                                    blockpos = this.cursor.set(WorldBounds.addBlockOffset(j, i1), k + j1, WorldBounds.addBlockOffset(l, k1));
+                                } else if (k1 != 0 && canOffset(l, -k1)) {
+                                    blockpos = this.cursor.set(WorldBounds.addBlockOffset(j, i1), k + j1, WorldBounds.addBlockOffset(l, -k1));
+                                }
                             }
                         }
 
@@ -276,7 +301,7 @@ public class BlockPos extends Vec3i {
     public static Optional<BlockPos> findClosestMatch(BlockPos pPos, int pWidth, int pHeight, Predicate<BlockPos> pPosFilter) {
         for (BlockPos blockpos : withinManhattan(pPos, pWidth, pHeight, pWidth)) {
             if (pPosFilter.test(blockpos)) {
-                return Optional.of(blockpos);
+                return Optional.of(blockpos.immutable());
             }
         }
 
@@ -288,7 +313,7 @@ public class BlockPos extends Vec3i {
     }
 
     public static Iterable<BlockPos> betweenClosed(BlockPos pFirstPos, BlockPos pSecondPos) {
-        return betweenClosed(Math.min(pFirstPos.getX(), pSecondPos.getX()), Math.min(pFirstPos.getY(), pSecondPos.getY()), Math.min(pFirstPos.getZ(), pSecondPos.getZ()), Math.max(pFirstPos.getX(), pSecondPos.getX()), Math.max(pFirstPos.getY(), pSecondPos.getY()), Math.max(pFirstPos.getZ(), pSecondPos.getZ()));
+        return betweenClosed(min(pFirstPos.getX(), pSecondPos.getX()), Math.min(pFirstPos.getY(), pSecondPos.getY()), min(pFirstPos.getZ(), pSecondPos.getZ()), max(pFirstPos.getX(), pSecondPos.getX()), Math.max(pFirstPos.getY(), pSecondPos.getY()), max(pFirstPos.getZ(), pSecondPos.getZ()));
     }
 
     public static Stream<BlockPos> betweenClosedStream(BlockPos pFirstPos, BlockPos pSecondPos) {
@@ -300,7 +325,7 @@ public class BlockPos extends Vec3i {
     }
 
     public static Stream<BlockPos> betweenClosedStream(AABB pAabb) {
-        return betweenClosedStream(Mth.lfloor(pAabb.minX), Mth.floor(pAabb.minY), Mth.lfloor(pAabb.minZ), Mth.lfloor(pAabb.maxX), Mth.floor(pAabb.maxY), Mth.lfloor(pAabb.maxZ));
+        return betweenClosedStream(Int128.fromDoubleFloorSaturated(pAabb.minX), Mth.floor(pAabb.minY), Int128.fromDoubleFloorSaturated(pAabb.minZ), Int128.fromDoubleFloorSaturated(pAabb.maxX), Mth.floor(pAabb.maxY), Int128.fromDoubleFloorSaturated(pAabb.maxZ));
     }
 
     public static Stream<BlockPos> betweenClosedStream(long pMinX, int pMinY, long pMinZ, long pMaxX, int pMaxY, long pMaxZ) {
@@ -308,7 +333,24 @@ public class BlockPos extends Vec3i {
     }
 
     public static Iterable<BlockPos> betweenClosed(long pX1, int pY1, long pZ1, long pX2, int pY2, long pZ2) {
-        if (pX1 > pX2 || pY1 > pY2 || pZ1 > pZ2) {
+        return betweenClosed(Int128.fromLong(pX1), pY1, Int128.fromLong(pZ1), Int128.fromLong(pX2), pY2, Int128.fromLong(pZ2));
+    }
+
+    public static Stream<BlockPos> betweenClosedStream(Int128 pX1, int pY1, Int128 pZ1, Int128 pX2, int pY2, Int128 pZ2) {
+        return StreamSupport.stream(betweenClosed(pX1, pY1, pZ1, pX2, pY2, pZ2).spliterator(), false);
+    }
+
+    private static Int128 min(Int128 a, Int128 b) { return a.compareTo(b) <= 0 ? a : b; }
+    private static Int128 max(Int128 a, Int128 b) { return a.compareTo(b) >= 0 ? a : b; }
+
+    private static boolean canOffset(Int128 coordinate, long offset) {
+        return offset == 0 || (offset > 0
+                ? WorldBounds.canAdvanceBlock(coordinate, Int128.MAX.subtract(Int128.fromLong(offset - 1)))
+                : WorldBounds.canAdvanceBlock(Int128.MIN.subtract(Int128.fromLong(offset + 1)), coordinate));
+    }
+
+    public static Iterable<BlockPos> betweenClosed(Int128 pX1, int pY1, Int128 pZ1, Int128 pX2, int pY2, Int128 pZ2) {
+        if (pX1.compareTo(pX2) > 0 || pY1 > pY2 || pZ1.compareTo(pZ2) > 0) {
             return java.util.Collections::emptyIterator;
         }
 
@@ -317,9 +359,9 @@ public class BlockPos extends Vec3i {
         // an edge range could wrap into an effectively endless generator loop.
         return () -> new AbstractIterator<BlockPos>() {
             private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-            private long x = pX1;
+            private Int128 x = pX1;
             private int y = pY1;
-            private long z = pZ1;
+            private Int128 z = pZ1;
             private boolean done;
 
             protected BlockPos computeNext() {
@@ -328,12 +370,12 @@ public class BlockPos extends Vec3i {
                 }
 
                 this.cursor.set(this.x, this.y, this.z);
-                if (this.x != pX2) {
+                if (WorldBounds.canAdvanceBlock(this.x, pX2)) {
                     this.x = WorldBounds.addBlockOffset(this.x, 1L);
                 } else if (this.y != pY2) {
                     this.x = pX1;
                     ++this.y;
-                } else if (this.z != pZ2) {
+                } else if (WorldBounds.canAdvanceBlock(this.z, pZ2)) {
                     this.x = pX1;
                     this.y = pY1;
                     this.z = WorldBounds.addBlockOffset(this.z, 1L);
@@ -351,16 +393,26 @@ public class BlockPos extends Vec3i {
         return () -> {
             return new AbstractIterator<BlockPos.MutableBlockPos>() {
                 private final Direction[] directions = new Direction[] {p_121938_, p_121939_, p_121938_.getOpposite(), p_121939_.getOpposite()};
-                private final BlockPos.MutableBlockPos cursor = p_121936_.mutable().move(p_121939_);
-                private final int legs = 4 * p_121937_;
+                private final BlockPos.MutableBlockPos cursor = p_121936_.mutable();
+                private final long legs = 4L * p_121937_;
                 private int leg = -1;
                 private int legSize;
                 private int legIndex;
-                private long lastX = this.cursor.getX();
+                private Int128 lastX = this.cursor.getX();
                 private int lastY = this.cursor.getY();
-                private long lastZ = this.cursor.getZ();
+                private Int128 lastZ = this.cursor.getZ();
 
                 protected BlockPos.MutableBlockPos computeNext() {
+                    if (this.leg == -1) {
+                        this.leg = 0;
+                        this.legSize = 1;
+                        this.legIndex = 1;
+                        return this.cursor;
+                    }
+                    Direction step = this.directions[(this.leg + 4) % 4];
+                    if (!canOffset(this.lastX, step.getStepX()) || !canOffset(this.lastZ, step.getStepZ())) {
+                        return this.endOfData();
+                    }
                     this.cursor.set(this.lastX, this.lastY, this.lastZ).move(this.directions[(this.leg + 4) % 4]);
                     this.lastX = this.cursor.getX();
                     this.lastY = this.cursor.getY();
@@ -391,8 +443,12 @@ public class BlockPos extends Vec3i {
             super(pX, pY, pZ);
         }
 
+        public MutableBlockPos(Int128 pX, int pY, Int128 pZ) {
+            super(pX, pY, pZ);
+        }
+
         public MutableBlockPos(double pX, double pY, double pZ) {
-            this(Mth.floor(pX), Mth.floor(pY), Mth.floor(pZ));
+            this(Int128.fromDoubleFloorSaturated(pX), Mth.floor(pY), Int128.fromDoubleFloorSaturated(pZ));
         }
 
         public BlockPos offset(double pDx, double pDy, double pDz) {
@@ -400,6 +456,14 @@ public class BlockPos extends Vec3i {
         }
 
         public BlockPos offset(int pDx, int pDy, int pDz) {
+            return super.offset(pDx, pDy, pDz).immutable();
+        }
+
+        public BlockPos offset(long pDx, int pDy, long pDz) {
+            return super.offset(pDx, pDy, pDz).immutable();
+        }
+
+        public BlockPos offset(Int128 pDx, int pDy, Int128 pDz) {
             return super.offset(pDx, pDy, pDz).immutable();
         }
 
@@ -427,7 +491,14 @@ public class BlockPos extends Vec3i {
         }
 
         public BlockPos.MutableBlockPos set(double pX, double pY, double pZ) {
-            return this.set(Mth.lfloor(pX), Mth.floor(pY), Mth.lfloor(pZ));
+            return this.set(Int128.fromDoubleFloorSaturated(pX), Mth.floor(pY), Int128.fromDoubleFloorSaturated(pZ));
+        }
+
+        public BlockPos.MutableBlockPos set(Int128 pX, int pY, Int128 pZ) {
+            this.setX(pX);
+            this.setY(pY);
+            this.setZ(pZ);
+            return this;
         }
 
         public BlockPos.MutableBlockPos set(Vec3i pVector) {
@@ -476,11 +547,11 @@ public class BlockPos extends Vec3i {
         public BlockPos.MutableBlockPos clamp(Direction.Axis pAxis, int pMin, int pMax) {
             switch (pAxis) {
                 case X:
-                    return this.set(Mth.clamp(this.getX(), pMin, pMax), this.getY(), this.getZ());
+                    return this.set(max(Int128.fromLong(pMin), min(this.getX(), Int128.fromLong(pMax))), this.getY(), this.getZ());
                 case Y:
                     return this.set(this.getX(), Mth.clamp(this.getY(), pMin, pMax), this.getZ());
                 case Z:
-                    return this.set(this.getX(), this.getY(), Mth.clamp(this.getZ(), pMin, pMax));
+                    return this.set(this.getX(), this.getY(), max(Int128.fromLong(pMin), min(this.getZ(), Int128.fromLong(pMax))));
                 default:
                     throw new IllegalStateException("Unable to clamp axis " + pAxis);
             }
@@ -491,12 +562,22 @@ public class BlockPos extends Vec3i {
             return this;
         }
 
+        public BlockPos.MutableBlockPos setX(Int128 pX) {
+            super.setX(pX);
+            return this;
+        }
+
         public BlockPos.MutableBlockPos setY(int pY) {
             super.setY(pY);
             return this;
         }
 
         public BlockPos.MutableBlockPos setZ(long pZ) {
+            super.setZ(pZ);
+            return this;
+        }
+
+        public BlockPos.MutableBlockPos setZ(Int128 pZ) {
             super.setZ(pZ);
             return this;
         }

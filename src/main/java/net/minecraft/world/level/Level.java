@@ -170,10 +170,19 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return (LevelChunk) this.getChunk(pChunkX, pChunkZ, ChunkStatus.FULL);
     }
 
+    public LevelChunk getChunk(Int128 pChunkX, Int128 pChunkZ) {
+        return (LevelChunk) this.getChunk(pChunkX, pChunkZ, ChunkStatus.FULL, true);
+    }
+
     @Nullable
     public ChunkAccess getChunk(long pX, long pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
+        return this.getChunk(Int128.fromLong(pX), Int128.fromLong(pZ), pRequiredStatus, pNonnull);
+    }
+
+    @Nullable
+    public ChunkAccess getChunk(Int128 pX, Int128 pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
         if (!pNonnull && this instanceof ServerLevel serverLevel) {
-            return serverLevel.getChunkSource().getChunkNow(pX, pZ);
+            return serverLevel.getChunkSource().getChunkNow(pX, pZ, pRequiredStatus);
         }
         ChunkAccess chunkaccess = this.getChunkSource().getChunk(pX, pZ, pRequiredStatus, pNonnull);
         if (chunkaccess == null && pNonnull) {

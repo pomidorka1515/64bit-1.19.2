@@ -20,11 +20,20 @@ import net.minecraft.world.phys.AABB;
 
 public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeManager.NoiseBiomeSource {
     @Nullable
-    ChunkAccess getChunk(long pX, long pZ, ChunkStatus pRequiredStatus, boolean pNonnull);
+    default ChunkAccess getChunk(long pX, long pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
+        return this.getChunk(net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ), pRequiredStatus, pNonnull);
+    }
+
+    @Nullable
+    ChunkAccess getChunk(net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ, ChunkStatus pRequiredStatus, boolean pNonnull);
 
     /** @deprecated */
     @Deprecated
-    boolean hasChunk(long pChunkX, long pChunkZ);
+    default boolean hasChunk(long pChunkX, long pChunkZ) {
+        return this.hasChunk(net.minecraft.core.Int128.fromLong(pChunkX), net.minecraft.core.Int128.fromLong(pChunkZ));
+    }
+
+    boolean hasChunk(net.minecraft.core.Int128 pChunkX, net.minecraft.core.Int128 pChunkZ);
 
     int getHeight(Heightmap.Types pHeightmapType, long pX, long pZ);
 
@@ -125,6 +134,14 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
 
     default ChunkAccess getChunk(long pChunkX, long pChunkZ) {
         return this.getChunk(pChunkX, pChunkZ, ChunkStatus.FULL, true);
+    }
+
+    default ChunkAccess getChunk(net.minecraft.core.Int128 pChunkX, net.minecraft.core.Int128 pChunkZ) {
+        return this.getChunk(pChunkX, pChunkZ, ChunkStatus.FULL, true);
+    }
+
+    default ChunkAccess getChunk(net.minecraft.core.Int128 pChunkX, net.minecraft.core.Int128 pChunkZ, ChunkStatus pRequiredStatus) {
+        return this.getChunk(pChunkX, pChunkZ, pRequiredStatus, true);
     }
 
     default ChunkAccess getChunk(long pChunkX, long pChunkZ, ChunkStatus pRequiredStatus) {

@@ -48,19 +48,31 @@ public class ClientChunkCache extends ChunkSource {
     }
 
     private static boolean isValidChunk(@Nullable LevelChunk pChunk, long pX, long pZ) {
+        return isValidChunk(pChunk, net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ));
+    }
+
+    private static boolean isValidChunk(@Nullable LevelChunk pChunk, net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ) {
         if (pChunk == null) {
             return false;
         } else {
             ChunkPos chunkpos = pChunk.getPos();
-            return chunkpos.x == pX && chunkpos.z == pZ;
+            return chunkpos.x().equals(pX) && chunkpos.z().equals(pZ);
         }
     }
 
     public boolean isInViewRange(long chunkX, long chunkZ) {
+        return this.isInViewRange(net.minecraft.core.Int128.fromLong(chunkX), net.minecraft.core.Int128.fromLong(chunkZ));
+    }
+
+    public boolean isInViewRange(net.minecraft.core.Int128 chunkX, net.minecraft.core.Int128 chunkZ) {
         return this.storage.inRange(chunkX, chunkZ);
     }
 
     public void drop(long i2, long j) {
+        this.drop(net.minecraft.core.Int128.fromLong(i2), net.minecraft.core.Int128.fromLong(j));
+    }
+
+    public void drop(net.minecraft.core.Int128 i2, net.minecraft.core.Int128 j) {
         if (this.storage.inRange(i2, j)) {
             int i = this.storage.getIndex(i2, j);
             LevelChunk levelchunk = this.storage.getChunk(i);
@@ -72,6 +84,11 @@ public class ClientChunkCache extends ChunkSource {
 
     @Nullable
     public LevelChunk getChunk(long pChunkX, long pChunkZ, ChunkStatus pRequiredStatus, boolean pLoad) {
+        return this.getChunk(net.minecraft.core.Int128.fromLong(pChunkX), net.minecraft.core.Int128.fromLong(pChunkZ), pRequiredStatus, pLoad);
+    }
+
+    @Nullable
+    public LevelChunk getChunk(net.minecraft.core.Int128 pChunkX, net.minecraft.core.Int128 pChunkZ, ChunkStatus pRequiredStatus, boolean pLoad) {
         if (this.storage.inRange(pChunkX, pChunkZ)) {
             LevelChunk levelchunk = this.storage.getChunk(this.storage.getIndex(pChunkX, pChunkZ));
             if (isValidChunk(levelchunk, pChunkX, pChunkZ)) {
@@ -88,6 +105,11 @@ public class ClientChunkCache extends ChunkSource {
 
     @Nullable
     public LevelChunk replaceWithPacketData(long pX, long pZ, FriendlyByteBuf pBuffer, CompoundTag pTag, Consumer<ClientboundLevelChunkPacketData.BlockEntityTagOutput> pConsumer) {
+        return this.replaceWithPacketData(net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ), pBuffer, pTag, pConsumer);
+    }
+
+    @Nullable
+    public LevelChunk replaceWithPacketData(net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ, FriendlyByteBuf pBuffer, CompoundTag pTag, Consumer<ClientboundLevelChunkPacketData.BlockEntityTagOutput> pConsumer) {
         if (!this.storage.inRange(pX, pZ)) {
             LOGGER.warn("Ignoring chunk since it's not in the view range: {}, {}", pX, pZ);
             return null;
@@ -112,6 +134,10 @@ public class ClientChunkCache extends ChunkSource {
     }
 
     public void updateViewCenter(long pX, long pZ) {
+        this.updateViewCenter(net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ));
+    }
+
+    public void updateViewCenter(net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ) {
         this.storage.viewCenterX = WorldBounds.clampChunk(pX);
         this.storage.viewCenterZ = WorldBounds.clampChunk(pZ);
     }
@@ -128,8 +154,8 @@ public class ClientChunkCache extends ChunkSource {
                 LevelChunk levelchunk = this.storage.chunks.get(k);
                 if (levelchunk != null) {
                     ChunkPos chunkpos = levelchunk.getPos();
-                    if (clientchunkcache$storage.inRange(chunkpos.x, chunkpos.z)) {
-                        clientchunkcache$storage.replace(clientchunkcache$storage.getIndex(chunkpos.x, chunkpos.z), levelchunk);
+                    if (clientchunkcache$storage.inRange(chunkpos.x(), chunkpos.z())) {
+                        clientchunkcache$storage.replace(clientchunkcache$storage.getIndex(chunkpos.x(), chunkpos.z()), levelchunk);
                     }
                 }
             }
@@ -159,8 +185,8 @@ public class ClientChunkCache extends ChunkSource {
         final AtomicReferenceArray<LevelChunk> chunks;
         final int chunkRadius;
         private final int viewRange;
-        volatile long viewCenterX;
-        volatile long viewCenterZ;
+        volatile net.minecraft.core.Int128 viewCenterX = net.minecraft.core.Int128.ZERO;
+        volatile net.minecraft.core.Int128 viewCenterZ = net.minecraft.core.Int128.ZERO;
         int chunkCount;
 
         Storage(int p_104474_) {
@@ -170,9 +196,20 @@ public class ClientChunkCache extends ChunkSource {
         }
 
         int getIndex(long pX, long pZ) {
-            long x = Math.floorMod(pX, (long) this.viewRange);
-            long z = Math.floorMod(pZ, (long) this.viewRange);
+            return this.getIndex(net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ));
+        }
+
+        int getIndex(net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ) {
+            long x = floorMod(pX);
+            long z = floorMod(pZ);
             return (int) (z * (long) this.viewRange + x);
+        }
+
+        private long floorMod(net.minecraft.core.Int128 value) {
+            // Signed hi * 2^64 + unsigned lo, reduced before multiplication.
+            long radix = (Long.remainderUnsigned(-1L, this.viewRange) + 1L) % this.viewRange;
+            return (Math.floorMod(value.hi(), (long) this.viewRange) * radix
+                    + Long.remainderUnsigned(value.lo(), this.viewRange)) % this.viewRange;
         }
 
         protected void replace(int pChunkIndex, @Nullable LevelChunk pChunk) {
@@ -197,8 +234,12 @@ public class ClientChunkCache extends ChunkSource {
         }
 
         boolean inRange(long pX, long pZ) {
-            return WorldBounds.within(pX, this.viewCenterX, this.chunkRadius)
-                    && WorldBounds.within(pZ, this.viewCenterZ, this.chunkRadius);
+            return this.inRange(net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ));
+        }
+
+        boolean inRange(net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ) {
+            return WorldBounds.distance(pX, this.viewCenterX) <= this.chunkRadius
+                    && WorldBounds.distance(pZ, this.viewCenterZ) <= this.chunkRadius;
         }
 
         @Nullable
@@ -212,22 +253,22 @@ public class ClientChunkCache extends ChunkSource {
 
                 try {
                     long radius = (long) ClientChunkCache.this.storage.chunkRadius;
-                    long minZ = WorldBounds.addChunkOffset(this.viewCenterZ, -radius);
-                    long maxZ = WorldBounds.addChunkOffset(this.viewCenterZ, radius);
-                    long minX = WorldBounds.addChunkOffset(this.viewCenterX, -radius);
-                    long maxX = WorldBounds.addChunkOffset(this.viewCenterX, radius);
+                    net.minecraft.core.Int128 minZ = WorldBounds.addChunkOffset(this.viewCenterZ, -radius);
+                    net.minecraft.core.Int128 maxZ = WorldBounds.addChunkOffset(this.viewCenterZ, radius);
+                    net.minecraft.core.Int128 minX = WorldBounds.addChunkOffset(this.viewCenterX, -radius);
+                    net.minecraft.core.Int128 maxX = WorldBounds.addChunkOffset(this.viewCenterX, radius);
 
-                    for (long z = minZ;; z = WorldBounds.addChunkOffset(z, 1L)) {
-                        for (long x = minX;; x = WorldBounds.addChunkOffset(x, 1L)) {
+                    for (net.minecraft.core.Int128 z = minZ;; z = WorldBounds.addChunkOffset(z, 1L)) {
+                        for (net.minecraft.core.Int128 x = minX;; x = WorldBounds.addChunkOffset(x, 1L)) {
                             LevelChunk levelchunk = ClientChunkCache.this.storage.chunks.get(ClientChunkCache.this.storage.getIndex(x, z));
                             if (levelchunk != null) {
                                 ChunkPos chunkpos = levelchunk.getPos();
-                                fileoutputstream.write((chunkpos.x + "\t" + chunkpos.z + "\t" + levelchunk.isEmpty() + "\n").getBytes(StandardCharsets.UTF_8));
+                                fileoutputstream.write((chunkpos.x() + "\t" + chunkpos.z() + "\t" + levelchunk.isEmpty() + "\n").getBytes(StandardCharsets.UTF_8));
                             }
-                            if (x == maxX)
+                            if (x.equals(maxX))
                                 break;
                         }
-                        if (z == maxZ)
+                        if (z.equals(maxZ))
                             break;
                     }
                 } catch (Throwable throwable1) {

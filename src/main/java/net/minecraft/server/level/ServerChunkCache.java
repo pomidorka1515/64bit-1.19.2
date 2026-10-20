@@ -113,6 +113,11 @@ public class ServerChunkCache extends ChunkSource {
 
     @Nullable
     public ChunkAccess getChunk(long pChunkX, long pChunkZ, ChunkStatus pRequiredStatus, boolean pLoad) {
+        return this.getChunk(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ), pRequiredStatus, pLoad);
+    }
+
+    @Nullable
+    public ChunkAccess getChunk(Int128 pChunkX, Int128 pChunkZ, ChunkStatus pRequiredStatus, boolean pLoad) {
         if (Thread.currentThread() != this.mainThread) {
             return CompletableFuture.supplyAsync(() -> {
                                         return this.getChunk(pChunkX, pChunkZ, pRequiredStatus, pLoad);
@@ -206,6 +211,10 @@ public class ServerChunkCache extends ChunkSource {
     }
 
     public CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> getChunkFuture(long p_8432_, long p_8433_, ChunkStatus p_8434_, boolean p_8435_) {
+        return this.getChunkFuture(Int128.fromLong(p_8432_), Int128.fromLong(p_8433_), p_8434_, p_8435_);
+    }
+
+    public CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> getChunkFuture(Int128 p_8432_, Int128 p_8433_, ChunkStatus p_8434_, boolean p_8435_) {
         boolean flag = Thread.currentThread() == this.mainThread;
         CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> completablefuture;
         if (flag) {
@@ -222,7 +231,7 @@ public class ServerChunkCache extends ChunkSource {
         return completablefuture;
     }
 
-    private CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> getChunkFutureMainThread(long p_8457_, long p_8458_, ChunkStatus p_8459_, boolean p_8460_) {
+    private CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> getChunkFutureMainThread(Int128 p_8457_, Int128 p_8458_, ChunkStatus p_8459_, boolean p_8460_) {
         ChunkPos chunkpos = new ChunkPos(p_8457_, p_8458_);
         int j = 33 + ChunkStatus.getDistance(p_8459_);
         ChunkHolder chunkholder = this.getVisibleChunkIfPresent(chunkpos);
@@ -248,6 +257,10 @@ public class ServerChunkCache extends ChunkSource {
     }
 
     public boolean hasChunk(long pX, long pZ) {
+        return this.hasChunk(Int128.fromLong(pX), Int128.fromLong(pZ));
+    }
+
+    public boolean hasChunk(Int128 pX, Int128 pZ) {
         ChunkHolder chunkholder = this.getVisibleChunkIfPresent(new ChunkPos(pX, pZ));
         int i = 33 + ChunkStatus.getDistance(ChunkStatus.FULL);
         return !this.chunkAbsent(chunkholder, i);

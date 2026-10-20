@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -125,18 +126,31 @@ public class WorldGenRegion implements WorldGenLevel {
         return this.getChunk(pChunkX, pChunkZ, ChunkStatus.EMPTY);
     }
 
+    public ChunkAccess getChunk(net.minecraft.core.Int128 pChunkX, net.minecraft.core.Int128 pChunkZ) {
+        return this.getChunk(pChunkX, pChunkZ, ChunkStatus.EMPTY, true);
+    }
+
     static int getChunkIndex(ChunkPos center, int size, long chunkX, long chunkZ) {
+        return getChunkIndex(center, size, net.minecraft.core.Int128.fromLong(chunkX), net.minecraft.core.Int128.fromLong(chunkZ));
+    }
+
+    static int getChunkIndex(ChunkPos center, int size, net.minecraft.core.Int128 chunkX, net.minecraft.core.Int128 chunkZ) {
         // ChunkMap retains a full square of slots even when offsets clamp at
         // the world edge. Index from the center, not the clamped first chunk:
         // duplicate edge slots must resolve to the one nearest the center,
         // which has the strongest scheduled generation-status dependency.
-        long x = WorldBounds.signedDifferenceAsLong(chunkX, center.x) + size / 2;
-        long z = WorldBounds.signedDifferenceAsLong(chunkZ, center.z) + size / 2;
+        long x = WorldBounds.signedDifferenceAsLong(chunkX, center.x()) + size / 2;
+        long z = WorldBounds.signedDifferenceAsLong(chunkZ, center.z()) + size / 2;
         return (int) (x + z * size);
     }
 
     @Nullable
     public ChunkAccess getChunk(long pX, long pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
+        return this.getChunk(net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ), pRequiredStatus, pNonnull);
+    }
+
+    @Nullable
+    public ChunkAccess getChunk(net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
         ChunkAccess chunkaccess;
         if (this.hasChunk(pX, pZ)) {
             chunkaccess = this.cache.get(getChunkIndex(this.center.getPos(), this.size, pX, pZ));
@@ -153,7 +167,7 @@ public class WorldGenRegion implements WorldGenLevel {
             return new EmptyLevelChunk(this.level, new ChunkPos(WorldBounds.clampChunk(pX), WorldBounds.clampChunk(pZ)), this.level.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getHolderOrThrow(Biomes.PLAINS));
         } else {
             LOGGER.error("Requested chunk : {} {}", pX, pZ);
-            LOGGER.error("Region bounds : {} {} | {} {}", this.firstPos.x, this.firstPos.z, this.lastPos.x, this.lastPos.z);
+            LOGGER.error("Region bounds : {} {} | {} {}", this.firstPos.x(), this.firstPos.z(), this.lastPos.x(), this.lastPos.z());
             if (chunkaccess != null) {
                 throw (RuntimeException) Util.pauseInIde(new RuntimeException(String.format(Locale.ROOT, "Chunk is not of correct status. Expecting %s, got %s | %s %s", pRequiredStatus, chunkaccess.getStatus(), pX, pZ)));
             } else {
@@ -163,18 +177,23 @@ public class WorldGenRegion implements WorldGenLevel {
     }
 
     public boolean hasChunk(long pChunkX, long pChunkZ) {
-        return pChunkX >= this.firstPos.x && pChunkX <= this.lastPos.x && pChunkZ >= this.firstPos.z && pChunkZ <= this.lastPos.z;
+        return this.hasChunk(net.minecraft.core.Int128.fromLong(pChunkX), net.minecraft.core.Int128.fromLong(pChunkZ));
+    }
+
+    public boolean hasChunk(net.minecraft.core.Int128 pChunkX, net.minecraft.core.Int128 pChunkZ) {
+        return pChunkX.compareTo(this.firstPos.x()) >= 0 && pChunkX.compareTo(this.lastPos.x()) <= 0
+                && pChunkZ.compareTo(this.firstPos.z()) >= 0 && pChunkZ.compareTo(this.lastPos.z()) <= 0;
     }
 
     public BlockState getBlockState(BlockPos pPos) {
-        long i = SectionPos.blockToSectionCoord(pPos.getX());
-        long j = SectionPos.blockToSectionCoord(pPos.getZ());
+        Int128 i = SectionPos.blockToSectionCoord(pPos.getX());
+        Int128 j = SectionPos.blockToSectionCoord(pPos.getZ());
         return this.hasChunk(i, j) ? this.getChunk(i, j).getBlockState(pPos) : Blocks.VOID_AIR.defaultBlockState();
     }
 
     public FluidState getFluidState(BlockPos pPos) {
-        long i = SectionPos.blockToSectionCoord(pPos.getX());
-        long j = SectionPos.blockToSectionCoord(pPos.getZ());
+        Int128 i = SectionPos.blockToSectionCoord(pPos.getX());
+        Int128 j = SectionPos.blockToSectionCoord(pPos.getZ());
         return this.hasChunk(i, j) ? this.getChunk(i, j).getFluidState(pPos) : Fluids.EMPTY.defaultFluidState();
     }
 
@@ -252,11 +271,11 @@ public class WorldGenRegion implements WorldGenLevel {
     }
 
     public boolean ensureCanWrite(BlockPos pPos) {
-        long i = SectionPos.blockToSectionCoord(pPos.getX());
-        long j = SectionPos.blockToSectionCoord(pPos.getZ());
+        Int128 i = SectionPos.blockToSectionCoord(pPos.getX());
+        Int128 j = SectionPos.blockToSectionCoord(pPos.getZ());
         ChunkPos chunkpos = this.getCenter();
-        double k = WorldBounds.distance(chunkpos.x, i);
-        double l = WorldBounds.distance(chunkpos.z, j);
+        double k = WorldBounds.distance(chunkpos.x(), i);
+        double l = WorldBounds.distance(chunkpos.z(), j);
         if (k <= this.writeRadiusCutoff && l <= this.writeRadiusCutoff) {
             if (this.center.isUpgrading()) {
                 LevelHeightAccessor levelheightaccessor = this.center.getHeightAccessorForGeneration();
@@ -292,9 +311,9 @@ public class WorldGenRegion implements WorldGenLevel {
                     }
                 } else {
                     CompoundTag compoundtag = new CompoundTag();
-                    compoundtag.putLong("x", pPos.getX());
+                    net.minecraft.nbt.NbtUtils.writeInt128(compoundtag, "x", pPos.getX());
                     compoundtag.putLong("y", pPos.getY());
-                    compoundtag.putLong("z", pPos.getZ());
+                    net.minecraft.nbt.NbtUtils.writeInt128(compoundtag, "z", pPos.getZ());
                     compoundtag.putString("id", "DUMMY");
                     chunkaccess.setBlockEntityNbt(compoundtag);
                 }
@@ -348,8 +367,8 @@ public class WorldGenRegion implements WorldGenLevel {
     }
 
     public DifficultyInstance getCurrentDifficultyAt(BlockPos pPos) {
-        long i = SectionPos.blockToSectionCoord(pPos.getX());
-        long j = SectionPos.blockToSectionCoord(pPos.getZ());
+        Int128 i = SectionPos.blockToSectionCoord(pPos.getX());
+        Int128 j = SectionPos.blockToSectionCoord(pPos.getZ());
         long k = 0L;
         if (this.hasChunk(i, j)) {
             ChunkAccess chunkaccess = this.getChunk(i, j, ChunkStatus.EMPTY, false);

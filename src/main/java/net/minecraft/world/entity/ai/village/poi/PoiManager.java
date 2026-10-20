@@ -2,10 +2,6 @@ package net.minecraft.world.entity.ai.village.poi;
 
 import com.mojang.datafixers.DataFixer;
 import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.longs.Long2ByteMap;
-import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.Object2ByteMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -20,7 +16,6 @@ import java.util.function.BiPredicate;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
-import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
@@ -85,7 +80,7 @@ public class PoiManager extends SectionStorage<PoiSection> {
     }
 
     public Stream<PoiRecord> getInRange(Predicate<Holder<PoiType>> pTypePredicate, BlockPos pPos, int pDistance, PoiManager.Occupancy pStatus) {
-        int i = pDistance * pDistance;
+        double i = (double) pDistance * pDistance;
         return this.getInSquare(pTypePredicate, pPos, pDistance, pStatus).filter((p_217906_) -> {
             return p_217906_.getPos().distSqr(pPos) <= (double) i;
         });
@@ -263,7 +258,7 @@ public class PoiManager extends SectionStorage<PoiSection> {
                     return this.loadedChunks.add(p_217961_);
                 })
                 .forEach((p_217889_) -> {
-                    pLevelReader.getChunk(p_217889_.x, p_217889_.z, ChunkStatus.EMPTY);
+                    pLevelReader.getChunk(p_217889_.x(), p_217889_.z(), ChunkStatus.EMPTY);
                 });
     }
 

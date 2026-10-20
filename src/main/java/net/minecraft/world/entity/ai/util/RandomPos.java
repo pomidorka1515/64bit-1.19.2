@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.PathfinderMob;
@@ -92,7 +93,7 @@ public class RandomPos {
         return exact == null ? null : exact.toApproximateVec3();
     }
 
-    /** Selects a random block target without converting its long X/Z to doubles. */
+    /** Selects a random block target without converting its exact X/Z to doubles. */
     @Nullable
     public static SectorVec3 generateRandomSectorPos(Supplier<BlockPos> supplier,
             ToDoubleFunction<BlockPos> score) {
@@ -115,24 +116,24 @@ public class RandomPos {
 
     public static BlockPos generateRandomPosTowardDirection(PathfinderMob mob, int horizontalRange,
             RandomSource random, BlockPos offset) {
-        long offsetX = offset.getX();
-        long offsetZ = offset.getZ();
+        Int128 offsetX = offset.getX();
+        Int128 offsetZ = offset.getZ();
         if (mob.hasRestriction() && horizontalRange > 1) {
             BlockPos restriction = mob.getRestrictCenter();
             // Vanilla compares the mob's coordinate with the restriction block's
             // lower corner. Keep that behavior using the exact fractional component;
             // comparing only getBlockX/Z made every mob in the center block choose
             // the same outward adjustment.
-            boolean eastOfRestriction = mob.getBlockX() > restriction.getX()
-                    || mob.getBlockX() == restriction.getX() && mob.sectorPosition().subX() > 0.0D;
+            boolean eastOfRestriction = mob.getBlockX().compareTo(restriction.getX()) > 0
+                    || mob.getBlockX().equals(restriction.getX()) && mob.sectorPosition().subX() > 0.0D;
             if (eastOfRestriction) {
                 offsetX = WorldBounds.subtractBlockOffset(offsetX, random.nextInt(horizontalRange / 2));
             } else {
                 offsetX = WorldBounds.addBlockOffset(offsetX, random.nextInt(horizontalRange / 2));
             }
 
-            boolean southOfRestriction = mob.getBlockZ() > restriction.getZ()
-                    || mob.getBlockZ() == restriction.getZ() && mob.sectorPosition().subZ() > 0.0D;
+            boolean southOfRestriction = mob.getBlockZ().compareTo(restriction.getZ()) > 0
+                    || mob.getBlockZ().equals(restriction.getZ()) && mob.sectorPosition().subZ() > 0.0D;
             if (southOfRestriction) {
                 offsetZ = WorldBounds.subtractBlockOffset(offsetZ, random.nextInt(horizontalRange / 2));
             } else {

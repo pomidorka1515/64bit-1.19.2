@@ -2,6 +2,7 @@ package net.minecraft.world.entity.ai.goal;
 
 import java.util.EnumSet;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
@@ -111,7 +112,7 @@ public class FollowOwnerGoal extends Goal {
         }
     }
 
-    private boolean maybeTeleportTo(long pX, int pY, long pZ) {
+    private boolean maybeTeleportTo(Int128 pX, int pY, Int128 pZ) {
         SectorVec3 ownerPosition = this.owner.sectorPosition();
         double xDistance = WorldBounds.signedDifference(pX, ownerPosition.blockX()) - ownerPosition.subX();
         double zDistance = WorldBounds.signedDifference(pZ, ownerPosition.blockZ()) - ownerPosition.subZ();

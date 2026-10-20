@@ -3,6 +3,7 @@ package net.minecraft.world.entity.ai.village;
 import com.mojang.logging.LogUtils;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BiomeTags;
@@ -24,9 +25,9 @@ public class VillageSiege implements CustomSpawner {
     private VillageSiege.State siegeState = VillageSiege.State.SIEGE_DONE;
     private int zombiesToSpawn;
     private int nextSpawnTime;
-    private long spawnX;
+    private Int128 spawnX = Int128.ZERO;
     private int spawnY;
-    private long spawnZ;
+    private Int128 spawnZ = Int128.ZERO;
 
     public int tick(ServerLevel pLevel, boolean pSpawnHostiles, boolean pSpawnPassives) {
         if (!pLevel.isDay() && pSpawnHostiles) {
@@ -113,8 +114,8 @@ public class VillageSiege implements CustomSpawner {
     @Nullable
     private net.minecraft.world.phys.SectorVec3 findRandomSpawnPos(ServerLevel pLevel, BlockPos pPos) {
         for (int i = 0; i < 10; ++i) {
-            long j = net.minecraft.world.level.WorldBounds.addBlockOffset(pPos.getX(), pLevel.random.nextInt(16) - 8);
-            long k = net.minecraft.world.level.WorldBounds.addBlockOffset(pPos.getZ(), pLevel.random.nextInt(16) - 8);
+            Int128 j = net.minecraft.world.level.WorldBounds.addBlockOffset(pPos.getX(), pLevel.random.nextInt(16) - 8);
+            Int128 k = net.minecraft.world.level.WorldBounds.addBlockOffset(pPos.getZ(), pLevel.random.nextInt(16) - 8);
             int l = pLevel.getHeight(Heightmap.Types.WORLD_SURFACE, j, k);
             BlockPos blockpos = new BlockPos(j, l, k);
             if (pLevel.isVillage(blockpos) && Monster.checkMonsterSpawnRules(EntityType.ZOMBIE, pLevel, MobSpawnType.EVENT, blockpos, pLevel.random)) {

@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -64,6 +65,10 @@ public abstract class StructurePiece {
     }
 
     protected static BoundingBox makeBoundingBox(long pX, int pY, long pZ, Direction pDirection, int pOffsetX, int pOffsetY, int pOffsetZ) {
+        return makeBoundingBox(Int128.fromLong(pX), pY, Int128.fromLong(pZ), pDirection, pOffsetX, pOffsetY, pOffsetZ);
+    }
+
+    protected static BoundingBox makeBoundingBox(Int128 pX, int pY, Int128 pZ, Direction pDirection, int pOffsetX, int pOffsetY, int pOffsetZ) {
         return pDirection.getAxis() == Direction.Axis.Z ? new BoundingBox(pX, pY, pZ, WorldBounds.addBlockOffset(pX, (long) pOffsetX - 1L), pY + pOffsetY - 1, WorldBounds.addBlockOffset(pZ, (long) pOffsetZ - 1L)) : new BoundingBox(pX, pY, pZ, WorldBounds.addBlockOffset(pX, (long) pOffsetZ - 1L), pY + pOffsetY - 1, WorldBounds.addBlockOffset(pZ, (long) pOffsetX - 1L));
     }
 
@@ -104,8 +109,8 @@ public abstract class StructurePiece {
     }
 
     public boolean isCloseToChunk(ChunkPos pChunkPos, int pDistance) {
-        long i = pChunkPos.getMinBlockX();
-        long j = pChunkPos.getMinBlockZ();
+        Int128 i = pChunkPos.getMinBlockX();
+        Int128 j = pChunkPos.getMinBlockZ();
         return this.boundingBox.intersects(WorldBounds.subtractBlockOffset(i, pDistance), WorldBounds.subtractBlockOffset(j, pDistance), WorldBounds.addBlockOffset(i, 15L + pDistance), WorldBounds.addBlockOffset(j, 15L + pDistance));
     }
 
@@ -114,10 +119,18 @@ public abstract class StructurePiece {
     }
 
     protected BlockPos.MutableBlockPos getWorldPos(long pX, int pY, long pZ) {
+        return this.getWorldPos(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+    }
+
+    protected BlockPos.MutableBlockPos getWorldPos(Int128 pX, int pY, Int128 pZ) {
         return new BlockPos.MutableBlockPos(this.getWorldX(pX, pZ), this.getWorldY(pY), this.getWorldZ(pX, pZ));
     }
 
-    protected long getWorldX(long pX, long pZ) {
+    protected Int128 getWorldX(long pX, long pZ) {
+        return this.getWorldX(Int128.fromLong(pX), Int128.fromLong(pZ));
+    }
+
+    protected Int128 getWorldX(Int128 pX, Int128 pZ) {
         Direction direction = this.getOrientation();
         if (direction == null) {
             return pX;
@@ -127,7 +140,7 @@ public abstract class StructurePiece {
                 case SOUTH:
                     return WorldBounds.addBlockOffset(this.boundingBox.minX(), pX);
                 case WEST:
-                    return WorldBounds.subtractBlockOffset(this.boundingBox.maxX(), pZ);
+                    return this.boundingBox.maxX().subtractSaturated(pZ);
                 case EAST:
                     return WorldBounds.addBlockOffset(this.boundingBox.minX(), pZ);
                 default:
@@ -140,14 +153,18 @@ public abstract class StructurePiece {
         return this.getOrientation() == null ? pY : WorldBounds.addSaturated(pY, this.boundingBox.minY());
     }
 
-    protected long getWorldZ(long pX, long pZ) {
+    protected Int128 getWorldZ(long pX, long pZ) {
+        return this.getWorldZ(Int128.fromLong(pX), Int128.fromLong(pZ));
+    }
+
+    protected Int128 getWorldZ(Int128 pX, Int128 pZ) {
         Direction direction = this.getOrientation();
         if (direction == null) {
             return pZ;
         } else {
             switch (direction) {
                 case NORTH:
-                    return WorldBounds.subtractBlockOffset(this.boundingBox.maxZ(), pZ);
+                    return this.boundingBox.maxZ().subtractSaturated(pZ);
                 case SOUTH:
                     return WorldBounds.addBlockOffset(this.boundingBox.minZ(), pZ);
                 case WEST:
@@ -198,7 +215,8 @@ public abstract class StructurePiece {
         if (!pBox.isInside(blockpos)) {
             return false;
         } else {
-            return blockpos.getY() < pLevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, blockpos.getX(), blockpos.getZ());
+            // Heightmap generation remains an explicit low-64 worldgen projection.
+            return blockpos.getY() < pLevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, blockpos.getXLo(), blockpos.getZLo());
         }
     }
 
@@ -260,7 +278,7 @@ public abstract class StructurePiece {
     }
 
     protected void generateBox(WorldGenLevel pLevel, BoundingBox pBoundingBox, BoundingBox pBox, BlockState pBoundaryBlockState, BlockState pInsideBlockState, boolean pExistingOnly) {
-        this.generateBox(pLevel, pBoundingBox, pBox.minX(), pBox.minY(), pBox.minZ(), pBox.maxX(), pBox.maxY(), pBox.maxZ(), pBoundaryBlockState, pInsideBlockState, pExistingOnly);
+        this.generateBox(pLevel, pBoundingBox, localCoordinate(pBox.minX()), pBox.minY(), localCoordinate(pBox.minZ()), localCoordinate(pBox.maxX()), pBox.maxY(), localCoordinate(pBox.maxZ()), pBoundaryBlockState, pInsideBlockState, pExistingOnly);
     }
 
     protected void generateBox(WorldGenLevel pLevel, BoundingBox pBox, long pMinX, int pMinY, long pMinZ, long pMaxX, int pMaxY, long pMaxZ, boolean pAlwaysReplace, RandomSource pRandom, StructurePiece.BlockSelector pBlockSelector) {
@@ -293,7 +311,16 @@ public abstract class StructurePiece {
     }
 
     protected void generateBox(WorldGenLevel pLevel, BoundingBox pBoundingBox, BoundingBox pBox, boolean pAlwaysReplace, RandomSource pRandom, StructurePiece.BlockSelector pBlockSelector) {
-        this.generateBox(pLevel, pBoundingBox, pBox.minX(), pBox.minY(), pBox.minZ(), pBox.maxX(), pBox.maxY(), pBox.maxZ(), pAlwaysReplace, pRandom, pBlockSelector);
+        this.generateBox(pLevel, pBoundingBox, localCoordinate(pBox.minX()), pBox.minY(), localCoordinate(pBox.minZ()), localCoordinate(pBox.maxX()), pBox.maxY(), localCoordinate(pBox.maxZ()), pAlwaysReplace, pRandom, pBlockSelector);
+    }
+
+    /** These boxes describe template-local offsets, never absolute world bounds. */
+    private static int localCoordinate(Int128 coordinate) {
+        int local = (int) coordinate.lo();
+        if (!coordinate.equals(Int128.fromLong(local))) {
+            throw new IllegalArgumentException("Structure template offset outside int range: " + coordinate);
+        }
+        return local;
     }
 
     protected void generateMaybeBox(WorldGenLevel pLevel, BoundingBox pBox, RandomSource pRandom, float pChance, int pX1, int pY1, int pZ1, int pX2, int pY2, int pZ2, BlockState pEdgeState, BlockState pState, boolean pRequireNonAir, boolean pRequireSkylight) {
@@ -472,6 +499,10 @@ public abstract class StructurePiece {
     }
 
     public void move(long pX, int pY, long pZ) {
+        this.boundingBox.move(pX, pY, pZ);
+    }
+
+    public void move(Int128 pX, int pY, Int128 pZ) {
         this.boundingBox.move(pX, pY, pZ);
     }
 

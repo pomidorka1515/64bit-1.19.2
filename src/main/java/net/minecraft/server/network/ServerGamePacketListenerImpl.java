@@ -421,6 +421,11 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
 
         ServerLevel serverlevel = this.player.getLevel();
         SectorVec3 before = entity.sectorPosition();
+        if (!this.isMovementTargetLoaded(entity, target, this.vehicleFirstGoodSector)
+                || !isLocalMovement(target, this.vehicleLastGoodSector)) {
+            this.connection.send(new ClientboundMoveVehiclePacket(entity));
+            return;
+        }
         float yRot = Mth.wrapDegrees(pPacket.getYRot());
         float xRot = Mth.wrapDegrees(pPacket.getXRot());
         Vec3 firstDelta = target.relativeTo(this.vehicleFirstGoodSector);
@@ -464,6 +469,30 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         this.clientVehicleIsFloating = verticalResidual >= -0.03125D && !wasOnGround && !this.server.isFlightAllowed()
                 && !entity.isNoGravity() && this.noBlocksAround(entity);
         this.vehicleLastGoodSector = entity.sectorPosition();
+    }
+
+    private static boolean isLocalMovement(SectorVec3 target, SectorVec3 origin) {
+        return !WorldBounds.localSpanExceeds(target.blockX(), origin.blockX())
+                && !WorldBounds.localSpanExceeds(target.blockZ(), origin.blockZ())
+                && Math.abs(target.y() - origin.y()) <= WorldBounds.MAX_SAFE_LOCAL_SPAN;
+    }
+
+    private boolean isMovementTargetLoaded(Entity entity, SectorVec3 target, SectorVec3 baseline) {
+        if (!target.isFinite() || !isLocalMovement(target, baseline)
+                || !isLocalMovement(target, entity.sectorPosition())) {
+            return false;
+        }
+        // Client movement must stay in the current tracking neighborhood. Absolute
+        // coordinates have no security meaning; server teleports establish a new baseline.
+        long trackingRange = ((long) this.server.getPlayerList().getViewDistance() + 1L) * 16L;
+        if (WorldBounds.distance(target.blockX(), baseline.blockX()) > trackingRange
+                || WorldBounds.distance(target.blockZ(), baseline.blockZ()) > trackingRange) {
+            return false;
+        }
+        Vec3 delta = target.relativeTo(entity.sectorPosition());
+        net.minecraft.world.phys.SectorAABB box = entity.getSectorBoundingBox().move(delta.x, delta.y, delta.z);
+        return entity.level.hasChunksAt(box.minBlockXForRange(), box.minBlockZForRange(),
+                box.maxBlockXForRangeInclusive(), box.maxBlockZForRangeInclusive());
     }
 
     private boolean noBlocksAround(Entity entity) {
@@ -895,6 +924,13 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                     double d2 = packetSector == null ? clampHorizontal(pPacket.getZ(this.player.getZ())) : this.player.getZ();
                     float f = Mth.wrapDegrees(pPacket.getYRot(this.player.getYRot()));
                     float f1 = Mth.wrapDegrees(pPacket.getXRot(this.player.getXRot()));
+                    if (!this.player.isPassenger() && packetSector != null
+                            && (this.firstGoodSector == null || this.lastGoodSector == null
+                            || !this.isMovementTargetLoaded(this.player, packetSector.withY(d1), this.firstGoodSector)
+                            || !isLocalMovement(packetSector.withY(d1), this.lastGoodSector))) {
+                        this.teleportExactAbsolute(this.player.sectorPosition(), f, f1);
+                        return;
+                    }
                     if (this.player.isPassenger()) {
                         this.player.absMoveTo(this.player.sectorPosition(), f, f1);
                         this.player.getLevel().getChunkSource().move(this.player);
@@ -971,11 +1007,14 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                                 Vec3 exactRemaining = packetSector.withY(d1).relativeTo(this.player.sectorPosition());
                                 d7 = exactRemaining.x;
                                 d8 = exactRemaining.y;
+                                if (d8 > -0.5D && d8 < 0.5D) {
+                                    d8 = 0.0D;
+                                }
                                 d9 = exactRemaining.z;
                             } else {
                                 d7 = d0 - this.player.getX();
                                 d8 = d1 - this.player.getY();
-                                if (d8 > -0.5D || d8 < 0.5D) {
+                                if (d8 > -0.5D && d8 < 0.5D) {
                                     d8 = 0.0D;
                                 }
                                 d9 = d2 - this.player.getZ();
@@ -1061,6 +1100,10 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
     }
 
     private void teleportExactAbsolute(SectorVec3 position, float yRot, float xRot) {
+        this.teleportExactAbsolute(position, yRot, xRot, false);
+    }
+
+    private void teleportExactAbsolute(SectorVec3 position, float yRot, float xRot, boolean dismountVehicle) {
         this.awaitingPositionFromClient = position.toApproximateVec3();
         this.awaitingSectorPositionFromClient = position;
         if (++this.awaitingTeleport == Integer.MAX_VALUE) {
@@ -1071,12 +1114,13 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         this.player.setYRot(yRot);
         this.player.setXRot(xRot);
         this.player.setDeltaMovement(Vec3.ZERO);
+        this.resetPosition();
 
         if (this.player.getLevel().players().contains(this.player)) {
             this.player.getLevel().getChunkSource().move(this.player);
         }
         this.player.connection.send(new ClientboundPlayerPositionPacket(position, yRot, xRot,
-                Collections.emptySet(), this.awaitingTeleport, false));
+                Collections.emptySet(), this.awaitingTeleport, dismountVehicle));
     }
 
     public void teleport(double pX, double pY, double pZ, float pYaw, float pPitch) {
@@ -1094,55 +1138,14 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
     public void teleportExact(SectorVec3 position, float yRot, float xRot, Set<ClientboundPlayerPositionPacket.RelativeArgument> relative, boolean dismountVehicle) {
         if (dismountVehicle)
             this.player.stopRiding();
-        this.teleportExactAbsolute(position, yRot, xRot);
+        this.teleportExactAbsolute(position, yRot, xRot, dismountVehicle);
     }
 
     public void teleport(double pX, double pY, double pZ, float pYaw, float pPitch, Set<ClientboundPlayerPositionPacket.RelativeArgument> pRelativeSet, boolean pDismountVehicle) {
-        double d0 = pRelativeSet.contains(ClientboundPlayerPositionPacket.RelativeArgument.X) ? this.player.getX() : 0.0D;
-        double d1 = pRelativeSet.contains(ClientboundPlayerPositionPacket.RelativeArgument.Y) ? this.player.getY() : 0.0D;
-        double d2 = pRelativeSet.contains(ClientboundPlayerPositionPacket.RelativeArgument.Z) ? this.player.getZ() : 0.0D;
-        float f = pRelativeSet.contains(ClientboundPlayerPositionPacket.RelativeArgument.Y_ROT) ? this.player.getYRot() : 0.0F;
-        float f1 = pRelativeSet.contains(ClientboundPlayerPositionPacket.RelativeArgument.X_ROT) ? this.player.getXRot() : 0.0F;
-        SectorVec3 exactTarget = null;
-        if (this.player.hasSectorPosition()) {
-            SectorVec3 current = this.player.sectorPosition();
-            // TeleportCommand has already resolved relative coordinates into the
-            // absolute Vec3 arguments. Relative flags describe the client packet;
-            // they do not mean that those resolved values must be added again.
-            // Adding them here made /tp ~ ~ ~ apply the current position twice,
-            // most visibly in Y.
-            exactTarget = current;
-            if (!pRelativeSet.contains(ClientboundPlayerPositionPacket.RelativeArgument.X)) {
-                double floorX = Math.floor(pX);
-                exactTarget = exactTarget.withX((long) floorX, pX - floorX);
-            }
-            if (!pRelativeSet.contains(ClientboundPlayerPositionPacket.RelativeArgument.Z)) {
-                double floorZ = Math.floor(pZ);
-                exactTarget = exactTarget.withZ((long) floorZ, pZ - floorZ);
-            }
-            if (!pRelativeSet.contains(ClientboundPlayerPositionPacket.RelativeArgument.Y)) {
-                exactTarget = exactTarget.withY(pY);
-            }
-        }
-        this.awaitingPositionFromClient = new Vec3(pX, pY, pZ);
-        this.awaitingSectorPositionFromClient = exactTarget;
-        if (++this.awaitingTeleport == Integer.MAX_VALUE) {
-            this.awaitingTeleport = 0;
-        }
-
-        this.awaitingTeleportTime = this.tickCount;
-        if (this.player.hasSectorPosition()) {
-            exactTarget = this.awaitingSectorPositionFromClient;
-            this.player.applyExactPosition(exactTarget);
-            this.player.setYRot(pYaw);
-            this.player.setXRot(pPitch);
-            this.player.connection.send(new ClientboundPlayerPositionPacket(exactTarget, pYaw - f, pPitch - f1,
-                    pRelativeSet, this.awaitingTeleport, pDismountVehicle));
-        } else {
-            this.player.absMoveTo(pX, pY, pZ, pYaw, pPitch);
-            this.player.connection.send(new ClientboundPlayerPositionPacket(pX - d0, pY - d1, pZ - d2,
-                    pYaw - f, pPitch - f1, pRelativeSet, this.awaitingTeleport, pDismountVehicle));
-        }
+        // These arguments are already resolved absolute coordinates. Convert once
+        // at this compatibility boundary; exact callers use teleportExact.
+        this.teleportExact(SectorVec3.fromApproximate(pX, pY, pZ), pYaw, pPitch,
+                Collections.emptySet(), pDismountVehicle);
     }
 
     public void handlePlayerAction(ServerboundPlayerActionPacket pPacket) {

@@ -456,19 +456,12 @@ public abstract class Player extends LivingEntity {
             this.stopRiding();
             this.setShiftKeyDown(false);
         } else {
-            SectorVec3 old = this.hasSectorPosition() ? this.sectorPosition() : null;
-            double d0 = this.getX();
-            double d1 = this.getY();
-            double d2 = this.getZ();
+            SectorVec3 old = this.sectorPosition();
             super.rideTick();
             this.oBob = this.bob;
             this.bob = 0.0F;
-            if (old != null) {
-                Vec3 delta = this.sectorPosition().relativeTo(old);
-                this.checkRidingStatistics(delta.x, delta.y, delta.z);
-            } else {
-                this.checkRidingStatistics(this.getX() - d0, this.getY() - d1, this.getZ() - d2);
-            }
+            Vec3 delta = this.sectorPosition().relativeTo(old);
+            this.checkRidingStatistics(delta.x, delta.y, delta.z);
         }
     }
 
@@ -1385,10 +1378,7 @@ public abstract class Player extends LivingEntity {
     }
 
     public void travel(Vec3 pTravelVector) {
-        SectorVec3 exactBefore = this.hasSectorPosition() ? this.sectorPosition() : null;
-        double d0 = this.getX();
-        double d1 = this.getY();
-        double d2 = this.getZ();
+        SectorVec3 exactBefore = this.sectorPosition();
         if (this.isSwimming() && !this.isPassenger()) {
             double d3 = this.getLookAngle().y;
             double d4 = d3 < -0.2D ? 0.085D : 0.06D;
@@ -1414,12 +1404,8 @@ public abstract class Player extends LivingEntity {
             super.travel(pTravelVector);
         }
 
-        if (exactBefore != null) {
-            Vec3 exactDelta = this.sectorPosition().relativeTo(exactBefore);
-            this.checkMovementStatistics(exactDelta.x, exactDelta.y, exactDelta.z);
-        } else {
-            this.checkMovementStatistics(this.getX() - d0, this.getY() - d1, this.getZ() - d2);
-        }
+        Vec3 exactDelta = this.sectorPosition().relativeTo(exactBefore);
+        this.checkMovementStatistics(exactDelta.x, exactDelta.y, exactDelta.z);
     }
 
     public void updateSwimming() {

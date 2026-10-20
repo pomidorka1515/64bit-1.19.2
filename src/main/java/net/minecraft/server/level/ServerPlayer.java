@@ -1,6 +1,7 @@
 package net.minecraft.server.level;
 
 import net.minecraft.world.phys.SectorVec3;
+import net.minecraft.nbt.NbtUtils;
 
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
@@ -306,8 +307,12 @@ public class ServerPlayer extends Player {
             this.stopSleeping();
         }
 
-        if (pCompound.contains("SpawnX", 99) && pCompound.contains("SpawnY", 99) && pCompound.contains("SpawnZ", 99)) {
-            this.respawnPosition = new BlockPos(pCompound.getLong("SpawnX"), pCompound.getInt("SpawnY"), pCompound.getLong("SpawnZ"));
+        if (pCompound.contains("SpawnX") || pCompound.contains("SpawnY") || pCompound.contains("SpawnZ")
+                || pCompound.contains("SpawnXHi") || pCompound.contains("SpawnZHi")) {
+            if (!pCompound.contains("SpawnY", 3)) {
+                throw new IllegalArgumentException("Missing or invalid player SpawnY");
+            }
+            this.respawnPosition = new BlockPos(NbtUtils.readInt128(pCompound, "SpawnX"), pCompound.getInt("SpawnY"), NbtUtils.readInt128(pCompound, "SpawnZ"));
             this.respawnForced = pCompound.getBoolean("SpawnForced");
             this.respawnAngle = pCompound.getFloat("SpawnAngle");
             if (pCompound.contains("SpawnDimension")) {
@@ -342,9 +347,9 @@ public class ServerPlayer extends Player {
         pCompound.put("recipeBook", this.recipeBook.toNbt());
         pCompound.putString("Dimension", this.level.dimension().location().toString());
         if (this.respawnPosition != null) {
-            pCompound.putInt("SpawnX", this.respawnPosition.getX());
+            NbtUtils.writeInt128(pCompound, "SpawnX", this.respawnPosition.getX());
             pCompound.putInt("SpawnY", this.respawnPosition.getY());
-            pCompound.putInt("SpawnZ", this.respawnPosition.getZ());
+            NbtUtils.writeInt128(pCompound, "SpawnZ", this.respawnPosition.getZ());
             pCompound.putBoolean("SpawnForced", this.respawnForced);
             pCompound.putFloat("SpawnAngle", this.respawnAngle);
             ResourceLocation.CODEC.encodeStart(NbtOps.INSTANCE, this.respawnDimension.location()).resultOrPartial(LOGGER::error).ifPresent((p_9134_) -> {
@@ -1399,11 +1404,6 @@ public class ServerPlayer extends Player {
     * through the player and network state transitions.
     */
     public void teleportTo(ServerLevel level, SectorVec3 position, float yRot, float xRot) {
-        if (!this.hasSectorPosition()) {
-            this.teleportTo(level, position.toApproximateVec3().x, position.y(), position.toApproximateVec3().z, yRot, xRot);
-            return;
-        }
-
         this.setCamera(this);
         this.stopRiding();
         if (level == this.level) {
@@ -1497,7 +1497,7 @@ public class ServerPlayer extends Player {
 
     public void untrackChunk(ChunkPos pChunkPos) {
         if (this.isAlive()) {
-            this.connection.send(new ClientboundForgetLevelChunkPacket(pChunkPos.x, pChunkPos.z));
+            this.connection.send(new ClientboundForgetLevelChunkPacket(pChunkPos.x(), pChunkPos.z()));
         }
     }
 

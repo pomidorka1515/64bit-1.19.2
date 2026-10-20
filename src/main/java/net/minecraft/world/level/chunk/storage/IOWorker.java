@@ -3,7 +3,6 @@ package net.minecraft.world.level.chunk.storage;
 import com.google.common.collect.Maps;
 import com.mojang.datafixers.util.Either;
 import com.mojang.logging.LogUtils;
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 
 import java.io.IOException;
@@ -18,6 +17,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import net.minecraft.Util;
+import net.minecraft.core.Int128;
+import net.minecraft.core.Int128Math;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.StreamTagVisitor;
@@ -37,7 +38,7 @@ public class IOWorker implements ChunkScanAccess, AutoCloseable {
     private final ProcessorMailbox<StrictQueue.IntRunnable> mailbox;
     private final RegionFileStorage storage;
     private final Map<ChunkPos, IOWorker.PendingStore> pendingWrites = Maps.newLinkedHashMap();
-    private final Object2ObjectLinkedOpenHashMap<ChunkPos, CompletableFuture<BitSet>> regionCacheForBlender = new Object2ObjectLinkedOpenHashMap<>();
+    private final Object2ObjectLinkedOpenHashMap<RegionPos, CompletableFuture<BitSet>> regionCacheForBlender = new Object2ObjectLinkedOpenHashMap<>();
     private static final int REGION_CACHE_SIZE = 1024;
 
     protected IOWorker(Path pFolder, boolean pSync, String pWorkerName) {
@@ -46,22 +47,22 @@ public class IOWorker implements ChunkScanAccess, AutoCloseable {
     }
 
     public boolean isOldChunkAround(ChunkPos p_223472_, int p_223473_) {
-        ChunkPos chunkpos = new ChunkPos(WorldBounds.addChunkOffset(p_223472_.x, -(long) p_223473_),
-                WorldBounds.addChunkOffset(p_223472_.z, -(long) p_223473_));
-        ChunkPos chunkpos1 = new ChunkPos(WorldBounds.addChunkOffset(p_223472_.x, (long) p_223473_),
-                WorldBounds.addChunkOffset(p_223472_.z, (long) p_223473_));
+        ChunkPos chunkpos = new ChunkPos(WorldBounds.addChunkOffset(p_223472_.x(), -(long) p_223473_),
+                WorldBounds.addChunkOffset(p_223472_.z(), -(long) p_223473_));
+        ChunkPos chunkpos1 = new ChunkPos(WorldBounds.addChunkOffset(p_223472_.x(), (long) p_223473_),
+                WorldBounds.addChunkOffset(p_223472_.z(), (long) p_223473_));
 
-        boolean moreX = chunkpos.getRegionX() <= chunkpos1.getRegionX();
-        for (long i = chunkpos.getRegionX(); moreX; moreX = i < chunkpos1.getRegionX(), i = WorldBounds.addBlockOffset(i, 1L)) {
-            boolean moreZ = chunkpos.getRegionZ() <= chunkpos1.getRegionZ();
-            for (long j = chunkpos.getRegionZ(); moreZ; moreZ = j < chunkpos1.getRegionZ(), j = WorldBounds.addBlockOffset(j, 1L)) {
+        boolean moreX = chunkpos.getRegionX().compareTo(chunkpos1.getRegionX()) <= 0;
+        for (Int128 i = chunkpos.getRegionX(); moreX; moreX = i.compareTo(chunkpos1.getRegionX()) < 0, i = i.add(Int128.ONE)) {
+            boolean moreZ = chunkpos.getRegionZ().compareTo(chunkpos1.getRegionZ()) <= 0;
+            for (Int128 j = chunkpos.getRegionZ(); moreZ; moreZ = j.compareTo(chunkpos1.getRegionZ()) < 0, j = j.add(Int128.ONE)) {
                 BitSet bitset = this.getOrCreateOldDataForRegion(i, j).join();
                 if (!bitset.isEmpty()) {
                     ChunkPos chunkpos2 = ChunkPos.minFromRegion(i, j);
-                    long k = Math.max(WorldBounds.subtractBlockOffset(chunkpos.x, chunkpos2.x), 0);
-                    long l = Math.max(WorldBounds.subtractBlockOffset(chunkpos.z, chunkpos2.z), 0);
-                    long i1 = Math.min(WorldBounds.subtractBlockOffset(chunkpos1.x, chunkpos2.x), 31);
-                    long j1 = Math.min(WorldBounds.subtractBlockOffset(chunkpos1.z, chunkpos2.z), 31);
+                    long k = Math.max(Int128Math.signedDifferenceAsLong(chunkpos.xHi(), chunkpos.xLo(), chunkpos2.xHi(), chunkpos2.xLo()), 0);
+                    long l = Math.max(Int128Math.signedDifferenceAsLong(chunkpos.zHi(), chunkpos.zLo(), chunkpos2.zHi(), chunkpos2.zLo()), 0);
+                    long i1 = Math.min(Int128Math.signedDifferenceAsLong(chunkpos1.xHi(), chunkpos1.xLo(), chunkpos2.xHi(), chunkpos2.xLo()), 31);
+                    long j1 = Math.min(Int128Math.signedDifferenceAsLong(chunkpos1.zHi(), chunkpos1.zLo(), chunkpos2.zHi(), chunkpos2.zLo()), 31);
 
                     for (long k1 = k; k1 <= i1; ++k1) {
                         for (long l1 = l; l1 <= j1; ++l1) {
@@ -78,14 +79,14 @@ public class IOWorker implements ChunkScanAccess, AutoCloseable {
         return false;
     }
 
-    private CompletableFuture<BitSet> getOrCreateOldDataForRegion(long p_223464_, long p_223465_) {
-        ChunkPos i = new ChunkPos(p_223464_, p_223465_);
+    private CompletableFuture<BitSet> getOrCreateOldDataForRegion(Int128 p_223464_, Int128 p_223465_) {
+        RegionPos i = new RegionPos(p_223464_, p_223465_);
         synchronized (this.regionCacheForBlender) {
             CompletableFuture<BitSet> completablefuture = this.regionCacheForBlender.getAndMoveToFirst(i);
             if (completablefuture == null) {
                 completablefuture = this.createOldDataForRegion(p_223464_, p_223465_);
                 this.regionCacheForBlender.putAndMoveToFirst(i, completablefuture);
-                if (this.regionCacheForBlender.size() > 1024) {
+                if (this.regionCacheForBlender.size() > REGION_CACHE_SIZE) {
                     this.regionCacheForBlender.removeLast();
                 }
             }
@@ -94,7 +95,7 @@ public class IOWorker implements ChunkScanAccess, AutoCloseable {
         }
     }
 
-    private CompletableFuture<BitSet> createOldDataForRegion(long p_223490_, long p_223491_) {
+    private CompletableFuture<BitSet> createOldDataForRegion(Int128 p_223490_, Int128 p_223491_) {
         return CompletableFuture.supplyAsync(() -> {
             ChunkPos chunkpos = ChunkPos.minFromRegion(p_223490_, p_223491_);
             ChunkPos chunkpos1 = ChunkPos.maxFromRegion(p_223490_, p_223491_);

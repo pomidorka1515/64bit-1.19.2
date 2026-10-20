@@ -9,9 +9,6 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.OptionalDynamic;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
@@ -202,7 +199,7 @@ public class SectionStorage<R> implements AutoCloseable {
     }
 
     private static SectionPos getKey(ChunkPos pChunkPos, int pSectionY) {
-        return SectionPos.of(pChunkPos.x, pSectionY, pChunkPos.z);
+        return SectionPos.of(pChunkPos.x(), pSectionY, pChunkPos.z());
     }
 
     protected void onSectionLoad(SectionPos pSectionKey) {

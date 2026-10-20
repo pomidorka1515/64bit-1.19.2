@@ -3,8 +3,6 @@ package net.minecraft.world.level.chunk.storage;
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 
@@ -15,8 +13,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import net.minecraft.SharedConstants;
+import net.minecraft.core.Int128;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.IntArrayTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.LongArrayTag;
 import net.minecraft.nbt.NbtUtils;
@@ -53,13 +51,9 @@ public class EntityStorage implements EntityPersistentStorage<Entity> {
                 this.emptyChunks.add(pPos);
                 return emptyChunk(pPos);
             } else {
-                try {
-                    ChunkPos chunkpos = readChunkPos(p_223458_.get());
-                    if (!Objects.equals(pPos, chunkpos)) {
-                        LOGGER.error("Chunk file at {} is in the wrong location. (Expected {}, got {})", pPos, pPos, chunkpos);
-                    }
-                } catch (Exception exception) {
-                    LOGGER.warn("Failed to parse chunk {} position info", pPos, exception);
+                ChunkPos chunkpos = readChunkPos(p_223458_.get());
+                if (!Objects.equals(pPos, chunkpos)) {
+                    LOGGER.error("Chunk file at {} is in the wrong location. (Expected {}, got {})", pPos, pPos, chunkpos);
                 }
 
                 CompoundTag compoundtag = this.upgradeChunkTag(p_223458_.get());
@@ -72,11 +66,20 @@ public class EntityStorage implements EntityPersistentStorage<Entity> {
 
     private static ChunkPos readChunkPos(CompoundTag pTag) {
         long[] aint = pTag.getLongArray("Position");
-        return new ChunkPos(aint[0], aint[1]);
+        if (aint.length != 4) {
+            throw new IllegalArgumentException("Entity chunk Position requires four longs [xHi, xLo, zHi, zLo]");
+        }
+        Int128 x = Int128.of(aint[0], aint[1]);
+        Int128 z = Int128.of(aint[2], aint[3]);
+        if (x.compareTo(ChunkPos.MIN_CHUNK_COORDINATE) < 0 || x.compareTo(ChunkPos.MAX_CHUNK_COORDINATE) > 0
+                || z.compareTo(ChunkPos.MIN_CHUNK_COORDINATE) < 0 || z.compareTo(ChunkPos.MAX_CHUNK_COORDINATE) > 0) {
+            throw new IllegalArgumentException("Entity chunk Position is outside the chunk coordinate domain");
+        }
+        return new ChunkPos(x, z);
     }
 
     private static void writeChunkPos(CompoundTag pTag, ChunkPos pPos) {
-        pTag.put("Position", new LongArrayTag(new long[] {pPos.x, pPos.z}));
+        pTag.put("Position", new LongArrayTag(new long[] {pPos.xHi(), pPos.xLo(), pPos.zHi(), pPos.zLo()}));
     }
 
     private static ChunkEntities<Entity> emptyChunk(ChunkPos pPos) {

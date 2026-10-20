@@ -10,11 +10,11 @@ public final class RegionFileNames {
     }
 
     public static String regionFileName(Int128 regionX, Int128 regionZ) {
-        return "r." + regionX.toHex() + "." + regionZ.toHex() + ".mca";
+        return String.join(".", "r", regionX.toHex(), regionZ.toHex(), "mca");
     }
 
     public static String externalChunkFileName(Int128 chunkX, Int128 chunkZ) {
-        return "c." + chunkX.toHex() + "." + chunkZ.toHex() + ".mcc";
+        return String.join(".", "c", chunkX.toHex(), chunkZ.toHex(), "mcc");
     }
 
     public static Optional<RegionPos> parseRegionFileName(String fileName) {

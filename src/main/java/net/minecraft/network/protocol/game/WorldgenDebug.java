@@ -43,7 +43,8 @@ public final class WorldgenDebug {
         }
         SimplexNoise.beginDebugCapture();
         try {
-            Biome.BIOME_INFO_NOISE.getValue((double) pos.getX(), (double) pos.getZ(), false);
+            // Match the explicit low-64 worldgen seam, including its diagnostic sampling.
+            Biome.BIOME_INFO_NOISE.getValue((double) pos.getXLo(), (double) pos.getZLo(), false);
             lines.add("SimplexNoise");
             lines.add(SimplexNoise.getDebugString());
             lines.add(SimplexNoise.getDebugString2());

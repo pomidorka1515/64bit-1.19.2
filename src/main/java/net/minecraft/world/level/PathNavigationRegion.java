@@ -3,6 +3,7 @@ package net.minecraft.world.level;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.Entity;
@@ -18,8 +19,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class PathNavigationRegion implements BlockGetter, CollisionGetter {
-    protected final long centerX;
-    protected final long centerZ;
+    protected final Int128 centerX;
+    protected final Int128 centerZ;
     protected final ChunkAccess[][] chunks;
     protected boolean allEmpty;
     protected final Level level;
@@ -28,31 +29,43 @@ public class PathNavigationRegion implements BlockGetter, CollisionGetter {
         this.level = pLevel;
         this.centerX = SectionPos.blockToSectionCoord(pCenterPos.getX());
         this.centerZ = SectionPos.blockToSectionCoord(pCenterPos.getZ());
-        long i = SectionPos.blockToSectionCoord(pOffsetPos.getX());
-        long j = SectionPos.blockToSectionCoord(pOffsetPos.getZ());
-        this.chunks = new ChunkAccess[Math.toIntExact(WorldBounds.inclusiveBlockSpan(this.centerX, i))][Math.toIntExact(WorldBounds.inclusiveBlockSpan(this.centerZ, j))];
+        Int128 i = SectionPos.blockToSectionCoord(pOffsetPos.getX());
+        Int128 j = SectionPos.blockToSectionCoord(pOffsetPos.getZ());
+        int width = snapshotSize(this.centerX, i);
+        int depth = snapshotSize(this.centerZ, j);
+        if ((long) width * depth > Integer.MAX_VALUE)
+            throw new IllegalArgumentException("Pathfinding snapshot exceeds local volume budget");
+        this.chunks = new ChunkAccess[width][depth];
         ChunkSource chunksource = pLevel.getChunkSource();
         this.allEmpty = true;
 
-        boolean moreX = this.centerX <= i;
-        for (long k = this.centerX; moreX; moreX = k < i, k = WorldBounds.addChunkOffset(k, 1L)) {
-            boolean moreZ = this.centerZ <= j;
-            for (long l = this.centerZ; moreZ; moreZ = l < j, l = WorldBounds.addChunkOffset(l, 1L)) {
-                this.chunks[(int) (k - this.centerX)][(int) (l - this.centerZ)] = chunksource.getChunkNow(k, l);
+        for (int x = 0; x < width; ++x) {
+            Int128 chunkX = WorldBounds.addChunkOffset(this.centerX, x);
+            for (int z = 0; z < depth; ++z) {
+                Int128 chunkZ = WorldBounds.addChunkOffset(this.centerZ, z);
+                this.chunks[x][z] = chunksource.getChunkNow(chunkX, chunkZ);
             }
         }
 
-        moreX = this.centerX <= i;
-        for (long i1 = this.centerX; moreX; moreX = i1 < i, i1 = WorldBounds.addChunkOffset(i1, 1L)) {
-            boolean moreZ = this.centerZ <= j;
-            for (long j1 = this.centerZ; moreZ; moreZ = j1 < j, j1 = WorldBounds.addChunkOffset(j1, 1L)) {
-                ChunkAccess chunkaccess = this.chunks[(int) (i1 - this.centerX)][(int) (j1 - this.centerZ)];
+        for (int x = 0; x < width; ++x) {
+            for (int z = 0; z < depth; ++z) {
+                ChunkAccess chunkaccess = this.chunks[x][z];
                 if (chunkaccess != null && !chunkaccess.isYSpaceEmpty(pCenterPos.getY(), pOffsetPos.getY())) {
                     this.allEmpty = false;
                     return;
                 }
             }
         }
+    }
+
+    /** Bounds allocation by local span, independently of either coordinate's high word. */
+    private static int snapshotSize(Int128 first, Int128 last) {
+        if (first.compareTo(last) > 0)
+            throw new IllegalArgumentException("Reversed pathfinding snapshot range");
+        long span = WorldBounds.signedDifferenceAsLong(last, first);
+        if (span > (WorldBounds.MAX_SAFE_LOCAL_SPAN >> 4))
+            throw new IllegalArgumentException("Pathfinding snapshot exceeds safe local span");
+        return Math.toIntExact(span + 1L);
     }
 
     @Nullable
@@ -69,9 +82,9 @@ public class PathNavigationRegion implements BlockGetter, CollisionGetter {
     * throwaway chunks a severe server-tick spike.
     */
     @Nullable
-    private ChunkAccess getChunk(long pX, long pZ) {
-        long i = WorldBounds.subtractBlockOffset(pX, this.centerX);
-        long j = WorldBounds.subtractBlockOffset(pZ, this.centerZ);
+    private ChunkAccess getChunk(Int128 pX, Int128 pZ) {
+        long i = WorldBounds.signedDifferenceAsLong(pX, this.centerX);
+        long j = WorldBounds.signedDifferenceAsLong(pZ, this.centerZ);
         return i >= 0 && i < this.chunks.length && j >= 0 && j < this.chunks[(int) i].length
                 ? this.chunks[(int) i][(int) j]
                 : null;
@@ -83,6 +96,11 @@ public class PathNavigationRegion implements BlockGetter, CollisionGetter {
 
     @Nullable
     public BlockGetter getChunkForCollisions(long pChunkX, long pChunkZ) {
+        return this.getChunk(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ));
+    }
+
+    @Nullable
+    public BlockGetter getChunkForCollisions(Int128 pChunkX, Int128 pChunkZ) {
         return this.getChunk(pChunkX, pChunkZ);
     }
 

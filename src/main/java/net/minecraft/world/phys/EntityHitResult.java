@@ -13,7 +13,7 @@ public class EntityHitResult extends HitResult {
     }
 
     public EntityHitResult(Entity pEntity, Vec3 pLocation) {
-        this(pEntity, pLocation, null);
+        this(pEntity, pLocation, pLocation instanceof ExactVec3 ? ExactVec3.position(pLocation) : null);
     }
 
     /** Creates an entity hit retaining its split-coordinate X/Z location. */

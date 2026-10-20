@@ -11,8 +11,12 @@ import net.minecraft.core.AxisCycle;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.ExactVec3;
+import net.minecraft.world.phys.SectorPhysicsOrigin;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public abstract class VoxelShape {
@@ -113,15 +117,34 @@ public abstract class VoxelShape {
 
     @Nullable
     public BlockHitResult clip(Vec3 pStartVec, Vec3 pEndVec, BlockPos pPos) {
+        return this.clip(ExactVec3.position(pStartVec), ExactVec3.position(pEndVec), pPos);
+    }
+
+    /** Clips block-local shape coordinates without projecting exact world endpoints to doubles. */
+    @Nullable
+    public BlockHitResult clip(SectorVec3 pStartVec, SectorVec3 pEndVec, BlockPos pPos) {
         if (this.isEmpty()) {
             return null;
         } else {
-            Vec3 vec3 = pEndVec.subtract(pStartVec);
+            SectorPhysicsOrigin origin = new SectorPhysicsOrigin(pPos.getX(), pPos.getY(), pPos.getZ());
+            Vec3 start = origin.toLocal(pStartVec);
+            Vec3 end = origin.toLocal(pEndVec);
+            Vec3 vec3 = end.subtract(start);
+            double limit = WorldBounds.MAX_SAFE_LOCAL_SPAN;
+            if (!Double.isFinite(vec3.x) || !Double.isFinite(vec3.y) || !Double.isFinite(vec3.z)
+                    || Math.abs(vec3.x) > limit || Math.abs(vec3.y) > limit || Math.abs(vec3.z) > limit) {
+                throw new IllegalArgumentException("Ray exceeds safe local physics span");
+            }
             if (vec3.lengthSqr() < 1.0E-7D) {
                 return null;
             } else {
-                Vec3 vec31 = pStartVec.add(vec3.scale(0.001D));
-                return this.shape.isFullWide(this.findIndex(Direction.Axis.X, vec31.x - (double) pPos.getX()), this.findIndex(Direction.Axis.Y, vec31.y - (double) pPos.getY()), this.findIndex(Direction.Axis.Z, vec31.z - (double) pPos.getZ())) ? new BlockHitResult(vec31, Direction.getNearest(vec3.x, vec3.y, vec3.z).getOpposite(), pPos, true) : AABB.clip(this.toAabbs(), pStartVec, pEndVec, pPos);
+                Vec3 vec31 = start.add(vec3.scale(0.001D));
+                if (this.shape.isFullWide(this.findIndex(Direction.Axis.X, vec31.x), this.findIndex(Direction.Axis.Y, vec31.y), this.findIndex(Direction.Axis.Z, vec31.z))) {
+                    SectorVec3 location = SectorVec3.fromBlockAndFraction(pPos.getX(), vec31.x,
+                            (double) pPos.getY() + vec31.y, pPos.getZ(), vec31.z);
+                    return new BlockHitResult(location, Direction.getNearest(vec3.x, vec3.y, vec3.z).getOpposite(), pPos, true);
+                }
+                return AABB.clip(this.toAabbs(), pStartVec, pEndVec, pPos);
             }
         }
     }

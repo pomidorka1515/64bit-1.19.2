@@ -402,21 +402,37 @@ public class AABB {
 
     @Nullable
     public static BlockHitResult clip(Iterable<AABB> pBoxes, Vec3 pStart, Vec3 pEnd, BlockPos pPos) {
+        return clip(pBoxes, ExactVec3.position(pStart), ExactVec3.position(pEnd), pPos);
+    }
+
+    /** Box coordinates are block-local; ray endpoints and the returned hit retain full-width X/Z. */
+    @Nullable
+    public static BlockHitResult clip(Iterable<AABB> pBoxes, SectorVec3 pStart, SectorVec3 pEnd, BlockPos pPos) {
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(pPos.getX(), pPos.getY(), pPos.getZ());
+        Vec3 start = origin.toLocal(pStart);
+        Vec3 end = origin.toLocal(pEnd);
         double[] adouble = new double[] {1.0D};
         Direction direction = null;
-        double d0 = pEnd.x - pStart.x;
-        double d1 = pEnd.y - pStart.y;
-        double d2 = pEnd.z - pStart.z;
+        double d0 = end.x - start.x;
+        double d1 = end.y - start.y;
+        double d2 = end.z - start.z;
+        double limit = WorldBounds.MAX_SAFE_LOCAL_SPAN;
+        if (!Double.isFinite(d0) || !Double.isFinite(d1) || !Double.isFinite(d2)
+                || Math.abs(d0) > limit || Math.abs(d1) > limit || Math.abs(d2) > limit) {
+            throw new IllegalArgumentException("Ray exceeds safe local physics span");
+        }
 
         for (AABB aabb : pBoxes) {
-            direction = getDirection(aabb.move(pPos), pStart, adouble, direction, d0, d1, d2);
+            direction = getDirection(aabb, start, adouble, direction, d0, d1, d2);
         }
 
         if (direction == null) {
             return null;
         } else {
             double d3 = adouble[0];
-            return new BlockHitResult(pStart.add(d3 * d0, d3 * d1, d3 * d2), direction, pPos, false);
+            SectorVec3 location = SectorVec3.fromBlockAndFraction(pPos.getX(), start.x + d3 * d0,
+                    (double) pPos.getY() + start.y + d3 * d1, pPos.getZ(), start.z + d3 * d2);
+            return new BlockHitResult(location, direction, pPos, false);
         }
     }
 

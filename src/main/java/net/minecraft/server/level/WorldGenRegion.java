@@ -334,9 +334,8 @@ public class WorldGenRegion implements WorldGenLevel {
     }
 
     public boolean addFreshEntity(Entity pEntity) {
-        long i = SectionPos.blockToSectionCoord(pEntity.getBlockX());
-        long j = SectionPos.blockToSectionCoord(pEntity.getBlockZ());
-        this.getChunk(i, j).addEntity(pEntity);
+        ChunkPos pos = pEntity.chunkPosition();
+        this.getChunk(pos.x(), pos.z()).addEntity(pEntity);
         return true;
     }
 

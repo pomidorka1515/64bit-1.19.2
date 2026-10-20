@@ -437,9 +437,7 @@ public class ServerChunkCache extends ChunkSource {
     }
 
     public void blockChanged(BlockPos pPos) {
-        long i = SectionPos.blockToSectionCoord(pPos.getX());
-        long j = SectionPos.blockToSectionCoord(pPos.getZ());
-        ChunkHolder chunkholder = this.getVisibleChunkIfPresent(new ChunkPos(i, j));
+        ChunkHolder chunkholder = this.getVisibleChunkIfPresent(new ChunkPos(pPos));
         if (chunkholder != null) {
             chunkholder.blockChanged(pPos);
         }

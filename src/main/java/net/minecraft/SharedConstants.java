@@ -6,9 +6,14 @@ import io.netty.util.ResourceLeakDetector.Level;
 import java.time.Duration;
 import javax.annotation.Nullable;
 import net.minecraft.commands.BrigadierExceptions;
+import net.minecraft.core.Int128;
 import net.minecraft.util.datafix.DataFixerOptimizationOption;
 import net.minecraft.world.level.ChunkPos;
 
+/**
+ * Shared client/server constants. The 128-bit coordinate wire format requires a matching fork jar
+ * on both sides; vanilla clients and older 64-bit fork clients are not compatible.
+ */
 public class SharedConstants {
     /** @deprecated */
     @Deprecated
@@ -27,7 +32,7 @@ public class SharedConstants {
     public static final String RELEASE_TARGET = "1.19.2";
     /** @deprecated */
     @Deprecated
-    public static final int RELEASE_NETWORK_PROTOCOL_VERSION = 0x4C534301;
+    public static final int RELEASE_NETWORK_PROTOCOL_VERSION = 0x4C534302;
     /** @deprecated */
     @Deprecated
     public static final int SNAPSHOT_NETWORK_PROTOCOL_VERSION = 103;
@@ -187,12 +192,13 @@ public class SharedConstants {
     }
 
     public static boolean debugVoidTerrain(ChunkPos pChunkPos) {
-        long i = pChunkPos.getMinBlockX();
-        long j = pChunkPos.getMinBlockZ();
+        Int128 i = pChunkPos.getMinBlockX();
+        Int128 j = pChunkPos.getMinBlockZ();
         if (!debugGenerateSquareTerrainWithoutNoise) {
             return false;
         } else {
-            return i > 8192 || i < 0 || j > 1024 || j < 0;
+            return i.compareTo(Int128.fromLong(8192)) > 0 || i.compareTo(Int128.ZERO) < 0
+                || j.compareTo(Int128.fromLong(1024)) > 0 || j.compareTo(Int128.ZERO) < 0;
         }
     }
 

@@ -10,8 +10,8 @@ import net.minecraft.core.Int128;
 
 public class ChunkPos {
     /** The first and last chunk that can contain a signed 128-bit block coordinate. */
-    public static final Int128 MIN_CHUNK_COORDINATE = WorldBounds.MIN_CHUNK_128;
-    public static final Int128 MAX_CHUNK_COORDINATE = WorldBounds.MAX_CHUNK_128;
+    public static final Int128 MIN_CHUNK_COORDINATE = WorldBounds.MIN_CHUNK;
+    public static final Int128 MAX_CHUNK_COORDINATE = WorldBounds.MAX_CHUNK;
 
     public static final ChunkPos INVALID_CHUNK_POS = null;
     public static final ChunkPos ZERO = new ChunkPos(0, 0);

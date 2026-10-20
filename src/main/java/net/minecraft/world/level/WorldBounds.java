@@ -5,23 +5,24 @@ import net.minecraft.core.Int128;
 /**
  * The representable horizontal coordinate limits of the world.
  *
- * <p>A block coordinate is a signed long.  Dividing the two block limits by
+ * <p>A block coordinate is a signed 128-bit integer. Dividing the two block limits by
  * sixteen gives the only chunk coordinates that can contain a representable
  * block.  Keeping these values in one place is important: an overflowing
- * {@code long} subtraction must never turn a request at an edge of the world
- * into a request at the opposite edge. The additive {@code Int128} overloads
- * and {@code _128} constants provide the full-width domain during migration.</p>
+ * subtraction must never turn a request at an edge of the world into a request
+ * at the opposite edge. Long overloads and {@code _LONG} constants are explicit
+ * 64-bit projections for worldgen and local/test callers, not world limits.</p>
  */
 public final class WorldBounds {
-    public static final long MIN_BLOCK = Long.MIN_VALUE;
-    public static final long MAX_BLOCK = Long.MAX_VALUE;
-    public static final long MIN_CHUNK = MIN_BLOCK >> 4;
-    public static final long MAX_CHUNK = MAX_BLOCK >> 4;
+    public static final Int128 MIN_BLOCK = Int128.MIN;
+    public static final Int128 MAX_BLOCK = Int128.MAX;
+    public static final Int128 MIN_CHUNK = MIN_BLOCK.shiftRight(4);
+    public static final Int128 MAX_CHUNK = MAX_BLOCK.shiftRight(4);
 
-    public static final Int128 MIN_BLOCK_128 = Int128.MIN;
-    public static final Int128 MAX_BLOCK_128 = Int128.MAX;
-    public static final Int128 MIN_CHUNK_128 = MIN_BLOCK_128.shiftRight(4);
-    public static final Int128 MAX_CHUNK_128 = MAX_BLOCK_128.shiftRight(4);
+    /** Limits of the explicit 64-bit block/chunk projection. */
+    public static final long MIN_BLOCK_LONG = Long.MIN_VALUE;
+    public static final long MAX_BLOCK_LONG = Long.MAX_VALUE;
+    public static final long MIN_CHUNK_LONG = MIN_BLOCK_LONG >> 4;
+    public static final long MAX_CHUNK_LONG = MAX_BLOCK_LONG >> 4;
 
     private WorldBounds() {
     }
@@ -113,10 +114,10 @@ public final class WorldBounds {
     }
 
     public static Int128 clampChunk(Int128 chunk) {
-        if (chunk.compareTo(MIN_CHUNK_128) < 0)
-            return MIN_CHUNK_128;
-        if (chunk.compareTo(MAX_CHUNK_128) > 0)
-            return MAX_CHUNK_128;
+        if (chunk.compareTo(MIN_CHUNK) < 0)
+            return MIN_CHUNK;
+        if (chunk.compareTo(MAX_CHUNK) > 0)
+            return MAX_CHUNK;
         return chunk;
     }
 
@@ -133,7 +134,7 @@ public final class WorldBounds {
     /** Returns null when the offset would leave the representable chunk range. */
     public static Int128 tryAddChunkOffset(Int128 chunk, long offset) {
         Int128 result = chunk.addSaturated(Int128.fromLong(offset));
-        return result.compareTo(MIN_CHUNK_128) < 0 || result.compareTo(MAX_CHUNK_128) > 0 ? null : result;
+        return result.compareTo(MIN_CHUNK) < 0 || result.compareTo(MAX_CHUNK) > 0 ? null : result;
     }
 
     /** Converts a region and local chunk offset, saturating each operation to 128 bits. */
@@ -193,7 +194,7 @@ public final class WorldBounds {
     }
 
     public static long clampChunk(long chunk) {
-        return Math.max(MIN_CHUNK, Math.min(MAX_CHUNK, chunk));
+        return Math.max(MIN_CHUNK_LONG, Math.min(MAX_CHUNK_LONG, chunk));
     }
 
     /** Converts a chunk coordinate to its first block without overflowing. */
@@ -289,14 +290,24 @@ public final class WorldBounds {
         return value;
     }
 
-    /** True for a block coordinate that is representable in the world model. */
-    public static boolean isValidBlock(long coordinate) {
-        return coordinate >= MIN_BLOCK && coordinate <= MAX_BLOCK;
+    /** Always true; not a security, availability, or movement-validation check. */
+    public static boolean isValidBlock(Int128 coordinate) {
+        return true;
     }
 
-    /** Both signed-long horizontal block coordinates are representable. */
+    /** Always true; not a security, availability, or movement-validation check. */
+    public static boolean isValidBlock(Int128 x, Int128 z) {
+        return true;
+    }
+
+    /** Always true for the long projection; not a security check. */
+    public static boolean isValidBlock(long coordinate) {
+        return true;
+    }
+
+    /** Always true for the long projection; not a security check. */
     public static boolean isValidBlock(long x, long z) {
-        return isValidBlock(x) && isValidBlock(z);
+        return true;
     }
 
     /** Converts a region coordinate and local chunk offset without wrapping. */
@@ -322,12 +333,19 @@ public final class WorldBounds {
         return value + offset;
     }
 
-    public static boolean isValidChunk(long x, long z) {
-        return isValidChunkCoordinate(x) && isValidChunkCoordinate(z);
+    /** Always true; not a security, availability, or movement-validation check. */
+    public static boolean isValidChunk(Int128 x, Int128 z) {
+        return true;
     }
 
+    /** Always true for the long projection; not a security check. */
+    public static boolean isValidChunk(long x, long z) {
+        return true;
+    }
+
+    /** Checks only the 64-bit projection's chunk interval, not world validity or security. */
     public static boolean isValidChunkCoordinate(long chunk) {
-        return chunk >= MIN_CHUNK && chunk <= MAX_CHUNK;
+        return chunk >= MIN_CHUNK_LONG && chunk <= MAX_CHUNK_LONG;
     }
 
     /** Returns the lower of two horizontal block coordinates. */
@@ -363,7 +381,7 @@ public final class WorldBounds {
         if (!isAscendingBlockRange(min, max))
             return 0L;
         long distance = signedDifferenceAsLong(max, min);
-        return distance == MAX_BLOCK ? MAX_BLOCK : distance + 1L;
+        return distance == MAX_BLOCK_LONG ? MAX_BLOCK_LONG : distance + 1L;
     }
 
     /**
@@ -372,10 +390,10 @@ public final class WorldBounds {
     */
     public static long signedDifferenceAsLong(long value, long origin) {
         double difference = signedDifference(value, origin);
-        if (difference >= (double) MAX_BLOCK)
-            return MAX_BLOCK;
-        if (difference <= (double) MIN_BLOCK)
-            return MIN_BLOCK;
+        if (difference >= (double) MAX_BLOCK_LONG)
+            return MAX_BLOCK_LONG;
+        if (difference <= (double) MIN_BLOCK_LONG)
+            return MIN_BLOCK_LONG;
         return (long) difference;
     }
 
@@ -441,13 +459,13 @@ public final class WorldBounds {
 
     /** Adds a block offset without wrapping at a signed-long edge. */
     public static long addBlockOffset(long block, long offset) {
-        if (offset > 0L && block > MAX_BLOCK - offset)
-            return MAX_BLOCK;
+        if (offset > 0L && block > MAX_BLOCK_LONG - offset)
+            return MAX_BLOCK_LONG;
         if (offset < 0L) {
             if (offset == Long.MIN_VALUE)
-                return block < 0L ? MIN_BLOCK : MIN_BLOCK + block;
-            if (block < MIN_BLOCK - offset)
-                return MIN_BLOCK;
+                return block < 0L ? MIN_BLOCK_LONG : MIN_BLOCK_LONG + block;
+            if (block < MIN_BLOCK_LONG - offset)
+                return MIN_BLOCK_LONG;
         }
         return block + offset;
     }
@@ -469,31 +487,31 @@ public final class WorldBounds {
     /** Subtracts a block offset without wrapping at a signed-long edge. */
     public static long subtractBlockOffset(long block, long offset) {
         if (offset == Long.MIN_VALUE)
-            return block < 0L ? MAX_BLOCK + block + 1L : MAX_BLOCK;
+            return block < 0L ? MAX_BLOCK_LONG + block + 1L : MAX_BLOCK_LONG;
         return addBlockOffset(block, -offset);
     }
 
     /** Adds a small chunk offset without wrapping at a long edge. */
     public static long addChunkOffset(long chunk, long offset) {
-        if (offset > 0L && chunk > MAX_CHUNK - offset)
-            return MAX_CHUNK;
+        if (offset > 0L && chunk > MAX_CHUNK_LONG - offset)
+            return MAX_CHUNK_LONG;
         if (offset < 0L) {
             if (offset == Long.MIN_VALUE)
-                return chunk < 0L ? MIN_CHUNK : MIN_CHUNK + chunk;
-            if (chunk < MIN_CHUNK - offset)
-                return MIN_CHUNK;
+                return chunk < 0L ? MIN_CHUNK_LONG : MIN_CHUNK_LONG + chunk;
+            if (chunk < MIN_CHUNK_LONG - offset)
+                return MIN_CHUNK_LONG;
         }
         return chunk + offset;
     }
 
     /** Returns null when the offset would leave the representable chunk range. */
     public static Long tryAddChunkOffset(long chunk, long offset) {
-        if (offset > 0L && chunk > MAX_CHUNK - offset)
+        if (offset > 0L && chunk > MAX_CHUNK_LONG - offset)
             return null;
         if (offset < 0L) {
             if (offset == Long.MIN_VALUE)
                 return null;
-            if (chunk < MIN_CHUNK - offset)
+            if (chunk < MIN_CHUNK_LONG - offset)
                 return null;
         }
         long result = chunk + offset;

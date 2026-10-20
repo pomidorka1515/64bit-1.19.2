@@ -385,12 +385,12 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
     * entity-collision semantics.</p>
     */
     private static double getExactYOffset(LevelReader level, BlockPos position, boolean canSpawnBelow, Entity entity) {
-        long probeMaxX = position.getX() == Long.MAX_VALUE ? Long.MAX_VALUE : WorldBounds.addBlockOffset(position.getX(), 1L);
-        long probeMaxZ = position.getZ() == Long.MAX_VALUE ? Long.MAX_VALUE : WorldBounds.addBlockOffset(position.getZ(), 1L);
+        net.minecraft.core.Int128 probeMaxX = WorldBounds.addBlockOffset(position.getX(), 1L);
+        net.minecraft.core.Int128 probeMaxZ = WorldBounds.addBlockOffset(position.getZ(), 1L);
         SectorAABB exactProbe = new SectorAABB(position.getX(), 0.0D, (double) position.getY(),
-                position.getZ(), 0.0D, probeMaxX, probeMaxX == position.getX() ? Math.nextDown(1.0D) : 0.0D,
+                position.getZ(), 0.0D, probeMaxX, probeMaxX.equals(position.getX()) ? Math.nextDown(1.0D) : 0.0D,
                 (double) position.getY() + 1.0D, probeMaxZ,
-                probeMaxZ == position.getZ() ? Math.nextDown(1.0D) : 0.0D);
+                probeMaxZ.equals(position.getZ()) ? Math.nextDown(1.0D) : 0.0D);
         if (canSpawnBelow) {
             exactProbe = exactProbe.expandTowards(0.0D, -1.0D, 0.0D);
         }

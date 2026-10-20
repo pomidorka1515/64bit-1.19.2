@@ -161,7 +161,7 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
         compoundtag.putString("Name", SharedConstants.getCurrentVersion().getName());
         compoundtag.putInt("Id", SharedConstants.getCurrentVersion().getDataVersion().getVersion());
         compoundtag.putBoolean("Snapshot", !SharedConstants.getCurrentVersion().isStable());
-        compoundtag.putString("Series", SharedConstants.getCurrentVersion().getDataVersion().getSeries());
+        compoundtag.putString("Series", ForkSaveFormat.SERIES);
         pNbt.put("Version", compoundtag);
         pNbt.putInt("DataVersion", SharedConstants.getCurrentVersion().getWorldVersion());
         DynamicOps<Tag> dynamicops = RegistryOps.create(NbtOps.INSTANCE, pRegistry);
@@ -178,6 +178,7 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
         pNbt.putLong("LastPlayed", Util.getEpochMillis());
         pNbt.putString("LevelName", this.settings.levelName());
         pNbt.putInt("version", ForkSaveFormat.STORAGE_VERSION);
+        pNbt.putString("ForkFormat", ForkSaveFormat.FORMAT_MARKER);
         pNbt.putInt("clearWeatherTime", this.clearWeatherTime);
         pNbt.putInt("rainTime", this.rainTime);
         pNbt.putBoolean("raining", this.raining);

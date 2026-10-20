@@ -1,11 +1,13 @@
 package net.minecraft.network.protocol.game;
 
+import javax.annotation.Nullable;
+import net.minecraft.core.Int128;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.phys.SectorVec3;
-import javax.annotation.Nullable;
 
 public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePacketListener> {
+    /** Lossy compatibility mirrors; split coordinates are authoritative. */
     protected final double x;
     protected final double y;
     protected final double z;
@@ -15,10 +17,10 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
     protected final boolean hasPos;
     protected final boolean hasRot;
     @Nullable
-    private final Long exactBlockX;
+    private final Int128 exactBlockX;
     private final double exactSubX;
     @Nullable
-    private final Long exactBlockZ;
+    private final Int128 exactBlockZ;
     private final double exactSubZ;
 
     protected ServerboundMovePlayerPacket(double pX, double pY, double pZ, float pYRot, float pXRot, boolean pOnGround, boolean pHasPos, boolean pHasRot) {
@@ -27,9 +29,12 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
 
     protected ServerboundMovePlayerPacket(double x, double y, double z, float yRot, float xRot, boolean onGround,
             boolean hasPos, boolean hasRot, @Nullable SectorVec3 exactPosition) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        if (hasPos && exactPosition == null) {
+            exactPosition = SectorVec3.fromApproximate(x, y, z);
+        }
+        this.x = exactPosition == null ? x : exactPosition.toApproximateVec3().x;
+        this.y = exactPosition == null ? y : exactPosition.y();
+        this.z = exactPosition == null ? z : exactPosition.toApproximateVec3().z;
         this.yRot = yRot;
         this.xRot = xRot;
         this.onGround = onGround;
@@ -41,7 +46,7 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
         this.exactSubZ = exactPosition == null ? 0.0D : exactPosition.subZ();
     }
 
-    /** Exact sector X/Z payload, when this packet was created by the local player. */
+    /** Exact sector X/Z payload for every position-bearing packet. */
     @Nullable
     public SectorVec3 getExactPosition(double fallbackY) {
         return this.exactBlockX == null ? null : SectorVec3.fromBlockAndFraction(this.exactBlockX, this.exactSubX, fallbackY, this.exactBlockZ, this.exactSubZ);
@@ -73,13 +78,13 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
         return this.exactBlockX != null;
     }
 
-    public long getExactBlockX() {
+    public Int128 getExactBlockX() {
         return this.exactBlockX;
     }
     public double getExactSubX() {
         return this.exactSubX;
     }
-    public long getExactBlockZ() {
+    public Int128 getExactBlockZ() {
         return this.exactBlockZ;
     }
     public double getExactSubZ() {
@@ -117,10 +122,10 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
         }
 
         public static ServerboundMovePlayerPacket.Pos read(FriendlyByteBuf buf) {
-            long blockX = buf.readLong();
+            Int128 blockX = buf.readInt128();
             double subX = buf.readDouble();
             double y = buf.readDouble();
-            long blockZ = buf.readLong();
+            Int128 blockZ = buf.readInt128();
             double subZ = buf.readDouble();
             boolean onGround = buf.readUnsignedByte() != 0;
             return new Pos(SectorVec3.fromBlockAndFraction(blockX, subX, y, blockZ, subZ), onGround);
@@ -128,11 +133,11 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
 
         public void write(FriendlyByteBuf buf) {
             SectorVec3 position = this.getExactPosition(this.y);
-            buf.writeLong(position == null ? (long) Math.floor(this.x) : position.blockX());
-            buf.writeDouble(position == null ? this.x - Math.floor(this.x) : position.subX());
+            buf.writeInt128(position.blockX());
+            buf.writeDouble(position.subX());
             buf.writeDouble(this.y);
-            buf.writeLong(position == null ? (long) Math.floor(this.z) : position.blockZ());
-            buf.writeDouble(position == null ? this.z - Math.floor(this.z) : position.subZ());
+            buf.writeInt128(position.blockZ());
+            buf.writeDouble(position.subZ());
             buf.writeByte(this.onGround ? 1 : 0);
         }
     }
@@ -148,10 +153,10 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
         }
 
         public static ServerboundMovePlayerPacket.PosRot read(FriendlyByteBuf buf) {
-            long blockX = buf.readLong();
+            Int128 blockX = buf.readInt128();
             double subX = buf.readDouble();
             double y = buf.readDouble();
-            long blockZ = buf.readLong();
+            Int128 blockZ = buf.readInt128();
             double subZ = buf.readDouble();
             float yRot = buf.readFloat();
             float xRot = buf.readFloat();
@@ -161,11 +166,11 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
 
         public void write(FriendlyByteBuf buf) {
             SectorVec3 position = this.getExactPosition(this.y);
-            buf.writeLong(position == null ? (long) Math.floor(this.x) : position.blockX());
-            buf.writeDouble(position == null ? this.x - Math.floor(this.x) : position.subX());
+            buf.writeInt128(position.blockX());
+            buf.writeDouble(position.subX());
             buf.writeDouble(this.y);
-            buf.writeLong(position == null ? (long) Math.floor(this.z) : position.blockZ());
-            buf.writeDouble(position == null ? this.z - Math.floor(this.z) : position.subZ());
+            buf.writeInt128(position.blockZ());
+            buf.writeDouble(position.subZ());
             buf.writeFloat(this.yRot);
             buf.writeFloat(this.xRot);
             buf.writeByte(this.onGround ? 1 : 0);

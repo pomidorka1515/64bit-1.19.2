@@ -6,6 +6,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.SectorVec3;
 
 public class ServerboundMoveVehiclePacket implements Packet<ServerGamePacketListener> {
+    /** Lossy compatibility mirrors; exactPosition is authoritative. */
     private final double x;
     private final double y;
     private final double z;
@@ -24,8 +25,8 @@ public class ServerboundMoveVehiclePacket implements Packet<ServerGamePacketList
     }
 
     public ServerboundMoveVehiclePacket(FriendlyByteBuf pBuffer) {
-        this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readLong(), pBuffer.readDouble(),
-                pBuffer.readDouble(), pBuffer.readLong(), pBuffer.readDouble());
+        this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readInt128(), pBuffer.readDouble(),
+                pBuffer.readDouble(), pBuffer.readInt128(), pBuffer.readDouble());
         net.minecraft.world.phys.Vec3 approximate = this.exactPosition.toApproximateVec3();
         this.x = approximate.x;
         this.y = approximate.y;
@@ -35,10 +36,10 @@ public class ServerboundMoveVehiclePacket implements Packet<ServerGamePacketList
     }
 
     public void write(FriendlyByteBuf pBuffer) {
-        pBuffer.writeLong(this.exactPosition.blockX());
+        pBuffer.writeInt128(this.exactPosition.blockX());
         pBuffer.writeDouble(this.exactPosition.subX());
         pBuffer.writeDouble(this.exactPosition.y());
-        pBuffer.writeLong(this.exactPosition.blockZ());
+        pBuffer.writeInt128(this.exactPosition.blockZ());
         pBuffer.writeDouble(this.exactPosition.subZ());
         pBuffer.writeFloat(this.yRot);
         pBuffer.writeFloat(this.xRot);

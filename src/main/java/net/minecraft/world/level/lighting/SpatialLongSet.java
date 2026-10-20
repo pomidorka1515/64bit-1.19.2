@@ -6,6 +6,11 @@ import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
 import java.util.NoSuchElementException;
 import net.minecraft.util.Mth;
 
+/**
+ * Local-only packed-coordinate reference retained for spatial-set parity tests.
+ * Never use this bounded legacy encoding for world block or section identities.
+ * Live lighting uses structural full-width keys and FIFO graph queues.
+ */
 public class SpatialLongSet extends LongLinkedOpenHashSet {
     private final SpatialLongSet.InternalMap map;
 

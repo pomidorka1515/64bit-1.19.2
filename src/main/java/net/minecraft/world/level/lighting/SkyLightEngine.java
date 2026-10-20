@@ -30,7 +30,7 @@ public final class SkyLightEngine extends LayerLightEngine<SkyLightSectionStorag
         if (opacity.getValue() >= 15)
             return 15;
 
-        Direction direction = Direction.fromNormal(Long.compare(target.getX(), source.getX()), Integer.compare(target.getY(), source.getY()), Long.compare(target.getZ(), source.getZ()));
+        Direction direction = Direction.fromNormal(target.getX().compareTo(source.getX()), Integer.compare(target.getY(), source.getY()), target.getZ().compareTo(source.getZ()));
         if (direction == null)
             return level;
 
@@ -40,7 +40,7 @@ public final class SkyLightEngine extends LayerLightEngine<SkyLightSectionStorag
         if (Shapes.faceShapeOccludes(sourceShape, targetShape))
             return 15;
 
-        boolean vertical = source.getX() == target.getX() && source.getZ() == target.getZ();
+        boolean vertical = source.getX().equals(target.getX()) && source.getZ().equals(target.getZ());
         return vertical && source.getY() > target.getY() && level == 0 && opacity.getValue() == 0 ? 0 : level + Math.max(1, opacity.getValue());
     }
 

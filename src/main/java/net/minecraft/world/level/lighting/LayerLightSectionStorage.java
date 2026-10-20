@@ -9,6 +9,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Int128;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.SectionTracker;
 import net.minecraft.world.level.LightLayer;
@@ -124,17 +125,17 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
                 this.updatingSectionData.setLayer(pSectionPos, this.createDataLayer(pSectionPos));
                 this.changedSections.add(pSectionPos);
                 this.onNodeAdded(pSectionPos);
-                long j = pSectionPos.x();
+                Int128 j = pSectionPos.x();
                 int k = pSectionPos.y();
-                long l = pSectionPos.z();
+                Int128 l = pSectionPos.z();
 
                 for (int i1 = -1; i1 <= 1; ++i1) {
-                    Long affectedZ = WorldBounds.tryAddChunkOffset(l, i1);
+                    Int128 affectedZ = WorldBounds.tryAddChunkOffset(l, i1);
                     if (affectedZ == null)
                         continue;
 
                     for (int j1 = -1; j1 <= 1; ++j1) {
-                        Long affectedX = WorldBounds.tryAddChunkOffset(j, j1);
+                        Int128 affectedX = WorldBounds.tryAddChunkOffset(j, j1);
                         if (affectedX == null)
                             continue;
 
@@ -165,14 +166,14 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
                     return SectionPos.of(p_75753_).equals(pSectionPos);
                 });
             } else {
-                long i = SectionPos.sectionToBlockCoord(pSectionPos.x());
+                Int128 i = SectionPos.sectionToBlockCoord(pSectionPos.x());
                 int j = SectionPos.sectionToBlockCoord(pSectionPos.y());
-                long k = SectionPos.sectionToBlockCoord(pSectionPos.z());
+                Int128 k = SectionPos.sectionToBlockCoord(pSectionPos.z());
 
                 for (int l = 0; l < 16; ++l) {
                     for (int i1 = 0; i1 < 16; ++i1) {
                         for (int j1 = 0; j1 < 16; ++j1) {
-                            BlockPos k1 = new BlockPos(i + l, j + i1, k + j1);
+                            BlockPos k1 = new BlockPos(WorldBounds.addBlockOffset(i, l), j + i1, WorldBounds.addBlockOffset(k, j1));
                             pEngine.removeFromQueue(k1);
                         }
                     }
@@ -245,13 +246,11 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
         if (!this.storingLightForSection(sectionPos))
             return;
 
-        long x = SectionPos.sectionToBlockCoord(sectionPos.x());
-        int y = SectionPos.sectionToBlockCoord(sectionPos.y());
-        long z = SectionPos.sectionToBlockCoord(sectionPos.z());
+        BlockPos origin = sectionPos.origin();
         for (Direction direction : DIRECTIONS) {
             SectionPos neighborSection = sectionPos.offset(direction);
             // Section offsets saturate at the world edge. There is no adjacent
-            // section there; constructing its block face would wrap long X/Z.
+            // section there; do not reconnect the boundary face to itself.
             if (neighborSection.equals(sectionPos) || this.queuedSections.containsKey(neighborSection) || !this.storingLightForSection(neighborSection))
                 continue;
 
@@ -261,29 +260,24 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
                     BlockPos to;
                     switch (direction) {
                         case DOWN:
-                            from = new BlockPos(x + second, y, z + first);
-                            to = new BlockPos(x + second, y - 1, z + first);
+                            from = origin.offset(second, 0, first);
                             break;
                         case UP:
-                            from = new BlockPos(x + second, y + 15, z + first);
-                            to = new BlockPos(x + second, y + 16, z + first);
+                            from = origin.offset(second, 15, first);
                             break;
                         case NORTH:
-                            from = new BlockPos(x + first, y + second, z);
-                            to = new BlockPos(x + first, y + second, z - 1);
+                            from = origin.offset(first, second, 0);
                             break;
                         case SOUTH:
-                            from = new BlockPos(x + first, y + second, z + 15);
-                            to = new BlockPos(x + first, y + second, z + 16);
+                            from = origin.offset(first, second, 15);
                             break;
                         case WEST:
-                            from = new BlockPos(x, y + first, z + second);
-                            to = new BlockPos(x - 1, y + first, z + second);
+                            from = origin.offset(0, first, second);
                             break;
                         default:
-                            from = new BlockPos(x + 15, y + first, z + second);
-                            to = new BlockPos(x + 16, y + first, z + second);
+                            from = origin.offset(15, first, second);
                     }
+                    to = from.relative(direction);
                     engine.checkEdge(from, to, engine.computeLevelFromNeighbor(from, to, engine.getLevel(from)), false);
                     engine.checkEdge(to, from, engine.computeLevelFromNeighbor(to, from, engine.getLevel(to)), false);
                 }

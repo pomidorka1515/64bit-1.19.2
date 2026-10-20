@@ -128,7 +128,7 @@ public abstract class LayerLightEngine<M extends DataLayerStorageMap<M>, S exten
     }
 
     public void enableLightSources(ChunkPos chunkPos, boolean enabled) {
-        this.storage.enableLightSources(SectionPos.of(chunkPos.x, 0, chunkPos.z), enabled);
+        this.storage.enableLightSources(SectionPos.of(chunkPos, 0), enabled);
     }
 
     public void queueSectionData(SectionPos sectionPos, @Nullable DataLayer dataLayer, boolean trustEdges) {
@@ -136,7 +136,7 @@ public abstract class LayerLightEngine<M extends DataLayerStorageMap<M>, S exten
     }
 
     public void retainData(ChunkPos chunkPos, boolean retain) {
-        this.storage.retainData(SectionPos.of(chunkPos.x, 0, chunkPos.z), retain);
+        this.storage.retainData(SectionPos.of(chunkPos, 0), retain);
     }
 
     @Nullable

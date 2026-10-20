@@ -33,7 +33,7 @@ public final class BlockLightEngine extends LayerLightEngine<BlockLightSectionSt
         if (level >= 15)
             return level;
 
-        Direction direction = Direction.fromNormal(Long.compare(target.getX(), source.getX()), Integer.compare(target.getY(), source.getY()), Long.compare(target.getZ(), source.getZ()));
+        Direction direction = Direction.fromNormal(target.getX().compareTo(source.getX()), Integer.compare(target.getY(), source.getY()), target.getZ().compareTo(source.getZ()));
         if (direction == null)
             return 15;
 

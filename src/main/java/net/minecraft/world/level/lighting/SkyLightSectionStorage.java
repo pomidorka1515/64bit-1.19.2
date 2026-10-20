@@ -166,9 +166,7 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
                         this.updatingSectionData.copyDataLayer(sectionPos);
                     Arrays.fill(this.getDataLayer(sectionPos, true).getData(), (byte) -1);
 
-                    long x = SectionPos.sectionToBlockCoord(sectionPos.x());
-                    int y = SectionPos.sectionToBlockCoord(sectionPos.y());
-                    long z = SectionPos.sectionToBlockCoord(sectionPos.z());
+                    BlockPos origin = sectionPos.origin();
                     for (Direction direction : HORIZONTALS) {
                         SectionPos neighbor = sectionPos.offset(direction);
                         if (!neighbor.equals(sectionPos) && (this.sectionsToRemoveSourcesFrom.contains(neighbor) || (!this.sectionsWithSources.contains(neighbor) && !this.sectionsToAddSourcesTo.contains(neighbor))) && this.storingLightForSection(neighbor)) {
@@ -178,21 +176,18 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
                                     BlockPos to;
                                     switch (direction) {
                                         case NORTH:
-                                            from = new BlockPos(x + first, y + second, z);
-                                            to = new BlockPos(x + first, y + second, z - 1);
+                                            from = origin.offset(first, second, 0);
                                             break;
                                         case SOUTH:
-                                            from = new BlockPos(x + first, y + second, z + 15);
-                                            to = new BlockPos(x + first, y + second, z + 16);
+                                            from = origin.offset(first, second, 15);
                                             break;
                                         case WEST:
-                                            from = new BlockPos(x, y + first, z + second);
-                                            to = new BlockPos(x - 1, y + first, z + second);
+                                            from = origin.offset(0, first, second);
                                             break;
                                         default:
-                                            from = new BlockPos(x + 15, y + first, z + second);
-                                            to = new BlockPos(x + 16, y + first, z + second);
+                                            from = origin.offset(15, first, second);
                                     }
+                                    to = from.relative(direction);
                                     engine.checkEdge(from, to, engine.computeLevelFromNeighbor(from, to, 0), true);
                                 }
                             }

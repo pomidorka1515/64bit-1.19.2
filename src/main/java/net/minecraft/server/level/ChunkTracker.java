@@ -1,6 +1,7 @@
 package net.minecraft.server.level;
 
 import com.google.common.base.Objects;
+import net.minecraft.core.Int128;
 
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldBounds;
@@ -17,13 +18,13 @@ public abstract class ChunkTracker extends DynamicGraphMinFixedPoint<ChunkPos> {
 
     protected void checkNeighborsAfterUpdate(ChunkPos pPos, int pLevel, boolean pIsDecreasing) {
         ChunkPos chunkpos = pPos;
-        long i = chunkpos.x;
-        long j = chunkpos.z;
+        Int128 i = chunkpos.x();
+        Int128 j = chunkpos.z();
 
         for (int k = -1; k <= 1; ++k) {
             for (int l = -1; l <= 1; ++l) {
-                Long x = WorldBounds.tryAddChunkOffset(i, k);
-                Long z = WorldBounds.tryAddChunkOffset(j, l);
+                Int128 x = WorldBounds.tryAddChunkOffset(i, k);
+                Int128 z = WorldBounds.tryAddChunkOffset(j, l);
                 if (x != null && z != null) {
                     ChunkPos i1 = new ChunkPos(x, z);
                     if (!i1.equals(pPos)) {
@@ -37,13 +38,13 @@ public abstract class ChunkTracker extends DynamicGraphMinFixedPoint<ChunkPos> {
     protected int getComputedLevel(ChunkPos pPos, ChunkPos pExcludedSourcePos, int pLevel) {
         int i = pLevel;
         ChunkPos chunkpos = pPos;
-        long j = chunkpos.x;
-        long k = chunkpos.z;
+        Int128 j = chunkpos.x();
+        Int128 k = chunkpos.z();
 
         for (int l = -1; l <= 1; ++l) {
             for (int i1 = -1; i1 <= 1; ++i1) {
-                Long x = WorldBounds.tryAddChunkOffset(j, l);
-                Long z = WorldBounds.tryAddChunkOffset(k, i1);
+                Int128 x = WorldBounds.tryAddChunkOffset(j, l);
+                Int128 z = WorldBounds.tryAddChunkOffset(k, i1);
                 if (x == null || z == null) {
                     continue;
                 }

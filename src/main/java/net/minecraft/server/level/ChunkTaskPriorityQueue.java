@@ -3,9 +3,6 @@ package net.minecraft.server.level;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Either;
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
@@ -20,6 +17,7 @@ import net.minecraft.world.level.ChunkPos;
 
 public class ChunkTaskPriorityQueue<T> {
     public static final int PRIORITY_LEVEL_COUNT = ChunkMap.MAX_CHUNK_DISTANCE + 2;
+    // A chunk key has two full-width axes; retain structural keys and FIFO insertion order.
     private final List<Object2ObjectLinkedOpenHashMap<ChunkPos, List<Optional<T>>>> taskQueue = IntStream.range(0, PRIORITY_LEVEL_COUNT).mapToObj((p_140520_) -> {
                                                                                                                                             return new Object2ObjectLinkedOpenHashMap<ChunkPos, List<Optional<T>>>();
                                                                                                                                         })

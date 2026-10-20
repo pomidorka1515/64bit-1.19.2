@@ -267,6 +267,10 @@ public class ServerChunkCache extends ChunkSource {
     }
 
     public BlockGetter getChunkForLighting(long pChunkX, long pChunkZ) {
+        return this.getChunkForLighting(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ));
+    }
+
+    public BlockGetter getChunkForLighting(Int128 pChunkX, Int128 pChunkZ) {
         ChunkPos i = new ChunkPos(pChunkX, pChunkZ);
         ChunkHolder chunkholder = this.getVisibleChunkIfPresent(i);
         if (chunkholder == null) {

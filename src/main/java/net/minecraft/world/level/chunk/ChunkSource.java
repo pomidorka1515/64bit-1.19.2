@@ -26,6 +26,11 @@ public abstract class ChunkSource implements LightChunkGetter, AutoCloseable {
 
     @Nullable
     public BlockGetter getChunkForLighting(long pChunkX, long pChunkZ) {
+        return this.getChunkForLighting(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ));
+    }
+
+    @Nullable
+    public BlockGetter getChunkForLighting(Int128 pChunkX, Int128 pChunkZ) {
         return this.getChunk(pChunkX, pChunkZ, ChunkStatus.EMPTY, false);
     }
 

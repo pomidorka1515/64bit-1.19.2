@@ -87,6 +87,15 @@ public class LegacyStructureDataHandler {
 
         for (String s : this.currentKeys) {
             boolean flag = OLD_STRUCTURE_REGISTRY_KEYS.contains(s.toLowerCase(Locale.ROOT));
+            if (compoundtag2.contains(s)) {
+                if (!(compoundtag2.get(s) instanceof ListTag references)
+                        || !references.isEmpty() && references.getElementType() != 10) {
+                    throw new IllegalArgumentException("Structure references must be chunk compounds: " + s);
+                }
+                for (int index = 0; index < references.size(); ++index) {
+                    readChunkPos(references.getCompound(index), "x", "z");
+                }
+            }
             if (!compoundtag2.contains(s) && flag) {
                 int i = 8;
                 ObjectList<ChunkPos> longlist = new ObjectArrayList<>();

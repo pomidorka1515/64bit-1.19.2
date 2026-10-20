@@ -317,7 +317,7 @@ public class BlockPos extends Vec3i {
     }
 
     public static Stream<BlockPos> betweenClosedStream(BoundingBox pBox) {
-        return betweenClosedStream(Math.min(pBox.minX(), pBox.maxX()), Math.min(pBox.minY(), pBox.maxY()), Math.min(pBox.minZ(), pBox.maxZ()), Math.max(pBox.minX(), pBox.maxX()), Math.max(pBox.minY(), pBox.maxY()), Math.max(pBox.minZ(), pBox.maxZ()));
+        return betweenClosedStream(min(pBox.minX(), pBox.maxX()), Math.min(pBox.minY(), pBox.maxY()), min(pBox.minZ(), pBox.maxZ()), max(pBox.minX(), pBox.maxX()), Math.max(pBox.minY(), pBox.maxY()), max(pBox.minZ(), pBox.maxZ()));
     }
 
     public static Stream<BlockPos> betweenClosedStream(AABB pAabb) {

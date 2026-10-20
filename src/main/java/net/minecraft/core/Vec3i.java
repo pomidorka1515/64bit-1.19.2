@@ -290,9 +290,9 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public double distToCenterSqr(net.minecraft.world.phys.SectorVec3 position) {
-        double dx = WorldBounds.signedDifference(this.getX(), Int128.fromLong(position.blockX())) + 0.5D - position.subX();
+        double dx = WorldBounds.signedDifference(this.getX(), position.blockX()) + 0.5D - position.subX();
         double dy = this.getY() + 0.5D - position.y();
-        double dz = WorldBounds.signedDifference(this.getZ(), Int128.fromLong(position.blockZ())) + 0.5D - position.subZ();
+        double dz = WorldBounds.signedDifference(this.getZ(), position.blockZ()) + 0.5D - position.subZ();
         return dx * dx + dy * dy + dz * dz;
     }
 

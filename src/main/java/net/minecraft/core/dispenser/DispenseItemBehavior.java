@@ -74,6 +74,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.SectorVec3;
 import org.slf4j.Logger;
 
 public interface DispenseItemBehavior {
@@ -201,7 +202,8 @@ public interface DispenseItemBehavior {
                 Direction direction = p_123461_.getBlockState().getValue(DispenserBlock.FACING);
                 BlockPos blockpos = p_123461_.getPos().relative(direction);
                 Level level = p_123461_.getLevel();
-                ArmorStand armorstand = new ArmorStand(level, (double) blockpos.getX() + 0.5D, (double) blockpos.getY(), (double) blockpos.getZ() + 0.5D);
+                ArmorStand armorstand = new ArmorStand(EntityType.ARMOR_STAND, level);
+                armorstand.applyExactPosition(SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, (double) blockpos.getY(), blockpos.getZ(), 0.5D));
                 EntityType.updateCustomEntityTag(level, (Player) null, armorstand, p_123462_.getTag());
                 armorstand.setYRot(direction.toYRot());
                 level.addFreshEntity(armorstand);
@@ -438,7 +440,9 @@ public interface DispenseItemBehavior {
             protected ItemStack execute(BlockSource p_123425_, ItemStack p_123426_) {
                 Level level = p_123425_.getLevel();
                 BlockPos blockpos = p_123425_.getPos().relative(p_123425_.getBlockState().getValue(DispenserBlock.FACING));
-                PrimedTnt primedtnt = new PrimedTnt(level, (double) blockpos.getX() + 0.5D, (double) blockpos.getY(), (double) blockpos.getZ() + 0.5D, (LivingEntity) null);
+                PrimedTnt primedtnt = new PrimedTnt(level, 0.0D, (double) blockpos.getY(), 0.0D, (LivingEntity) null);
+                primedtnt.applyExactPosition(SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, (double) blockpos.getY(), blockpos.getZ(), 0.5D));
+                primedtnt.setOldPosAndRot();
                 level.addFreshEntity(primedtnt);
                 level.playSound((Player) null, primedtnt.getX(), primedtnt.getY(), primedtnt.getZ(), SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
                 level.gameEvent((Entity) null, GameEvent.ENTITY_PLACE, blockpos);
@@ -595,7 +599,7 @@ public interface DispenseItemBehavior {
                     } else {
                         if (!serverlevel.isClientSide) {
                             for (int i = 0; i < 5; ++i) {
-                                serverlevel.sendParticles(ParticleTypes.SPLASH, (double) blockpos.getX() + serverlevel.random.nextDouble(), (double) (blockpos.getY() + 1), (double) blockpos.getZ() + serverlevel.random.nextDouble(), 1, 0.0D, 0.0D, 0.0D, 1.0D);
+                                serverlevel.sendParticles(ParticleTypes.SPLASH, SectorVec3.fromBlockAndFraction(blockpos.getX(), serverlevel.random.nextDouble(), (double) (blockpos.getY() + 1), blockpos.getZ(), serverlevel.random.nextDouble()), 1, 0.0D, 0.0D, 0.0D, 1.0D);
                             }
                         }
 

@@ -46,15 +46,34 @@ public interface CollisionGetter extends BlockGetter {
         }
 
         Entity entity = pContext instanceof EntityCollisionContext entitycollisioncontext ? entitycollisioncontext.getEntity() : null;
-        if (entity != null && entity.hasSectorPosition()) {
-            if (entity.isColliding(pPos, pState)) {
-                return false;
-            }
-
-            return this.isUnobstructed(entity, voxelshape.move((double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ()));
+        if (entity != null && entity.hasSectorPosition() && entity.isColliding(pPos, pState)) {
+            return false;
         }
 
-        return this.isUnobstructed((Entity) null, voxelshape.move((double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ()));
+        if (!(this instanceof EntityGetter getter)) {
+            return true;
+        }
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(pPos.getX(), pPos.getY(), pPos.getZ());
+        AABB bounds = voxelshape.bounds();
+        try {
+            SectorAABB exactBox = new SectorAABB(pPos.getX(), bounds.minX, bounds.minY + pPos.getY(),
+                    pPos.getZ(), bounds.minZ, pPos.getX(), bounds.maxX, bounds.maxY + pPos.getY(),
+                    pPos.getZ(), bounds.maxZ);
+            AABB localBox = exactBox.toLocalAABB(origin);
+            for (Entity candidate : getter.getSectorEntities(entity, exactBox, localBox, origin,
+                    other -> !other.isRemoved() && other.blocksBuilding
+                            && (entity == null || !other.isPassengerOfSameVehicle(entity)))) {
+                SectorAABB candidateBox = candidate.getSectorBoundingBoxForCulling();
+                if (candidateBox != null && Shapes.joinIsNotEmpty(voxelshape,
+                        Shapes.create(candidateBox.toLocalAABB(origin)), BooleanOp.AND)) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (IllegalArgumentException exception) {
+            // An unsafe local span cannot establish that placement is unobstructed.
+            return false;
+        }
     }
 
     default boolean isUnobstructed(Entity pEntity) {

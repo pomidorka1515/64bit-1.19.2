@@ -232,18 +232,18 @@ public class LevelStorageSource {
                 Tag tag = readLightweightData(p_230826_);
                 if (tag instanceof CompoundTag compoundtag) {
                     CompoundTag compoundtag1 = compoundtag.getCompound("Data");
+                    // Classify the on-disk markers before datafixers can alter metadata.
+                    ForkSaveFormat.Format format = ForkSaveFormat.inspect(compoundtag1);
+                    if (format == ForkSaveFormat.Format.UNKNOWN) {
+                        return null;
+                    }
                     int i = compoundtag1.contains("DataVersion", 99) ? compoundtag1.getInt("DataVersion") : -1;
                     Dynamic<Tag> dynamic = p_230827_.update(DataFixTypes.LEVEL.getType(), new Dynamic<>(NbtOps.INSTANCE, compoundtag1), i, SharedConstants.getCurrentVersion().getWorldVersion());
                     LevelVersion levelversion = LevelVersion.parse(dynamic);
-                    int j = levelversion.levelDataVersion();
-                    if (j == ForkSaveFormat.STORAGE_VERSION || j == 19132 || j == 19133) {
-                        // Foreign storage versions are incompatible, never conversion candidates.
-                        boolean flag = false;
-                        Path path = pLevelDirectory.iconFile();
-                        DataPackConfig datapackconfig = dynamic.get("DataPacks").result().map(LevelStorageSource::readDataPackConfig).orElse(DataPackConfig.DEFAULT);
-                        LevelSettings levelsettings = LevelSettings.parse(dynamic, datapackconfig);
-                        return new LevelSummary(levelsettings, levelversion, pLevelDirectory.directoryName(), flag, pLocked, path);
-                    }
+                    Path path = pLevelDirectory.iconFile();
+                    DataPackConfig datapackconfig = dynamic.get("DataPacks").result().map(LevelStorageSource::readDataPackConfig).orElse(DataPackConfig.DEFAULT);
+                    LevelSettings levelsettings = LevelSettings.parse(dynamic, datapackconfig);
+                    return new LevelSummary(levelsettings, levelversion, pLevelDirectory.directoryName(), format, pLocked, path);
                 } else {
                     LOGGER.warn("Invalid root tag in {}", (Object) p_230826_);
                 }
@@ -269,7 +269,12 @@ public class LevelStorageSource {
             if (!(tag instanceof CompoundTag root)) {
                 throw new IOException("Invalid world metadata: " + path);
             }
-            ForkSaveFormat.validate(root.getCompound("Data"));
+            try {
+                ForkSaveFormat.validate(root.getCompound("Data"));
+            } catch (IOException exception) {
+                LOGGER.warn("Refusing world metadata {}: {}", path, exception.getMessage());
+                throw new IOException("Refusing world metadata " + path + ": " + exception.getMessage(), exception);
+            }
         }
     }
 

@@ -16,19 +16,19 @@ public class LevelSummary implements Comparable<LevelSummary> {
     private final LevelSettings settings;
     private final LevelVersion levelVersion;
     private final String levelId;
-    private final boolean requiresManualConversion;
+    private final ForkSaveFormat.Format format;
     private final boolean locked;
     private final Path icon;
     @Nullable
     private Component info;
 
-    public LevelSummary(LevelSettings pSettings, LevelVersion pLevelVersion, String pLevelId, boolean pRequiresManualConversion, boolean pLocked, Path pIcon) {
+    public LevelSummary(LevelSettings pSettings, LevelVersion pLevelVersion, String pLevelId, ForkSaveFormat.Format pFormat, boolean pLocked, Path pIcon) {
         this.settings = pSettings;
         this.levelVersion = pLevelVersion;
         this.levelId = pLevelId;
         this.locked = pLocked;
         this.icon = pIcon;
-        this.requiresManualConversion = pRequiresManualConversion;
+        this.format = pFormat;
     }
 
     public String getLevelId() {
@@ -44,7 +44,7 @@ public class LevelSummary implements Comparable<LevelSummary> {
     }
 
     public boolean requiresManualConversion() {
-        return this.requiresManualConversion;
+        return false;
     }
 
     public long getLastPlayed() {
@@ -115,8 +115,7 @@ public class LevelSummary implements Comparable<LevelSummary> {
     }
 
     public boolean isCompatible() {
-        return this.levelVersion.levelDataVersion() == ForkSaveFormat.STORAGE_VERSION
-                && SharedConstants.getCurrentVersion().getDataVersion().isCompatible(this.levelVersion.minecraftVersion());
+        return this.format == ForkSaveFormat.Format.CURRENT;
     }
 
     public Component getInfo() {
@@ -128,12 +127,10 @@ public class LevelSummary implements Comparable<LevelSummary> {
     }
 
     private Component createInfo() {
-        if (this.isLocked()) {
+        if (!this.isCompatible()) {
+            return Component.translatable("selectWorld.incompatible_series").append(" (" + this.format + ")").withStyle(ChatFormatting.RED);
+        } else if (this.isLocked()) {
             return Component.translatable("selectWorld.locked").withStyle(ChatFormatting.RED);
-        } else if (this.requiresManualConversion()) {
-            return Component.translatable("selectWorld.conversion").withStyle(ChatFormatting.RED);
-        } else if (!this.isCompatible()) {
-            return Component.translatable("selectWorld.incompatible_series").withStyle(ChatFormatting.RED);
         } else {
             MutableComponent mutablecomponent = this.isHardcore() ? Component.empty().append(Component.translatable("gameMode.hardcore").withStyle(ChatFormatting.DARK_RED)) : Component.translatable("gameMode." + this.getGameMode().getName());
             if (this.hasCheats()) {

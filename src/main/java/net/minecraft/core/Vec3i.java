@@ -8,16 +8,22 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import javax.annotation.concurrent.Immutable;
-import net.minecraft.Util;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.WorldBounds;
 
 @Immutable
 public class Vec3i implements Comparable<Vec3i> {
-    // Temporary low-word codec projection; the strict five-long shape lands with the core codecs.
-    public static final Codec<Vec3i> CODEC = Codec.LONG_STREAM.comapFlatMap((p_123318_) -> { return Util.fixedSize(p_123318_, 3).map((p_175586_) -> {
-                                                                                                 return new Vec3i(p_175586_[0], (int) p_175586_[1], p_175586_[2]);
-                                                                                             }); }, (p_123313_) -> { return LongStream.of(p_123313_.getXLo(), p_123313_.getY(), p_123313_.getZLo()); });
+    /** Exactly five longs [xHi, xLo, y, zHi, zLo]; legacy three-long positions are rejected. */
+    public static final Codec<Vec3i> CODEC = Codec.LONG_STREAM.comapFlatMap(stream -> {
+        long[] coordinates = stream.limit(6L).toArray();
+        if (coordinates.length != 5) {
+            return DataResult.error("Vec3i requires exactly 5 longs [xHi, xLo, y, zHi, zLo]");
+        }
+        if (coordinates[2] < Integer.MIN_VALUE || coordinates[2] > Integer.MAX_VALUE) {
+            return DataResult.error("Vec3i y coordinate must fit in an int");
+        }
+        return DataResult.success(new Vec3i(Int128.of(coordinates[0], coordinates[1]), (int) coordinates[2], Int128.of(coordinates[3], coordinates[4])));
+    }, value -> LongStream.of(value.getXHi(), value.getXLo(), value.getY(), value.getZHi(), value.getZLo()));
     public static final Vec3i ZERO = new Vec3i(0, 0, 0);
     private long xHi;
     private long xLo;

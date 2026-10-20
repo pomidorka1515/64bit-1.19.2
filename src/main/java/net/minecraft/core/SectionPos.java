@@ -1,5 +1,6 @@
 package net.minecraft.core;
 
+import com.mojang.serialization.Codec;
 import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -12,6 +13,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.entity.EntityAccess;
 
 public class SectionPos extends Vec3i {
+    public static final Codec<SectionPos> CODEC = Vec3i.CODEC.xmap(value -> of(value.getX(), value.getY(), value.getZ()), value -> value);
     public static final int SECTION_BITS = 4;
     public static final int SECTION_SIZE = 16;
     public static final int SECTION_MASK = 15;

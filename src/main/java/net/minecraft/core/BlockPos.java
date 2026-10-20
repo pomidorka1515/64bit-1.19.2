@@ -6,11 +6,9 @@ import com.mojang.serialization.Codec;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
-import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.annotation.concurrent.Immutable;
-import net.minecraft.Util;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldBounds;
@@ -23,9 +21,7 @@ import org.slf4j.Logger;
 
 @Immutable
 public class BlockPos extends Vec3i {
-    public static final Codec<BlockPos> CODEC = Codec.LONG_STREAM.comapFlatMap((p_121967_) -> { return Util.fixedSize(p_121967_, 3).map((p_175270_) -> {
-                                                                                                     return new BlockPos(p_175270_[0], (int) p_175270_[1], p_175270_[2]);
-                                                                                                 }); }, (p_121924_) -> { return LongStream.of(p_121924_.getXLo(), p_121924_.getY(), p_121924_.getZLo()); }).stable();
+    public static final Codec<BlockPos> CODEC = Vec3i.CODEC.xmap(BlockPos::new, value -> value).stable();
     private static final Logger LOGGER = LogUtils.getLogger();
     public static final BlockPos ZERO = new BlockPos(0, 0, 0);
     private static final int PACKED_X_LENGTH = 1 + Mth.log2(Mth.smallestEncompassingPowerOfTwo(30000000));

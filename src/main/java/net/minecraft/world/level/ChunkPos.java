@@ -1,7 +1,10 @@
 package net.minecraft.world.level;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import java.util.Spliterators;
 import java.util.function.Consumer;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
@@ -9,6 +12,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Int128;
 
 public class ChunkPos {
+    /** Exactly four longs [xHi, xLo, zHi, zLo]; legacy two-long positions are rejected. */
+    public static final Codec<ChunkPos> CODEC = Codec.LONG_STREAM.comapFlatMap(stream -> {
+        long[] coordinates = stream.limit(5L).toArray();
+        return coordinates.length == 4
+            ? DataResult.success(new ChunkPos(Int128.of(coordinates[0], coordinates[1]), Int128.of(coordinates[2], coordinates[3])))
+            : DataResult.error("ChunkPos requires exactly 4 longs [xHi, xLo, zHi, zLo]");
+    }, value -> LongStream.of(value.xHi(), value.xLo(), value.zHi(), value.zLo()));
+
     /** The first and last chunk that can contain a signed 128-bit block coordinate. */
     public static final Int128 MIN_CHUNK_COORDINATE = WorldBounds.MIN_CHUNK;
     public static final Int128 MAX_CHUNK_COORDINATE = WorldBounds.MAX_CHUNK;

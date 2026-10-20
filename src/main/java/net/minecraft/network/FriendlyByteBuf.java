@@ -46,6 +46,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.IdMap;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
@@ -352,35 +353,52 @@ public class FriendlyByteBuf extends ByteBuf {
         return abyte;
     }
 
+    /** Fixed-width high half first; there is no legacy single-long decode. */
+    public Int128 readInt128() {
+        return Int128.of(this.readLong(), this.readLong());
+    }
+
+    public FriendlyByteBuf writeInt128(Int128 pValue) {
+        return this.writeInt128(pValue.hi(), pValue.lo());
+    }
+
+    public FriendlyByteBuf writeInt128(long pHi, long pLo) {
+        this.writeLong(pHi);
+        this.writeLong(pLo);
+        return this;
+    }
+
+    /** xHi, xLo, int Y, zHi, zLo (36 bytes). */
     public BlockPos readBlockPos() {
-        return new BlockPos(this.readLong(), this.readInt(), this.readLong());
+        return new BlockPos(this.readInt128(), this.readInt(), this.readInt128());
     }
 
     public FriendlyByteBuf writeBlockPos(BlockPos pPos) {
-        this.writeLong(pPos.getX());
+        this.writeInt128(pPos.getXHi(), pPos.getXLo());
         this.writeInt(pPos.getY());
-        this.writeLong(pPos.getZ());
+        this.writeInt128(pPos.getZHi(), pPos.getZLo());
         return this;
     }
 
     public ChunkPos readChunkPos() {
-        return new ChunkPos(this.readLong(), this.readLong());
+        return new ChunkPos(this.readInt128(), this.readInt128());
     }
 
     public FriendlyByteBuf writeChunkPos(ChunkPos pChunkPos) {
-        this.writeLong(pChunkPos.x);
-        this.writeLong(pChunkPos.z);
+        this.writeInt128(pChunkPos.xHi(), pChunkPos.xLo());
+        this.writeInt128(pChunkPos.zHi(), pChunkPos.zLo());
         return this;
     }
 
+    /** xHi, xLo, int Y, zHi, zLo (36 bytes). */
     public SectionPos readSectionPos() {
-        return SectionPos.of(this.readLong(), this.readInt(), this.readLong());
+        return SectionPos.of(this.readInt128(), this.readInt(), this.readInt128());
     }
 
     public FriendlyByteBuf writeSectionPos(SectionPos pSectionPos) {
-        this.writeLong(pSectionPos.getX());
+        this.writeInt128(pSectionPos.getXHi(), pSectionPos.getXLo());
         this.writeInt(pSectionPos.getY());
-        this.writeLong(pSectionPos.getZ());
+        this.writeInt128(pSectionPos.getZHi(), pSectionPos.getZLo());
         return this;
     }
 
@@ -651,7 +669,7 @@ public class FriendlyByteBuf extends ByteBuf {
         float f1 = this.readFloat();
         float f2 = this.readFloat();
         boolean flag = this.readBoolean();
-        // The packet stores the hit point relative to its long block address.
+        // The packet stores the hit point relative to its full-width block address.
         // Reconstruct that split before creating the compatibility Vec3 mirror.
         return new BlockHitResult(SectorVec3.fromBlockAndFraction(blockpos.getX(), (double) f,
                                           (double) blockpos.getY() + (double) f1, blockpos.getZ(), (double) f2),
@@ -663,10 +681,13 @@ public class FriendlyByteBuf extends ByteBuf {
         this.writeBlockPos(blockpos);
         this.writeEnum(pResult.getDirection());
         SectorVec3 exact = pResult.getExactLocation();
-        Vec3 vec3 = pResult.getLocation();
-        this.writeFloat((float) (exact == null ? vec3.x - (double) blockpos.getX() : (double) (exact.blockX() - (long) blockpos.getX()) + exact.subX()));
-        this.writeFloat((float) (exact == null ? vec3.y - (double) blockpos.getY() : exact.y() - (double) blockpos.getY()));
-        this.writeFloat((float) (exact == null ? vec3.z - (double) blockpos.getZ() : (double) (exact.blockZ() - (long) blockpos.getZ()) + exact.subZ()));
+        if (exact == null) {
+            exact = SectorVec3.fromApproximate(pResult.getLocation());
+        }
+        SectorVec3 origin = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.0D, blockpos.getY(), blockpos.getZ(), 0.0D);
+        this.writeFloat((float) exact.relativeX(origin));
+        this.writeFloat((float) exact.relativeY(origin));
+        this.writeFloat((float) exact.relativeZ(origin));
         this.writeBoolean(pResult.isInside());
     }
 

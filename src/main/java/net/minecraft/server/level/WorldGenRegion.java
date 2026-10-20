@@ -409,7 +409,11 @@ public class WorldGenRegion implements WorldGenLevel {
     }
 
     public int getHeight(Heightmap.Types pHeightmapType, long pX, long pZ) {
-        return this.getChunk(SectionPos.blockToSectionCoord(pX), SectionPos.blockToSectionCoord(pZ)).getHeight(pHeightmapType, pX & 15, pZ & 15) + 1;
+        return this.getHeight(pHeightmapType, Int128.fromLong(pX), Int128.fromLong(pZ));
+    }
+
+    public int getHeight(Heightmap.Types pHeightmapType, Int128 pX, Int128 pZ) {
+        return this.getChunk(SectionPos.blockToSectionCoord(pX), SectionPos.blockToSectionCoord(pZ)).getHeight(pHeightmapType, pX.lo() & 15L, pZ.lo() & 15L) + 1;
     }
 
     public void playSound(@Nullable Player pPlayer, BlockPos pPos, SoundEvent pSound, SoundSource pCategory, float pVolume, float pPitch) {

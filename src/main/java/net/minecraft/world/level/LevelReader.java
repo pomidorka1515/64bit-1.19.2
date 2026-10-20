@@ -38,6 +38,10 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
 
     int getHeight(Heightmap.Types pHeightmapType, long pX, long pZ);
 
+    default int getHeight(Heightmap.Types pHeightmapType, Int128 pX, Int128 pZ) {
+        return this.getHeightmapPos(pHeightmapType, new BlockPos(pX, 0, pZ)).getY();
+    }
+
     int getSkyDarken();
 
     BiomeManager getBiomeManager();

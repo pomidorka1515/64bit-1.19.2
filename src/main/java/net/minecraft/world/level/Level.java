@@ -309,11 +309,15 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     public int getHeight(Heightmap.Types pHeightmapType, long pX, long pZ) {
+        return this.getHeight(pHeightmapType, net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ));
+    }
+
+    public int getHeight(Heightmap.Types pHeightmapType, net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ) {
         int i;
         if (this.hasChunk(SectionPos.blockToSectionCoord(pX), SectionPos.blockToSectionCoord(pZ))) {
             LevelChunk chunk = this.getChunk(SectionPos.blockToSectionCoord(pX), SectionPos.blockToSectionCoord(pZ));
             i = chunk == null ? this.getMinBuildHeight()
-                              : chunk.getHeight(pHeightmapType, (int) (pX & 15), (int) (pZ & 15)) + 1;
+                               : chunk.getHeight(pHeightmapType, (int) (pX.lo() & 15L), (int) (pZ.lo() & 15L)) + 1;
         } else {
             i = this.getMinBuildHeight();
         }

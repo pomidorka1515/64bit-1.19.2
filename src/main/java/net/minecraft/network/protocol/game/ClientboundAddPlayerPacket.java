@@ -9,6 +9,7 @@ import net.minecraft.world.phys.SectorVec3;
 public class ClientboundAddPlayerPacket implements Packet<ClientGamePacketListener> {
     private final int entityId;
     private final UUID playerId;
+    /** Lossy compatibility mirrors; exactPosition is authoritative. */
     private final double x;
     private final double y;
     private final double z;
@@ -31,8 +32,8 @@ public class ClientboundAddPlayerPacket implements Packet<ClientGamePacketListen
     public ClientboundAddPlayerPacket(FriendlyByteBuf pBuffer) {
         this.entityId = pBuffer.readVarInt();
         this.playerId = pBuffer.readUUID();
-        this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readLong(), pBuffer.readDouble(),
-                pBuffer.readDouble(), pBuffer.readLong(), pBuffer.readDouble());
+        this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readInt128(), pBuffer.readDouble(),
+                pBuffer.readDouble(), pBuffer.readInt128(), pBuffer.readDouble());
         net.minecraft.world.phys.Vec3 approximate = this.exactPosition.toApproximateVec3();
         this.x = approximate.x;
         this.y = approximate.y;
@@ -44,10 +45,10 @@ public class ClientboundAddPlayerPacket implements Packet<ClientGamePacketListen
     public void write(FriendlyByteBuf pBuffer) {
         pBuffer.writeVarInt(this.entityId);
         pBuffer.writeUUID(this.playerId);
-        pBuffer.writeLong(this.exactPosition.blockX());
+        pBuffer.writeInt128(this.exactPosition.blockX());
         pBuffer.writeDouble(this.exactPosition.subX());
         pBuffer.writeDouble(this.exactPosition.y());
-        pBuffer.writeLong(this.exactPosition.blockZ());
+        pBuffer.writeInt128(this.exactPosition.blockZ());
         pBuffer.writeDouble(this.exactPosition.subZ());
         pBuffer.writeByte(this.yRot);
         pBuffer.writeByte(this.xRot);

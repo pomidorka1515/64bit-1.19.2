@@ -2,12 +2,14 @@ package net.minecraft.network.protocol.game;
 
 import java.util.EnumSet;
 import java.util.Set;
-import javax.annotation.Nullable;
+import net.minecraft.core.Int128;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.phys.SectorVec3;
+import net.minecraft.world.phys.Vec3;
 
 public class ClientboundPlayerPositionPacket implements Packet<ClientGamePacketListener> {
+    /** Lossy compatibility mirrors; exactPosition is authoritative. */
     private final double x;
     private final double y;
     private final double z;
@@ -16,48 +18,41 @@ public class ClientboundPlayerPositionPacket implements Packet<ClientGamePacketL
     private final Set<ClientboundPlayerPositionPacket.RelativeArgument> relativeArguments;
     private final int id;
     private final boolean dismountVehicle;
-    /** Absolute exact target, present only for the sector-aware integrated-server path. */
-    @Nullable
+    /** Split-coordinate target carried by both local and network packets. */
     private final SectorVec3 exactPosition;
 
     public ClientboundPlayerPositionPacket(double x, double y, double z, float yRot, float xRot,
             Set<ClientboundPlayerPositionPacket.RelativeArgument> relativeArguments,
             int id, boolean dismountVehicle) {
-        this(x, y, z, yRot, xRot, relativeArguments, id, dismountVehicle, null);
+        this(SectorVec3.fromApproximate(x, y, z), yRot, xRot, relativeArguments, id, dismountVehicle);
     }
 
     public ClientboundPlayerPositionPacket(SectorVec3 position, float yRot, float xRot,
             Set<ClientboundPlayerPositionPacket.RelativeArgument> relativeArguments,
             int id, boolean dismountVehicle) {
-        this(position.toApproximateVec3().x, position.y(), position.toApproximateVec3().z,
-                yRot, xRot, relativeArguments, id, dismountVehicle, position);
-    }
-
-    private ClientboundPlayerPositionPacket(double x, double y, double z, float yRot, float xRot,
-            Set<ClientboundPlayerPositionPacket.RelativeArgument> relativeArguments,
-            int id, boolean dismountVehicle, @Nullable SectorVec3 exactPosition) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        Vec3 approximate = position.toApproximateVec3();
+        this.x = approximate.x;
+        this.y = position.y();
+        this.z = approximate.z;
         this.yRot = yRot;
         this.xRot = xRot;
         this.relativeArguments = relativeArguments;
         this.id = id;
         this.dismountVehicle = dismountVehicle;
-        this.exactPosition = exactPosition;
+        this.exactPosition = position;
     }
 
     public ClientboundPlayerPositionPacket(FriendlyByteBuf buf) {
-        long blockX = buf.readLong();
+        Int128 blockX = buf.readInt128();
         double subX = buf.readDouble();
         double y = buf.readDouble();
-        long blockZ = buf.readLong();
+        Int128 blockZ = buf.readInt128();
         double subZ = buf.readDouble();
-        // Compatibility mirrors only; exactPosition is authoritative for sector players.
-        this.x = (double) blockX + subX;
-        this.y = y;
-        this.z = (double) blockZ + subZ;
         this.exactPosition = SectorVec3.fromBlockAndFraction(blockX, subX, y, blockZ, subZ);
+        Vec3 approximate = this.exactPosition.toApproximateVec3();
+        this.x = approximate.x;
+        this.y = this.exactPosition.y();
+        this.z = approximate.z;
         this.yRot = buf.readFloat();
         this.xRot = buf.readFloat();
         this.relativeArguments = ClientboundPlayerPositionPacket.RelativeArgument.unpack(buf.readUnsignedByte());
@@ -65,18 +60,17 @@ public class ClientboundPlayerPositionPacket implements Packet<ClientGamePacketL
         this.dismountVehicle = buf.readBoolean();
     }
 
-    @Nullable
     public SectorVec3 getExactPosition() {
         return this.exactPosition;
     }
 
     public void write(FriendlyByteBuf buf) {
         SectorVec3 position = this.exactPosition;
-        buf.writeLong(position == null ? (long) Math.floor(this.x) : position.blockX());
-        buf.writeDouble(position == null ? this.x - Math.floor(this.x) : position.subX());
-        buf.writeDouble(this.y);
-        buf.writeLong(position == null ? (long) Math.floor(this.z) : position.blockZ());
-        buf.writeDouble(position == null ? this.z - Math.floor(this.z) : position.subZ());
+        buf.writeInt128(position.blockX());
+        buf.writeDouble(position.subX());
+        buf.writeDouble(position.y());
+        buf.writeInt128(position.blockZ());
+        buf.writeDouble(position.subZ());
         buf.writeFloat(this.yRot);
         buf.writeFloat(this.xRot);
         buf.writeByte(ClientboundPlayerPositionPacket.RelativeArgument.pack(this.relativeArguments));

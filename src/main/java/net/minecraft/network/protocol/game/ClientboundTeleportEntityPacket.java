@@ -8,6 +8,7 @@ import net.minecraft.world.phys.Vec3;
 
 public class ClientboundTeleportEntityPacket implements Packet<ClientGamePacketListener> {
     private final int id;
+    /** Lossy compatibility mirrors; exactPosition is authoritative. */
     private final double x;
     private final double y;
     private final double z;
@@ -30,8 +31,8 @@ public class ClientboundTeleportEntityPacket implements Packet<ClientGamePacketL
 
     public ClientboundTeleportEntityPacket(FriendlyByteBuf pBuffer) {
         this.id = pBuffer.readVarInt();
-        this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readLong(), pBuffer.readDouble(),
-                pBuffer.readDouble(), pBuffer.readLong(), pBuffer.readDouble());
+        this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readInt128(), pBuffer.readDouble(),
+                pBuffer.readDouble(), pBuffer.readInt128(), pBuffer.readDouble());
         Vec3 approximate = this.exactPosition.toApproximateVec3();
         this.x = approximate.x;
         this.y = approximate.y;
@@ -44,10 +45,10 @@ public class ClientboundTeleportEntityPacket implements Packet<ClientGamePacketL
     public void write(FriendlyByteBuf pBuffer) {
         pBuffer.writeVarInt(this.id);
         SectorVec3 position = this.exactPosition;
-        pBuffer.writeLong(position.blockX());
+        pBuffer.writeInt128(position.blockX());
         pBuffer.writeDouble(position.subX());
         pBuffer.writeDouble(position.y());
-        pBuffer.writeLong(position.blockZ());
+        pBuffer.writeInt128(position.blockZ());
         pBuffer.writeDouble(position.subZ());
         pBuffer.writeByte(this.yRot);
         pBuffer.writeByte(this.xRot);

@@ -38,8 +38,8 @@ public class ClientboundPlayerLookAtPacket implements Packet<ClientGamePacketLis
 
     public ClientboundPlayerLookAtPacket(FriendlyByteBuf pBuffer) {
         this.fromAnchor = pBuffer.readEnum(EntityAnchorArgument.Anchor.class);
-        this.position = SectorVec3.fromBlockAndFraction(pBuffer.readLong(), pBuffer.readDouble(),
-                pBuffer.readDouble(), pBuffer.readLong(), pBuffer.readDouble());
+        this.position = SectorVec3.fromBlockAndFraction(pBuffer.readInt128(), pBuffer.readDouble(),
+                pBuffer.readDouble(), pBuffer.readInt128(), pBuffer.readDouble());
         this.atEntity = pBuffer.readBoolean();
         if (this.atEntity) {
             this.entity = pBuffer.readVarInt();
@@ -52,10 +52,10 @@ public class ClientboundPlayerLookAtPacket implements Packet<ClientGamePacketLis
 
     public void write(FriendlyByteBuf pBuffer) {
         pBuffer.writeEnum(this.fromAnchor);
-        pBuffer.writeLong(this.position.blockX());
+        pBuffer.writeInt128(this.position.blockX());
         pBuffer.writeDouble(this.position.subX());
         pBuffer.writeDouble(this.position.y());
-        pBuffer.writeLong(this.position.blockZ());
+        pBuffer.writeInt128(this.position.blockZ());
         pBuffer.writeDouble(this.position.subZ());
         pBuffer.writeBoolean(this.atEntity);
         if (this.atEntity) {
@@ -84,5 +84,10 @@ public class ClientboundPlayerLookAtPacket implements Packet<ClientGamePacketLis
         } else {
             return this.position;
         }
+    }
+
+    /** Exact fallback target carried on the wire, before resolving an entity anchor. */
+    public SectorVec3 getExactPosition() {
+        return this.position;
     }
 }

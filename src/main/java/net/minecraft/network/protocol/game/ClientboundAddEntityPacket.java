@@ -2,6 +2,7 @@ package net.minecraft.network.protocol.game;
 
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
@@ -18,6 +19,7 @@ public class ClientboundAddEntityPacket implements Packet<ClientGamePacketListen
     private final int id;
     private final UUID uuid;
     private final EntityType<?> type;
+    /** Lossy compatibility mirrors; exactPosition is authoritative. */
     private final double x;
     private final double y;
     private final double z;
@@ -81,10 +83,10 @@ public class ClientboundAddEntityPacket implements Packet<ClientGamePacketListen
         this.id = pBuffer.readVarInt();
         this.uuid = pBuffer.readUUID();
         this.type = pBuffer.readById(Registry.ENTITY_TYPE);
-        long blockX = pBuffer.readLong();
+        Int128 blockX = pBuffer.readInt128();
         double subX = pBuffer.readDouble();
         this.y = pBuffer.readDouble();
-        long blockZ = pBuffer.readLong();
+        Int128 blockZ = pBuffer.readInt128();
         double subZ = pBuffer.readDouble();
         this.exactPosition = SectorVec3.fromBlockAndFraction(blockX, subX, this.y, blockZ, subZ);
         Vec3 approximate = this.exactPosition.toApproximateVec3();
@@ -104,10 +106,10 @@ public class ClientboundAddEntityPacket implements Packet<ClientGamePacketListen
         pBuffer.writeUUID(this.uuid);
         pBuffer.writeId(Registry.ENTITY_TYPE, this.type);
         SectorVec3 position = this.exactPosition;
-        pBuffer.writeLong(position.blockX());
+        pBuffer.writeInt128(position.blockX());
         pBuffer.writeDouble(position.subX());
         pBuffer.writeDouble(position.y());
-        pBuffer.writeLong(position.blockZ());
+        pBuffer.writeInt128(position.blockZ());
         pBuffer.writeDouble(position.subZ());
         pBuffer.writeByte(this.xRot);
         pBuffer.writeByte(this.yRot);

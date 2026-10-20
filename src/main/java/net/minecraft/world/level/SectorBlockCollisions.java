@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Cursor3D;
+import net.minecraft.core.Int128;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -27,7 +28,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * <p>The cursor and block lookup use exact world block coordinates.  The
  * returned shapes, and the entity shape used for filtering, are in the small
  * local frame described by {@code origin}; no world coordinate is converted
- * to a double during shape translation.</p>
+ * to a double during shape translation. Local spans are bounded by the shared
+ * {@link WorldBounds#MAX_SAFE_LOCAL_SPAN}; its precision hard ceiling is
+ * {@code (1L << 52) - 1}. Unsafe ranges yield one conservative collision.</p>
  */
 public final class SectorBlockCollisions extends AbstractIterator<VoxelShape> {
     private final AABB localBox;
@@ -63,57 +66,48 @@ public final class SectorBlockCollisions extends AbstractIterator<VoxelShape> {
         this.context = entity == null ? CollisionContext.empty() : CollisionContext.of(entity);
         this.onlySuffocatingBlocks = onlySuffocatingBlocks;
 
-        long minX = exactBox.minBlockXForCollision();
-        long maxX = exactBox.maxBlockXForCollision();
+        Int128 minX = exactBox.minBlockXForCollision();
+        Int128 maxX = exactBox.maxBlockXForCollision();
         int minY = exactBox.minBlockYForCollision();
         int maxY = exactBox.maxBlockYForCollision();
-        long minZ = exactBox.minBlockZForCollision();
-        long maxZ = exactBox.maxBlockZForCollision();
-        // Cursor3D stores its linear index in an int.  It is also unable to
-        // represent a range whose width/depth is Long.MAX_VALUE.  A normal
-        // player box is small, but hostile movement near an edge can make a
-        // saturated endpoint appear to span the whole world.  Reject that
-        // range before Cursor3D can overflow or spend minutes walking it.
-        this.invalidRange = !WorldBounds.isValidBlock(minX, minZ) || !WorldBounds.isValidBlock(maxX, maxZ)
+        Int128 minZ = exactBox.minBlockZForCollision();
+        Int128 maxZ = exactBox.maxBlockZForCollision();
+        // Validate both the traversal span and its distance from the one local
+        // origin. A small box at a distant address is not a safe local sweep.
+        this.invalidRange = !origin.isSafe(minX, minZ) || !origin.isSafe(maxX, maxZ)
                 || !isSafeCursorRange(minX, maxX, minY, maxY, minZ, maxZ);
-        // A malformed or excessively large sweep must not be handed to
-        // Cursor3D: its int index would wrap and the server could loop forever.
+        // Keep hostile ranges out of the cursor even though it now advances
+        // by endpoints rather than by an overflowing linear index.
         this.cursor = this.invalidRange
                 ? new Cursor3D(0L, 0, 0L, -1L, -1, -1L)
                 : new Cursor3D(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
-    private static boolean isSafeCursorRange(long minX, long maxX, int minY, int maxY,
-            long minZ, long maxZ) {
-        // Cursor3D uses an int linear index even though its end is a long. If
-        // the volume exceeds Integer.MAX_VALUE, the index wraps and advance()
-        // never reaches end. Reject saturated/hostile ranges before creating
-        // such a cursor. A 64-block horizontal bound is far above any normal
-        // entity sweep and also keeps the long differences exact.
-        if (maxX < minX || maxZ < minZ || maxY < minY
-                || WorldBounds.distance(minX, maxX) > 64.0D
-                || WorldBounds.distance(minZ, maxZ) > 64.0D) {
+    private static boolean isSafeCursorRange(Int128 minX, Int128 maxX, int minY, int maxY,
+            Int128 minZ, Int128 maxZ) {
+        // Preserve the 64-block horizontal sanity limit and int-sized volume
+        // budget independently of the shared precision bound.
+        if (maxX.compareTo(minX) < 0 || maxZ.compareTo(minZ) < 0 || maxY < minY
+                || WorldBounds.localSpanExceeds(minX, maxX)
+                || WorldBounds.localSpanExceeds(minZ, maxZ)
+                || WorldBounds.signedDifferenceAsLong(maxX, minX) > 64L
+                || WorldBounds.signedDifferenceAsLong(maxZ, minZ) > 64L) {
             return false;
         }
-        long width = (long) WorldBounds.distance(minX, maxX) + 1L;
-        long height = (long) WorldBounds.distance((long) minY, (long) maxY) + 1L;
-        long depth = (long) WorldBounds.distance(minZ, maxZ) + 1L;
+        long width = WorldBounds.signedDifferenceAsLong(maxX, minX) + 1L;
+        long height = (long) maxY - minY + 1L;
+        long depth = WorldBounds.signedDifferenceAsLong(maxZ, minZ) + 1L;
         return width <= Integer.MAX_VALUE / Math.max(1L, height)
                 && width * height <= Integer.MAX_VALUE / Math.max(1L, depth);
     }
 
     @Nullable
-    private BlockGetter getChunk(long blockX, long blockZ) {
-        long chunkX = SectionPos.blockToSectionCoord(blockX);
-        long chunkZ = SectionPos.blockToSectionCoord(blockZ);
+    private BlockGetter getChunk(Int128 blockX, Int128 blockZ) {
+        Int128 chunkX = SectionPos.blockToSectionCoord(blockX);
+        Int128 chunkZ = SectionPos.blockToSectionCoord(blockZ);
         ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
         if (this.chunkCache.containsKey(chunkPos)) {
             return this.chunkCache.get(chunkPos);
-        }
-
-        if (!WorldBounds.isValidChunk(chunkX, chunkZ)) {
-            this.chunkCache.put(chunkPos, null);
-            return null;
         }
 
         BlockGetter getter;
@@ -144,22 +138,20 @@ public final class SectorBlockCollisions extends AbstractIterator<VoxelShape> {
         }
 
         while (this.cursor.advance()) {
-            long blockX = this.cursor.nextX();
+            Int128 blockX = this.cursor.nextX();
             int blockY = this.cursor.nextY();
-            long blockZ = this.cursor.nextZ();
+            Int128 blockZ = this.cursor.nextZ();
             int type = this.cursor.getNextType();
             // At a world edge the one-block safety margin is saturated onto
             // the last real block. It is not an outer padding face: ordinary
             // blocks there must still contribute collision shapes. Correct each
             // clipped axis independently, including at X/Z world corners.
-            if (blockX == WorldBounds.MIN_BLOCK || blockX == WorldBounds.MAX_BLOCK) {
+            if (blockX.equals(WorldBounds.MIN_BLOCK) || blockX.equals(WorldBounds.MAX_BLOCK)) {
                 --type;
             }
-            if (blockZ == WorldBounds.MIN_BLOCK || blockZ == WorldBounds.MAX_BLOCK) {
+            if (blockZ.equals(WorldBounds.MIN_BLOCK) || blockZ.equals(WorldBounds.MAX_BLOCK)) {
                 --type;
             }
-            if (!WorldBounds.isValidBlock(blockX, blockZ))
-                continue;
             if (type == Cursor3D.TYPE_CORNER) {
                 continue;
             }

@@ -1,5 +1,6 @@
 package net.minecraft.world.phys;
 
+import net.minecraft.core.Int128;
 import net.minecraft.world.level.WorldBounds;
 
 /**
@@ -19,6 +20,12 @@ public final class SectorAABB {
 
     public SectorAABB(long minBlockX, double minSubX, double minY, long minBlockZ, double minSubZ,
             long maxBlockX, double maxSubX, double maxY, long maxBlockZ, double maxSubZ) {
+        this(Int128.fromLong(minBlockX), minSubX, minY, Int128.fromLong(minBlockZ), minSubZ,
+                Int128.fromLong(maxBlockX), maxSubX, maxY, Int128.fromLong(maxBlockZ), maxSubZ);
+    }
+
+    public SectorAABB(Int128 minBlockX, double minSubX, double minY, Int128 minBlockZ, double minSubZ,
+            Int128 maxBlockX, double maxSubX, double maxY, Int128 maxBlockZ, double maxSubZ) {
         Endpoint x0 = Endpoint.of(minBlockX, minSubX);
         Endpoint x1 = Endpoint.of(maxBlockX, maxSubX);
         Endpoint z0 = Endpoint.of(minBlockZ, minSubZ);
@@ -63,13 +70,51 @@ public final class SectorAABB {
                 Math.max(this.maxY, other.maxY), this.maxZ.compareTo(other.maxZ) >= 0 ? this.maxZ : other.maxZ);
     }
 
+    public boolean intersects(SectorAABB other) {
+        return this.minX.compareTo(other.maxX) < 0 && this.maxX.compareTo(other.minX) > 0
+                && this.minY < other.maxY && this.maxY > other.minY
+                && this.minZ.compareTo(other.maxZ) < 0 && this.maxZ.compareTo(other.minZ) > 0;
+    }
+
+    /** Includes the lower endpoint and excludes the upper endpoint, like AABB. */
+    public boolean contains(SectorVec3 position) {
+        Endpoint x = Endpoint.from(position.blockX(), position.subX());
+        Endpoint z = Endpoint.from(position.blockZ(), position.subZ());
+        return this.minX.compareTo(x) <= 0 && this.maxX.compareTo(x) > 0
+                && this.minY <= position.y() && this.maxY > position.y()
+                && this.minZ.compareTo(z) <= 0 && this.maxZ.compareTo(z) > 0;
+    }
+
+    public double getXsize() {
+        return this.maxX.distanceFrom(this.minX);
+    }
+
+    public double getYsize() {
+        return this.maxY - this.minY;
+    }
+
+    public double getZsize() {
+        return this.maxZ.distanceFrom(this.minZ);
+    }
+
+    public double getSize() {
+        return (this.getXsize() + this.getYsize() + this.getZsize()) / 3.0D;
+    }
+
+    public SectorVec3 getCenter() {
+        Endpoint x = this.minX.midpoint(this.maxX);
+        Endpoint z = this.minZ.midpoint(this.maxZ);
+        return SectorVec3.fromBlockAndFraction(x.block, x.fraction, this.minY * 0.5D + this.maxY * 0.5D,
+                z.block, z.fraction);
+    }
+
     private static SectorAABB fromEndpoints(Endpoint minX, double minY, Endpoint minZ,
             Endpoint maxX, double maxY, Endpoint maxZ) {
         return new SectorAABB(minX.block, minX.fraction, minY, minZ.block, minZ.fraction,
                 maxX.block, maxX.fraction, maxY, maxZ.block, maxZ.fraction);
     }
 
-    public long minBlockX() {
+    public Int128 minBlockX() {
         return this.minX.block;
     }
     public double minSubX() {
@@ -78,13 +123,13 @@ public final class SectorAABB {
     public double minY() {
         return this.minY;
     }
-    public long minBlockZ() {
+    public Int128 minBlockZ() {
         return this.minZ.block;
     }
     public double minSubZ() {
         return this.minZ.fraction;
     }
-    public long maxBlockX() {
+    public Int128 maxBlockX() {
         return this.maxX.block;
     }
     public double maxSubX() {
@@ -93,7 +138,7 @@ public final class SectorAABB {
     public double maxY() {
         return this.maxY;
     }
-    public long maxBlockZ() {
+    public Int128 maxBlockZ() {
         return this.maxZ.block;
     }
     public double maxSubZ() {
@@ -101,10 +146,10 @@ public final class SectorAABB {
     }
 
     /** Block range with the same one-block safety margin used by BlockCollisions. */
-    public long minBlockXForCollision() {
+    public Int128 minBlockXForCollision() {
         return WorldBounds.addBlockOffset(this.minX.floorMinusEpsilon(), -1L);
     }
-    public long maxBlockXForCollision() {
+    public Int128 maxBlockXForCollision() {
         return WorldBounds.addBlockOffset(this.maxX.ceilPlusEpsilon(), 1L);
     }
     public int minBlockYForCollision() {
@@ -113,38 +158,38 @@ public final class SectorAABB {
     public int maxBlockYForCollision() {
         return WorldBounds.addSaturated(floorPlusEpsilon(this.maxY), 1);
     }
-    public long minBlockZForCollision() {
+    public Int128 minBlockZForCollision() {
         return WorldBounds.addBlockOffset(this.minZ.floorMinusEpsilon(), -1L);
     }
-    public long maxBlockZForCollision() {
+    public Int128 maxBlockZForCollision() {
         return WorldBounds.addBlockOffset(this.maxZ.ceilPlusEpsilon(), 1L);
     }
 
     /** Exact equivalent of floor(minX), used by fluid and inside-block scans. */
-    public long minBlockXForRange() {
+    public Int128 minBlockXForRange() {
         return this.minX.block;
     }
 
     /** Exact exclusive equivalent of ceil(maxX), used by fluid and inside-block scans. */
-    public long maxBlockXExclusive() {
+    public Int128 maxBlockXExclusive() {
         return this.maxBlockXOrZExclusive(this.maxX);
     }
 
-    /** Inclusive upper bound for scans; unlike an exclusive bound it is defined at Long.MAX_VALUE. */
-    public long maxBlockXForRangeInclusive() {
+    /** Inclusive upper bound for scans; unlike an exclusive bound it is defined at Int128.MAX. */
+    public Int128 maxBlockXForRangeInclusive() {
         return this.maxBlockForRangeInclusive(this.maxX);
     }
 
-    public long minBlockZForRange() {
+    public Int128 minBlockZForRange() {
         return this.minZ.block;
     }
 
-    public long maxBlockZExclusive() {
+    public Int128 maxBlockZExclusive() {
         return this.maxBlockXOrZExclusive(this.maxZ);
     }
 
-    /** Inclusive upper bound for scans; unlike an exclusive bound it is defined at Long.MAX_VALUE. */
-    public long maxBlockZForRangeInclusive() {
+    /** Inclusive upper bound for scans; unlike an exclusive bound it is defined at Int128.MAX. */
+    public Int128 maxBlockZForRangeInclusive() {
         return this.maxBlockForRangeInclusive(this.maxZ);
     }
 
@@ -156,11 +201,11 @@ public final class SectorAABB {
         return ceilToInt(this.maxY);
     }
 
-    private long maxBlockXOrZExclusive(Endpoint endpoint) {
+    private Int128 maxBlockXOrZExclusive(Endpoint endpoint) {
         return endpoint.fraction == 0.0D ? endpoint.block : WorldBounds.addBlockOffset(endpoint.block, 1L);
     }
 
-    private long maxBlockForRangeInclusive(Endpoint endpoint) {
+    private Int128 maxBlockForRangeInclusive(Endpoint endpoint) {
         return endpoint.fraction != 0.0D ? endpoint.block : WorldBounds.addBlockOffset(endpoint.block, -1L);
     }
 
@@ -236,9 +281,13 @@ public final class SectorAABB {
     public AABB toLocalAABB(SectorPhysicsOrigin origin) {
         if (origin == null)
             throw new NullPointerException("origin");
-        return new AABB(this.minX.toLocal(origin.originBlockX()), this.minY - origin.originBlockY(),
-                this.minZ.toLocal(origin.originBlockZ()), this.maxX.toLocal(origin.originBlockX()),
-                this.maxY - origin.originBlockY(), this.maxZ.toLocal(origin.originBlockZ()));
+        this.requireSafeLocalSpan();
+        // The origin's long accessors are sign-extended until its S4.03 conversion.
+        Int128 originX = Int128.fromLong(origin.originBlockX());
+        Int128 originZ = Int128.fromLong(origin.originBlockZ());
+        return new AABB(this.minX.toLocal(originX), this.minY - origin.originBlockY(),
+                this.minZ.toLocal(originZ), this.maxX.toLocal(originX),
+                this.maxY - origin.originBlockY(), this.maxZ.toLocal(originZ));
     }
 
     /**
@@ -250,10 +299,17 @@ public final class SectorAABB {
     public AABB toLocalAABB(SectorVec3 origin) {
         if (origin == null)
             throw new NullPointerException("origin");
+        this.requireSafeLocalSpan();
         return new AABB(this.minX.relativeTo(origin.blockX(), origin.subX()), this.minY - origin.y(),
                 this.minZ.relativeTo(origin.blockZ(), origin.subZ()),
                 this.maxX.relativeTo(origin.blockX(), origin.subX()), this.maxY - origin.y(),
                 this.maxZ.relativeTo(origin.blockZ(), origin.subZ()));
+    }
+
+    private void requireSafeLocalSpan() {
+        if (WorldBounds.localSpanExceeds(this.minX.block, this.maxX.block)
+                || WorldBounds.localSpanExceeds(this.minZ.block, this.maxZ.block))
+            throw new IllegalArgumentException("Box exceeds safe local physics span");
     }
 
     /**
@@ -306,49 +362,43 @@ public final class SectorAABB {
     }
 
     private static final class Endpoint {
-        private final long block;
+        private final Int128 block;
         private final double fraction;
 
-        private Endpoint(long block, double fraction) {
+        private Endpoint(Int128 block, double fraction) {
             this.block = block;
             this.fraction = fraction;
         }
 
-        private static Endpoint of(long block, double fraction) {
-            SectorVec3 value = SectorVec3.fromBlockAndFraction(block, fraction, 0.0D, 0L, 0.0D);
+        private static Endpoint of(Int128 block, double fraction) {
+            SectorVec3 value = SectorVec3.fromBlockAndFraction(block, fraction, 0.0D, Int128.ZERO, 0.0D);
             return new Endpoint(value.blockX(), value.subX());
         }
 
-        private static Endpoint from(long block, double fraction) {
+        private static Endpoint from(Int128 block, double fraction) {
             return of(block, fraction);
         }
 
         private Endpoint add(double delta) {
             if (!Double.isFinite(delta))
                 throw new IllegalArgumentException("Endpoint delta must be finite");
-            double newFraction = this.fraction + delta;
-            double carry = Math.floor(newFraction);
-            if (!Double.isFinite(carry) || carry < Long.MIN_VALUE || carry >= 0x1.0p63 || carry != Math.rint(carry)) {
-                // A finite but enormous movement is still a valid hostile input;
-                // place the endpoint at the nearest legal edge instead of allowing
-                // a long narrowing conversion to wrap.
-                return delta < 0.0D ? new Endpoint(Long.MIN_VALUE, 0.0D)
-                                    : new Endpoint(Long.MAX_VALUE, Math.nextDown(1.0D));
-            }
-            long carryLong = (long) carry;
-            long normalizedBlock = WorldBounds.addBlockOffset(this.block, carryLong);
-            if (carryLong > 0L && normalizedBlock <= this.block) {
-                return new Endpoint(Long.MAX_VALUE, Math.nextDown(1.0D));
-            }
-            if (carryLong < 0L && normalizedBlock >= this.block) {
-                return new Endpoint(Long.MIN_VALUE, 0.0D);
-            }
-            return of(normalizedBlock, newFraction - carry);
+            return of(this.block, this.fraction + delta);
         }
 
         private int compareTo(Endpoint other) {
-            int result = Long.compare(this.block, other.block);
+            int result = this.block.compareTo(other.block);
             return result != 0 ? result : Double.compare(this.fraction, other.fraction);
+        }
+
+        private double distanceFrom(Endpoint other) {
+            return WorldBounds.signedDifference(this.block, other.block) + (this.fraction - other.fraction);
+        }
+
+        private Endpoint midpoint(Endpoint other) {
+            // Floor the integer average without overflowing even across the full domain.
+            Int128 block = this.block.and(other.block).add(this.block.xor(other.block).shiftRight(1));
+            double halfBlock = ((this.block.lo() ^ other.block.lo()) & 1L) * 0.5D;
+            return of(block, halfBlock + this.fraction * 0.5D + other.fraction * 0.5D);
         }
 
         @Override
@@ -358,28 +408,31 @@ public final class SectorAABB {
             if (!(object instanceof Endpoint))
                 return false;
             Endpoint other = (Endpoint) object;
-            return this.block == other.block && Double.compare(this.fraction, other.fraction) == 0;
+            return this.block.equals(other.block) && Double.compare(this.fraction, other.fraction) == 0;
         }
 
         @Override
         public int hashCode() {
-            return 31 * Long.hashCode(this.block) + Double.hashCode(this.fraction);
+            return 31 * this.block.hashCode() + Double.hashCode(this.fraction);
         }
 
-        private long floorMinusEpsilon() {
+        private Int128 floorMinusEpsilon() {
             return this.fraction == 0.0D ? WorldBounds.addBlockOffset(this.block, -1L) : this.block;
         }
 
-        private long ceilPlusEpsilon() {
+        private Int128 ceilPlusEpsilon() {
             return this.fraction >= 1.0D - EPSILON ? WorldBounds.addBlockOffset(this.block, 1L) : this.block;
         }
 
-        private double toLocal(long originBlock) {
-            return WorldBounds.signedDifference(this.block, originBlock) + this.fraction;
+        private double toLocal(Int128 originBlock) {
+            return this.relativeTo(originBlock, 0.0D);
         }
 
-        private double relativeTo(long originBlock, double originFraction) {
-            return WorldBounds.signedDifference(this.block, originBlock) + this.fraction - originFraction;
+        private double relativeTo(Int128 originBlock, double originFraction) {
+            double difference = WorldBounds.signedDifferenceExact(this.block, originBlock);
+            if (Double.isNaN(difference))
+                throw new IllegalArgumentException("Box endpoint exceeds safe local physics span");
+            return difference + (this.fraction - originFraction);
         }
     }
 }

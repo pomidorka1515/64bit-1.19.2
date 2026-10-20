@@ -5,7 +5,11 @@ public final class ExactVec3 extends Vec3 {
     private final SectorVec3 exact;
 
     public ExactVec3(SectorVec3 exact) {
-        super(exact.toApproximateVec3().x, exact.y(), exact.toApproximateVec3().z);
+        this(exact, exact.toApproximateVec3());
+    }
+
+    private ExactVec3(SectorVec3 exact, Vec3 approximate) {
+        super(approximate.x, exact.y(), approximate.z);
         this.exact = exact;
     }
 

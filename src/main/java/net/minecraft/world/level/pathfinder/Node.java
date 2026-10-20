@@ -2,14 +2,14 @@ package net.minecraft.world.level.pathfinder;
 
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 public class Node {
-    public final long x;
+    public final Int128 x;
     public final int y;
-    public final long z;
+    public final Int128 z;
     private final int hash;
     public int heapIdx = -1;
     public float g;
@@ -23,13 +23,26 @@ public class Node {
     public BlockPathTypes type = BlockPathTypes.BLOCKED;
 
     public Node(long pX, int pY, long pZ) {
+        this(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+    }
+
+    public Node(Int128 pX, int pY, Int128 pZ) {
         this.x = pX;
         this.y = pY;
         this.z = pZ;
         this.hash = createHash(pX, pY, pZ);
     }
 
+    public long xHi() { return this.x.hi(); }
+    public long xLo() { return this.x.lo(); }
+    public long zHi() { return this.z.hi(); }
+    public long zLo() { return this.z.lo(); }
+
     public Node cloneAndMove(long pX, int pY, long pZ) {
+        return this.cloneAndMove(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+    }
+
+    public Node cloneAndMove(Int128 pX, int pY, Int128 pZ) {
         Node node = new Node(pX, pY, pZ);
         node.heapIdx = this.heapIdx;
         node.g = this.g;
@@ -44,57 +57,65 @@ public class Node {
     }
 
     public static int createHash(long pX, int pY, long pZ) {
-        int i = Long.hashCode(pX);
+        return createHash(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+    }
+
+    public static int createHash(Int128 pX, int pY, Int128 pZ) {
+        int i = pX.hashCode();
         i = 31 * i + pY;
-        return 31 * i + Long.hashCode(pZ);
+        return 31 * i + pZ.hashCode();
     }
 
     public float distanceTo(Node pPathpoint) {
-        float f = (float) net.minecraft.world.level.WorldBounds.signedDifference(pPathpoint.x, this.x);
-        float f1 = (float) (pPathpoint.y - this.y);
-        float f2 = (float) net.minecraft.world.level.WorldBounds.signedDifference(pPathpoint.z, this.z);
-        return Mth.sqrt(f * f + f1 * f1 + f2 * f2);
+        double dx = net.minecraft.world.level.WorldBounds.signedDifference(pPathpoint.x, this.x);
+        double dy = (double) pPathpoint.y - this.y;
+        double dz = net.minecraft.world.level.WorldBounds.signedDifference(pPathpoint.z, this.z);
+        return saturatedCost(Math.sqrt(dx * dx + dy * dy + dz * dz));
     }
 
     public float distanceToXZ(Node p_230614_) {
-        float f = (float) net.minecraft.world.level.WorldBounds.signedDifference(p_230614_.x, this.x);
-        float f1 = (float) net.minecraft.world.level.WorldBounds.signedDifference(p_230614_.z, this.z);
-        return Mth.sqrt(f * f + f1 * f1);
+        double dx = net.minecraft.world.level.WorldBounds.signedDifference(p_230614_.x, this.x);
+        double dz = net.minecraft.world.level.WorldBounds.signedDifference(p_230614_.z, this.z);
+        return saturatedCost(Math.hypot(dx, dz));
     }
 
     public float distanceTo(BlockPos pPos) {
-        float f = (float) net.minecraft.world.level.WorldBounds.signedDifference(pPos.getX(), this.x);
-        float f1 = (float) (pPos.getY() - this.y);
-        float f2 = (float) net.minecraft.world.level.WorldBounds.signedDifference(pPos.getZ(), this.z);
-        return Mth.sqrt(f * f + f1 * f1 + f2 * f2);
+        double dx = net.minecraft.world.level.WorldBounds.signedDifference(pPos.getX(), this.x);
+        double dy = (double) pPos.getY() - this.y;
+        double dz = net.minecraft.world.level.WorldBounds.signedDifference(pPos.getZ(), this.z);
+        return saturatedCost(Math.sqrt(dx * dx + dy * dy + dz * dz));
     }
 
     public float distanceToSqr(Node pPathpoint) {
-        float f = (float) net.minecraft.world.level.WorldBounds.signedDifference(pPathpoint.x, this.x);
-        float f1 = (float) (pPathpoint.y - this.y);
-        float f2 = (float) net.minecraft.world.level.WorldBounds.signedDifference(pPathpoint.z, this.z);
-        return f * f + f1 * f1 + f2 * f2;
+        double dx = net.minecraft.world.level.WorldBounds.signedDifference(pPathpoint.x, this.x);
+        double dy = (double) pPathpoint.y - this.y;
+        double dz = net.minecraft.world.level.WorldBounds.signedDifference(pPathpoint.z, this.z);
+        return saturatedCost(dx * dx + dy * dy + dz * dz);
     }
 
     public float distanceToSqr(BlockPos pPos) {
-        float f = (float) net.minecraft.world.level.WorldBounds.signedDifference(pPos.getX(), this.x);
-        float f1 = (float) (pPos.getY() - this.y);
-        float f2 = (float) net.minecraft.world.level.WorldBounds.signedDifference(pPos.getZ(), this.z);
-        return f * f + f1 * f1 + f2 * f2;
+        double dx = net.minecraft.world.level.WorldBounds.signedDifference(pPos.getX(), this.x);
+        double dy = (double) pPos.getY() - this.y;
+        double dz = net.minecraft.world.level.WorldBounds.signedDifference(pPos.getZ(), this.z);
+        return saturatedCost(dx * dx + dy * dy + dz * dz);
     }
 
     public float distanceManhattan(Node pPathpoint) {
-        float f = (float) net.minecraft.world.level.WorldBounds.distance(pPathpoint.x, this.x);
-        float f1 = (float) Math.abs((double) pPathpoint.y - this.y);
-        float f2 = (float) net.minecraft.world.level.WorldBounds.distance(pPathpoint.z, this.z);
-        return f + f1 + f2;
+        double dx = net.minecraft.world.level.WorldBounds.distance(pPathpoint.x, this.x);
+        double dy = Math.abs((double) pPathpoint.y - this.y);
+        double dz = net.minecraft.world.level.WorldBounds.distance(pPathpoint.z, this.z);
+        return saturatedCost(dx + dy + dz);
     }
 
     public float distanceManhattan(BlockPos pPos) {
-        float f = (float) net.minecraft.world.level.WorldBounds.distance(pPos.getX(), this.x);
-        float f1 = (float) Math.abs((double) pPos.getY() - this.y);
-        float f2 = (float) net.minecraft.world.level.WorldBounds.distance(pPos.getZ(), this.z);
-        return f + f1 + f2;
+        double dx = net.minecraft.world.level.WorldBounds.distance(pPos.getX(), this.x);
+        double dy = Math.abs((double) pPos.getY() - this.y);
+        double dz = net.minecraft.world.level.WorldBounds.distance(pPos.getZ(), this.z);
+        return saturatedCost(dx + dy + dz);
+    }
+
+    static float saturatedCost(double cost) {
+        return (float) Math.min(cost, Float.MAX_VALUE);
     }
 
     public BlockPos asBlockPos() {
@@ -105,7 +126,7 @@ public class Node {
         if (!(pOther instanceof Node node)) {
             return false;
         } else {
-            return this.hash == node.hash && this.x == node.x && this.y == node.y && this.z == node.z;
+            return this.hash == node.hash && this.x.equals(node.x) && this.y == node.y && this.z.equals(node.z);
         }
     }
 
@@ -122,9 +143,11 @@ public class Node {
     }
 
     public void writeToStream(FriendlyByteBuf pBuffer) {
-        pBuffer.writeLong(this.x);
+        pBuffer.writeLong(this.x.hi());
+        pBuffer.writeLong(this.x.lo());
         pBuffer.writeInt(this.y);
-        pBuffer.writeLong(this.z);
+        pBuffer.writeLong(this.z.hi());
+        pBuffer.writeLong(this.z.lo());
         pBuffer.writeFloat(this.walkedDistance);
         pBuffer.writeFloat(this.costMalus);
         pBuffer.writeBoolean(this.closed);
@@ -133,7 +156,8 @@ public class Node {
     }
 
     public static Node createFromStream(FriendlyByteBuf pBuf) {
-        Node node = new Node(pBuf.readLong(), pBuf.readInt(), pBuf.readLong());
+        Node node = new Node(Int128.of(pBuf.readLong(), pBuf.readLong()), pBuf.readInt(),
+                Int128.of(pBuf.readLong(), pBuf.readLong()));
         node.walkedDistance = pBuf.readFloat();
         node.costMalus = pBuf.readFloat();
         node.closed = pBuf.readBoolean();
@@ -146,6 +170,6 @@ public class Node {
     * Complete node identity for evaluator cache lookups. The former packed
     * 32-bit key discarded high X/Z bits and merged distinct Far Lands nodes.
     */
-    static record NodeKey(long x, int y, long z) {
+    static record NodeKey(Int128 x, int y, Int128 z) {
     }
 }

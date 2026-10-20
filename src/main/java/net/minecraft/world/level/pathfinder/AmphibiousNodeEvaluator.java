@@ -2,6 +2,7 @@ package net.minecraft.world.level.pathfinder;
 
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Mob;
@@ -41,7 +42,7 @@ public class AmphibiousNodeEvaluator extends WalkNodeEvaluator {
 
     @Nullable
     public Target getGoal(double pX, double pY, double pZ) {
-        return this.getTargetFromNode(this.getNode(Mth.lfloor(pX), Mth.floor(pY + 0.5D), Mth.lfloor(pZ)));
+        return this.getTargetFromNode(this.getNode(Int128.fromDoubleFloorSaturated(pX), Mth.floor(pY + 0.5D), Int128.fromDoubleFloorSaturated(pZ)));
     }
 
     public int getNeighbors(Node[] p_164676_, Node p_164677_) {
@@ -88,7 +89,7 @@ public class AmphibiousNodeEvaluator extends WalkNodeEvaluator {
         return true;
     }
 
-    public BlockPathTypes getBlockPathType(BlockGetter pLevel, long pX, int pY, long pZ) {
+    public BlockPathTypes getBlockPathType(BlockGetter pLevel, Int128 pX, int pY, Int128 pZ) {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
         BlockPathTypes blockpathtypes = getBlockPathTypeRaw(pLevel, blockpos$mutableblockpos.set(pX, pY, pZ));
         if (blockpathtypes == BlockPathTypes.WATER) {

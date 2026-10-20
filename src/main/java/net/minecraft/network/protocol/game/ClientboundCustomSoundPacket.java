@@ -17,6 +17,7 @@ public class ClientboundCustomSoundPacket implements Packet<ClientGamePacketList
     private final float pitch;
     private final long seed;
 
+    /** Compatibility constructor for callers with an already-lossy approximate position. */
     public ClientboundCustomSoundPacket(ResourceLocation name, SoundSource source, Vec3 position,
             float volume, float pitch, long seed) {
         this(name, source, SectorVec3.fromApproximate(position.x, position.y, position.z), volume, pitch, seed);
@@ -35,8 +36,8 @@ public class ClientboundCustomSoundPacket implements Packet<ClientGamePacketList
     public ClientboundCustomSoundPacket(FriendlyByteBuf buffer) {
         this.name = buffer.readResourceLocation();
         this.source = buffer.readEnum(SoundSource.class);
-        this.position = SectorVec3.fromBlockAndFraction(buffer.readLong(), buffer.readDouble(), buffer.readDouble(),
-                buffer.readLong(), buffer.readDouble());
+        this.position = SectorVec3.fromBlockAndFraction(buffer.readInt128(), buffer.readDouble(), buffer.readDouble(),
+                buffer.readInt128(), buffer.readDouble());
         this.volume = buffer.readFloat();
         this.pitch = buffer.readFloat();
         this.seed = buffer.readLong();
@@ -45,10 +46,10 @@ public class ClientboundCustomSoundPacket implements Packet<ClientGamePacketList
     public void write(FriendlyByteBuf buffer) {
         buffer.writeResourceLocation(this.name);
         buffer.writeEnum(this.source);
-        buffer.writeLong(this.position.blockX());
+        buffer.writeInt128(this.position.blockX());
         buffer.writeDouble(this.position.subX());
         buffer.writeDouble(this.position.y());
-        buffer.writeLong(this.position.blockZ());
+        buffer.writeInt128(this.position.blockZ());
         buffer.writeDouble(this.position.subZ());
         buffer.writeFloat(this.volume);
         buffer.writeFloat(this.pitch);
@@ -69,7 +70,7 @@ public class ClientboundCustomSoundPacket implements Packet<ClientGamePacketList
 
     /** Lossy compatibility mirror; exact consumers must use {@link #getExactPosition()}. */
     public double getX() {
-        return (double) this.position.blockX() + this.position.subX();
+        return this.position.toApproximateVec3().x;
     }
 
     public double getY() {
@@ -78,7 +79,7 @@ public class ClientboundCustomSoundPacket implements Packet<ClientGamePacketList
 
     /** Lossy compatibility mirror; exact consumers must use {@link #getExactPosition()}. */
     public double getZ() {
-        return (double) this.position.blockZ() + this.position.subZ();
+        return this.position.toApproximateVec3().z;
     }
 
     public float getVolume() {

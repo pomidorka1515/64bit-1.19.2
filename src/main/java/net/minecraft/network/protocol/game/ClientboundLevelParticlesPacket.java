@@ -49,8 +49,8 @@ public class ClientboundLevelParticlesPacket implements Packet<ClientGamePacketL
     public ClientboundLevelParticlesPacket(FriendlyByteBuf buf) {
         ParticleType<?> particleType = buf.readById(Registry.PARTICLE_TYPE);
         this.overrideLimiter = buf.readBoolean();
-        this.position = SectorVec3.fromBlockAndFraction(buf.readLong(), buf.readDouble(), buf.readDouble(),
-                buf.readLong(), buf.readDouble());
+        this.position = SectorVec3.fromBlockAndFraction(buf.readInt128(), buf.readDouble(), buf.readDouble(),
+                buf.readInt128(), buf.readDouble());
         this.xDist = buf.readFloat();
         this.yDist = buf.readFloat();
         this.zDist = buf.readFloat();
@@ -66,10 +66,10 @@ public class ClientboundLevelParticlesPacket implements Packet<ClientGamePacketL
     public void write(FriendlyByteBuf buf) {
         buf.writeId(Registry.PARTICLE_TYPE, this.particle.getType());
         buf.writeBoolean(this.overrideLimiter);
-        buf.writeLong(this.position.blockX());
+        buf.writeInt128(this.position.blockX());
         buf.writeDouble(this.position.subX());
         buf.writeDouble(this.position.y());
-        buf.writeLong(this.position.blockZ());
+        buf.writeInt128(this.position.blockZ());
         buf.writeDouble(this.position.subZ());
         buf.writeFloat(this.xDist);
         buf.writeFloat(this.yDist);
@@ -88,7 +88,7 @@ public class ClientboundLevelParticlesPacket implements Packet<ClientGamePacketL
         return this.position;
     }
 
-    /** Legacy compatibility accessor; precision-sensitive callers must use getExactPosition. */
+    /** Lossy compatibility mirror; exact consumers must use {@link #getExactPosition()}. */
     public double getX() {
         return this.position.toApproximateVec3().x;
     }
@@ -97,7 +97,7 @@ public class ClientboundLevelParticlesPacket implements Packet<ClientGamePacketL
         return this.position.y();
     }
 
-    /** Legacy compatibility accessor; precision-sensitive callers must use getExactPosition. */
+    /** Lossy compatibility mirror; exact consumers must use {@link #getExactPosition()}. */
     public double getZ() {
         return this.position.toApproximateVec3().z;
     }

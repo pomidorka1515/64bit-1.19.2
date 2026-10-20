@@ -37,8 +37,8 @@ public class ClientboundSoundPacket implements Packet<ClientGamePacketListener> 
     public ClientboundSoundPacket(FriendlyByteBuf buffer) {
         this.sound = buffer.readById(Registry.SOUND_EVENT);
         this.source = buffer.readEnum(SoundSource.class);
-        this.position = SectorVec3.fromBlockAndFraction(buffer.readLong(), buffer.readDouble(), buffer.readDouble(),
-                buffer.readLong(), buffer.readDouble());
+        this.position = SectorVec3.fromBlockAndFraction(buffer.readInt128(), buffer.readDouble(), buffer.readDouble(),
+                buffer.readInt128(), buffer.readDouble());
         this.volume = buffer.readFloat();
         this.pitch = buffer.readFloat();
         this.seed = buffer.readLong();
@@ -47,10 +47,10 @@ public class ClientboundSoundPacket implements Packet<ClientGamePacketListener> 
     public void write(FriendlyByteBuf buffer) {
         buffer.writeId(Registry.SOUND_EVENT, this.sound);
         buffer.writeEnum(this.source);
-        buffer.writeLong(this.position.blockX());
+        buffer.writeInt128(this.position.blockX());
         buffer.writeDouble(this.position.subX());
         buffer.writeDouble(this.position.y());
-        buffer.writeLong(this.position.blockZ());
+        buffer.writeInt128(this.position.blockZ());
         buffer.writeDouble(this.position.subZ());
         buffer.writeFloat(this.volume);
         buffer.writeFloat(this.pitch);
@@ -71,7 +71,7 @@ public class ClientboundSoundPacket implements Packet<ClientGamePacketListener> 
 
     /** Lossy compatibility mirror; exact consumers must use {@link #getExactPosition()}. */
     public double getX() {
-        return (double) this.position.blockX() + this.position.subX();
+        return this.position.toApproximateVec3().x;
     }
 
     public double getY() {
@@ -80,7 +80,7 @@ public class ClientboundSoundPacket implements Packet<ClientGamePacketListener> 
 
     /** Lossy compatibility mirror; exact consumers must use {@link #getExactPosition()}. */
     public double getZ() {
-        return (double) this.position.blockZ() + this.position.subZ();
+        return this.position.toApproximateVec3().z;
     }
 
     public float getVolume() {

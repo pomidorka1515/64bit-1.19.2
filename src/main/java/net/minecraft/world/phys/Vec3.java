@@ -27,19 +27,22 @@ public class Vec3 implements Position {
     }
 
     public static Vec3 atCenterOf(Vec3i pToCopy) {
-        return new Vec3((double) pToCopy.getX() + 0.5D, (double) pToCopy.getY() + 0.5D, (double) pToCopy.getZ() + 0.5D);
+        return SectorVec3.fromBlockAndFraction(pToCopy.getX(), 0.5D, (double) pToCopy.getY() + 0.5D,
+                pToCopy.getZ(), 0.5D).toApproximateVec3();
     }
 
     public static Vec3 atLowerCornerOf(Vec3i pToCopy) {
-        return new Vec3((double) pToCopy.getX(), (double) pToCopy.getY(), (double) pToCopy.getZ());
+        return SectorVec3.fromBlockAndFraction(pToCopy.getX(), 0.0D, pToCopy.getY(),
+                pToCopy.getZ(), 0.0D).toApproximateVec3();
     }
 
     public static Vec3 atBottomCenterOf(Vec3i pToCopy) {
-        return new Vec3((double) pToCopy.getX() + 0.5D, (double) pToCopy.getY(), (double) pToCopy.getZ() + 0.5D);
+        return upFromBottomCenterOf(pToCopy, 0.0D);
     }
 
     public static Vec3 upFromBottomCenterOf(Vec3i pToCopy, double pVerticalOffset) {
-        return new Vec3((double) pToCopy.getX() + 0.5D, (double) pToCopy.getY() + pVerticalOffset, (double) pToCopy.getZ() + 0.5D);
+        return SectorVec3.fromBlockAndFraction(pToCopy.getX(), 0.5D, (double) pToCopy.getY() + pVerticalOffset,
+                pToCopy.getZ(), 0.5D).toApproximateVec3();
     }
 
     public Vec3(double pX, double pY, double pZ) {
@@ -241,7 +244,7 @@ public class Vec3 implements Position {
 
     public Vec3 relative(Direction p_231076_, double p_231077_) {
         Vec3i vec3i = p_231076_.getNormal();
-        return new Vec3(this.x + p_231077_ * (double) vec3i.getX(), this.y + p_231077_ * (double) vec3i.getY(), this.z + p_231077_ * (double) vec3i.getZ());
+        return new Vec3(this.x + p_231077_ * (double) vec3i.getXLo(), this.y + p_231077_ * (double) vec3i.getY(), this.z + p_231077_ * (double) vec3i.getZLo());
     }
 
     public final double x() {

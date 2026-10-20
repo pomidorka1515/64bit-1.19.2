@@ -13,7 +13,7 @@ public class AABB {
     /**
     * Optional exact world-space bounds. Entity-centered boxes retain this value
     * through the ordinary inflate/expand/move operations so legacy gameplay
-    * queries can use the long-coordinate entity index without losing X/Z bits.
+    * queries can use the exact-coordinate entity index without losing X/Z bits.
     */
     @Nullable
     private final SectorAABB sectorBounds;
@@ -41,21 +41,26 @@ public class AABB {
 
     /** Creates the lossy compatibility mirror of an exact horizontal box. */
     public static AABB fromSectorBounds(SectorAABB bounds) {
+        return new AABB(bounds);
+    }
+
+    private AABB(SectorAABB bounds) {
+        this(approximateCorner(bounds, false), approximateCorner(bounds, true), bounds);
+    }
+
+    private AABB(Vec3 min, Vec3 max, SectorAABB bounds) {
+        this(min.x, min.y, min.z, max.x, max.y, max.z, bounds);
+    }
+
+    private static Vec3 approximateCorner(SectorAABB bounds, boolean maximum) {
         if (bounds == null)
             throw new NullPointerException("bounds");
-        double minX = SectorVec3.fromBlockAndFraction(bounds.minBlockX(), bounds.minSubX(), 0.0D, 0L, 0.0D)
-                              .toApproximateVec3()
-                              .x;
-        double minZ = SectorVec3.fromBlockAndFraction(0L, 0.0D, 0.0D, bounds.minBlockZ(), bounds.minSubZ())
-                              .toApproximateVec3()
-                              .z;
-        double maxX = SectorVec3.fromBlockAndFraction(bounds.maxBlockX(), bounds.maxSubX(), 0.0D, 0L, 0.0D)
-                              .toApproximateVec3()
-                              .x;
-        double maxZ = SectorVec3.fromBlockAndFraction(0L, 0.0D, 0.0D, bounds.maxBlockZ(), bounds.maxSubZ())
-                              .toApproximateVec3()
-                              .z;
-        return new AABB(minX, bounds.minY(), minZ, maxX, bounds.maxY(), maxZ, bounds);
+        return SectorVec3.fromBlockAndFraction(
+                maximum ? bounds.maxBlockX() : bounds.minBlockX(),
+                maximum ? bounds.maxSubX() : bounds.minSubX(),
+                maximum ? bounds.maxY() : bounds.minY(),
+                maximum ? bounds.maxBlockZ() : bounds.minBlockZ(),
+                maximum ? bounds.maxSubZ() : bounds.minSubZ()).toApproximateVec3();
     }
 
     /** Exact metadata carried by entity-centered compatibility boxes. */
@@ -65,13 +70,13 @@ public class AABB {
     }
 
     public AABB(BlockPos pPos) {
-        this((double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ(), (double) (WorldBounds.addBlockOffset(pPos.getX(), 1)), (double) pPos.getY() + 1.0D, (double) (WorldBounds.addBlockOffset(pPos.getZ(), 1)),
-                new SectorAABB(pPos.getX(), 0.0D, pPos.getY(), pPos.getZ(), 0.0D,
+        this(new SectorAABB(pPos.getX(), 0.0D, pPos.getY(), pPos.getZ(), 0.0D,
                         pPos.getX(), 0.0D, pPos.getY() + 1.0D, pPos.getZ(), 0.0D).expandTowards(1.0D, 0.0D, 1.0D));
     }
 
     public AABB(BlockPos pStart, BlockPos pEnd) {
-        this((double) pStart.getX(), (double) pStart.getY(), (double) pStart.getZ(), (double) pEnd.getX(), (double) pEnd.getY(), (double) pEnd.getZ());
+        this(new SectorAABB(pStart.getX(), 0.0D, pStart.getY(), pStart.getZ(), 0.0D,
+                pEnd.getX(), 0.0D, pEnd.getY(), pEnd.getZ(), 0.0D));
     }
 
     public AABB(Vec3 pStart, Vec3 pEnd) {
@@ -309,7 +314,14 @@ public class AABB {
     }
 
     public AABB move(BlockPos pPos) {
-        return new AABB(this.minX + (double) pPos.getX(), this.minY + (double) pPos.getY(), this.minZ + (double) pPos.getZ(), this.maxX + (double) pPos.getX(), this.maxY + (double) pPos.getY(), this.maxZ + (double) pPos.getZ());
+        SectorAABB b = this.exactBounds();
+        return fromSectorBounds(new SectorAABB(
+                WorldBounds.addBlockOffset(b.minBlockX(), pPos.getX()), b.minSubX(),
+                b.minY() + pPos.getY(),
+                WorldBounds.addBlockOffset(b.minBlockZ(), pPos.getZ()), b.minSubZ(),
+                WorldBounds.addBlockOffset(b.maxBlockX(), pPos.getX()), b.maxSubX(),
+                b.maxY() + pPos.getY(),
+                WorldBounds.addBlockOffset(b.maxBlockZ(), pPos.getZ()), b.maxSubZ()));
     }
 
     public AABB move(Vec3 pVec) {
@@ -318,9 +330,7 @@ public class AABB {
 
     public boolean intersects(AABB pOther) {
         if (this.sectorBounds != null || pOther.sectorBounds != null) {
-            SectorAABB exact = this.exactBounds();
-            SectorPhysicsOrigin origin = new SectorPhysicsOrigin(exact.minBlockXForRange(), exact.minBlockYForRange(), exact.minBlockZForRange());
-            return exact.toLocalAABB(origin).intersects(pOther.exactBounds().toLocalAABB(origin));
+            return this.exactBounds().intersects(pOther.exactBounds());
         }
         return this.intersects(pOther.minX, pOther.minY, pOther.minZ, pOther.maxX, pOther.maxY, pOther.maxZ);
     }

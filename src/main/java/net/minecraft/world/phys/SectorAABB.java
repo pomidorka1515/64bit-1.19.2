@@ -282,9 +282,8 @@ public final class SectorAABB {
         if (origin == null)
             throw new NullPointerException("origin");
         this.requireSafeLocalSpan();
-        // The origin's long accessors are sign-extended until its S4.03 conversion.
-        Int128 originX = Int128.fromLong(origin.originBlockX());
-        Int128 originZ = Int128.fromLong(origin.originBlockZ());
+        Int128 originX = origin.originBlockX();
+        Int128 originZ = origin.originBlockZ();
         return new AABB(this.minX.toLocal(originX), this.minY - origin.originBlockY(),
                 this.minZ.toLocal(originZ), this.maxX.toLocal(originX),
                 this.maxY - origin.originBlockY(), this.maxZ.toLocal(originZ));

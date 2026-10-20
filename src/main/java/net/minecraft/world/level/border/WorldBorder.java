@@ -10,6 +10,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -22,6 +23,8 @@ public class WorldBorder {
     private double damageSafeZone = 5.0D;
     private int warningTime = 15;
     private int warningBlocks = 5;
+    private SectorVec3 exactCenter = SectorVec3.fromApproximate(0.0D, 0.0D, 0.0D);
+    // Lossy mirrors for legacy border geometry and display callers.
     private double centerX;
     private double centerZ;
     int absoluteMaxSize = 29999984;
@@ -109,21 +112,33 @@ public class WorldBorder {
         return this.extent.getMaxZ();
     }
 
+    /** Lossy horizontal mirror; use getExactCenter for authoritative coordinates. */
     public double getCenterX() {
         return this.centerX;
     }
 
+    /** Lossy horizontal mirror; use getExactCenter for authoritative coordinates. */
     public double getCenterZ() {
         return this.centerZ;
     }
 
     public void setCenter(double pX, double pZ) {
-        this.centerX = pX;
-        this.centerZ = pZ;
+        this.setCenter(SectorVec3.fromApproximate(pX, 0.0D, pZ));
+    }
+
+    public SectorVec3 getExactCenter() {
+        return this.exactCenter;
+    }
+
+    public void setCenter(SectorVec3 center) {
+        this.exactCenter = SectorVec3.fromBlockAndFraction(center.blockX(), center.subX(), 0.0D,
+                center.blockZ(), center.subZ());
+        this.centerX = this.exactCenter.toApproximateVec3().x;
+        this.centerZ = this.exactCenter.toApproximateVec3().z;
         this.extent.onCenterChange();
 
         for (BorderChangeListener borderchangelistener : this.getListeners()) {
-            borderchangelistener.onBorderCenterSet(this, pX, pZ);
+            borderchangelistener.onBorderCenterSet(this, this.centerX, this.centerZ);
         }
     }
 

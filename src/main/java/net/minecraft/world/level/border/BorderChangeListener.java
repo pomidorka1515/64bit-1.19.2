@@ -31,7 +31,7 @@ public interface BorderChangeListener {
         }
 
         public void onBorderCenterSet(WorldBorder pBorder, double pX, double pZ) {
-            this.worldBorder.setCenter(pX, pZ);
+            this.worldBorder.setCenter(pBorder.getExactCenter());
         }
 
         public void onBorderSetWarningTime(WorldBorder pBorder, int pNewTime) {

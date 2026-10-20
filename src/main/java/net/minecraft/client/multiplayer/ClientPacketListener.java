@@ -1400,7 +1400,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
     public void handleInitializeBorder(ClientboundInitializeBorderPacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
         WorldBorder worldborder = this.level.getWorldBorder();
-        worldborder.setCenter(pPacket.getNewCenterX(), pPacket.getNewCenterZ());
+        worldborder.setCenter(pPacket.getExactCenter());
         long i = pPacket.getLerpTime();
         if (i > 0L) {
             worldborder.lerpSizeBetween(pPacket.getOldSize(), pPacket.getNewSize(), i);
@@ -1415,7 +1415,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
     public void handleSetBorderCenter(ClientboundSetBorderCenterPacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
-        this.level.getWorldBorder().setCenter(pPacket.getNewCenterX(), pPacket.getNewCenterZ());
+        this.level.getWorldBorder().setCenter(pPacket.getExactCenter());
     }
 
     public void handleSetBorderLerpSize(ClientboundSetBorderLerpSizePacket pPacket) {

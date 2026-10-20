@@ -15,6 +15,7 @@ import net.minecraft.ReportedException;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.particles.ParticleOptions;
@@ -609,6 +610,11 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
             return serverLevel.getChunkSource().getChunkNow(pChunkX, pChunkZ);
         }
         return this.getChunk(pChunkX, pChunkZ, ChunkStatus.FULL, false);
+    }
+
+    @Nullable
+    public BlockGetter getChunkForCollisions(Int128 pChunkX, Int128 pChunkZ) {
+        return this.getChunkSource().getChunkNow(pChunkX, pChunkZ);
     }
 
     public List<Entity> getEntities(@Nullable Entity pEntity, AABB pBoundingBox, Predicate<? super Entity> pPredicate) {

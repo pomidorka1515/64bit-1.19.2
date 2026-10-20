@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.border.WorldBorder;
@@ -24,6 +25,15 @@ public interface CollisionGetter extends BlockGetter {
 
     @Nullable
     BlockGetter getChunkForCollisions(long pChunkX, long pChunkZ);
+
+    /** Unmigrated providers cannot contain addresses outside their long projection. */
+    @Nullable
+    default BlockGetter getChunkForCollisions(Int128 pChunkX, Int128 pChunkZ) {
+        if (!pChunkX.equals(Int128.fromLong(pChunkX.lo()))
+                || !pChunkZ.equals(Int128.fromLong(pChunkZ.lo())))
+            return null;
+        return this.getChunkForCollisions(pChunkX.lo(), pChunkZ.lo());
+    }
 
     default boolean isUnobstructed(@Nullable Entity pEntity, VoxelShape pShape) {
         return true;

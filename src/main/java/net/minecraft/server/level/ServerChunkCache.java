@@ -18,6 +18,7 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.SectionPos;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.progress.ChunkProgressListener;
@@ -146,6 +147,11 @@ public class ServerChunkCache extends ChunkSource {
 
     @Nullable
     public LevelChunk getChunkNow(long pChunkX, long pChunkZ) {
+        return this.getChunkNow(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ));
+    }
+
+    @Nullable
+    public LevelChunk getChunkNow(Int128 pChunkX, Int128 pChunkZ) {
         ChunkAccess chunkaccess = this.getChunkNow(pChunkX, pChunkZ, ChunkStatus.FULL);
         return chunkaccess instanceof LevelChunk ? (LevelChunk) chunkaccess : null;
     }
@@ -158,6 +164,11 @@ public class ServerChunkCache extends ChunkSource {
     */
     @Nullable
     public ChunkAccess getChunkNow(long pChunkX, long pChunkZ, ChunkStatus status) {
+        return this.getChunkNow(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ), status);
+    }
+
+    @Nullable
+    public ChunkAccess getChunkNow(Int128 pChunkX, Int128 pChunkZ, ChunkStatus status) {
         if (Thread.currentThread() != this.mainThread) {
             return null;
         }

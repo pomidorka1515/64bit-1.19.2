@@ -27,6 +27,7 @@ public final class WorldBounds {
     private WorldBounds() {
     }
 
+    /** Shared local precision guard; the hard ceiling is {@code (1L << 52) - 1}, not 2^53. */
     public static final long MAX_SAFE_LOCAL_SPAN = 1L << 20;
 
     /** Exact integer subtraction followed by signed-long saturation; never projects absolute coordinates. */

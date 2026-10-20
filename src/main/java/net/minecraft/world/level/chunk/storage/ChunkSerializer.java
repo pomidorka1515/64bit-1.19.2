@@ -4,8 +4,6 @@ import com.google.common.collect.Maps;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import it.unimi.dsi.fastutil.shorts.ShortList;
@@ -18,6 +16,7 @@ import javax.annotation.Nullable;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
@@ -25,6 +24,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.LongArrayTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.ShortTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
@@ -79,7 +79,7 @@ public class ChunkSerializer {
     public static final String SKY_LIGHT_TAG = "SkyLight";
 
     public static ProtoChunk read(ServerLevel pLevel, PoiManager pPoiManager, ChunkPos pPos, CompoundTag pTag) {
-        ChunkPos chunkpos = new ChunkPos(pTag.getLong("xPos"), pTag.getLong("zPos"));
+        ChunkPos chunkpos = readChunkPos(pTag, X_POS_TAG, Z_POS_TAG);
         if (!Objects.equals(pPos, chunkpos)) {
             LOGGER.error("Chunk file at {} is in the wrong location; relocating. (Expected {}, got {})", pPos, pPos, chunkpos);
         }
@@ -263,7 +263,7 @@ public class ChunkSerializer {
     }
 
     private static void logErrors(ChunkPos pChunkPos, int pChunkSectionY, String pErrorMessage) {
-        LOGGER.error("Recoverable errors when loading section [" + pChunkPos.x + ", " + pChunkSectionY + ", " + pChunkPos.z + "]: " + pErrorMessage);
+        LOGGER.error("Recoverable errors when loading section [" + pChunkPos.x() + ", " + pChunkSectionY + ", " + pChunkPos.z() + "]: " + pErrorMessage);
     }
 
     private static Codec<PalettedContainerRO<Holder<Biome>>> makeBiomeCodec(Registry<Biome> pBiomeRegistry) {
@@ -274,9 +274,9 @@ public class ChunkSerializer {
         ChunkPos chunkpos = pChunk.getPos();
         CompoundTag compoundtag = new CompoundTag();
         compoundtag.putInt("DataVersion", SharedConstants.getCurrentVersion().getWorldVersion());
-        compoundtag.putLong("xPos", chunkpos.x);
+        NbtUtils.writeInt128(compoundtag, X_POS_TAG, chunkpos.x());
         compoundtag.putInt("yPos", pChunk.getMinSection());
-        compoundtag.putLong("zPos", chunkpos.z);
+        NbtUtils.writeInt128(compoundtag, Z_POS_TAG, chunkpos.z());
         compoundtag.putLong("LastUpdate", pLevel.getGameTime());
         compoundtag.putLong("InhabitedTime", pChunk.getInhabitedTime());
         compoundtag.putString("Status", pChunk.getStatus().getName());
@@ -457,8 +457,8 @@ public class ChunkSerializer {
         ListTag tag = new ListTag();
         for (ChunkPos chunkPos : objectSet) {
             CompoundTag tag2 = new CompoundTag();
-            tag2.putLong("x", chunkPos.x);
-            tag2.putLong("z", chunkPos.z);
+            NbtUtils.writeInt128(tag2, "x", chunkPos.x());
+            NbtUtils.writeInt128(tag2, "z", chunkPos.z());
             tag.add(tag2);
         }
         return tag;
@@ -519,11 +519,21 @@ public class ChunkSerializer {
         ObjectSet<ChunkPos> set = new ObjectOpenHashSet<>();
         for (Tag tag : tags) {
             if (tag instanceof CompoundTag tag2) {
-                ChunkPos pos = new ChunkPos(tag2.getLong("x"), tag2.getLong("z"));
+                ChunkPos pos = readChunkPos(tag2, "x", "z");
                 set.add(pos);
             }
         }
         return set;
+    }
+
+    private static ChunkPos readChunkPos(CompoundTag pTag, String pXKey, String pZKey) {
+        Int128 x = NbtUtils.readInt128(pTag, pXKey);
+        Int128 z = NbtUtils.readInt128(pTag, pZKey);
+        if (x.compareTo(ChunkPos.MIN_CHUNK_COORDINATE) < 0 || x.compareTo(ChunkPos.MAX_CHUNK_COORDINATE) > 0
+                || z.compareTo(ChunkPos.MIN_CHUNK_COORDINATE) < 0 || z.compareTo(ChunkPos.MAX_CHUNK_COORDINATE) > 0) {
+            throw new IllegalArgumentException("Chunk position is outside the chunk coordinate domain");
+        }
+        return new ChunkPos(x, z);
     }
 
     public static ListTag packOffsets(ShortList[] pList) {

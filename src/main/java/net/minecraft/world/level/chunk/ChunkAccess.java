@@ -383,8 +383,9 @@ public abstract class ChunkAccess implements BlockGetter, BiomeManager.NoiseBiom
 
     public void fillBiomesFromNoise(BiomeResolver pResolver, Climate.Sampler pSampler) {
         ChunkPos chunkpos = this.getPos();
-        long i = QuartPos.fromBlock(chunkpos.getMinBlockX());
-        long j = QuartPos.fromBlock(chunkpos.getMinBlockZ());
+        // Noise generation retains its explicit low-64 block-coordinate seam.
+        long i = QuartPos.fromBlock(chunkpos.getMinBlockX().lo());
+        long j = QuartPos.fromBlock(chunkpos.getMinBlockZ().lo());
         LevelHeightAccessor levelheightaccessor = this.getHeightAccessorForGeneration();
 
         for (int k = levelheightaccessor.getMinSection(); k < levelheightaccessor.getMaxSection(); ++k) {

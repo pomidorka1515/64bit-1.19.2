@@ -25,7 +25,15 @@ public class LocationCheck implements LootItemCondition {
 
     public boolean test(LootContext p_81731_) {
         Vec3 vec3 = p_81731_.getParamOrNull(LootContextParams.ORIGIN);
-        return vec3 != null && this.predicate.matches(p_81731_.getLevel(), net.minecraft.world.phys.ExactVec3.position(vec3).add((double) this.offset.getX(), (double) this.offset.getY(), (double) this.offset.getZ()));
+        if (vec3 == null) {
+            return false;
+        }
+        var origin = net.minecraft.world.phys.ExactVec3.position(vec3);
+        var position = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(
+                origin.blockX().addSaturated(this.offset.getX()), origin.subX(),
+                origin.y() + this.offset.getY(),
+                origin.blockZ().addSaturated(this.offset.getZ()), origin.subZ());
+        return this.predicate.matches(p_81731_.getLevel(), position);
     }
 
     public static LootItemCondition.Builder checkLocation(LocationPredicate.Builder pLocationPredicateBuilder) {
@@ -43,17 +51,25 @@ public class LocationCheck implements LootItemCondition {
     public static class Serializer implements net.minecraft.world.level.storage.loot.Serializer<LocationCheck> {
         public void serialize(JsonObject p_81749_, LocationCheck p_81750_, JsonSerializationContext p_81751_) {
             p_81749_.add("predicate", p_81750_.predicate.serializeToJson());
-            if (p_81750_.offset.getX() != 0) {
-                p_81749_.addProperty("offsetX", p_81750_.offset.getX());
+            if (!p_81750_.offset.getX().equals(net.minecraft.core.Int128.ZERO)) {
+                p_81749_.addProperty("offsetX", localOffset(p_81750_.offset.getX()));
             }
 
             if (p_81750_.offset.getY() != 0) {
                 p_81749_.addProperty("offsetY", p_81750_.offset.getY());
             }
 
-            if (p_81750_.offset.getZ() != 0) {
-                p_81749_.addProperty("offsetZ", p_81750_.offset.getZ());
+            if (!p_81750_.offset.getZ().equals(net.minecraft.core.Int128.ZERO)) {
+                p_81749_.addProperty("offsetZ", localOffset(p_81750_.offset.getZ()));
             }
+        }
+
+        private static int localOffset(net.minecraft.core.Int128 value) {
+            int local = Math.toIntExact(value.lo());
+            if (!value.equals(net.minecraft.core.Int128.fromLong(local))) {
+                throw new IllegalArgumentException("Loot location offset exceeds signed int range");
+            }
+            return local;
         }
 
         public LocationCheck deserialize(JsonObject p_81757_, JsonDeserializationContext p_81758_) {

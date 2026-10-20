@@ -38,6 +38,7 @@ import net.minecraft.ReportedException;
 import net.minecraft.SharedConstants;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
@@ -174,8 +175,8 @@ public abstract class ChunkGenerator {
                 Pair<BlockPos, Holder<Biome>> pair = this.biomeSource.findBiomeHorizontal(SectionPos.sectionToBlockCoord(k1, 8), 0, SectionPos.sectionToBlockCoord(l1, 8), 112, holderset::contains, randomsource, pRandom.sampler());
                 if (pair != null) {
                     BlockPos blockpos = pair.getFirst();
-                    k1 = SectionPos.blockToSectionCoord(blockpos.getX());
-                    l1 = SectionPos.blockToSectionCoord(blockpos.getZ());
+                    k1 = SectionPos.blockToSectionCoord(blockpos.getX()).lo();
+                    l1 = SectionPos.blockToSectionCoord(blockpos.getZ()).lo();
                 }
 
                 list.add(new ChunkPos(k1, l1));
@@ -250,8 +251,9 @@ public abstract class ChunkGenerator {
             }
 
             if (!list.isEmpty()) {
-                long i = SectionPos.blockToSectionCoord(pPos.getX());
-                long j = SectionPos.blockToSectionCoord(pPos.getZ());
+                // Structure placement algorithms retain the low-64 worldgen seam.
+                long i = SectionPos.blockToSectionCoord(pPos.getX()).lo();
+                long j = SectionPos.blockToSectionCoord(pPos.getZ()).lo();
 
                 for (int k = 0; k <= pSearchRadius; ++k) {
                     boolean flag = false;
@@ -290,7 +292,7 @@ public abstract class ChunkGenerator {
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
             for (ChunkPos chunkpos : list) {
-                blockpos$mutableblockpos.set(SectionPos.sectionToBlockCoord(chunkpos.x, 8), 32, SectionPos.sectionToBlockCoord(chunkpos.z, 8));
+                blockpos$mutableblockpos.set(chunkpos.getBlockX(8), 32, chunkpos.getBlockZ(8));
                 double d1 = blockpos$mutableblockpos.distSqr(pPos);
                 boolean flag = pair == null || d1 < d0;
                 if (flag) {
@@ -339,7 +341,7 @@ public abstract class ChunkGenerator {
                     return Pair.of(pPlacement.getLocatePos(pChunkPos), holder);
                 }
 
-                ChunkAccess chunkaccess = pLevel.getChunk(pChunkPos.x, pChunkPos.z, ChunkStatus.STRUCTURE_STARTS);
+                ChunkAccess chunkaccess = pLevel.getChunk(pChunkPos.x(), pChunkPos.z(), ChunkStatus.STRUCTURE_STARTS);
                 StructureStart structurestart = pStructureManager.getStartForStructure(SectionPos.bottomOf(chunkaccess), holder.value(), chunkaccess);
                 if (structurestart != null && structurestart.isValid() && (!pSkipKnownStructures || tryAddReference(pStructureManager, structurestart))) {
                     return Pair.of(pPlacement.getLocatePos(structurestart.getChunkPos()), holder);
@@ -370,10 +372,10 @@ public abstract class ChunkGenerator {
             }));
             List<FeatureSorter.StepFeatureData> list = this.featuresPerStep.get();
             WorldgenRandom worldgenrandom = new WorldgenRandom(new XoroshiroRandomSource(RandomSupport.generateUniqueSeed()));
-            long i = worldgenrandom.setDecorationSeed(pLevel.getSeed(), blockpos.getX(), blockpos.getZ());
+            long i = worldgenrandom.setDecorationSeed(pLevel.getSeed(), blockpos.getX().lo(), blockpos.getZ().lo());
             Set<Holder<Biome>> set = new ObjectArraySet<>();
             ChunkPos.rangeClosed(sectionpos.chunk(), 1).forEach((p_223093_) -> {
-                ChunkAccess chunkaccess = pLevel.getChunk(p_223093_.x, p_223093_.z);
+                ChunkAccess chunkaccess = pLevel.getChunk(p_223093_.x(), p_223093_.z());
 
                 for (LevelChunkSection levelchunksection : chunkaccess.getSections()) {
                     levelchunksection.getBiomes().getAll(set::add);
@@ -452,7 +454,7 @@ public abstract class ChunkGenerator {
                 pLevel.setCurrentlyGenerating((Supplier<String>) null);
             } catch (Exception exception2) {
                 CrashReport crashreport = CrashReport.forThrowable(exception2, "Biome decoration");
-                crashreport.addCategory("Generation").setDetail("CenterX", chunkpos.x).setDetail("CenterZ", chunkpos.z).setDetail("Seed", i);
+                crashreport.addCategory("Generation").setDetail("CenterX", chunkpos.x()).setDetail("CenterZ", chunkpos.z()).setDetail("Seed", i);
                 throw new ReportedException(crashreport);
             }
         }
@@ -491,8 +493,8 @@ public abstract class ChunkGenerator {
 
     private static BoundingBox getWritableArea(ChunkAccess pChunk) {
         ChunkPos chunkpos = pChunk.getPos();
-        long i = chunkpos.getMinBlockX();
-        long j = chunkpos.getMinBlockZ();
+        Int128 i = chunkpos.getMinBlockX();
+        Int128 j = chunkpos.getMinBlockZ();
         LevelHeightAccessor levelheightaccessor = pChunk.getHeightAccessorForGeneration();
         int k = levelheightaccessor.getMinBuildHeight() + 1;
         int l = levelheightaccessor.getMaxBuildHeight() - 1;
@@ -554,14 +556,14 @@ public abstract class ChunkGenerator {
                 }
             }
 
-            if (structureplacement.isStructureChunk(this, pRandom, pSeed, chunkpos.x, chunkpos.z)) {
+            if (structureplacement.isStructureChunk(this, pRandom, pSeed, chunkpos.xLo(), chunkpos.zLo())) {
                 if (list.size() == 1) {
                     this.tryGenerateStructure(list.get(0), pStructureManager, pRegistryAccess, pRandom, pStructureTemplateManager, pSeed, pChunk, chunkpos, sectionpos);
                 } else {
                     ArrayList<StructureSet.StructureSelectionEntry> arraylist = new ArrayList<>(list.size());
                     arraylist.addAll(list);
                     WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(0L));
-                    worldgenrandom.setLargeFeatureSeed(pSeed, chunkpos.x, chunkpos.z);
+                    worldgenrandom.setLargeFeatureSeed(pSeed, chunkpos.xLo(), chunkpos.zLo());
                     int i = 0;
 
                     for (StructureSet.StructureSelectionEntry structureset$structureselectionentry1 : arraylist) {
@@ -616,19 +618,19 @@ public abstract class ChunkGenerator {
     public void createReferences(WorldGenLevel pLevel, StructureManager pStructureManager, ChunkAccess pChunk) {
         int i = 8;
         ChunkPos chunkpos = pChunk.getPos();
-        long j = chunkpos.x;
-        long k = chunkpos.z;
-        long l = chunkpos.getMinBlockX();
-        long i1 = chunkpos.getMinBlockZ();
+        Int128 j = chunkpos.x();
+        Int128 k = chunkpos.z();
+        Int128 l = chunkpos.getMinBlockX();
+        Int128 i1 = chunkpos.getMinBlockZ();
         SectionPos sectionpos = SectionPos.bottomOf(pChunk);
 
-        long firstX = WorldBounds.addChunkOffset(j, -8L);
-        long lastX = WorldBounds.addChunkOffset(j, 8L);
-        long firstZ = WorldBounds.addChunkOffset(k, -8L);
-        long lastZ = WorldBounds.addChunkOffset(k, 8L);
+        Int128 firstX = WorldBounds.addChunkOffset(j, -8L);
+        Int128 lastX = WorldBounds.addChunkOffset(j, 8L);
+        Int128 firstZ = WorldBounds.addChunkOffset(k, -8L);
+        Int128 lastZ = WorldBounds.addChunkOffset(k, 8L);
 
-        for (long j1 = firstX;; j1 = WorldBounds.addChunkOffset(j1, 1L)) {
-            for (long k1 = firstZ;; k1 = WorldBounds.addChunkOffset(k1, 1L)) {
+        for (Int128 j1 = firstX;; j1 = WorldBounds.addChunkOffset(j1, 1L)) {
+            for (Int128 k1 = firstZ;; k1 = WorldBounds.addChunkOffset(k1, 1L)) {
                 if (pLevel.hasChunk(j1, k1)) {
                     ChunkPos l1 = new ChunkPos(j1, k1);
 
@@ -658,11 +660,11 @@ public abstract class ChunkGenerator {
                         }
                     }
                 }
-                if (k1 == lastZ) {
+                if (k1.equals(lastZ)) {
                     break;
                 }
             }
-            if (j1 == lastX) {
+            if (j1.equals(lastX)) {
                 break;
             }
         }

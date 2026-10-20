@@ -148,9 +148,10 @@ public class LevelChunk extends ChunkAccess {
     }
 
     public BlockState getBlockState(BlockPos pPos) {
-        long i = pPos.getX();
+        // Only local section bits and the legacy debug-world pattern use this projection.
+        long i = pPos.getX().lo();
         int j = pPos.getY();
-        long k = pPos.getZ();
+        long k = pPos.getZ().lo();
         if (this.level.isDebug()) {
             BlockState blockstate = null;
             if (j == 60) {
@@ -177,7 +178,7 @@ public class LevelChunk extends ChunkAccess {
                 CrashReport crashreport = CrashReport.forThrowable(throwable, "Getting block state");
                 CrashReportCategory crashreportcategory = crashreport.addCategory("Block being got");
                 crashreportcategory.setDetail("Location", () -> {
-                    return CrashReportCategory.formatLocation(this, i, j, k);
+                    return CrashReportCategory.formatLocation(this, pPos);
                 });
                 throw new ReportedException(crashreport);
             }
@@ -185,7 +186,7 @@ public class LevelChunk extends ChunkAccess {
     }
 
     public FluidState getFluidState(BlockPos pPos) {
-        return this.getFluidState(pPos.getX(), pPos.getY(), pPos.getZ());
+        return this.getFluidState(pPos.getX().lo(), pPos.getY(), pPos.getZ().lo());
     }
 
     public FluidState getFluidState(long pX, int pY, long pZ) {
@@ -217,9 +218,9 @@ public class LevelChunk extends ChunkAccess {
         if (flag && pState.isAir()) {
             return null;
         } else {
-            int j = (int) (pPos.getX() & 15);
+            int j = SectionPos.sectionRelative(pPos.getX());
             int k = i & 15;
-            int l = (int) (pPos.getZ() & 15);
+            int l = SectionPos.sectionRelative(pPos.getZ());
             BlockState blockstate = levelchunksection.setBlockState(j, k, l, pState);
             if (blockstate == pState) {
                 return null;

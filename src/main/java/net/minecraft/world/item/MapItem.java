@@ -8,6 +8,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -44,6 +45,10 @@ public class MapItem extends ComplexItem {
     }
 
     public static ItemStack create(Level pLevel, long pLevelX, long pLevelZ, byte pScale, boolean pTrackingPosition, boolean pUnlimitedTracking) {
+        return create(pLevel, Int128.fromLong(pLevelX), Int128.fromLong(pLevelZ), pScale, pTrackingPosition, pUnlimitedTracking);
+    }
+
+    public static ItemStack create(Level pLevel, Int128 pLevelX, Int128 pLevelZ, byte pScale, boolean pTrackingPosition, boolean pUnlimitedTracking) {
         ItemStack itemstack = new ItemStack(Items.FILLED_MAP);
         createAndStoreSavedData(itemstack, pLevel, pLevelX, pLevelZ, pScale, pTrackingPosition, pUnlimitedTracking, pLevel.dimension());
         return itemstack;
@@ -66,8 +71,8 @@ public class MapItem extends ComplexItem {
         return compoundtag != null && compoundtag.contains("map", 99) ? compoundtag.getInt("map") : null;
     }
 
-    private static int createNewSavedData(Level pLevel, long pX, long pZ, int pScale, boolean pTrackingPosition, boolean pUnlimitedTracking, ResourceKey<Level> pDimension) {
-        MapItemSavedData mapitemsaveddata = MapItemSavedData.createFresh((double) pX, (double) pZ, (byte) pScale, pTrackingPosition, pUnlimitedTracking, pDimension);
+    private static int createNewSavedData(Level pLevel, Int128 pX, Int128 pZ, int pScale, boolean pTrackingPosition, boolean pUnlimitedTracking, ResourceKey<Level> pDimension) {
+        MapItemSavedData mapitemsaveddata = MapItemSavedData.createFresh(pX, pZ, (byte) pScale, pTrackingPosition, pUnlimitedTracking, pDimension);
         int i = pLevel.getFreeMapId();
         pLevel.setMapData(makeKey(i), mapitemsaveddata);
         return i;
@@ -77,7 +82,7 @@ public class MapItem extends ComplexItem {
         pStack.getOrCreateTag().putInt("map", pMapId);
     }
 
-    private static void createAndStoreSavedData(ItemStack pStack, Level pLevel, long pX, long pZ, int pScale, boolean pTrackingPosition, boolean pUnlimitedTracking, ResourceKey<Level> pDimension) {
+    private static void createAndStoreSavedData(ItemStack pStack, Level pLevel, Int128 pX, Int128 pZ, int pScale, boolean pTrackingPosition, boolean pUnlimitedTracking, ResourceKey<Level> pDimension) {
         int i = createNewSavedData(pLevel, pX, pZ, pScale, pTrackingPosition, pUnlimitedTracking, pDimension);
         storeMapData(pStack, i);
     }

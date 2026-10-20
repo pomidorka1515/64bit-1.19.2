@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
@@ -77,7 +78,7 @@ public class ProtoChunk extends ChunkAccess {
             return Blocks.VOID_AIR.defaultBlockState();
         } else {
             LevelChunkSection levelchunksection = this.getSection(this.getSectionIndex(i));
-            return levelchunksection.hasOnlyAir() ? Blocks.AIR.defaultBlockState() : levelchunksection.getBlockState((int) pPos.getX() & 15, i & 15, (int) pPos.getZ() & 15);
+            return levelchunksection.hasOnlyAir() ? Blocks.AIR.defaultBlockState() : levelchunksection.getBlockState(SectionPos.sectionRelative(pPos.getX()), i & 15, SectionPos.sectionRelative(pPos.getZ()));
         }
     }
 
@@ -87,7 +88,7 @@ public class ProtoChunk extends ChunkAccess {
             return Fluids.EMPTY.defaultFluidState();
         } else {
             LevelChunkSection levelchunksection = this.getSection(this.getSectionIndex(i));
-            return levelchunksection.hasOnlyAir() ? Fluids.EMPTY.defaultFluidState() : levelchunksection.getFluidState((int) pPos.getX() & 15, i & 15, (int) pPos.getZ() & 15);
+            return levelchunksection.hasOnlyAir() ? Fluids.EMPTY.defaultFluidState() : levelchunksection.getFluidState(SectionPos.sectionRelative(pPos.getX()), i & 15, SectionPos.sectionRelative(pPos.getZ()));
         }
     }
 
@@ -115,16 +116,16 @@ public class ProtoChunk extends ChunkAccess {
 
     @Nullable
     public BlockState setBlockState(BlockPos pPos, BlockState pState, boolean pIsMoving) {
-        long i = pPos.getX();
+        long i = pPos.getX().lo();
         int j = pPos.getY();
-        long k = pPos.getZ();
+        long k = pPos.getZ().lo();
         if (j >= this.getMinBuildHeight() && j < this.getMaxBuildHeight()) {
             int l = this.getSectionIndex(j);
             if (this.sections[l].hasOnlyAir() && pState.is(Blocks.AIR)) {
                 return pState;
             } else {
                 if (pState.getLightEmission() > 0) {
-                    this.lights.add(new BlockPos((i & 15) + this.getPos().getMinBlockX(), j, (k & 15) + this.getPos().getMinBlockZ()));
+                    this.lights.add(this.getPos().getBlockAt((int) i & 15, j, (int) k & 15));
                 }
 
                 LevelChunkSection levelchunksection = this.getSection(l);
@@ -226,9 +227,9 @@ public class ProtoChunk extends ChunkAccess {
     }
 
     public static short packOffsetCoordinates(BlockPos pPos) {
-        long i = pPos.getX();
+        long i = pPos.getX().lo();
         int j = pPos.getY();
-        long k = pPos.getZ();
+        long k = pPos.getZ().lo();
         int l = (int) (i & 15);
         int i1 = j & 15;
         int j1 = (int) (k & 15);
@@ -236,9 +237,9 @@ public class ProtoChunk extends ChunkAccess {
     }
 
     public static BlockPos unpackOffsetCoordinates(short pPackedPos, int pYOffset, ChunkPos pChunkPos) {
-        long i = SectionPos.sectionToBlockCoord(pChunkPos.x, pPackedPos & 15);
+        Int128 i = SectionPos.sectionToBlockCoord(pChunkPos.x(), pPackedPos & 15);
         int j = SectionPos.sectionToBlockCoord(pYOffset, pPackedPos >>> 4 & 15);
-        long k = SectionPos.sectionToBlockCoord(pChunkPos.z, pPackedPos >>> 8 & 15);
+        Int128 k = SectionPos.sectionToBlockCoord(pChunkPos.z(), pPackedPos >>> 8 & 15);
         return new BlockPos(i, j, k);
     }
 

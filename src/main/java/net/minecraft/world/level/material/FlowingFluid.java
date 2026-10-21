@@ -246,8 +246,8 @@ public abstract class FlowingFluid extends Fluid {
     protected abstract void beforeDestroyingBlock(LevelAccessor pLevel, BlockPos pPos, BlockState pState);
 
     private static short getCacheKey(BlockPos p_76059_, BlockPos p_76060_) {
-        long i = WorldBounds.subtractBlockOffset(p_76060_.getX(), p_76059_.getX());
-        long j = WorldBounds.subtractBlockOffset(p_76060_.getZ(), p_76059_.getZ());
+        long i = WorldBounds.signedDifferenceAsLong(p_76060_.getX(), p_76059_.getX());
+        long j = WorldBounds.signedDifferenceAsLong(p_76060_.getZ(), p_76059_.getZ());
         return (short) (((i & 255) + 128 & 255) << 8 | (j & 255) + 128 & 255);
     }
 

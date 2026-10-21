@@ -133,7 +133,7 @@ public class CampfireBlock extends BaseEntityBlock implements SimpleWaterloggedB
     public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, RandomSource pRandom) {
         if (pState.getValue(LIT)) {
             if (pRandom.nextInt(10) == 0) {
-                pLevel.playLocalSound((double) pPos.getX() + 0.5D, (double) pPos.getY() + 0.5D, (double) pPos.getZ() + 0.5D, SoundEvents.CAMPFIRE_CRACKLE, SoundSource.BLOCKS, 0.5F + pRandom.nextFloat(), pRandom.nextFloat() * 0.7F + 0.6F, false);
+                pLevel.playLocalSound(SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, pPos.getY() + 0.5D, pPos.getZ(), 0.5D), SoundEvents.CAMPFIRE_CRACKLE, SoundSource.BLOCKS, 0.5F + pRandom.nextFloat(), pRandom.nextFloat() * 0.7F + 0.6F, false);
             }
 
             if (this.spawnParticles && pRandom.nextInt(5) == 0) {

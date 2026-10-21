@@ -42,11 +42,11 @@ public class SmokerBlock extends AbstractFurnaceBlock {
 
     public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, RandomSource pRandom) {
         if (pState.getValue(LIT)) {
-            double d0 = (double) pPos.getX() + 0.5D;
+            double d0 = 0.5D;
             double d1 = (double) pPos.getY();
-            double d2 = (double) pPos.getZ() + 0.5D;
+            double d2 = 0.5D;
             if (pRandom.nextDouble() < 0.1D) {
-                pLevel.playLocalSound(d0, d1, d2, SoundEvents.SMOKER_SMOKE, SoundSource.BLOCKS, 1.0F, 1.0F, false);
+                pLevel.playLocalSound(SectorVec3.fromBlockAndFraction(pPos.getX(), d0, d1, pPos.getZ(), d2), SoundEvents.SMOKER_SMOKE, SoundSource.BLOCKS, 1.0F, 1.0F, false);
             }
 
             pLevel.addParticle(ParticleTypes.SMOKE, SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, d1 + 1.1D, pPos.getZ(), 0.5D), 0.0D, 0.0D, 0.0D);

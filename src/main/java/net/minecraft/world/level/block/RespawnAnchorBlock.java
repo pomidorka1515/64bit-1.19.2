@@ -74,7 +74,7 @@ public class RespawnAnchorBlock extends Block {
                 ServerPlayer serverplayer = (ServerPlayer) pPlayer;
                 if (serverplayer.getRespawnDimension() != pLevel.dimension() || !pPos.equals(serverplayer.getRespawnPosition())) {
                     serverplayer.setRespawnPosition(pLevel.dimension(), pPos, 0.0F, false, true);
-                    pLevel.playSound((Player) null, (double) pPos.getX() + 0.5D, (double) pPos.getY() + 0.5D, (double) pPos.getZ() + 0.5D, SoundEvents.RESPAWN_ANCHOR_SET_SPAWN, SoundSource.BLOCKS, 1.0F, 1.0F);
+                    pLevel.playSound((Player) null, pPos, SoundEvents.RESPAWN_ANCHOR_SET_SPAWN, SoundSource.BLOCKS, 1.0F, 1.0F);
                     return InteractionResult.SUCCESS;
                 }
             }
@@ -131,13 +131,13 @@ public class RespawnAnchorBlock extends Block {
 
     public static void charge(Level pLevel, BlockPos pPos, BlockState pState) {
         pLevel.setBlock(pPos, pState.setValue(CHARGE, Integer.valueOf(pState.getValue(CHARGE) + 1)), 3);
-        pLevel.playSound((Player) null, (double) pPos.getX() + 0.5D, (double) pPos.getY() + 0.5D, (double) pPos.getZ() + 0.5D, SoundEvents.RESPAWN_ANCHOR_CHARGE, SoundSource.BLOCKS, 1.0F, 1.0F);
+        pLevel.playSound((Player) null, pPos, SoundEvents.RESPAWN_ANCHOR_CHARGE, SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 
     public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, RandomSource pRandom) {
         if (pState.getValue(CHARGE) != 0) {
             if (pRandom.nextInt(100) == 0) {
-                pLevel.playSound((Player) null, (double) pPos.getX() + 0.5D, (double) pPos.getY() + 0.5D, (double) pPos.getZ() + 0.5D, SoundEvents.RESPAWN_ANCHOR_AMBIENT, SoundSource.BLOCKS, 1.0F, 1.0F);
+                pLevel.playSound((Player) null, pPos, SoundEvents.RESPAWN_ANCHOR_AMBIENT, SoundSource.BLOCKS, 1.0F, 1.0F);
             }
 
             double d0 = 0.5D + (0.5D - pRandom.nextDouble());
@@ -188,8 +188,7 @@ public class RespawnAnchorBlock extends Block {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
         for (Vec3i vec3i : RESPAWN_OFFSETS) {
-            blockpos$mutableblockpos.set(net.minecraft.world.level.WorldBounds.addBlockOffset(pos.getX(), (long) vec3i.getX()),
-                    pos.getY() + vec3i.getY(), net.minecraft.world.level.WorldBounds.addBlockOffset(pos.getZ(), (long) vec3i.getZ()));
+            blockpos$mutableblockpos.set(pos.offset(vec3i));
             SectorVec3 candidate = DismountHelper.findExactSafeDismountLocation(type, level, blockpos$mutableblockpos);
             if (candidate != null) {
                 return Optional.of(candidate);

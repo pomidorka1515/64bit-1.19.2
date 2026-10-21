@@ -99,11 +99,10 @@ public class CloneCommands {
         if (!pCloneMode.canOverlap() && boundingbox1.intersects(boundingbox)) {
             throw ERROR_OVERLAP.create();
         } else {
-            long xSpan = boundingbox.getXSpan();
-            long zSpan = boundingbox.getZSpan();
+            double xSpan = WorldBounds.inclusiveBlockSpanDouble(boundingbox.minX(), boundingbox.maxX());
+            double zSpan = WorldBounds.inclusiveBlockSpanDouble(boundingbox.minZ(), boundingbox.maxZ());
             long ySpan = boundingbox.getYSpan();
-            long i = xSpan > Long.MAX_VALUE / zSpan || xSpan * zSpan > Long.MAX_VALUE / ySpan
-                    ? Long.MAX_VALUE : xSpan * zSpan * ySpan;
+            double i = xSpan * zSpan * ySpan;
             if (i > 32768) {
                 throw ERROR_AREA_TOO_LARGE.create(32768, i);
             } else {
@@ -114,12 +113,12 @@ public class CloneCommands {
                     List<CloneCommands.CloneBlockInfo> list2 = Lists.newArrayList();
                     Deque<BlockPos> deque = Lists.newLinkedList();
 
-                    for (long j = boundingbox.minZ();; j = WorldBounds.addBlockOffset(j, 1L)) {
+                    for (net.minecraft.core.Int128 j = boundingbox.minZ();; j = WorldBounds.addBlockOffset(j, 1L)) {
                         for (int k = boundingbox.minY(); k <= boundingbox.maxY(); ++k) {
-                            for (long l = boundingbox.minX();; l = WorldBounds.addBlockOffset(l, 1L)) {
+                            for (net.minecraft.core.Int128 l = boundingbox.minX();; l = WorldBounds.addBlockOffset(l, 1L)) {
                                 BlockPos blockpos2 = new BlockPos(l, k, j);
-                                BlockPos blockpos3 = new BlockPos(WorldBounds.addBlockOffset(boundingbox1.minX(), WorldBounds.subtractBlockOffset(l, boundingbox.minX())),
-                                        boundingbox1.minY() + (k - boundingbox.minY()), WorldBounds.addBlockOffset(boundingbox1.minZ(), WorldBounds.subtractBlockOffset(j, boundingbox.minZ())));
+                                BlockPos blockpos3 = new BlockPos(WorldBounds.addBlockOffset(boundingbox1.minX(), WorldBounds.blockOffsetInRange(l, boundingbox.minX(), boundingbox.maxX())),
+                                        boundingbox1.minY() + (k - boundingbox.minY()), WorldBounds.addBlockOffset(boundingbox1.minZ(), WorldBounds.blockOffsetInRange(j, boundingbox.minZ(), boundingbox.maxZ())));
                                 BlockInWorld blockinworld = new BlockInWorld(serverlevel, blockpos2, false);
                                 BlockState blockstate = blockinworld.getState();
                                 if (pFilterPredicate.test(blockinworld)) {
@@ -136,11 +135,11 @@ public class CloneCommands {
                                         deque.addLast(blockpos2);
                                     }
                                 }
-                                if (l == boundingbox.maxX())
+                                if (l.equals(boundingbox.maxX()))
                                     break;
                             }
                         }
-                        if (j == boundingbox.maxZ())
+                        if (j.equals(boundingbox.maxZ()))
                             break;
                     }
 

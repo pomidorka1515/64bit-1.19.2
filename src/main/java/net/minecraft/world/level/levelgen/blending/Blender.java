@@ -113,7 +113,7 @@ public class Blender {
             MutableDouble mutabledouble1 = new MutableDouble(0.0D);
             MutableDouble mutabledouble2 = new MutableDouble(Double.POSITIVE_INFINITY);
             this.heightAndBiomeBlendingData.forEach((p_202249_, p_202250_) -> {
-                p_202250_.iterateHeights(QuartPos.fromBlock(p_202249_.getMinBlockX().toLongLow()), QuartPos.fromBlock(p_202249_.getMinBlockZ().toLongLow()), (p_190199_, p_190200_, p_190201_) -> {
+                p_202250_.iterateHeights(QuartPos.fromBlock(p_202249_.getMinBlockX().lo()), QuartPos.fromBlock(p_202249_.getMinBlockZ().lo()), (p_190199_, p_190200_, p_190201_) -> {
                     double d3 = Mth.length((double) (i - p_190199_), (double) (j - p_190200_));
                     if (!(d3 > (double) HEIGHT_BLENDING_RANGE_CELLS)) {
                         if (d3 < mutabledouble2.doubleValue()) {
@@ -156,7 +156,7 @@ public class Blender {
             MutableDouble mutabledouble1 = new MutableDouble(0.0D);
             MutableDouble mutabledouble2 = new MutableDouble(Double.POSITIVE_INFINITY);
             this.densityBlendingData.forEach((p_202241_, p_202242_) -> {
-                p_202242_.iterateDensities(QuartPos.fromBlock(p_202241_.getMinBlockX().toLongLow()), QuartPos.fromBlock(p_202241_.getMinBlockZ().toLongLow()), j - 1, j + 1, (p_202230_, p_202231_, p_202232_, p_202233_) -> {
+                p_202242_.iterateDensities(QuartPos.fromBlock(p_202241_.getMinBlockX().lo()), QuartPos.fromBlock(p_202241_.getMinBlockZ().lo()), j - 1, j + 1, (p_202230_, p_202231_, p_202232_, p_202233_) -> {
                     double d3 = Mth.length((double) (i - p_202230_), (double) ((j - p_202231_) * 2), (double) (k - p_202232_));
                     if (!(d3 > 2.0D)) {
                         if (d3 < mutabledouble2.doubleValue()) {
@@ -208,8 +208,8 @@ public class Blender {
         // Keys retain exact loaded chunk identity; only this finite content sample is projected.
         for (Map.Entry<ChunkPos, BlendingData> entry : this.heightAndBiomeBlendingData.entrySet()) {
             ChunkPos pos = entry.getKey();
-            if ((pos.getMinBlockX().toLongLow() >> 4) == p_190213_
-                    && (pos.getMinBlockZ().toLongLow() >> 4) == p_190214_) {
+            if ((pos.getMinBlockX().lo() >> 4) == p_190213_
+                    && (pos.getMinBlockZ().lo() >> 4) == p_190214_) {
                 return p_190212_.get(entry.getValue(), (int) (p_190215_ - QuartPos.fromSection(p_190213_)), p_190216_, (int) (p_190217_ - QuartPos.fromSection(p_190214_)));
             }
         }
@@ -228,7 +228,7 @@ public class Blender {
         MutableDouble mutabledouble = new MutableDouble(Double.POSITIVE_INFINITY);
         MutableObject<Holder<Biome>> mutableobject = new MutableObject<>();
         this.heightAndBiomeBlendingData.forEach((p_224716_, p_224717_) -> {
-            p_224717_.iterateBiomes(QuartPos.fromBlock(p_224716_.getMinBlockX().toLongLow()), p_224708_, QuartPos.fromBlock(p_224716_.getMinBlockZ().toLongLow()), (p_224723_, p_224724_, p_224725_) -> {
+            p_224717_.iterateBiomes(QuartPos.fromBlock(p_224716_.getMinBlockX().lo()), p_224708_, QuartPos.fromBlock(p_224716_.getMinBlockZ().lo()), (p_224723_, p_224724_, p_224725_) -> {
                 double d2 = Mth.length((double) (p_224707_ - p_224723_), (double) (p_224709_ - p_224724_));
                 if (!(d2 > (double) HEIGHT_BLENDING_RANGE_CELLS)) {
                     if (d2 < mutabledouble.doubleValue()) {

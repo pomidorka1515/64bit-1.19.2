@@ -69,8 +69,8 @@ public class SurfaceSystem {
     public void buildSurface(RandomState p_224649_, BiomeManager p_224650_, Registry<Biome> p_224651_, boolean p_224652_, WorldGenerationContext p_224653_, final ChunkAccess p_224654_, NoiseChunk p_224655_, SurfaceRules.RuleSource p_224656_) {
         final BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
         final ChunkPos chunkpos = p_224654_.getPos();
-        long i = chunkpos.getMinBlockX().toLongLow();
-        long j = chunkpos.getMinBlockZ().toLongLow();
+        long i = chunkpos.getMinBlockX().lo();
+        long j = chunkpos.getMinBlockZ().lo();
         LevelHeightAccessor heightAccessor = p_224654_.getHeightAccessorForGeneration();
         int minBuildHeight = heightAccessor.getMinBuildHeight();
         int maxBuildHeight = heightAccessor.getMaxBuildHeight();

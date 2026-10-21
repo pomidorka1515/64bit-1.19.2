@@ -59,6 +59,7 @@ public abstract class StructurePlacement {
         return this.exclusionZone;
     }
 
+    /** Tests projected low-64 chunk coordinates; locate results retain the caller's exact anchor. */
     public boolean isStructureChunk(ChunkGenerator pGenerator, RandomState pRandomState, long pSeed, long pX, long pZ) {
         if (!this.isPlacementChunk(pGenerator, pRandomState, pSeed, pX, pZ)) {
             return false;

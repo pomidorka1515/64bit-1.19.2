@@ -59,12 +59,12 @@ public abstract class WorldCarver<C extends CarverConfiguration> {
 
     protected boolean carveEllipsoid(CarvingContext pContext, C pConfig, ChunkAccess pChunk, Function<BlockPos, Holder<Biome>> pBiomeAccessor, Aquifer pAquifer, double pX, double pY, double pZ, double pHorizontalRadius, double pVerticalRadius, CarvingMask pCarvingMask, WorldCarver.CarveSkipChecker pSkipChecker) {
         ChunkPos chunkpos = pChunk.getPos();
-        double d0 = (double) chunkpos.getMiddleBlockX().toLongLow();
-        double d1 = (double) chunkpos.getMiddleBlockZ().toLongLow();
+        double d0 = (double) chunkpos.getMiddleBlockX().lo();
+        double d1 = (double) chunkpos.getMiddleBlockZ().lo();
         double d2 = 16.0D + pHorizontalRadius * 2.0D;
         if (!(Math.abs(pX - d0) > d2) && !(Math.abs(pZ - d1) > d2)) {
-            long i = chunkpos.getMinBlockX().toLongLow();
-            long j = chunkpos.getMinBlockZ().toLongLow();
+            long i = chunkpos.getMinBlockX().lo();
+            long j = chunkpos.getMinBlockZ().lo();
             long k = Math.max(WorldBounds.subtractBlockOffset(WorldBounds.subtractBlockOffset(Mth.lfloor(pX - pHorizontalRadius), i), 1L), 0);
             long l = Math.min(WorldBounds.subtractBlockOffset(Mth.lfloor(pX + pHorizontalRadius), i), 15);
             int i1 = Math.max(Mth.floor(pY - pVerticalRadius) - 1, pContext.getMinGenY() + 1);
@@ -81,11 +81,11 @@ public abstract class WorldCarver<C extends CarverConfiguration> {
             BlockPos.MutableBlockPos blockpos$mutableblockpos1 = new BlockPos.MutableBlockPos();
 
             for (long j2 = k;; j2 = WorldBounds.addBlockOffset(j2, 1L)) {
-                long k2 = chunkpos.getBlockX(j2).toLongLow();
+                long k2 = chunkpos.getBlockX(j2).lo();
                 double d3 = ((double) k2 + 0.5D - pX) / pHorizontalRadius;
 
                 for (long l2 = l1;; l2 = WorldBounds.addBlockOffset(l2, 1L)) {
-                    long i3 = chunkpos.getBlockZ(l2).toLongLow();
+                    long i3 = chunkpos.getBlockZ(l2).lo();
                     double d4 = ((double) i3 + 0.5D - pZ) / pHorizontalRadius;
                     if (!(d3 * d3 + d4 * d4 >= 1.0D)) {
                         MutableBoolean mutableboolean = new MutableBoolean(false);
@@ -185,8 +185,8 @@ public abstract class WorldCarver<C extends CarverConfiguration> {
     }
 
     protected static boolean canReach(ChunkPos pChunkPos, double pX, double pZ, int pBranchIndex, int pBranchCount, float pWidth) {
-        double d0 = (double) pChunkPos.getMiddleBlockX().toLongLow();
-        double d1 = (double) pChunkPos.getMiddleBlockZ().toLongLow();
+        double d0 = (double) pChunkPos.getMiddleBlockX().lo();
+        double d1 = (double) pChunkPos.getMiddleBlockZ().lo();
         double d2 = pX - d0;
         double d3 = pZ - d1;
         double d4 = (double) (pBranchCount - pBranchIndex);

@@ -187,11 +187,12 @@ public final class WorldBounds {
 
     /** Low-64 projection for the deferred world-generation seam. */
     public static double noiseCoordinate(Int128 coordinate) {
-        return noiseCoordinate(coordinate.toLongLow());
+        return noiseCoordinate(coordinate.lo());
     }
 
+    /** Low-64 projection before scaling; never clamp the full Int128 coordinate. */
     public static double scaledNoiseCoordinate(Int128 coordinate, double scale) {
-        return scaledNoiseCoordinate(coordinate.toLongLow(), scale);
+        return scaledNoiseCoordinate(coordinate.lo(), scale);
     }
 
     public static long clampChunk(long chunk) {
@@ -203,12 +204,12 @@ public final class WorldBounds {
         return clampChunk(chunk) << 4;
     }
 
-    /** Converts an X/Z block coordinate to a finite noise input. */
+    /** Converts an already low-64-projected X/Z block coordinate to a finite noise input. */
     public static double noiseCoordinate(long coordinate) {
         return clampProjectedNoiseCoordinate((double) coordinate);
     }
 
-    /** Scales an X/Z coordinate without allowing infinity into a noise sampler. */
+    /** Scales an already low-64-projected X/Z coordinate without allowing infinity into a noise sampler. */
     public static double scaledNoiseCoordinate(long coordinate, double scale) {
         double result = (double) coordinate * scale;
         if (Double.isNaN(result))

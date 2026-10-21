@@ -27,9 +27,9 @@ public class CaveWorldCarver extends WorldCarver<CaveCarverConfiguration> {
         int j = pRandom.nextInt(pRandom.nextInt(pRandom.nextInt(this.getCaveBound()) + 1) + 1);
 
         for (int k = 0; k < j; ++k) {
-            double d0 = (double) pChunkPos.getBlockX(pRandom.nextInt(16)).toLongLow();
+            double d0 = (double) pChunkPos.getBlockX(pRandom.nextInt(16)).lo();
             double d1 = (double) pConfig.y.sample(pRandom, pContext);
-            double d2 = (double) pChunkPos.getBlockZ(pRandom.nextInt(16)).toLongLow();
+            double d2 = (double) pChunkPos.getBlockZ(pRandom.nextInt(16)).lo();
             double d3 = (double) pConfig.horizontalRadiusMultiplier.sample(pRandom);
             double d4 = (double) pConfig.verticalRadiusMultiplier.sample(pRandom);
             double d5 = (double) pConfig.floorLevel.sample(pRandom);

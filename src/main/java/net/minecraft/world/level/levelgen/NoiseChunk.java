@@ -89,7 +89,8 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
         ChunkPos chunkpos = pChunk.getPos();
         int i = 16 / noisesettings.getCellWidth();
         // Deferred terrain sampling uses the low-64 projection, not chunk identity.
-        return new NoiseChunk(i, pState, chunkpos.getMinBlockX().toLongLow(), chunkpos.getMinBlockZ().toLongLow(), noisesettings, pBeardifierOrMarker, pNoiseGeneratorSettings, pFluidPicke, pBlender);
+        // The noise lattice remains low-64; chunk identity is not projected.
+        return new NoiseChunk(i, pState, chunkpos.getMinBlockX().lo(), chunkpos.getMinBlockZ().lo(), noisesettings, pBeardifierOrMarker, pNoiseGeneratorSettings, pFluidPicke, pBlender);
     }
 
     public NoiseChunk(int p_224343_, RandomState p_224344_, long p_224345_, long p_224346_, NoiseSettings p_224347_, DensityFunctions.BeardifierOrMarker p_224348_, NoiseGeneratorSettings p_224349_, Aquifer.FluidPicker p_224350_, Blender p_224351_) {

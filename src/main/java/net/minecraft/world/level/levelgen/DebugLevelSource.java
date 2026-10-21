@@ -77,7 +77,8 @@ public class DebugLevelSource extends ChunkGenerator {
                 net.minecraft.core.Int128 i1 = SectionPos.sectionToBlockCoord(i, k);
                 net.minecraft.core.Int128 j1 = SectionPos.sectionToBlockCoord(j, l);
                 pLevel.setBlock(blockpos$mutableblockpos.set(i1, 60, j1), BARRIER, 2);
-                BlockState blockstate = getBlockStateFor(i1.toLongLow(), j1.toLongLow());
+                // Project generated content only; the block write retains its exact anchor.
+                BlockState blockstate = getBlockStateFor(i1.lo(), j1.lo());
                 pLevel.setBlock(blockpos$mutableblockpos.set(i1, 70, j1), blockstate, 2);
             }
         }

@@ -269,7 +269,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
                 ChunkPos chunkpos1 = new ChunkPos(WorldBounds.addChunkOffset(chunkpos.x(), j), WorldBounds.addChunkOffset(chunkpos.z(), k));
                 ChunkAccess chunkaccess = pLevel.getChunk(chunkpos1.x(), chunkpos1.z());
                 BiomeGenerationSettings biomegenerationsettings = chunkaccess.carverBiome(() -> {
-                    return this.getBiomeGenerationSettings(this.biomeSource.getNoiseBiome(QuartPos.fromBlock(chunkpos1.getMinBlockX().toLongLow()), 0, QuartPos.fromBlock(chunkpos1.getMinBlockZ().toLongLow()), pRandom.sampler()));
+                    return this.getBiomeGenerationSettings(this.biomeSource.getNoiseBiome(QuartPos.fromBlock(chunkpos1.getMinBlockX().lo()), 0, QuartPos.fromBlock(chunkpos1.getMinBlockZ().lo()), pRandom.sampler()));
                 });
                 Iterable<Holder<ConfiguredWorldCarver<?>>> iterable = biomegenerationsettings.getCarvers(pStep);
                 int l = 0;
@@ -322,8 +322,8 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
         Heightmap heightmap = pChunk.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR_WG);
         Heightmap heightmap1 = pChunk.getOrCreateHeightmapUnprimed(Heightmap.Types.WORLD_SURFACE_WG);
         ChunkPos chunkpos = pChunk.getPos();
-        long i = chunkpos.getMinBlockX().toLongLow();
-        long j = chunkpos.getMinBlockZ().toLongLow();
+        long i = chunkpos.getMinBlockX().lo();
+        long j = chunkpos.getMinBlockZ().lo();
         Aquifer aquifer = noisechunk.aquifer();
         noisechunk.initializeForFirstCellX();
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
@@ -417,7 +417,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
             ChunkPos chunkpos = pLevel.getCenter();
             Holder<Biome> holder = pLevel.getBiome(chunkpos.getWorldPosition().atY(pLevel.getMaxBuildHeight() - 1));
             WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(RandomSupport.generateUniqueSeed()));
-            worldgenrandom.setDecorationSeed(pLevel.getSeed(), chunkpos.getMinBlockX().toLongLow(), chunkpos.getMinBlockZ().toLongLow());
+            worldgenrandom.setDecorationSeed(pLevel.getSeed(), chunkpos.getMinBlockX().lo(), chunkpos.getMinBlockZ().lo());
             NaturalSpawner.spawnMobsForChunkGeneration(pLevel, holder, chunkpos, worldgenrandom);
         }
     }

@@ -17,6 +17,7 @@ public interface PositionalRandomFactory {
 
     RandomSource fromHashOf(String pName);
 
+    /** Legacy content/seed domain: horizontal inputs are explicitly projected low 64 bits. */
     RandomSource at(long pX, int pY, long pZ);
 
     @VisibleForTesting

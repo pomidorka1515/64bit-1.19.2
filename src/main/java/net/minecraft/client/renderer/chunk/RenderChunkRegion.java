@@ -3,6 +3,7 @@ package net.minecraft.client.renderer.chunk;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Int128;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.Level;
@@ -19,12 +20,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public class RenderChunkRegion implements BlockAndTintGetter {
     /** Lowest X/Z section coordinates represented by {@link #chunks}. */
-    private final long minChunkX;
-    private final long minChunkZ;
+    private final Int128 minChunkX;
+    private final Int128 minChunkZ;
     protected final RenderChunk[][] chunks;
     protected final Level level;
 
-    RenderChunkRegion(Level pLevel, long pCenterX, long pCenterZ, RenderChunk[][] pChunks) {
+    RenderChunkRegion(Level pLevel, Int128 pCenterX, Int128 pCenterZ, RenderChunk[][] pChunks) {
         this.level = pLevel;
         this.minChunkX = pCenterX;
         this.minChunkZ = pCenterZ;
@@ -57,22 +58,19 @@ public class RenderChunkRegion implements BlockAndTintGetter {
 
     @Nullable
     private RenderChunk getChunk(BlockPos pos) {
-        long sectionX = pos.getX() >> 4;
-        long sectionZ = pos.getZ() >> 4;
-        // Keep the 64-bit differences intact until the bounds test.  Casting a
-        // far-away section offset first could wrap it into this small array.
-        double xOffset = WorldBounds.signedDifference(sectionX, this.minChunkX);
-        double zOffset = WorldBounds.signedDifference(sectionZ, this.minChunkZ);
-        if (xOffset < 0.0D || xOffset >= (double) this.chunks.length || zOffset < 0.0D) {
+        int i = localIndex(pos.getX().shiftRight(4), this.minChunkX, this.chunks.length);
+        if (i < 0 || this.chunks[i] == null) {
             return null;
         }
 
-        int i = (int) xOffset;
-        if (this.chunks[i] == null || zOffset >= (double) this.chunks[i].length) {
-            return null;
-        }
+        int j = localIndex(pos.getZ().shiftRight(4), this.minChunkZ, this.chunks[i].length);
+        return j < 0 ? null : this.chunks[i][j];
+    }
 
-        return this.chunks[i][(int) zOffset];
+    static int localIndex(Int128 section, Int128 origin, int size) {
+        // Subtract before conversion, and bounds-check before narrowing to an array index.
+        double offset = WorldBounds.signedDifference(section, origin);
+        return offset >= 0.0D && offset < size ? (int) offset : -1;
     }
 
     public int getBlockTint(BlockPos pPos, ColorResolver pColorResolver) {

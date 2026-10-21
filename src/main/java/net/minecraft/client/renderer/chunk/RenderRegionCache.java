@@ -1,13 +1,9 @@
 package net.minecraft.client.renderer.chunk;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.ChunkPos;
+import net.minecraft.core.Int128;
+import net.minecraft.core.Int128Map;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -16,24 +12,52 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class RenderRegionCache {
-    private final Object2ObjectMap<ChunkPos, RenderRegionCache.ChunkInfo> chunkInfoCache = new Object2ObjectOpenHashMap<>();
+    private final Int128Map<Int128Map<ChunkInfo>> chunkInfoCache = new Int128Map<>();
+
+    private ChunkInfo getChunkInfo(Level level, Int128 chunkX, Int128 chunkZ) {
+        Int128Map<ChunkInfo> column = this.chunkInfoCache.get(chunkX.hi(), chunkX.lo());
+        if (column == null) {
+            column = new Int128Map<>();
+            this.chunkInfoCache.put(chunkX.hi(), chunkX.lo(), column);
+        }
+        ChunkInfo info = column.get(chunkZ.hi(), chunkZ.lo());
+        if (info == null) {
+            info = new ChunkInfo(level.getChunk(chunkX, chunkZ));
+            column.put(chunkZ.hi(), chunkZ.lo(), info);
+        }
+        return info;
+    }
+
+    static int regionSize(Int128 min, Int128 max) {
+        long difference = WorldBounds.signedDifferenceAsLong(max, min);
+        if (difference < 0 || difference >= WorldBounds.MAX_SAFE_LOCAL_SPAN) {
+            throw new IllegalArgumentException("Render region must be a bounded ascending local range");
+        }
+        return (int) difference + 1;
+    }
 
     @Nullable
     public RenderChunkRegion createRegion(Level p_200466_, BlockPos p_200467_, BlockPos p_200468_, int p_200469_) {
-        long i = WorldBounds.clampChunk(WorldBounds.addBlockOffset(p_200467_.getX(), -(long) p_200469_) >> 4);
-        long j = WorldBounds.clampChunk(WorldBounds.addBlockOffset(p_200467_.getZ(), -(long) p_200469_) >> 4);
-        long k = WorldBounds.clampChunk(WorldBounds.addBlockOffset(p_200468_.getX(), p_200469_) >> 4);
-        long l = WorldBounds.clampChunk(WorldBounds.addBlockOffset(p_200468_.getZ(), p_200469_) >> 4);
-        int xSize = Math.toIntExact(WorldBounds.inclusiveBlockSpan(i, k));
-        int zSize = Math.toIntExact(WorldBounds.inclusiveBlockSpan(j, l));
+        if (p_200469_ < 0 || p_200467_.getX().compareTo(p_200468_.getX()) > 0
+                || p_200467_.getZ().compareTo(p_200468_.getZ()) > 0) {
+            throw new IllegalArgumentException("Invalid render region bounds");
+        }
+        Int128 i = WorldBounds.addBlockOffset(p_200467_.getX(), -(long) p_200469_).shiftRight(4);
+        Int128 j = WorldBounds.addBlockOffset(p_200467_.getZ(), -(long) p_200469_).shiftRight(4);
+        Int128 k = WorldBounds.addBlockOffset(p_200468_.getX(), p_200469_).shiftRight(4);
+        Int128 l = WorldBounds.addBlockOffset(p_200468_.getZ(), p_200469_).shiftRight(4);
+        int xSize = regionSize(i, k);
+        int zSize = regionSize(j, l);
+        if ((long) xSize * zSize > WorldBounds.MAX_SAFE_LOCAL_SPAN) {
+            throw new IllegalArgumentException("Render region snapshot is too large");
+        }
         RenderRegionCache.ChunkInfo[][] arenderregioncache$chunkinfo = new RenderRegionCache.ChunkInfo[xSize][zSize];
 
         for (int xIndex = 0; xIndex < xSize; ++xIndex) {
-            long chunkX = WorldBounds.addChunkOffset(i, xIndex);
+            Int128 chunkX = WorldBounds.addChunkOffset(i, xIndex);
             for (int zIndex = 0; zIndex < zSize; ++zIndex) {
-                long chunkZ = WorldBounds.addChunkOffset(j, zIndex);
-                LevelChunk levelchunk = WorldBounds.isValidChunk(chunkX, chunkZ) ? p_200466_.getChunk(chunkX, chunkZ) : null;
-                arenderregioncache$chunkinfo[xIndex][zIndex] = new RenderRegionCache.ChunkInfo(levelchunk);
+                Int128 chunkZ = WorldBounds.addChunkOffset(j, zIndex);
+                arenderregioncache$chunkinfo[xIndex][zIndex] = this.getChunkInfo(p_200466_, chunkX, chunkZ);
             }
         }
 
@@ -53,28 +77,15 @@ public class RenderRegionCache {
         }
     }
 
-    private static boolean isAllEmpty(BlockPos p_200471_, BlockPos p_200472_, long p_200473_, long p_200474_, RenderRegionCache.ChunkInfo[][] p_200475_) {
-        long minChunkX = p_200471_.getX() >> 4;
-        long minChunkZ = p_200471_.getZ() >> 4;
-        long maxChunkX = p_200472_.getX() >> 4;
-        long maxChunkZ = p_200472_.getZ() >> 4;
-
-        boolean moreX = minChunkX <= maxChunkX;
-        for (long chunkX = minChunkX; moreX; moreX = chunkX < maxChunkX, chunkX = WorldBounds.addChunkOffset(chunkX, 1L)) {
-            boolean moreZ = minChunkZ <= maxChunkZ;
-            for (long chunkZ = minChunkZ; moreZ; moreZ = chunkZ < maxChunkZ, chunkZ = WorldBounds.addChunkOffset(chunkZ, 1L)) {
-                double xOffset = WorldBounds.signedDifference(chunkX, p_200473_);
-                double zOffset = WorldBounds.signedDifference(chunkZ, p_200474_);
-                if (xOffset < 0.0D || xOffset >= (double) p_200475_.length || zOffset < 0.0D) {
-                    continue;
-                }
-
-                RenderRegionCache.ChunkInfo[] column = p_200475_[(int) xOffset];
-                if (column == null || zOffset >= (double) column.length) {
-                    continue;
-                }
-
-                RenderRegionCache.ChunkInfo info = column[(int) zOffset];
+    private static boolean isAllEmpty(BlockPos p_200471_, BlockPos p_200472_, Int128 p_200473_, Int128 p_200474_, RenderRegionCache.ChunkInfo[][] p_200475_) {
+        int firstX = RenderChunkRegion.localIndex(p_200471_.getX().shiftRight(4), p_200473_, p_200475_.length);
+        int lastX = RenderChunkRegion.localIndex(p_200472_.getX().shiftRight(4), p_200473_, p_200475_.length);
+        for (int x = firstX; x >= 0 && x <= lastX; ++x) {
+            RenderRegionCache.ChunkInfo[] column = p_200475_[x];
+            int firstZ = RenderChunkRegion.localIndex(p_200471_.getZ().shiftRight(4), p_200474_, column.length);
+            int lastZ = RenderChunkRegion.localIndex(p_200472_.getZ().shiftRight(4), p_200474_, column.length);
+            for (int z = firstZ; z >= 0 && z <= lastZ; ++z) {
+                RenderRegionCache.ChunkInfo info = column[z];
                 if (info != null && info.chunk() != null && !info.chunk().isYSpaceEmpty(p_200471_.getY(), p_200472_.getY())) {
                     return false;
                 }

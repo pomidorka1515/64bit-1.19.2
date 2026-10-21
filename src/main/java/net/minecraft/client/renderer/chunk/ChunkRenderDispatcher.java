@@ -47,7 +47,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.thread.ProcessorMailbox;
-import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -332,10 +331,8 @@ public class ChunkRenderDispatcher {
         }
 
         private boolean doesChunkExistAt(BlockPos pPos) {
-            long chunkX = SectionPos.blockToSectionCoord(pPos.getX());
-            long chunkZ = SectionPos.blockToSectionCoord(pPos.getZ());
-            return WorldBounds.isValidChunk(chunkX, chunkZ)
-                    && ChunkRenderDispatcher.this.level.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false) != null;
+            return ChunkRenderDispatcher.this.level.getChunk(SectionPos.blockToSectionCoord(pPos.getX()),
+                    SectionPos.blockToSectionCoord(pPos.getZ()), ChunkStatus.FULL, false) != null;
         }
 
         public boolean hasAllNeighbors() {
@@ -630,7 +627,7 @@ public class ChunkRenderDispatcher {
                             }
 
                             posestack.pushPose();
-                            posestack.translate((double) (blockpos2.getX() & 15), (double) (blockpos2.getY() & 15), (double) (blockpos2.getZ() & 15));
+                            posestack.translate((double) (blockpos2.getX().lo() & 15), (double) (blockpos2.getY() & 15), (double) (blockpos2.getZ().lo() & 15));
                             blockrenderdispatcher.renderBatched(blockstate, blockpos2, renderchunkregion, posestack, bufferbuilder2, true, randomsource);
                             posestack.popPose();
                         }

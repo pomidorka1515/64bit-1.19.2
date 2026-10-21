@@ -1,10 +1,5 @@
 package net.minecraft.world.ticks;
 
-import it.unimi.dsi.fastutil.longs.Long2LongMap;
-import it.unimi.dsi.fastutil.longs.Long2LongMaps;
-import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMap.Entry;
 import it.unimi.dsi.fastutil.objects.Object2LongMaps;
@@ -28,6 +23,7 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -221,23 +217,18 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
     }
 
     private void forContainersInArea(BoundingBox p_193237_, LevelTicks.PosAndContainerConsumer<T> p_193238_) {
-        long i = SectionPos.blockToSectionCoord(p_193237_.minX());
-        long j = SectionPos.blockToSectionCoord(p_193237_.minZ());
-        long k = SectionPos.blockToSectionCoord(p_193237_.maxX());
-        long l = SectionPos.blockToSectionCoord(p_193237_.maxZ());
+        Int128 i = SectionPos.blockToSectionCoord(p_193237_.minX());
+        Int128 j = SectionPos.blockToSectionCoord(p_193237_.minZ());
+        Int128 k = SectionPos.blockToSectionCoord(p_193237_.maxX());
+        Int128 l = SectionPos.blockToSectionCoord(p_193237_.maxZ());
 
-        for (long i1 = i;; i1 = WorldBounds.addChunkOffset(i1, 1L)) {
-            for (long j1 = j;; j1 = WorldBounds.addChunkOffset(j1, 1L)) {
-                ChunkPos k1 = new ChunkPos(i1, j1);
-                LevelChunkTicks<T> levelchunkticks = this.allContainers.get(k1);
-                if (levelchunkticks != null) {
-                    p_193238_.accept(k1, levelchunkticks);
-                }
-                if (j1 == l)
-                    break;
+        // Visit loaded containers only: a full-width area must not trigger a world-sized scan.
+        for (var entry : this.allContainers.object2ObjectEntrySet()) {
+            ChunkPos pos = entry.getKey();
+            if (pos.x().compareTo(i) >= 0 && pos.x().compareTo(k) <= 0
+                    && pos.z().compareTo(j) >= 0 && pos.z().compareTo(l) <= 0) {
+                p_193238_.accept(pos, entry.getValue());
             }
-            if (i1 == k)
-                break;
         }
     }
 
@@ -267,9 +258,9 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
 
     public void copyAreaTo(BoundingBox source, BlockPos destination) {
         this.copyArea(source, pos -> new BlockPos(
-                WorldBounds.addBlockOffset(destination.getX(), WorldBounds.subtractBlockOffset(pos.getX(), source.minX())),
+                WorldBounds.addSubtract(destination.getX(), pos.getX(), source.minX()),
                 destination.getY() + (pos.getY() - source.minY()),
-                WorldBounds.addBlockOffset(destination.getZ(), WorldBounds.subtractBlockOffset(pos.getZ(), source.minZ()))));
+                WorldBounds.addSubtract(destination.getZ(), pos.getZ(), source.minZ())));
     }
 
     private void copyArea(BoundingBox p_193243_, UnaryOperator<BlockPos> transform) {

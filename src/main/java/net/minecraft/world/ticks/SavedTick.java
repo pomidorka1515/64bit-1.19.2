@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.level.ChunkPos;
 
 public record SavedTick<T>(T type, BlockPos pos, int delay, TickPriority priority) {
@@ -46,7 +47,7 @@ public record SavedTick<T>(T type, BlockPos pos, int delay, TickPriority priorit
 
     public static <T> Optional<SavedTick<T>> loadTick(CompoundTag p_210670_, Function<String, Optional<T>> p_210671_) {
         return p_210671_.apply(p_210670_.getString("i")).map((p_210668_) -> {
-            BlockPos blockpos = new BlockPos(p_210670_.getLong("x"), p_210670_.getInt("y"), p_210670_.getLong("z"));
+            BlockPos blockpos = new BlockPos(NbtUtils.readInt128(p_210670_, "x"), p_210670_.getInt("y"), NbtUtils.readInt128(p_210670_, "z"));
             return new SavedTick<>(p_210668_, blockpos, p_210670_.getInt("t"), TickPriority.byValue(p_210670_.getInt("p")));
         });
     }
@@ -54,9 +55,9 @@ public record SavedTick<T>(T type, BlockPos pos, int delay, TickPriority priorit
     private static CompoundTag saveTick(String p_193339_, BlockPos p_193340_, int p_193341_, TickPriority p_193342_) {
         CompoundTag compoundtag = new CompoundTag();
         compoundtag.putString("i", p_193339_);
-        compoundtag.putInt("x", p_193340_.getX());
+        NbtUtils.writeInt128(compoundtag, "x", p_193340_.getX());
         compoundtag.putInt("y", p_193340_.getY());
-        compoundtag.putInt("z", p_193340_.getZ());
+        NbtUtils.writeInt128(compoundtag, "z", p_193340_.getZ());
         compoundtag.putInt("t", p_193341_);
         compoundtag.putInt("p", p_193342_.getValue());
         return compoundtag;

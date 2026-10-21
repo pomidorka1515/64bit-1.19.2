@@ -13,7 +13,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.SectorVec3;
-import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -26,7 +25,7 @@ public class WorldBorder {
     private int warningTime = 15;
     private int warningBlocks = 5;
     private SectorVec3 exactCenter = SectorVec3.fromApproximate(0.0D, 0.0D, 0.0D);
-    // Lossy mirrors for legacy border geometry and display callers.
+    // Lossy mirrors for legacy display callers; gameplay border checks are disabled.
     private double centerX;
     private double centerZ;
     int absoluteMaxSize = 29999984;
@@ -68,30 +67,20 @@ public class WorldBorder {
     }
 
     public VoxelShape getCollisionShape() {
-        return this.extent.getCollisionShape();
+        // The border is disabled, including collision and damage at arbitrary coordinates.
+        return Shapes.empty();
     }
 
     public double getDistanceToBorder(double pX, double pZ) {
-        double d0 = pZ - this.getMinZ();
-        double d1 = this.getMaxZ() - pZ;
-        double d2 = pX - this.getMinX();
-        double d3 = this.getMaxX() - pX;
-        double d4 = Math.min(d2, d3);
-        d4 = Math.min(d4, d0);
-        return Math.min(d4, d1);
+        return Double.POSITIVE_INFINITY;
     }
 
     public double getDistanceToBorder(net.minecraft.world.phys.SectorVec3 position) {
-        net.minecraft.world.phys.SectorVec3 min = net.minecraft.world.phys.SectorVec3.fromApproximate(this.getMinX(), 0.0D, this.getMinZ());
-        net.minecraft.world.phys.SectorVec3 max = net.minecraft.world.phys.SectorVec3.fromApproximate(this.getMaxX(), 0.0D, this.getMaxZ());
-        net.minecraft.world.phys.Vec3 fromMin = position.relativeTo(min);
-        net.minecraft.world.phys.Vec3 toMax = max.relativeTo(position);
-        return Math.min(Math.min(fromMin.x, fromMin.z), Math.min(toMax.x, toMax.z));
+        return Double.POSITIVE_INFINITY;
     }
 
     public boolean isInsideCloseToBorder(Entity pEntity, AABB pBounds) {
-        double d0 = Math.max(Mth.absMax(pBounds.getXsize(), pBounds.getZsize()), 1.0D);
-        return this.getDistanceToBorder(pEntity) < d0 * 2.0D && this.isWithinBounds(pEntity.getX(), pEntity.getZ(), d0);
+        return false;
     }
 
     public BorderStatus getStatus() {
@@ -357,7 +346,7 @@ public class WorldBorder {
         }
 
         public VoxelShape getCollisionShape() {
-            return Shapes.join(Shapes.INFINITY, Shapes.box(Math.floor(this.getMinX()), Double.NEGATIVE_INFINITY, Math.floor(this.getMinZ()), Math.ceil(this.getMaxX()), Double.POSITIVE_INFINITY, Math.ceil(this.getMaxZ())), BooleanOp.ONLY_FIRST);
+            return Shapes.empty();
         }
     }
 
@@ -538,7 +527,7 @@ public class WorldBorder {
             this.minZ = Mth.clamp(WorldBorder.this.getCenterZ() - this.size / 2.0D, (double) (-WorldBorder.this.absoluteMaxSize), (double) WorldBorder.this.absoluteMaxSize);
             this.maxX = Mth.clamp(WorldBorder.this.getCenterX() + this.size / 2.0D, (double) (-WorldBorder.this.absoluteMaxSize), (double) WorldBorder.this.absoluteMaxSize);
             this.maxZ = Mth.clamp(WorldBorder.this.getCenterZ() + this.size / 2.0D, (double) (-WorldBorder.this.absoluteMaxSize), (double) WorldBorder.this.absoluteMaxSize);
-            this.shape = Shapes.join(Shapes.INFINITY, Shapes.box(Math.floor(this.getMinX()), Double.NEGATIVE_INFINITY, Math.floor(this.getMinZ()), Math.ceil(this.getMaxX()), Double.POSITIVE_INFINITY, Math.ceil(this.getMaxZ())), BooleanOp.ONLY_FIRST);
+            this.shape = Shapes.empty();
         }
 
         public void onAbsoluteMaxSizeChange() {

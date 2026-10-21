@@ -382,11 +382,11 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
     public abstract void playSeededSound(@Nullable Player pPlayer, double pX, double pY, double pZ, SoundEvent pSoundEvent, SoundSource pSoundSource, float pVolume, float pPitch, long pSeed);
 
-    /** Exact positional-sound entry point for long-coordinate callers. */
+    /** Exact entry point; legacy implementations receive an explicitly approximate mirror. */
     public void playSeededSound(@Nullable Player player, SectorVec3 position, SoundEvent sound, SoundSource source,
             float volume, float pitch, long seed) {
-        this.playSeededSound(player, (double) position.blockX() + position.subX(), position.y(),
-                (double) position.blockZ() + position.subZ(), sound, source, volume, pitch, seed);
+        Vec3 approximate = position.toApproximateVec3();
+        this.playSeededSound(player, approximate.x, approximate.y, approximate.z, sound, source, volume, pitch, seed);
     }
 
     public abstract void playSeededSound(@Nullable Player pPlayer, Entity pEntity, SoundEvent pSoundEvent, SoundSource pSoundSource, float pVolume, float pPitch, long pSeed);

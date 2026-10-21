@@ -8,6 +8,8 @@ import java.util.OptionalInt;
 import java.util.function.BiConsumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Int128;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelSimulatedReader;
 import net.minecraft.world.level.block.state.BlockState;
@@ -34,15 +36,15 @@ public class ForkingTrunkPlacer extends TrunkPlacer {
         int i = p_226119_ - p_226118_.nextInt(4) - 1;
         int j = 3 - p_226118_.nextInt(3);
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
-        long k = p_226120_.getX();
-        long l = p_226120_.getZ();
+        Int128 k = p_226120_.getX();
+        Int128 l = p_226120_.getZ();
         OptionalInt optionalint = OptionalInt.empty();
 
         for (int i1 = 0; i1 < p_226119_; ++i1) {
             int j1 = p_226120_.getY() + i1;
             if (i1 >= i && j > 0) {
-                k += direction.getStepX();
-                l += direction.getStepZ();
+                k = WorldBounds.addBlockOffset(k, direction.getStepX());
+                l = WorldBounds.addBlockOffset(l, direction.getStepZ());
                 --j;
             }
 
@@ -66,8 +68,8 @@ public class ForkingTrunkPlacer extends TrunkPlacer {
             for (int l1 = j2; l1 < p_226119_ && k1 > 0; --k1) {
                 if (l1 >= 1) {
                     int i2 = p_226120_.getY() + l1;
-                    k += direction1.getStepX();
-                    l += direction1.getStepZ();
+                    k = WorldBounds.addBlockOffset(k, direction1.getStepX());
+                    l = WorldBounds.addBlockOffset(l, direction1.getStepZ());
                     if (this.placeLog(p_226116_, p_226117_, p_226118_, blockpos$mutableblockpos.set(k, i2, l), p_226121_)) {
                         optionalint = OptionalInt.of(i2 + 1);
                     }

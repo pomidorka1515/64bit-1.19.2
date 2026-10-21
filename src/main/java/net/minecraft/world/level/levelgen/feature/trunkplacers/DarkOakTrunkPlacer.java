@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Int128;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelSimulatedReader;
 import net.minecraft.world.level.block.state.BlockState;
@@ -37,17 +39,17 @@ public class DarkOakTrunkPlacer extends TrunkPlacer {
         Direction direction = Direction.Plane.HORIZONTAL.getRandomDirection(p_226088_);
         int i = p_226089_ - p_226088_.nextInt(4);
         int j = 2 - p_226088_.nextInt(3);
-        long k = p_226090_.getX();
+        Int128 k = p_226090_.getX();
         int l = p_226090_.getY();
-        long i1 = p_226090_.getZ();
-        long j1 = k;
-        long k1 = i1;
+        Int128 i1 = p_226090_.getZ();
+        Int128 j1 = k;
+        Int128 k1 = i1;
         int l1 = l + p_226089_ - 1;
 
         for (int i2 = 0; i2 < p_226089_; ++i2) {
             if (i2 >= i && j > 0) {
-                j1 += direction.getStepX();
-                k1 += direction.getStepZ();
+                j1 = WorldBounds.addBlockOffset(j1, direction.getStepX());
+                k1 = WorldBounds.addBlockOffset(k1, direction.getStepZ());
                 --j;
             }
 
@@ -69,10 +71,10 @@ public class DarkOakTrunkPlacer extends TrunkPlacer {
                     int j3 = p_226088_.nextInt(3) + 2;
 
                     for (int k2 = 0; k2 < j3; ++k2) {
-                        this.placeLog(p_226086_, p_226087_, p_226088_, new BlockPos(k + l2, l1 - k2 - 1, i1 + i3), p_226091_);
+                        this.placeLog(p_226086_, p_226087_, p_226088_, new BlockPos(WorldBounds.addBlockOffset(k, l2), l1 - k2 - 1, WorldBounds.addBlockOffset(i1, i3)), p_226091_);
                     }
 
-                    list.add(new FoliagePlacer.FoliageAttachment(new BlockPos(j1 + l2, l1, k1 + i3), 0, false));
+                    list.add(new FoliagePlacer.FoliageAttachment(new BlockPos(WorldBounds.addBlockOffset(j1, l2), l1, WorldBounds.addBlockOffset(k1, i3)), 0, false));
                 }
             }
         }

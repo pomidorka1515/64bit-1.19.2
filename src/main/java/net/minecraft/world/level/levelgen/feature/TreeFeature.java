@@ -11,6 +11,7 @@ import java.util.function.BiConsumer;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Int128;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelAccessor;
@@ -175,15 +176,17 @@ public class TreeFeature extends Feature<TreeConfiguration> {
 
     @Nullable
     private static DiscreteVoxelShape updateLeaves(LevelAccessor pLevel, BoundingBox pBox, Set<BlockPos> pRootPositions, Set<BlockPos> pTrunkPositions, Set<BlockPos> pFoliagePositions) {
-        long xSpan = pBox.getXSpan();
+        Int128 xSpan = pBox.getXSpan();
         int ySpan = pBox.getYSpan();
-        long zSpan = pBox.getZSpan();
-        if (!WorldBounds.isPositiveIntSpan(xSpan) || ySpan <= 0 || !WorldBounds.isPositiveIntSpan(zSpan)) {
+        Int128 zSpan = pBox.getZSpan();
+        Int128 maxSpan = Int128.fromLong(Integer.MAX_VALUE);
+        if (xSpan.compareTo(Int128.ZERO) <= 0 || xSpan.compareTo(maxSpan) > 0 || ySpan <= 0
+            || zSpan.compareTo(Int128.ZERO) <= 0 || zSpan.compareTo(maxSpan) > 0) {
             return null;
         }
 
-        int xSize = (int) xSpan;
-        int zSize = (int) zSpan;
+        int xSize = (int) xSpan.lo();
+        int zSize = (int) zSpan.lo();
         if (!WorldBounds.isVoxelShapeSize(xSize, ySpan, zSize)) {
             return null;
         }
@@ -200,13 +203,13 @@ public class TreeFeature extends Feature<TreeConfiguration> {
 
         for (BlockPos blockpos : Lists.newArrayList(Sets.union(pTrunkPositions, pFoliagePositions))) {
             if (pBox.isInside(blockpos)) {
-                discretevoxelshape.fill((int) WorldBounds.blockOffsetInRange(blockpos.getX(), pBox.minX(), pBox.maxX()), blockpos.getY() - pBox.minY(), (int) WorldBounds.blockOffsetInRange(blockpos.getZ(), pBox.minZ(), pBox.maxZ()));
+                fillShape(discretevoxelshape, pBox, blockpos);
             }
         }
 
         for (BlockPos blockpos1 : Lists.newArrayList(pRootPositions)) {
             if (pBox.isInside(blockpos1)) {
-                discretevoxelshape.fill((int) WorldBounds.blockOffsetInRange(blockpos1.getX(), pBox.minX(), pBox.maxX()), blockpos1.getY() - pBox.minY(), (int) WorldBounds.blockOffsetInRange(blockpos1.getZ(), pBox.minZ(), pBox.maxZ()));
+                fillShape(discretevoxelshape, pBox, blockpos1);
             }
 
             for (Direction direction : Direction.values()) {
@@ -217,7 +220,7 @@ public class TreeFeature extends Feature<TreeConfiguration> {
                         list.get(0).add(blockpos$mutableblockpos.immutable());
                         setBlockKnownShape(pLevel, blockpos$mutableblockpos, blockstate.setValue(BlockStateProperties.DISTANCE, Integer.valueOf(1)));
                         if (pBox.isInside(blockpos$mutableblockpos)) {
-                            discretevoxelshape.fill((int) WorldBounds.blockOffsetInRange(blockpos$mutableblockpos.getX(), pBox.minX(), pBox.maxX()), blockpos$mutableblockpos.getY() - pBox.minY(), (int) WorldBounds.blockOffsetInRange(blockpos$mutableblockpos.getZ(), pBox.minZ(), pBox.maxZ()));
+                            fillShape(discretevoxelshape, pBox, blockpos$mutableblockpos);
                         }
                     }
                 }
@@ -230,7 +233,7 @@ public class TreeFeature extends Feature<TreeConfiguration> {
 
             for (BlockPos blockpos2 : set) {
                 if (pBox.isInside(blockpos2)) {
-                    discretevoxelshape.fill((int) WorldBounds.blockOffsetInRange(blockpos2.getX(), pBox.minX(), pBox.maxX()), blockpos2.getY() - pBox.minY(), (int) WorldBounds.blockOffsetInRange(blockpos2.getZ(), pBox.minZ(), pBox.maxZ()));
+                    fillShape(discretevoxelshape, pBox, blockpos2);
                 }
 
                 for (Direction direction1 : Direction.values()) {
@@ -243,7 +246,7 @@ public class TreeFeature extends Feature<TreeConfiguration> {
                                 BlockState blockstate2 = blockstate1.setValue(BlockStateProperties.DISTANCE, Integer.valueOf(l + 1));
                                 setBlockKnownShape(pLevel, blockpos$mutableblockpos, blockstate2);
                                 if (pBox.isInside(blockpos$mutableblockpos)) {
-                                    discretevoxelshape.fill((int) WorldBounds.blockOffsetInRange(blockpos$mutableblockpos.getX(), pBox.minX(), pBox.maxX()), blockpos$mutableblockpos.getY() - pBox.minY(), (int) WorldBounds.blockOffsetInRange(blockpos$mutableblockpos.getZ(), pBox.minZ(), pBox.maxZ()));
+                                    fillShape(discretevoxelshape, pBox, blockpos$mutableblockpos);
                                 }
 
                                 set1.add(blockpos$mutableblockpos.immutable());
@@ -255,5 +258,11 @@ public class TreeFeature extends Feature<TreeConfiguration> {
         }
 
         return discretevoxelshape;
+    }
+
+    private static void fillShape(DiscreteVoxelShape shape, BoundingBox box, BlockPos pos) {
+        // The caller established containment and int-sized spans before allocating the shape.
+        shape.fill((int) WorldBounds.blockOffsetInRange(pos.getX(), box.minX(), box.maxX()).lo(),
+            pos.getY() - box.minY(), (int) WorldBounds.blockOffsetInRange(pos.getZ(), box.minZ(), box.maxZ()).lo());
     }
 }

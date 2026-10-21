@@ -147,18 +147,11 @@ public class BellBlockEntity extends BlockEntity {
                             (double) p_155209_.getY() + 0.5D, p_155209_.getZ(), 0.5D);
                     SectorVec3 raiderPosition = p_155195_.exactPosition();
                     SectorVec3 particlePosition;
-                    if (raiderPosition != null) {
                         net.minecraft.world.phys.Vec3 delta = raiderPosition.relativeTo(bellPosition);
                         double length = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
                         particlePosition = length > 0.0D
                                 ? bellPosition.add(delta.x / length, 0.0D, delta.z / length)
                                 : bellPosition;
-                    } else {
-                        double d0 = Math.sqrt((p_155195_.getX() - (double) p_155209_.getX()) * (p_155195_.getX() - (double) p_155209_.getX())
-                                + (p_155195_.getZ() - (double) p_155209_.getZ()) * (p_155195_.getZ() - (double) p_155209_.getZ()));
-                        particlePosition = SectorVec3.fromBlockAndFraction(p_155209_.getX(), 0.5D + 1.0D / d0 * (p_155195_.getX() - (double) p_155209_.getX()),
-                                (double) p_155209_.getY() + 0.5D, p_155209_.getZ(), 0.5D + 1.0D / d0 * (p_155195_.getZ() - (double) p_155209_.getZ()));
-                    }
 
                     int j = Mth.clamp((i - 21) / -2, 3, 15);
                     for (int k = 0; k < j; ++k) {

@@ -207,7 +207,8 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
     }
 
     private static net.minecraft.world.phys.SectorVec3 findExitPortalXZPosTentative(ServerLevel pLevel, BlockPos pPos) {
-        Vec3 vec3 = (new Vec3((double) pPos.getX(), 0.0D, (double) pPos.getZ())).normalize();
+        // Only a direction toward the origin is needed; the destination remains local to spawn.
+        Vec3 vec3 = (new Vec3(pPos.getX().toDoubleSaturated(), 0.0D, pPos.getZ().toDoubleSaturated())).normalize();
         int i = 1024;
         net.minecraft.world.phys.SectorVec3 vec31 = net.minecraft.world.phys.SectorVec3.fromApproximate(vec3.scale(1024.0D));
 
@@ -249,7 +250,7 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
     }
 
     private static LevelChunk getChunk(Level pLevel, net.minecraft.world.phys.SectorVec3 pPos) {
-        return pLevel.getChunk(pPos.blockX() >> 4, pPos.blockZ() >> 4);
+        return pLevel.getChunk(pPos.blockX().shiftRight(4), pPos.blockZ().shiftRight(4));
     }
 
     @Nullable

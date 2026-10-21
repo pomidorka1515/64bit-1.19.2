@@ -174,7 +174,7 @@ public class BrewingStandBlockEntity extends BaseContainerBlockEntity implements
             if (itemstack.isEmpty()) {
                 itemstack = itemstack1;
             } else {
-                Containers.dropItemStack(pLevel, (double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ(), itemstack1);
+                Containers.dropItemStack(pLevel, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.0D, pPos.getY(), pPos.getZ(), 0.0D), itemstack1);
             }
         }
 

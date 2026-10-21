@@ -5,12 +5,29 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.util.profiling.InactiveProfiler;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import org.junit.jupiter.api.Test;
 
 class LevelTicksWorldBoundsTest {
+    @Test
+    void fullWidthAreaClearsDistinctHighHalfContainersWithoutScanningTheWorld() {
+        LevelTicks<Object> ticks = new LevelTicks<>(chunk -> true, () -> InactiveProfiler.INSTANCE);
+        Object type = new Object();
+        for (Int128 x : new Int128[] {Int128.MIN_VALUE, Int128.of(1L, 0L), Int128.MAX_VALUE}) {
+            BlockPos pos = new BlockPos(x, 64, x);
+            ticks.addContainer(new ChunkPos(pos), new LevelChunkTicks<>());
+            ticks.schedule(new ScheduledTick<>(type, pos, 10L, 0L));
+            assertTrue(ticks.hasScheduledTick(pos, type));
+        }
+        assertEquals(3, ticks.count());
+        ticks.clearArea(new BoundingBox(Int128.MIN_VALUE, 64, Int128.MIN_VALUE,
+                Int128.MAX_VALUE, 64, Int128.MAX_VALUE));
+        assertEquals(0, ticks.count());
+    }
+
     @Test
     void legacyOffsetCopyStillPreservesItsDestination() {
         LevelTicks<Object> ticks = new LevelTicks<>(chunk -> true, () -> InactiveProfiler.INSTANCE);

@@ -166,10 +166,7 @@ public class ConduitBlockEntity extends BlockEntity {
     private static void applyEffects(Level pLevel, BlockPos pPos, List<BlockPos> pPositions) {
         int i = pPositions.size();
         int j = i / 7 * 16;
-        long k = pPos.getX();
-        int l = pPos.getY();
-        long i1 = pPos.getZ();
-        AABB aabb = (new AABB((double) k, (double) l, (double) i1, (double) (k + 1), (double) (l + 1), (double) (i1 + 1))).inflate((double) j).expandTowards(0.0D, (double) pLevel.getHeight(), 0.0D);
+        AABB aabb = (new AABB(pPos)).inflate((double) j).expandTowards(0.0D, (double) pLevel.getHeight(), 0.0D);
         List<Player> list = pLevel.getEntitiesOfClass(Player.class, aabb);
         if (!list.isEmpty()) {
             for (Player player : list) {
@@ -200,7 +197,7 @@ public class ConduitBlockEntity extends BlockEntity {
         }
 
         if (pBlockEntity.destroyTarget != null) {
-            pLevel.playSound((Player) null, pBlockEntity.destroyTarget.getX(), pBlockEntity.destroyTarget.getY(), pBlockEntity.destroyTarget.getZ(), SoundEvents.CONDUIT_ATTACK_TARGET, SoundSource.BLOCKS, 1.0F, 1.0F);
+            pLevel.playSound((Player) null, pBlockEntity.destroyTarget.exactPosition(), SoundEvents.CONDUIT_ATTACK_TARGET, SoundSource.BLOCKS, 1.0F, 1.0F);
             pBlockEntity.destroyTarget.hurt(DamageSource.MAGIC, 4.0F);
         }
 
@@ -221,10 +218,7 @@ public class ConduitBlockEntity extends BlockEntity {
     }
 
     private static AABB getDestroyRangeAABB(BlockPos pPos) {
-        long i = pPos.getX();
-        int j = pPos.getY();
-        long k = pPos.getZ();
-        return (new AABB((double) i, (double) j, (double) k, (double) (i + 1), (double) (j + 1), (double) (k + 1))).inflate(8.0D);
+        return (new AABB(pPos)).inflate(8.0D);
     }
 
     @Nullable
@@ -245,9 +239,9 @@ public class ConduitBlockEntity extends BlockEntity {
         for (BlockPos blockpos : pPositions) {
             if (randomsource.nextInt(50) == 0) {
                 BlockPos blockpos1 = blockpos.subtract(pPos);
-                float f = -0.5F + randomsource.nextFloat() + (float) blockpos1.getX();
+                float f = -0.5F + randomsource.nextFloat() + (float) net.minecraft.world.level.WorldBounds.signedDifference(blockpos.getX(), pPos.getX());
                 float f1 = -2.0F + randomsource.nextFloat() + (float) blockpos1.getY();
-                float f2 = -0.5F + randomsource.nextFloat() + (float) blockpos1.getZ();
+                float f2 = -0.5F + randomsource.nextFloat() + (float) net.minecraft.world.level.WorldBounds.signedDifference(blockpos.getZ(), pPos.getZ());
                 pLevel.addParticle(ParticleTypes.NAUTILUS, particleOrigin, (double) f, (double) f1, (double) f2);
             }
         }

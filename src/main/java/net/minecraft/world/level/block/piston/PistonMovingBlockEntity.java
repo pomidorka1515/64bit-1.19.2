@@ -224,7 +224,7 @@ public class PistonMovingBlockEntity extends BlockEntity {
 
     private static AABB moveByPositionAndProgress(BlockPos p_155926_, AABB p_155927_, PistonMovingBlockEntity p_155928_) {
         double d0 = (double) p_155928_.getExtendedProgress(p_155928_.progress);
-        return p_155927_.move((double) p_155926_.getX() + d0 * (double) p_155928_.direction.getStepX(), (double) p_155926_.getY() + d0 * (double) p_155928_.direction.getStepY(), (double) p_155926_.getZ() + d0 * (double) p_155928_.direction.getStepZ());
+        return p_155927_.move(p_155926_).move(d0 * (double) p_155928_.direction.getStepX(), d0 * (double) p_155928_.direction.getStepY(), d0 * (double) p_155928_.direction.getStepZ());
     }
 
     private static void fixEntityWithinPistonBase(BlockPos pPos, Entity pEntity, Direction pDir, double pProgress) {

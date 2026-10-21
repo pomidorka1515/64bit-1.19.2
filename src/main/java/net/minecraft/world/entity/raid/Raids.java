@@ -95,14 +95,14 @@ public class Raids extends SavedData {
 
                 for (PoiRecord poirecord : list) {
                     BlockPos blockpos2 = poirecord.getPos();
-                    vec3 = vec3.add((double) blockpos2.getX(), (double) blockpos2.getY(), (double) blockpos2.getZ());
+                    vec3 = vec3.add(net.minecraft.world.level.WorldBounds.signedDifference(blockpos2.getX(), blockpos.getX()), (double) blockpos2.getY(), net.minecraft.world.level.WorldBounds.signedDifference(blockpos2.getZ(), blockpos.getZ()));
                     ++i;
                 }
 
                 BlockPos blockpos1;
                 if (i > 0) {
                     vec3 = vec3.scale(1.0D / (double) i);
-                    blockpos1 = new BlockPos(vec3);
+                    blockpos1 = new BlockPos(net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getX(), net.minecraft.util.Mth.floor(vec3.x)), net.minecraft.util.Mth.floor(vec3.y), net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getZ(), net.minecraft.util.Mth.floor(vec3.z)));
                 } else {
                     blockpos1 = blockpos;
                 }

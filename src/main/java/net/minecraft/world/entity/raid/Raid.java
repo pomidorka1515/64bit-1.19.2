@@ -128,7 +128,7 @@ public class Raid {
         this.raidCooldownTicks = pCompound.getInt("PreRaidTicks");
         this.postRaidTicks = pCompound.getInt("PostRaidTicks");
         this.totalHealth = pCompound.getFloat("TotalHealth");
-        this.center = new BlockPos(pCompound.getLong("CX"), pCompound.getInt("CY"), pCompound.getLong("CZ"));
+        this.center = new BlockPos(net.minecraft.nbt.NbtUtils.readInt128(pCompound, "CX"), pCompound.getInt("CY"), net.minecraft.nbt.NbtUtils.readInt128(pCompound, "CZ"));
         this.numGroups = pCompound.getInt("NumGroups");
         this.status = Raid.RaidStatus.getByName(pCompound.getString("Status"));
         this.heroesOfTheVillage.clear();
@@ -623,8 +623,8 @@ public class Raid {
 
         for (int i1 = 0; i1 < pMaxTry; ++i1) {
             float f = this.level.random.nextFloat() * ((float) Math.PI * 2F);
-            long j = WorldBounds.addBlockOffset(this.center.getX(), (long) Mth.floor(Mth.cos(f) * 32.0F * (float) i) + this.level.random.nextInt(5));
-            long l = WorldBounds.addBlockOffset(this.center.getZ(), (long) Mth.floor(Mth.sin(f) * 32.0F * (float) i) + this.level.random.nextInt(5));
+            net.minecraft.core.Int128 j = WorldBounds.addBlockOffset(this.center.getX(), (long) Mth.floor(Mth.cos(f) * 32.0F * (float) i) + this.level.random.nextInt(5));
+            net.minecraft.core.Int128 l = WorldBounds.addBlockOffset(this.center.getZ(), (long) Mth.floor(Mth.sin(f) * 32.0F * (float) i) + this.level.random.nextInt(5));
             int k = this.level.getHeight(Heightmap.Types.WORLD_SURFACE, j, l);
             blockpos$mutableblockpos.set(j, k, l);
             if (!this.level.isVillage(blockpos$mutableblockpos) || pOffsetMultiplier >= 2) {
@@ -746,9 +746,9 @@ public class Raid {
         pCompound.putFloat("TotalHealth", this.totalHealth);
         pCompound.putInt("NumGroups", this.numGroups);
         pCompound.putString("Status", this.status.getName());
-        pCompound.putInt("CX", this.center.getX());
+        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "CX", this.center.getX());
         pCompound.putInt("CY", this.center.getY());
-        pCompound.putInt("CZ", this.center.getZ());
+        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "CZ", this.center.getZ());
         ListTag listtag = new ListTag();
 
         for (UUID uuid : this.heroesOfTheVillage) {

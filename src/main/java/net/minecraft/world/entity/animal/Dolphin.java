@@ -126,17 +126,17 @@ public class Dolphin extends WaterAnimal {
 
     public void addAdditionalSaveData(CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
-        pCompound.putInt("TreasurePosX", this.getTreasurePos().getX());
+        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "TreasurePosX", this.getTreasurePos().getX());
         pCompound.putInt("TreasurePosY", this.getTreasurePos().getY());
-        pCompound.putInt("TreasurePosZ", this.getTreasurePos().getZ());
+        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "TreasurePosZ", this.getTreasurePos().getZ());
         pCompound.putBoolean("GotFish", this.gotFish());
         pCompound.putInt("Moistness", this.getMoistnessLevel());
     }
 
     public void readAdditionalSaveData(CompoundTag pCompound) {
-        long i = pCompound.getLong("TreasurePosX");
+        net.minecraft.core.Int128 i = net.minecraft.nbt.NbtUtils.readInt128(pCompound, "TreasurePosX");
         int j = pCompound.getInt("TreasurePosY");
-        long k = pCompound.getLong("TreasurePosZ");
+        net.minecraft.core.Int128 k = net.minecraft.nbt.NbtUtils.readInt128(pCompound, "TreasurePosZ");
         this.setTreasurePos(new BlockPos(i, j, k));
         super.readAdditionalSaveData(pCompound);
         this.setGotFish(pCompound.getBoolean("GotFish"));

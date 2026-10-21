@@ -143,25 +143,25 @@ public class Turtle extends Animal {
 
     public void addAdditionalSaveData(CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
-        pCompound.putInt("HomePosX", this.getHomePos().getX());
+        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "HomePosX", this.getHomePos().getX());
         pCompound.putInt("HomePosY", this.getHomePos().getY());
-        pCompound.putInt("HomePosZ", this.getHomePos().getZ());
+        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "HomePosZ", this.getHomePos().getZ());
         pCompound.putBoolean("HasEgg", this.hasEgg());
-        pCompound.putInt("TravelPosX", this.getTravelPos().getX());
+        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "TravelPosX", this.getTravelPos().getX());
         pCompound.putInt("TravelPosY", this.getTravelPos().getY());
-        pCompound.putInt("TravelPosZ", this.getTravelPos().getZ());
+        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "TravelPosZ", this.getTravelPos().getZ());
     }
 
     public void readAdditionalSaveData(CompoundTag pCompound) {
-        long i = pCompound.getLong("HomePosX");
+        net.minecraft.core.Int128 i = net.minecraft.nbt.NbtUtils.readInt128(pCompound, "HomePosX");
         int j = pCompound.getInt("HomePosY");
-        long k = pCompound.getLong("HomePosZ");
+        net.minecraft.core.Int128 k = net.minecraft.nbt.NbtUtils.readInt128(pCompound, "HomePosZ");
         this.setHomePos(new BlockPos(i, j, k));
         super.readAdditionalSaveData(pCompound);
         this.setHasEgg(pCompound.getBoolean("HasEgg"));
-        long l = pCompound.getLong("TravelPosX");
+        net.minecraft.core.Int128 l = net.minecraft.nbt.NbtUtils.readInt128(pCompound, "TravelPosX");
         int i1 = pCompound.getInt("TravelPosY");
-        long j1 = pCompound.getLong("TravelPosZ");
+        net.minecraft.core.Int128 j1 = net.minecraft.nbt.NbtUtils.readInt128(pCompound, "TravelPosZ");
         this.setTravelPos(new BlockPos(l, i1, j1));
     }
 
@@ -621,10 +621,10 @@ public class Turtle extends Animal {
                 }
 
                 if (vec31 != null) {
-                    long i = vec31.blockX();
-                    long j = vec31.blockZ();
+                    net.minecraft.core.Int128 i = vec31.blockX();
+                    net.minecraft.core.Int128 j = vec31.blockZ();
                     int k = 34;
-                    if (!this.turtle.level.hasChunksAt(i - 34, j - 34, i + 34, j + 34)) {
+                    if (!this.turtle.level.hasChunksAt(net.minecraft.world.level.WorldBounds.addBlockOffset(i, -34), net.minecraft.world.level.WorldBounds.addBlockOffset(j, -34), net.minecraft.world.level.WorldBounds.addBlockOffset(i, 34), net.minecraft.world.level.WorldBounds.addBlockOffset(j, 34))) {
                         vec31 = null;
                     }
                 }

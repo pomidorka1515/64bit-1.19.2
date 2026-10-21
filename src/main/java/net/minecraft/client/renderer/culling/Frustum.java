@@ -80,9 +80,9 @@ public class Frustum {
             throw new NullPointerException("camera");
         if (camera.getExactPosition() != null) {
             this.cameraRelativePosition = CameraRelativePosition.of(camera.getExactPosition());
-            this.camX = camera.getPosition().x;
-            this.camY = camera.getPosition().y;
-            this.camZ = camera.getPosition().z;
+            this.camX = camera.getExactPosition().subX();
+            this.camY = camera.getExactPosition().y();
+            this.camZ = camera.getExactPosition().subZ();
         } else {
             this.prepare(camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
         }

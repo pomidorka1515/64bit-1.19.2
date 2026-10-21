@@ -53,7 +53,8 @@ public class MineshaftStructure extends Structure {
         int i = chunkgenerator.getSeaLevel();
         if (this.type == MineshaftStructure.Type.MESA) {
             BlockPos blockpos = p_227966_.getBoundingBox().getCenter();
-            int j = chunkgenerator.getBaseHeight(blockpos.getX(), blockpos.getZ(), Heightmap.Types.WORLD_SURFACE_WG, p_227967_.heightAccessor(), p_227967_.randomState());
+            // Deferred worldgen seam: only height sampling projects to low 64 bits.
+            int j = chunkgenerator.getBaseHeight(blockpos.getX().lo(), blockpos.getZ().lo(), Heightmap.Types.WORLD_SURFACE_WG, p_227967_.heightAccessor(), p_227967_.randomState());
             int k = j <= i ? i : Mth.randomBetweenInclusive(worldgenrandom, i, j);
             int l = k - blockpos.getY();
             p_227966_.offsetPiecesVertically(l);

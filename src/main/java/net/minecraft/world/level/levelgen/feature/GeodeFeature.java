@@ -100,8 +100,9 @@ public class GeodeFeature extends Feature<GeodeConfiguration> {
         Predicate<BlockState> predicate = isReplaceable(geodeconfiguration.geodeBlockSettings.cannotReplace);
 
         for (BlockPos blockpos3 : BlockPos.betweenClosed(blockpos.offset(i, i, i), blockpos.offset(j, j, j))) {
-            long blockX = blockpos3.getX();
-            long blockZ = blockpos3.getZ();
+            // Noise content is deferred low-64 worldgen; block writes below stay exact.
+            long blockX = blockpos3.getXLo();
+            long blockZ = blockpos3.getZLo();
             double d8 = FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))
                     ? normalnoise.getValueScaled(blockX, 1.0D, blockpos3.getY(), 1.0D, blockZ) * geodeconfiguration.noiseMultiplier
                     : normalnoise.getValue((double) blockX, (double) blockpos3.getY(), (double) blockZ) * geodeconfiguration.noiseMultiplier;

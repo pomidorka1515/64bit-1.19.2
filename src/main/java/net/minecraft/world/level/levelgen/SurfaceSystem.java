@@ -93,7 +93,10 @@ public class SurfaceSystem {
                 return "ChunkBlockColumn " + chunkpos;
             }
         };
-        SurfaceRules.Context surfacerules$context = new SurfaceRules.Context(this, p_224649_, p_224654_, p_224655_, p_224650_::getBiome, p_224651_, p_224653_);
+        SurfaceRules.Context surfacerules$context = new SurfaceRules.Context(this, p_224649_, p_224654_, p_224655_,
+                sample -> p_224650_.getBiome(new BlockPos(
+                        WorldBounds.addBlockOffset(chunkpos.getMinBlockX(), sample.getXLo() - i), sample.getY(),
+                        WorldBounds.addBlockOffset(chunkpos.getMinBlockZ(), sample.getZLo() - j))), p_224651_, p_224653_);
         SurfaceRules.SurfaceRule surfacerules$surfacerule = p_224656_.apply(surfacerules$context);
         BlockPos.MutableBlockPos blockpos$mutableblockpos1 = new BlockPos.MutableBlockPos();
 
@@ -191,7 +194,11 @@ public class SurfaceSystem {
     /** @deprecated */
     @Deprecated
     public Optional<BlockState> topMaterial(SurfaceRules.RuleSource p_189972_, CarvingContext p_189973_, Function<BlockPos, Holder<Biome>> p_189974_, ChunkAccess p_189975_, NoiseChunk p_189976_, BlockPos p_189977_, boolean p_189978_) {
-        SurfaceRules.Context surfacerules$context = new SurfaceRules.Context(this, p_189973_.randomState(), p_189975_, p_189976_, p_189974_, p_189973_.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY), p_189973_);
+        SurfaceRules.Context surfacerules$context = new SurfaceRules.Context(this, p_189973_.randomState(), p_189975_, p_189976_,
+                sample -> p_189974_.apply(new BlockPos(
+                        WorldBounds.addBlockOffset(p_189977_.getX(), sample.getXLo() - p_189977_.getXLo()), sample.getY(),
+                        WorldBounds.addBlockOffset(p_189977_.getZ(), sample.getZLo() - p_189977_.getZLo()))),
+                p_189973_.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY), p_189973_);
         SurfaceRules.SurfaceRule surfacerules$surfacerule = p_189972_.apply(surfacerules$context);
         long i = p_189977_.getXLo();
         int j = p_189977_.getY();

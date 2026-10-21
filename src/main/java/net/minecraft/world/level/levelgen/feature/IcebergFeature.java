@@ -168,11 +168,12 @@ public class IcebergFeature extends Feature<BlockStateConfiguration> {
 
     private double signedDistanceCircle(int pX, int pZ, BlockPos pCenter, int pRadius, RandomSource pRandom) {
         float f = 10.0F * Mth.clamp(pRandom.nextFloat(), 0.2F, 0.8F) / (float) pRadius;
-        return (double) f + Math.pow((double) (pX - pCenter.getX()), 2.0D) + Math.pow((double) (pZ - pCenter.getZ()), 2.0D) - Math.pow((double) pRadius, 2.0D);
+        return (double) f + Math.pow((double) (pX - pCenter.getXLo()), 2.0D) + Math.pow((double) (pZ - pCenter.getZLo()), 2.0D) - Math.pow((double) pRadius, 2.0D);
     }
 
     private double signedDistanceEllipse(int pX, int pZ, BlockPos pCenter, int pMajorRadius, int pMinorRadius, double pAngle) {
-        return Math.pow(((double) (pX - pCenter.getX()) * Math.cos(pAngle) - (double) (pZ - pCenter.getZ()) * Math.sin(pAngle)) / (double) pMajorRadius, 2.0D) + Math.pow(((double) (pX - pCenter.getX()) * Math.sin(pAngle) + (double) (pZ - pCenter.getZ()) * Math.cos(pAngle)) / (double) pMinorRadius, 2.0D) - 1.0D;
+        // pCenter is an iceberg-local cutout offset, never a world position.
+        return Math.pow(((double) (pX - pCenter.getXLo()) * Math.cos(pAngle) - (double) (pZ - pCenter.getZLo()) * Math.sin(pAngle)) / (double) pMajorRadius, 2.0D) + Math.pow(((double) (pX - pCenter.getXLo()) * Math.sin(pAngle) + (double) (pZ - pCenter.getZLo()) * Math.cos(pAngle)) / (double) pMinorRadius, 2.0D) - 1.0D;
     }
 
     private int heightDependentRadiusRound(RandomSource pRandom, int pY, int pHeight, int pMajorAxis) {

@@ -44,17 +44,17 @@ public class OreFeature extends Feature<OreConfiguration> {
             d2 = Math.cos((double) f) * (double) f1;
             d3 = -d2;
         } else {
-            d0 = WorldBounds.clampAbsoluteDouble((double) blockpos.getX() + Math.sin((double) f) * (double) f1);
-            d1 = WorldBounds.clampAbsoluteDouble((double) blockpos.getX() - Math.sin((double) f) * (double) f1);
-            d2 = WorldBounds.clampAbsoluteDouble((double) blockpos.getZ() + Math.cos((double) f) * (double) f1);
-            d3 = WorldBounds.clampAbsoluteDouble((double) blockpos.getZ() - Math.cos((double) f) * (double) f1);
+            d0 = WorldBounds.clampAbsoluteDouble((double) blockpos.getXLo() + Math.sin((double) f) * (double) f1);
+            d1 = WorldBounds.clampAbsoluteDouble((double) blockpos.getXLo() - Math.sin((double) f) * (double) f1);
+            d2 = WorldBounds.clampAbsoluteDouble((double) blockpos.getZLo() + Math.cos((double) f) * (double) f1);
+            d3 = WorldBounds.clampAbsoluteDouble((double) blockpos.getZLo() - Math.cos((double) f) * (double) f1);
         }
         int j = 2;
         double d4 = (double) (blockpos.getY() + randomsource.nextInt(3) - 2);
         double d5 = (double) (blockpos.getY() + randomsource.nextInt(3) - 2);
-        long k = WorldBounds.addBlockOffset(blockpos.getX(), -(long) Mth.ceil(f1) - i);
+        long k = WorldBounds.addBlockOffset(blockpos.getXLo(), -(long) Mth.ceil(f1) - i);
         int l = blockpos.getY() - 2 - i;
-        long i1 = WorldBounds.addBlockOffset(blockpos.getZ(), -(long) Mth.ceil(f1) - i);
+        long i1 = WorldBounds.addBlockOffset(blockpos.getZLo(), -(long) Mth.ceil(f1) - i);
         int j1 = 2 * (Mth.ceil(f1) + i);
         int k1 = 2 * (2 + i);
 
@@ -62,8 +62,10 @@ public class OreFeature extends Feature<OreConfiguration> {
         long maxZ = WorldBounds.addBlockOffset(i1, j1);
         for (long l1 = k;; l1 = WorldBounds.addBlockOffset(l1, 1L)) {
             for (long i2 = i1;; i2 = WorldBounds.addBlockOffset(i2, 1L)) {
-                if (l <= worldgenlevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, l1, i2)) {
-                    return this.doPlace(worldgenlevel, randomsource, oreconfiguration, d0, d1, d2, d3, d4, d5, blockpos.getX(), blockpos.getZ(), preciseEllipsoid, k, l, i1, j1, k1);
+                if (l <= worldgenlevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG,
+                        WorldBounds.addBlockOffset(blockpos.getX(), l1 - blockpos.getXLo()),
+                        WorldBounds.addBlockOffset(blockpos.getZ(), i2 - blockpos.getZLo()))) {
+                    return this.doPlace(worldgenlevel, randomsource, oreconfiguration, d0, d1, d2, d3, d4, d5, blockpos.getXLo(), blockpos.getZLo(), preciseEllipsoid, k, l, i1, j1, k1, blockpos);
                 }
                 if (i2 == maxZ) {
                     break;
@@ -78,6 +80,10 @@ public class OreFeature extends Feature<OreConfiguration> {
     }
 
     protected boolean doPlace(WorldGenLevel pLevel, RandomSource pRandom, OreConfiguration pConfig, double pMinX, double pMaxX, double pMinZ, double pMaxZ, double pMinY, double pMaxY, long centerX, long centerZ, boolean preciseEllipsoid, long pX, int pY, long pZ, int pWidth, int pHeight) {
+        return this.doPlace(pLevel, pRandom, pConfig, pMinX, pMaxX, pMinZ, pMaxZ, pMinY, pMaxY, centerX, centerZ, preciseEllipsoid, pX, pY, pZ, pWidth, pHeight, new BlockPos(centerX, pY, centerZ));
+    }
+
+    private boolean doPlace(WorldGenLevel pLevel, RandomSource pRandom, OreConfiguration pConfig, double pMinX, double pMaxX, double pMinZ, double pMaxZ, double pMinY, double pMaxY, long centerX, long centerZ, boolean preciseEllipsoid, long pX, int pY, long pZ, int pWidth, int pHeight, BlockPos exactOrigin) {
         int i = 0;
         BitSet bitset = new BitSet(pWidth * pHeight * pWidth);
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
@@ -162,7 +168,10 @@ public class OreFeature extends Feature<OreConfiguration> {
                                             long l2 = (long) WorldBounds.signedDifference(i2, pX) + (j2 - pY) * pWidth + (long) WorldBounds.signedDifference(k2, pZ) * pWidth * pHeight;
                                             if (!bitset.get((int) l2)) {
                                                 bitset.set((int) l2);
-                                                blockpos$mutableblockpos.set(i2, j2, k2);
+                                                // Only ellipsoid content math is projected. Resolve world sections
+                                                // and neighbor reads using the original full-width anchor.
+                                                blockpos$mutableblockpos.set(WorldBounds.addBlockOffset(exactOrigin.getX(), i2 - centerX), j2,
+                                                        WorldBounds.addBlockOffset(exactOrigin.getZ(), k2 - centerZ));
                                                 if (pLevel.ensureCanWrite(blockpos$mutableblockpos)) {
                                                     LevelChunkSection levelchunksection = bulksectionaccess.getSection(blockpos$mutableblockpos);
                                                     if (levelchunksection != null) {

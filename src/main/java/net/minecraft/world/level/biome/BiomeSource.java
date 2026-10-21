@@ -15,11 +15,13 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Int128;
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.Registry;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.WorldBounds;
 
 public abstract class BiomeSource implements BiomeResolver {
     public static final Codec<BiomeSource> CODEC = Registry.BIOME_SOURCE.byNameCodec().dispatchStable(BiomeSource::codec, Function.identity());
@@ -40,23 +42,28 @@ public abstract class BiomeSource implements BiomeResolver {
     }
 
     public Set<Holder<Biome>> getBiomesWithin(long pX, int pY, long pZ, int pRadius, Climate.Sampler pSampler) {
-        long i = QuartPos.fromBlock(net.minecraft.world.level.WorldBounds.subtractBlockOffset(pX, pRadius));
+        return this.getBiomesWithin(Int128.fromLong(pX), pY, Int128.fromLong(pZ), pRadius, pSampler);
+    }
+
+    public Set<Holder<Biome>> getBiomesWithin(Int128 pX, int pY, Int128 pZ, int pRadius, Climate.Sampler pSampler) {
+        Int128 i = WorldBounds.subtractBlockOffset(pX, pRadius).shiftRight(2);
         int j = QuartPos.fromBlock(pY - pRadius);
-        long k = QuartPos.fromBlock(net.minecraft.world.level.WorldBounds.subtractBlockOffset(pZ, pRadius));
-        long l = QuartPos.fromBlock(net.minecraft.world.level.WorldBounds.addBlockOffset(pX, pRadius));
+        Int128 k = WorldBounds.subtractBlockOffset(pZ, pRadius).shiftRight(2);
+        Int128 l = WorldBounds.addBlockOffset(pX, pRadius).shiftRight(2);
         int i1 = QuartPos.fromBlock(pY + pRadius);
-        long j1 = QuartPos.fromBlock(net.minecraft.world.level.WorldBounds.addBlockOffset(pZ, pRadius));
-        long k1 = l - i + 1;
+        Int128 j1 = WorldBounds.addBlockOffset(pZ, pRadius).shiftRight(2);
+        // These spans are bounded by the int search radius, not the absolute coordinates.
+        long k1 = WorldBounds.signedDifferenceAsLong(l, i) + 1;
         int l1 = i1 - j + 1;
-        long i2 = j1 - k + 1;
+        long i2 = WorldBounds.signedDifferenceAsLong(j1, k) + 1;
         Set<Holder<Biome>> set = Sets.newHashSet();
 
         for (long j2 = 0; j2 < i2; ++j2) {
             for (long k2 = 0; k2 < k1; ++k2) {
                 for (int l2 = 0; l2 < l1; ++l2) {
-                    long i3 = i + k2;
+                    Int128 i3 = WorldBounds.addBlockOffset(i, k2);
                     int j3 = j + l2;
-                    long k3 = k + j2;
+                    Int128 k3 = WorldBounds.addBlockOffset(k, j2);
                     set.add(this.getNoiseBiome(i3, j3, k3, pSampler));
                 }
             }
@@ -67,6 +74,11 @@ public abstract class BiomeSource implements BiomeResolver {
 
     @Nullable
     public Pair<BlockPos, Holder<Biome>> findBiomeHorizontal(long pX, int pY, long pZ, int pRadius, Predicate<Holder<Biome>> pBiomePredicate, RandomSource pRandom, Climate.Sampler pSampler) {
+        return this.findBiomeHorizontal(Int128.fromLong(pX), pY, Int128.fromLong(pZ), pRadius, pBiomePredicate, pRandom, pSampler);
+    }
+
+    @Nullable
+    public Pair<BlockPos, Holder<Biome>> findBiomeHorizontal(Int128 pX, int pY, Int128 pZ, int pRadius, Predicate<Holder<Biome>> pBiomePredicate, RandomSource pRandom, Climate.Sampler pSampler) {
         return this.findBiomeHorizontal(pX, pY, pZ, pRadius, 1, pBiomePredicate, pRandom, false, pSampler);
     }
 
@@ -80,10 +92,10 @@ public abstract class BiomeSource implements BiomeResolver {
             int[] aint = Mth.outFromOrigin(p_220578_.getY(), p_220584_.getMinBuildHeight() + 1, p_220584_.getMaxBuildHeight(), p_220581_).toArray();
 
             for (BlockPos.MutableBlockPos blockpos$mutableblockpos : BlockPos.spiralAround(BlockPos.ZERO, i, Direction.EAST, Direction.SOUTH)) {
-                long j = p_220578_.getX() + blockpos$mutableblockpos.getX() * p_220580_;
-                long k = p_220578_.getZ() + blockpos$mutableblockpos.getZ() * p_220580_;
-                long l = QuartPos.fromBlock(j);
-                long i1 = QuartPos.fromBlock(k);
+                Int128 j = WorldBounds.addBlockOffset(p_220578_.getX(), WorldBounds.multiplySaturated(blockpos$mutableblockpos.getX(), p_220580_));
+                Int128 k = WorldBounds.addBlockOffset(p_220578_.getZ(), WorldBounds.multiplySaturated(blockpos$mutableblockpos.getZ(), p_220580_));
+                Int128 l = j.shiftRight(2);
+                Int128 i1 = k.shiftRight(2);
 
                 for (int j1 : aint) {
                     int k1 = QuartPos.fromBlock(j1);
@@ -100,8 +112,13 @@ public abstract class BiomeSource implements BiomeResolver {
 
     @Nullable
     public Pair<BlockPos, Holder<Biome>> findBiomeHorizontal(long pX, int pY, long pZ, int pRadius, int pIncrement, Predicate<Holder<Biome>> pBiomePredicate, RandomSource pRandom, boolean pFindClosest, Climate.Sampler pSampler) {
-        long i = QuartPos.fromBlock(pX);
-        long j = QuartPos.fromBlock(pZ);
+        return this.findBiomeHorizontal(Int128.fromLong(pX), pY, Int128.fromLong(pZ), pRadius, pIncrement, pBiomePredicate, pRandom, pFindClosest, pSampler);
+    }
+
+    @Nullable
+    public Pair<BlockPos, Holder<Biome>> findBiomeHorizontal(Int128 pX, int pY, Int128 pZ, int pRadius, int pIncrement, Predicate<Holder<Biome>> pBiomePredicate, RandomSource pRandom, boolean pFindClosest, Climate.Sampler pSampler) {
+        Int128 i = pX.shiftRight(2);
+        Int128 j = pZ.shiftRight(2);
         int k = QuartPos.fromBlock(pRadius);
         int l = QuartPos.fromBlock(pY);
         Pair<BlockPos, Holder<Biome>> pair = null;
@@ -120,12 +137,17 @@ public abstract class BiomeSource implements BiomeResolver {
                         }
                     }
 
-                    long k2 = i + i2;
-                    long j2 = j + l1;
+                    Int128 k2 = WorldBounds.addBlockOffset(i, i2);
+                    Int128 j2 = WorldBounds.addBlockOffset(j, l1);
+                    // Do not sample quart cells outside the representable block domain.
+                    if (k2.compareTo(Int128.MIN.shiftRight(2)) < 0 || k2.compareTo(Int128.MAX.shiftRight(2)) > 0
+                            || j2.compareTo(Int128.MIN.shiftRight(2)) < 0 || j2.compareTo(Int128.MAX.shiftRight(2)) > 0) {
+                        continue;
+                    }
                     Holder<Biome> holder = this.getNoiseBiome(k2, l, j2, pSampler);
                     if (pBiomePredicate.test(holder)) {
                         if (pair == null || pRandom.nextInt(i1 + 1) == 0) {
-                            BlockPos blockpos = new BlockPos(QuartPos.toBlock(k2), pY, QuartPos.toBlock(j2));
+                            BlockPos blockpos = new BlockPos(k2.shiftLeftSaturated(2), pY, j2.shiftLeftSaturated(2));
                             if (pFindClosest) {
                                 return Pair.of(blockpos, holder);
                             }
@@ -143,6 +165,11 @@ public abstract class BiomeSource implements BiomeResolver {
     }
 
     public abstract Holder<Biome> getNoiseBiome(long pX, int pY, long pZ, Climate.Sampler pSampler);
+
+    public Holder<Biome> getNoiseBiome(Int128 pX, int pY, Int128 pZ, Climate.Sampler pSampler) {
+        // Deferred generation providers consume low-64 quart coordinates only.
+        return this.getNoiseBiome(pX.lo(), pY, pZ.lo(), pSampler);
+    }
 
     public void addDebugInfo(List<String> pInfo, BlockPos pPos, Climate.Sampler pSampler) {
     }

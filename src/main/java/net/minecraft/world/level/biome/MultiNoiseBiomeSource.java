@@ -16,6 +16,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Int128;
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.Registry;
 import net.minecraft.data.BuiltinRegistries;
@@ -71,15 +72,20 @@ public class MultiNoiseBiomeSource extends BiomeSource {
         return this.getNoiseBiome(pSampler.sample(pX, pY, pZ));
     }
 
+    @Override
+    public Holder<Biome> getNoiseBiome(Int128 pX, int pY, Int128 pZ, Climate.Sampler pSampler) {
+        return this.getNoiseBiome(pSampler.sample(pX, pY, pZ));
+    }
+
     @VisibleForDebug
     public Holder<Biome> getNoiseBiome(Climate.TargetPoint pTargetPoint) {
         return this.parameters.findValue(pTargetPoint);
     }
 
     public void addDebugInfo(List<String> pInfo, BlockPos pPos, Climate.Sampler pSampler) {
-        long i = QuartPos.fromBlock(pPos.getX());
+        Int128 i = pPos.getX().shiftRight(2);
         int j = QuartPos.fromBlock(pPos.getY());
-        long k = QuartPos.fromBlock(pPos.getZ());
+        Int128 k = pPos.getZ().shiftRight(2);
         Climate.TargetPoint climate$targetpoint = pSampler.sample(i, j, k);
         float f = Climate.unquantizeCoord(climate$targetpoint.continentalness());
         float f1 = Climate.unquantizeCoord(climate$targetpoint.erosion());

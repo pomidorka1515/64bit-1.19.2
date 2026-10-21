@@ -16,6 +16,7 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.QuartPos;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Mth;
@@ -404,6 +405,11 @@ public class Climate {
     }
 
     public static record Sampler(DensityFunction temperature, DensityFunction humidity, DensityFunction continentalness, DensityFunction erosion, DensityFunction depth, DensityFunction weirdness, List<Climate.ParameterPoint> spawnTarget) {
+        public Climate.TargetPoint sample(Int128 pX, int pY, Int128 pZ) {
+            // Only density sampling sees the deferred low-64 projection; callers retain exact quart positions.
+            return this.sample(pX.lo(), pY, pZ.lo());
+        }
+
         public Climate.TargetPoint sample(long p_186975_, int p_186976_, long p_186977_) {
             long i = QuartPos.toBlock(p_186975_);
             int j = QuartPos.toBlock(p_186976_);
@@ -421,7 +427,7 @@ public class Climate {
         Climate.SpawnFinder.Result result;
 
         SpawnFinder(List<Climate.ParameterPoint> pPoints, Climate.Sampler pSampler) {
-            this.result = getSpawnPositionAndFitness(pPoints, pSampler, 0, 0);
+            this.result = getSpawnPositionAndFitness(pPoints, pSampler, Int128.ZERO, Int128.ZERO);
             this.radialSearch(pPoints, pSampler, 2048.0F, 512.0F);
             this.radialSearch(pPoints, pSampler, 512.0F, 32.0F);
         }
@@ -432,8 +438,8 @@ public class Climate {
             BlockPos blockpos = this.result.location();
 
             while (f1 <= pMax) {
-                long i = net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getX(), (int) (Math.sin((double) f) * (double) f1));
-                long j = net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getZ(), (int) (Math.cos((double) f) * (double) f1));
+                Int128 i = net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getX(), (int) (Math.sin((double) f) * (double) f1));
+                Int128 j = net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getZ(), (int) (Math.cos((double) f) * (double) f1));
                 Climate.SpawnFinder.Result climate$spawnfinder$result = getSpawnPositionAndFitness(pPoint, pSampler, i, j);
                 if (climate$spawnfinder$result.fitness() < this.result.fitness()) {
                     this.result = climate$spawnfinder$result;
@@ -447,11 +453,12 @@ public class Climate {
             }
         }
 
-        private static Climate.SpawnFinder.Result getSpawnPositionAndFitness(List<Climate.ParameterPoint> pPoints, Climate.Sampler pSampler, long pX, long pZ) {
+        private static Climate.SpawnFinder.Result getSpawnPositionAndFitness(List<Climate.ParameterPoint> pPoints, Climate.Sampler pSampler, Int128 pX, Int128 pZ) {
             double d0 = Mth.square(2500.0D);
-            int i = 2;
-            long j = (long) ((double) Mth.square(10000.0F) * Math.pow((double) (Mth.square((long) pX) + Mth.square((long) pZ)) / d0, 2.0D));
-            Climate.TargetPoint climate$targetpoint = pSampler.sample(QuartPos.fromBlock(pX), 0, QuartPos.fromBlock(pZ));
+            double x = net.minecraft.world.level.WorldBounds.signedDifference(pX, Int128.ZERO);
+            double z = net.minecraft.world.level.WorldBounds.signedDifference(pZ, Int128.ZERO);
+            long j = (long) ((double) Mth.square(10000.0F) * Math.pow((Mth.square(x) + Mth.square(z)) / d0, 2.0D));
+            Climate.TargetPoint climate$targetpoint = pSampler.sample(pX.shiftRight(2), 0, pZ.shiftRight(2));
             Climate.TargetPoint climate$targetpoint1 = new Climate.TargetPoint(climate$targetpoint.temperature(), climate$targetpoint.humidity(), climate$targetpoint.continentalness(), climate$targetpoint.erosion(), 0L, climate$targetpoint.weirdness());
             long k = Long.MAX_VALUE;
 
@@ -459,7 +466,7 @@ public class Climate {
                 k = Math.min(k, climate$parameterpoint.fitness(climate$targetpoint1));
             }
 
-            return new Climate.SpawnFinder.Result(new BlockPos(pX, 0, pZ), j + k);
+            return new Climate.SpawnFinder.Result(new BlockPos(pX, 0, pZ), j > Long.MAX_VALUE - k ? Long.MAX_VALUE : j + k);
         }
 
         static record Result(BlockPos location, long fitness) {

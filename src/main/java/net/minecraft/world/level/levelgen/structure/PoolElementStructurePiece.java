@@ -7,9 +7,11 @@ import com.mojang.serialization.DynamicOps;
 import java.util.List;
 import java.util.Locale;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.RandomSource;
@@ -46,7 +48,7 @@ public class PoolElementStructurePiece extends StructurePiece {
     public PoolElementStructurePiece(StructurePieceSerializationContext pContext, CompoundTag pTag) {
         super(StructurePieceType.JIGSAW, pTag);
         this.structureTemplateManager = pContext.structureTemplateManager();
-        this.position = new BlockPos(pTag.getLong("PosX"), pTag.getInt("PosY"), pTag.getLong("PosZ"));
+        this.position = new BlockPos(NbtUtils.readInt128(pTag, "PosX"), pTag.getInt("PosY"), NbtUtils.readInt128(pTag, "PosZ"));
         this.groundLevelDelta = pTag.getInt("ground_level_delta");
         DynamicOps<Tag> dynamicops = RegistryOps.create(NbtOps.INSTANCE, pContext.registryAccess());
         this.element = StructurePoolElement.CODEC.parse(dynamicops, pTag.getCompound("pool_element")).resultOrPartial(LOGGER::error).orElseThrow(() -> {
@@ -62,9 +64,9 @@ public class PoolElementStructurePiece extends StructurePiece {
     }
 
     protected void addAdditionalSaveData(StructurePieceSerializationContext pContext, CompoundTag pTag) {
-        pTag.putInt("PosX", this.position.getX());
+        NbtUtils.writeInt128(pTag, "PosX", this.position.getX());
         pTag.putInt("PosY", this.position.getY());
-        pTag.putInt("PosZ", this.position.getZ());
+        NbtUtils.writeInt128(pTag, "PosZ", this.position.getZ());
         pTag.putInt("ground_level_delta", this.groundLevelDelta);
         DynamicOps<Tag> dynamicops = RegistryOps.create(NbtOps.INSTANCE, pContext.registryAccess());
         StructurePoolElement.CODEC.encodeStart(dynamicops, this.element).resultOrPartial(LOGGER::error).ifPresent((p_163125_) -> {
@@ -89,6 +91,16 @@ public class PoolElementStructurePiece extends StructurePiece {
     }
 
     public void move(int pX, int pY, int pZ) {
+        this.move(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+    }
+
+    @Override
+    public void move(long pX, int pY, long pZ) {
+        this.move(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+    }
+
+    @Override
+    public void move(Int128 pX, int pY, Int128 pZ) {
         super.move(pX, pY, pZ);
         this.position = this.position.offset(pX, pY, pZ);
     }

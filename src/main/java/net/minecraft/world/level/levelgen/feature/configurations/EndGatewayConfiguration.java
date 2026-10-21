@@ -7,7 +7,7 @@ import net.minecraft.core.BlockPos;
 
 public class EndGatewayConfiguration implements FeatureConfiguration {
     public static final Codec<EndGatewayConfiguration> CODEC = RecordCodecBuilder.create((p_67649_) -> {
-        return p_67649_.group(BlockPos.CODEC.optionalFieldOf("exit").forGetter((p_160810_) -> {
+        return p_67649_.group(net.minecraft.world.level.levelgen.WorldgenPlacementCodecs.optionalField(BlockPos.CODEC, "exit").forGetter((p_160810_) -> {
                            return p_160810_.exit;
                        }),
                                Codec.BOOL.fieldOf("exact").forGetter((p_160808_) -> {

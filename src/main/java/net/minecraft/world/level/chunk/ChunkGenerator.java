@@ -97,6 +97,7 @@ public abstract class ChunkGenerator {
     protected final Optional<HolderSet<StructureSet>> structureOverrides;
     private final Function<Holder<Biome>, BiomeGenerationSettings> generationSettingsGetter;
     private final Map<Structure, List<StructurePlacement>> placementsForStructure = new Object2ObjectOpenHashMap<>();
+    // Derived low-64 generation results, not persisted placement identity; rebuild from settings.
     private final Map<ConcentricRingsStructurePlacement, CompletableFuture<List<ChunkPos>>> ringPositions = new Object2ObjectArrayMap<>();
     private boolean hasGeneratedPositions;
 

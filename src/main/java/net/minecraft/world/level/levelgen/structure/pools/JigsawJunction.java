@@ -46,6 +46,7 @@ public class JigsawJunction {
     }
 
     public <T> Dynamic<T> serialize(DynamicOps<T> pOps) {
+        // The low word is explicit, but persistence also requires Hi: only density sampling aliases.
         ImmutableMap.Builder<T, T> builder = ImmutableMap.builder();
         builder.put(pOps.createString("source_x"), pOps.createLong(this.sourceX.lo()))
                 .put(pOps.createString("source_xHi"), pOps.createLong(this.sourceX.hi()))
@@ -65,8 +66,8 @@ public class JigsawJunction {
         if (dynamic.getValue() instanceof net.minecraft.nbt.CompoundTag tag) {
             return net.minecraft.nbt.NbtUtils.readInt128(tag, key);
         }
-        long low = dynamic.get(key).asNumber().result().orElseThrow(() -> new IllegalArgumentException("Missing " + key)).longValue();
-        long high = dynamic.get(key + "Hi").asNumber().result().orElseThrow(() -> new IllegalArgumentException("Missing " + key + "Hi")).longValue();
+        long low = net.minecraft.world.level.levelgen.WorldgenPlacementCodecs.exactLong(dynamic.get(key).asNumber().result().orElseThrow(() -> new IllegalArgumentException("Missing " + key)));
+        long high = net.minecraft.world.level.levelgen.WorldgenPlacementCodecs.exactLong(dynamic.get(key + "Hi").asNumber().result().orElseThrow(() -> new IllegalArgumentException("Missing " + key + "Hi")));
         return Int128.of(high, low);
     }
 

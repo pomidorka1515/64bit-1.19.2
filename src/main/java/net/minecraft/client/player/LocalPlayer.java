@@ -501,8 +501,8 @@ public class LocalPlayer extends AbstractClientPlayer {
     private void moveTowardsClosestSpace(double pX, double pZ) {
         BlockPos blockpos = new BlockPos(pX, this.getY(), pZ);
         if (this.suffocatesAt(blockpos)) {
-            double d0 = pX - (double) blockpos.getX();
-            double d1 = pZ - (double) blockpos.getZ();
+            double d0 = pX - Math.floor(pX);
+            double d1 = pZ - Math.floor(pZ);
             Direction direction = null;
             double d2 = Double.MAX_VALUE;
             Direction[] adirection = new Direction[] {Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH};
@@ -557,15 +557,13 @@ public class LocalPlayer extends AbstractClientPlayer {
     private boolean suffocatesAtSector(BlockPos blockPos) {
         SectorAABB playerBox = SectorAABB.around(this.sectorPosition(), this.getBbWidth(), this.getBbHeight());
         SectorAABB column = new SectorAABB(blockPos.getX(), 0.0D, playerBox.minY(), blockPos.getZ(), 0.0D,
-                Math.addExact(blockPos.getX(), 1L), 0.0D, playerBox.maxY(), Math.addExact(blockPos.getZ(), 1L), 0.0D)
+                blockPos.getX(), 1.0D, playerBox.maxY(), blockPos.getZ(), 1.0D)
                                     .inflate(-1.0E-7D, -1.0E-7D, -1.0E-7D);
         return this.sectorCollidesWithSuffocatingBlock(column);
     }
 
     private boolean suffocatesAt(BlockPos pPos) {
-        AABB aabb = this.getBoundingBox();
-        AABB aabb1 = (new AABB((double) pPos.getX(), aabb.minY, (double) pPos.getZ(), (double) pPos.getX() + 1.0D, aabb.maxY, (double) pPos.getZ() + 1.0D)).deflate(1.0E-7D);
-        return this.level.collidesWithSuffocatingBlock(this, aabb1);
+        return this.suffocatesAtSector(pPos);
     }
 
     public void setSprinting(boolean pSprinting) {

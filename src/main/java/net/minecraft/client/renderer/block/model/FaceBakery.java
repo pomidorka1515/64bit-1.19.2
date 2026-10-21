@@ -202,7 +202,7 @@ public class FaceBakery {
 
         for (Direction direction1 : Direction.values()) {
             Vec3i vec3i = direction1.getNormal();
-            Vector3f vector3f6 = new Vector3f((float) vec3i.getX(), (float) vec3i.getY(), (float) vec3i.getZ());
+            Vector3f vector3f6 = new Vector3f((float) vec3i.getXLo(), (float) vec3i.getY(), (float) vec3i.getZLo());
             float f1 = vector3f5.dot(vector3f6);
             if (f1 >= 0.0F && f1 > f) {
                 f = f1;

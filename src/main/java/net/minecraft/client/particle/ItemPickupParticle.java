@@ -64,12 +64,7 @@ public class ItemPickupParticle extends Particle {
         targetCurrent = targetCurrent.withY((targetCurrent.y() + this.target.getEyeY()) / 2.0D);
         SectorVec3 targetPosition = targetOld.lerpTo(targetCurrent, (double) pPartialTicks);
         SectorVec3 itemPosition = this.exactPosition().lerpTo(targetPosition, (double) f);
-        SectorVec3 camera = pRenderInfo.exactPosition();
-        if (camera == null) {
-            Vec3 legacyCamera = pRenderInfo.getPosition();
-            camera = SectorVec3.fromApproximate(legacyCamera.x, legacyCamera.y, legacyCamera.z);
-        }
-        Vec3 relative = itemPosition.relativeTo(camera);
+        Vec3 relative = itemPosition.relativeTo(pRenderInfo.exactPosition());
         MultiBufferSource.BufferSource multibuffersource$buffersource = this.renderBuffers.bufferSource();
         this.entityRenderDispatcher.render(this.itemEntity, relative.x, relative.y, relative.z, this.itemEntity.getYRot(), pPartialTicks, new PoseStack(), multibuffersource$buffersource, this.entityRenderDispatcher.getPackedLightCoords(this.itemEntity, pPartialTicks));
         multibuffersource$buffersource.endBatch();

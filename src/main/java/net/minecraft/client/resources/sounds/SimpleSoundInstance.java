@@ -65,9 +65,7 @@ public class SimpleSoundInstance extends AbstractSoundInstance {
 
     private SimpleSoundInstance(SoundEvent sound, SoundSource source, float volume, float pitch, RandomSource random,
             boolean looping, int delay, SoundInstance.Attenuation attenuation, SectorVec3 position) {
-        this(sound.getLocation(), source, volume, pitch, random, looping, delay, attenuation,
-                (double) position.blockX() + position.subX(), position.y(), (double) position.blockZ() + position.subZ(), false);
-        this.setExactPosition(position);
+        this(sound.getLocation(), source, volume, pitch, random, looping, delay, attenuation, position, false);
     }
 
     private SimpleSoundInstance(SoundEvent pSoundEvent, SoundSource pSource, float pVolume, float pPitch, RandomSource pRandom, boolean pLooping, int pDelay, SoundInstance.Attenuation pAttenuation, double pX, double pY, double pZ) {
@@ -89,7 +87,7 @@ public class SimpleSoundInstance extends AbstractSoundInstance {
             boolean looping, int delay, SoundInstance.Attenuation attenuation, SectorVec3 position,
             boolean relative) {
         this(location, source, volume, pitch, random, looping, delay, attenuation,
-                (double) position.blockX() + position.subX(), position.y(), (double) position.blockZ() + position.subZ(), relative);
+                0.0D, position.y(), 0.0D, relative);
         this.setExactPosition(position);
     }
 }

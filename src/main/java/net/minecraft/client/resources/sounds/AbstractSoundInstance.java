@@ -104,11 +104,11 @@ public abstract class AbstractSoundInstance implements SoundInstance {
         if (position == null)
             throw new NullPointerException("position");
         this.exactPosition = position;
-        // Avoid two compatibility Vec3 allocations for every entity-bound sound
-        // tick. These mirrors are not used by the listener-relative audio path.
-        this.x = (double) position.blockX() + position.subX();
-        this.y = position.y();
-        this.z = (double) position.blockZ() + position.subZ();
+        // Explicitly lossy extension mirrors, never inputs to positional audio.
+        net.minecraft.world.phys.Vec3 mirror = position.toApproximateVec3();
+        this.x = mirror.x;
+        this.y = mirror.y;
+        this.z = mirror.z;
     }
 
     protected final void setPosition(double x, double y, double z) {

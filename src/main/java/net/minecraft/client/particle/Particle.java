@@ -203,14 +203,7 @@ public abstract class Particle {
 
     /** Returns a small render-space offset.  Vec3 is only used after rebasing to the camera. */
     protected final Vec3 cameraRelativePosition(Camera camera, float partialTick) {
-        SectorVec3 cameraPosition = camera.exactPosition();
-        if (cameraPosition == null) {
-            // Cameras attached to non-sector entities are legacy compatibility
-            // cameras. Their double mirror is the only available input.
-            Vec3 legacyCameraPosition = camera.getPosition();
-            cameraPosition = SectorVec3.fromApproximate(legacyCameraPosition.x, legacyCameraPosition.y, legacyCameraPosition.z);
-        }
-        return this.interpolatedExactPosition(partialTick).relativeTo(cameraPosition);
+        return this.interpolatedExactPosition(partialTick).relativeTo(camera.exactPosition());
     }
 
     /** Exact block address for particle world queries such as fluid and light. */

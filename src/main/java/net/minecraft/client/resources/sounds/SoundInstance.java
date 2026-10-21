@@ -39,8 +39,8 @@ public interface SoundInstance {
 
     /**
     * Exact world position when this is a positional sound.  {@code null}
-    * denotes a legacy/local source, whose getX/Y/Z values are used only as a
-    * listener-space offset when it is not OpenAL-relative.
+    * denotes a legacy/local source. Relative sources supply local getX/Y/Z
+    * offsets; legacy world doubles are split before listener subtraction.
     */
     @Nullable
     default SectorVec3 getExactPosition() {

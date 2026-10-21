@@ -472,9 +472,7 @@ public class ParticleEngine implements PreparableReloadListener {
     public void crack(BlockPos pPos, Direction pSide) {
         BlockState blockstate = this.level.getBlockState(pPos);
         if (blockstate.getRenderShape() != RenderShape.INVISIBLE) {
-            long i = pPos.getX();
             int j = pPos.getY();
-            long k = pPos.getZ();
             float f = 0.1F;
             AABB aabb = blockstate.getShape(this.level, pPos).bounds();
             double localX = this.random.nextDouble() * (aabb.maxX - aabb.minX - (double) 0.2F) + (double) 0.1F + aabb.minX;
@@ -504,7 +502,7 @@ public class ParticleEngine implements PreparableReloadListener {
                 localX = aabb.maxX + (double) 0.1F;
             }
 
-            SectorVec3 position = SectorVec3.fromBlockAndFraction(i, localX, particleY, k, localZ);
+            SectorVec3 position = SectorVec3.fromBlockAndFraction(pPos.getX(), localX, particleY, pPos.getZ(), localZ);
             this.add(Particle.createAt(position, () -> (new TerrainParticle(this.level, 0.0D, position.y(), 0.0D, 0.0D, 0.0D, 0.0D, blockstate, pPos)).setPower(0.2F).scale(0.6F)));
         }
     }

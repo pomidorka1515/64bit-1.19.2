@@ -112,7 +112,8 @@ public final class Biome {
     private float getHeightAdjustedTemperature(BlockPos pPos) {
         float f = this.climateSettings.temperatureModifier.modifyTemperature(pPos, this.getBaseTemperature());
         if (pPos.getY() > 80) {
-            float f1 = (float) (TEMPERATURE_NOISE.getValue((double) ((float) pPos.getX() / 8.0F), (double) ((float) pPos.getZ() / 8.0F), false) * 8.0D);
+            // Temperature noise retains the deferred low-64 worldgen projection.
+            float f1 = (float) (TEMPERATURE_NOISE.getValue((double) ((float) pPos.getXLo() / 8.0F), (double) ((float) pPos.getZLo() / 8.0F), false) * 8.0D);
             return f - (f1 + (float) pPos.getY() - 80.0F) * 0.05F / 40.0F;
         } else {
             return f;
@@ -374,11 +375,12 @@ public final class Biome {
         },
         FROZEN("frozen") {
             public float modifyTemperature(BlockPos p_47774_, float p_47775_) {
-                double d0 = Biome.FROZEN_TEMPERATURE_NOISE.getValue((double) p_47774_.getX() * 0.05D, (double) p_47774_.getZ() * 0.05D, false) * 7.0D;
-                double d1 = Biome.BIOME_INFO_NOISE.getValue((double) p_47774_.getX() * 0.2D, (double) p_47774_.getZ() * 0.2D, false);
+                // Only generated temperature content projects; the cache key remains exact.
+                double d0 = Biome.FROZEN_TEMPERATURE_NOISE.getValue((double) p_47774_.getXLo() * 0.05D, (double) p_47774_.getZLo() * 0.05D, false) * 7.0D;
+                double d1 = Biome.BIOME_INFO_NOISE.getValue((double) p_47774_.getXLo() * 0.2D, (double) p_47774_.getZLo() * 0.2D, false);
                 double d2 = d0 + d1;
                 if (d2 < 0.3D) {
-                    double d3 = Biome.BIOME_INFO_NOISE.getValue((double) p_47774_.getX() * 0.09D, (double) p_47774_.getZ() * 0.09D, false);
+                    double d3 = Biome.BIOME_INFO_NOISE.getValue((double) p_47774_.getXLo() * 0.09D, (double) p_47774_.getZLo() * 0.09D, false);
                     if (d3 < 0.8D) {
                         return 0.2F;
                     }

@@ -3,6 +3,7 @@ package net.minecraft.world.level.biome;
 import com.google.common.hash.Hashing;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Int128;
 import net.minecraft.core.QuartPos;
 import net.minecraft.util.LinearCongruentialGenerator;
 import net.minecraft.util.Mth;
@@ -30,15 +31,15 @@ public class BiomeManager {
     }
 
     public Holder<Biome> getBiome(BlockPos pPos) {
-        long i = WorldBounds.subtractBlockOffset(pPos.getX(), 2);
+        Int128 i = WorldBounds.subtractBlockOffset(pPos.getX(), 2);
         int j = pPos.getY() - 2;
-        long k = WorldBounds.subtractBlockOffset(pPos.getZ(), 2);
-        long l = i >> 2;
+        Int128 k = WorldBounds.subtractBlockOffset(pPos.getZ(), 2);
+        Int128 l = i.shiftRight(2);
         int i1 = j >> 2;
-        long j1 = k >> 2;
-        double d0 = (double) (i & 3) / 4.0D;
+        Int128 j1 = k.shiftRight(2);
+        double d0 = (double) (i.lo() & 3) / 4.0D;
         double d1 = (double) (j & 3) / 4.0D;
-        double d2 = (double) (k & 3) / 4.0D;
+        double d2 = (double) (k.lo() & 3) / 4.0D;
         int k1 = 0;
         double d3 = Double.POSITIVE_INFINITY;
 
@@ -46,22 +47,23 @@ public class BiomeManager {
             boolean flag = (l1 & 4) == 0;
             boolean flag1 = (l1 & 2) == 0;
             boolean flag2 = (l1 & 1) == 0;
-            long i2 = flag ? l : l + 1;
+            Int128 i2 = flag ? l : WorldBounds.addBlockOffset(l, 1);
             int j2 = flag1 ? i1 : i1 + 1;
-            long k2 = flag2 ? j1 : j1 + 1;
+            Int128 k2 = flag2 ? j1 : WorldBounds.addBlockOffset(j1, 1);
             double d4 = flag ? d0 : d0 - 1.0D;
             double d5 = flag1 ? d1 : d1 - 1.0D;
             double d6 = flag2 ? d2 : d2 - 1.0D;
-            double d7 = getFiddledDistance(this.biomeZoomSeed, i2, j2, k2, d4, d5, d6);
+            // Only the legacy biome noise hash sees the low-64 projection.
+            double d7 = getFiddledDistance(this.biomeZoomSeed, i2.lo(), j2, k2.lo(), d4, d5, d6);
             if (d3 > d7) {
                 k1 = l1;
                 d3 = d7;
             }
         }
 
-        long l2 = (k1 & 4) == 0 ? l : l + 1;
+        Int128 l2 = (k1 & 4) == 0 ? l : WorldBounds.addBlockOffset(l, 1);
         int i3 = (k1 & 2) == 0 ? i1 : i1 + 1;
-        long j3 = (k1 & 1) == 0 ? j1 : j1 + 1;
+        Int128 j3 = (k1 & 1) == 0 ? j1 : WorldBounds.addBlockOffset(j1, 1);
         return this.noiseBiomeSource.getNoiseBiome(l2, i3, j3);
     }
 
@@ -73,13 +75,17 @@ public class BiomeManager {
     }
 
     public Holder<Biome> getNoiseBiomeAtPosition(BlockPos pPos) {
-        long i = QuartPos.fromBlock(pPos.getX());
+        Int128 i = pPos.getX().shiftRight(2);
         int j = QuartPos.fromBlock(pPos.getY());
-        long k = QuartPos.fromBlock(pPos.getZ());
+        Int128 k = pPos.getZ().shiftRight(2);
         return this.getNoiseBiomeAtQuart(i, j, k);
     }
 
     public Holder<Biome> getNoiseBiomeAtQuart(long pX, int pY, long pZ) {
+        return this.noiseBiomeSource.getNoiseBiome(pX, pY, pZ);
+    }
+
+    public Holder<Biome> getNoiseBiomeAtQuart(Int128 pX, int pY, Int128 pZ) {
         return this.noiseBiomeSource.getNoiseBiome(pX, pY, pZ);
     }
 
@@ -105,5 +111,10 @@ public class BiomeManager {
 
     public interface NoiseBiomeSource {
         Holder<Biome> getNoiseBiome(long pX, int pY, long pZ);
+
+        default Holder<Biome> getNoiseBiome(Int128 pX, int pY, Int128 pZ) {
+            // Generation/local palette providers retain the deferred low-64 sampling seam.
+            return this.getNoiseBiome(pX.lo(), pY, pZ.lo());
+        }
     }
 }

@@ -68,10 +68,15 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
     }
 
     default Holder<Biome> getNoiseBiome(long pX, int pY, long pZ) {
-        long sectionX = QuartPos.toSection(pX);
-        long sectionZ = QuartPos.toSection(pZ);
+        return this.getNoiseBiome(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+    }
+
+    default Holder<Biome> getNoiseBiome(Int128 pX, int pY, Int128 pZ) {
+        Int128 sectionX = pX.shiftRight(2);
+        Int128 sectionZ = pZ.shiftRight(2);
         ChunkAccess chunkaccess = this.getChunk(sectionX, sectionZ, ChunkStatus.BIOMES, false);
-        return chunkaccess != null ? chunkaccess.getNoiseBiome(pX, pY, pZ) : this.getUncachedNoiseBiome(pX, pY, pZ);
+        // Resolve exact chunk identity before projecting palette/noise sampling coordinates.
+        return chunkaccess != null ? chunkaccess.getNoiseBiome(pX.lo(), pY, pZ.lo()) : this.getUncachedNoiseBiome(pX.lo(), pY, pZ.lo());
     }
 
     Holder<Biome> getUncachedNoiseBiome(long pX, int pY, long pZ);

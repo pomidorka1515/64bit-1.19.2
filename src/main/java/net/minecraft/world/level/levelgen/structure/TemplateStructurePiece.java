@@ -6,8 +6,10 @@ import java.util.function.Function;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
@@ -46,7 +48,7 @@ public abstract class TemplateStructurePiece extends StructurePiece {
         super(pType, pTag);
         this.setOrientation(Direction.NORTH);
         this.templateName = pTag.getString("Template");
-        this.templatePosition = new BlockPos(pTag.getLong("TPX"), pTag.getInt("TPY"), pTag.getLong("TPZ"));
+        this.templatePosition = new BlockPos(NbtUtils.readInt128(pTag, "TPX"), pTag.getInt("TPY"), NbtUtils.readInt128(pTag, "TPZ"));
         ResourceLocation resourcelocation = this.makeTemplateLocation();
         this.template = pStructureTemplateManager.getOrCreate(resourcelocation);
         this.placeSettings = pPlaceSettingsFactory.apply(resourcelocation);
@@ -58,9 +60,9 @@ public abstract class TemplateStructurePiece extends StructurePiece {
     }
 
     protected void addAdditionalSaveData(StructurePieceSerializationContext pContext, CompoundTag pTag) {
-        pTag.putInt("TPX", this.templatePosition.getX());
+        NbtUtils.writeInt128(pTag, "TPX", this.templatePosition.getX());
         pTag.putInt("TPY", this.templatePosition.getY());
-        pTag.putInt("TPZ", this.templatePosition.getZ());
+        NbtUtils.writeInt128(pTag, "TPZ", this.templatePosition.getZ());
         pTag.putString("Template", this.templateName);
     }
 
@@ -99,6 +101,11 @@ public abstract class TemplateStructurePiece extends StructurePiece {
     /** @deprecated */
     @Deprecated
     public void move(long pX, int pY, long pZ) {
+        this.move(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+    }
+
+    @Override
+    public void move(Int128 pX, int pY, Int128 pZ) {
         super.move(pX, pY, pZ);
         this.templatePosition = this.templatePosition.offset(pX, pY, pZ);
     }

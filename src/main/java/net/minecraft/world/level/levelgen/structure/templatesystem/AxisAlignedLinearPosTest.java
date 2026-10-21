@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.WorldBounds;
 
 public class AxisAlignedLinearPosTest extends PosRuleTest {
     public static final Codec<AxisAlignedLinearPosTest> CODEC = RecordCodecBuilder.create((p_73977_) -> {
@@ -45,11 +46,12 @@ public class AxisAlignedLinearPosTest extends PosRuleTest {
     }
 
     public boolean test(BlockPos p_230251_, BlockPos p_230252_, BlockPos p_230253_, RandomSource p_230254_) {
-        Direction direction = Direction.get(Direction.AxisDirection.POSITIVE, this.axis);
-        float f = (float) Math.abs((p_230252_.getX() - p_230253_.getX()) * direction.getStepX());
-        float f1 = (float) Math.abs((p_230252_.getY() - p_230253_.getY()) * direction.getStepY());
-        float f2 = (float) Math.abs((p_230252_.getZ() - p_230253_.getZ()) * direction.getStepZ());
-        int i = (int) (f + f1 + f2);
+        double distance = switch (this.axis) {
+            case X -> Math.abs(WorldBounds.signedDifference(p_230252_.getX(), p_230253_.getX()));
+            case Y -> Math.abs((double) p_230252_.getY() - p_230253_.getY());
+            case Z -> Math.abs(WorldBounds.signedDifference(p_230252_.getZ(), p_230253_.getZ()));
+        };
+        int i = (int) distance;
         float f3 = p_230254_.nextFloat();
         return f3 <= Mth.clampedLerp(this.minChance, this.maxChance, Mth.inverseLerp((float) i, (float) this.minDist, (float) this.maxDist));
     }

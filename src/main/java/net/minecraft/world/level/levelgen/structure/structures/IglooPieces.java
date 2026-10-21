@@ -88,7 +88,7 @@ public class IglooPieces {
             ResourceLocation resourcelocation = new ResourceLocation(this.templateName);
             StructurePlaceSettings structureplacesettings = makeSettings(this.placeSettings.getRotation(), resourcelocation);
             BlockPos blockpos = IglooPieces.OFFSETS.get(resourcelocation);
-            BlockPos blockpos1 = this.templatePosition.offset(StructureTemplate.calculateRelativePosition(structureplacesettings, new BlockPos(3 - blockpos.getX(), 0, -blockpos.getZ())));
+            BlockPos blockpos1 = this.templatePosition.offset(StructureTemplate.calculateRelativePosition(structureplacesettings, new BlockPos(net.minecraft.core.Int128.fromLong(3).subtractSaturated(blockpos.getX()), 0, net.minecraft.core.Int128.ZERO.subtractSaturated(blockpos.getZ()))));
             int i = pLevel.getHeight(Heightmap.Types.WORLD_SURFACE_WG, blockpos1.getX(), blockpos1.getZ());
             BlockPos blockpos2 = this.templatePosition;
             this.templatePosition = this.templatePosition.offset(0, i - 90 - 1, 0);

@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
@@ -73,7 +74,7 @@ public class OceanRuinPieces {
         BlockPos blockpos = new BlockPos(p_228991_.getX(), 90, p_228991_.getZ());
         BlockPos blockpos1 = StructureTemplate.transform(new BlockPos(15, 0, 15), Mirror.NONE, p_228990_, BlockPos.ZERO).offset(blockpos);
         BoundingBox boundingbox = BoundingBox.fromCorners(blockpos, blockpos1);
-        BlockPos blockpos2 = new BlockPos(Math.min(blockpos.getX(), blockpos1.getX()), blockpos.getY(), Math.min(blockpos.getZ(), blockpos1.getZ()));
+        BlockPos blockpos2 = new BlockPos(blockpos.getX().compareTo(blockpos1.getX()) <= 0 ? blockpos.getX() : blockpos1.getX(), blockpos.getY(), blockpos.getZ().compareTo(blockpos1.getZ()) <= 0 ? blockpos.getZ() : blockpos1.getZ());
         List<BlockPos> list = allPositions(p_228989_, blockpos2);
         int i = Mth.nextInt(p_228989_, 4, 8);
 
@@ -180,7 +181,7 @@ public class OceanRuinPieces {
             this.placeSettings.clearProcessors().addProcessor(new BlockRotProcessor(this.integrity)).addProcessor(BlockIgnoreProcessor.STRUCTURE_AND_AIR);
             int i = pLevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, this.templatePosition.getX(), this.templatePosition.getZ());
             this.templatePosition = new BlockPos(this.templatePosition.getX(), i, this.templatePosition.getZ());
-            BlockPos blockpos = StructureTemplate.transform(new BlockPos(this.template.getSize().getX() - 1, 0, this.template.getSize().getZ() - 1), Mirror.NONE, this.placeSettings.getRotation(), BlockPos.ZERO).offset(this.templatePosition);
+            BlockPos blockpos = StructureTemplate.transform(new BlockPos(this.template.getSize().getX().subtract(Int128.ONE), 0, this.template.getSize().getZ().subtract(Int128.ONE)), Mirror.NONE, this.placeSettings.getRotation(), BlockPos.ZERO).offset(this.templatePosition);
             this.templatePosition = new BlockPos(this.templatePosition.getX(), this.getHeight(this.templatePosition, pLevel, blockpos), this.templatePosition.getZ());
             super.postProcess(pLevel, pStructureManager, pGenerator, pRandom, pBox, pChunkPos, pPos);
         }
@@ -192,8 +193,8 @@ public class OceanRuinPieces {
             int l = 0;
 
             for (BlockPos blockpos : BlockPos.betweenClosed(pTemplatePos, pPos)) {
-                long i1 = blockpos.getX();
-                long j1 = blockpos.getZ();
+                Int128 i1 = blockpos.getX();
+                Int128 j1 = blockpos.getZ();
                 int k1 = pTemplatePos.getY() - 1;
                 BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(i1, k1, j1);
                 BlockState blockstate = pLevel.getBlockState(blockpos$mutableblockpos);

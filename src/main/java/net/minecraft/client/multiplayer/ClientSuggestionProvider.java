@@ -119,7 +119,7 @@ public class ClientSuggestionProvider implements SharedSuggestionProvider {
         HitResult hitresult = this.minecraft.hitResult;
         if (hitresult != null && hitresult.getType() == HitResult.Type.BLOCK) {
             BlockPos blockpos = ((BlockHitResult) hitresult).getBlockPos();
-            return Collections.singleton(new SharedSuggestionProvider.TextCoordinates(prettyPrint(blockpos.getX()), prettyPrint(blockpos.getY()), prettyPrint(blockpos.getZ())));
+            return Collections.singleton(new SharedSuggestionProvider.TextCoordinates(blockpos.getX().toString(), prettyPrint(blockpos.getY()), blockpos.getZ().toString()));
         } else {
             return SharedSuggestionProvider.super.getRelevantCoordinates();
         }

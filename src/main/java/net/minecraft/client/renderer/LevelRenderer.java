@@ -1905,7 +1905,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                     VertexBuffer.unbind();
                 } else if (this.level.effects().skyType() == DimensionSpecialEffects.SkyType.NORMAL) {
                     RenderSystem.disableTexture();
-                    Vec3 vec3 = this.level.getSkyColor(p_202427_.getPosition(), p_202426_);
+                    Vec3 vec3 = this.level.getSkyColor(p_202427_.exactPosition(), p_202426_);
                     float f = (float) vec3.x;
                     float f1 = (float) vec3.y;
                     float f2 = (float) vec3.z;

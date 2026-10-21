@@ -30,6 +30,7 @@ import net.minecraft.client.resources.sounds.EntityBoundSoundInstance;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Int128;
+import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.core.Cursor3D;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -676,10 +677,13 @@ public class ClientLevel extends Level {
     }
 
     public Vec3 getSkyColor(Vec3 pPos, float pPartialTick) {
+        return this.getSkyColor(SectorVec3.fromApproximate(pPos.x, pPos.y, pPos.z), pPartialTick);
+    }
+
+    public Vec3 getSkyColor(SectorVec3 pPos, float pPartialTick) {
         float f = this.getTimeOfDay(pPartialTick);
-        Vec3 vec3 = pPos.subtract(2.0D, 2.0D, 2.0D).scale(0.25D);
         BiomeManager biomemanager = this.getBiomeManager();
-        Vec3 vec31 = CubicSampler.gaussianSampleVec3(vec3, (p_194161_, p_194162_, p_194163_) -> {
+        Vec3 vec31 = sampleBiomeColors(pPos, (p_194161_, p_194162_, p_194163_) -> {
             return Vec3.fromRGB24(biomemanager.getNoiseBiomeAtQuart(p_194161_, p_194162_, p_194163_).value().getSkyColor());
         });
         float f1 = Mth.cos(f * ((float) Math.PI * 2F)) * 2.0F + 0.5F;
@@ -718,6 +722,22 @@ public class ClientLevel extends Level {
         }
 
         return new Vec3((double) f2, (double) f3, (double) f4);
+    }
+
+    /** Samples only a small local quart window, then adds the full-width quart anchor. */
+    public static Vec3 sampleBiomeColors(SectorVec3 position, BiomeColorFetcher fetcher) {
+        Int128 quartX = position.blockX().shiftRight(2);
+        Int128 quartZ = position.blockZ().shiftRight(2);
+        Vec3 local = new Vec3(((position.blockX().lo() & 3L) + position.subX() - 2.0D) * 0.25D,
+                (position.y() - 2.0D) * 0.25D,
+                ((position.blockZ().lo() & 3L) + position.subZ() - 2.0D) * 0.25D);
+        return CubicSampler.gaussianSampleVec3(local, (x, y, z) -> fetcher.fetch(
+                quartX.addSaturated(Int128.fromLong(x)), y, quartZ.addSaturated(Int128.fromLong(z))));
+    }
+
+    @FunctionalInterface
+    public interface BiomeColorFetcher {
+        Vec3 fetch(Int128 x, int y, Int128 z);
     }
 
     public Vec3 getCloudColor(float pPartialTick) {

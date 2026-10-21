@@ -88,7 +88,8 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
         NoiseSettings noisesettings = pNoiseGeneratorSettings.noiseSettings().clampToHeightAccessor(pChunk);
         ChunkPos chunkpos = pChunk.getPos();
         int i = 16 / noisesettings.getCellWidth();
-        return new NoiseChunk(i, pState, chunkpos.getMinBlockX(), chunkpos.getMinBlockZ(), noisesettings, pBeardifierOrMarker, pNoiseGeneratorSettings, pFluidPicke, pBlender);
+        // Deferred terrain sampling uses the low-64 projection, not chunk identity.
+        return new NoiseChunk(i, pState, chunkpos.getMinBlockX().toLongLow(), chunkpos.getMinBlockZ().toLongLow(), noisesettings, pBeardifierOrMarker, pNoiseGeneratorSettings, pFluidPicke, pBlender);
     }
 
     public NoiseChunk(int p_224343_, RandomState p_224344_, long p_224345_, long p_224346_, NoiseSettings p_224347_, DensityFunctions.BeardifierOrMarker p_224348_, NoiseGeneratorSettings p_224349_, Aquifer.FluidPicker p_224350_, Blender p_224351_) {
@@ -180,7 +181,7 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     }
 
     private int computePreliminarySurfaceLevel(ChunkPos p_198250_) {
-        return this.computePreliminarySurfaceLevel(p_198250_.x, p_198250_.z);
+        return this.computePreliminarySurfaceLevel(p_198250_.xLo(), p_198250_.zLo());
     }
 
     private int computePreliminarySurfaceLevel(long i, long j) {
@@ -235,10 +236,10 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
 
     /** Cell widths are positive powers of two, so the minimum block is cell-aligned. */
     private static long cellToBlock(long cell, int width) {
-        if (cell > WorldBounds.MAX_BLOCK / width)
-            return WorldBounds.MAX_BLOCK;
-        if (cell < WorldBounds.MIN_BLOCK / width)
-            return WorldBounds.MIN_BLOCK;
+        if (cell > Long.MAX_VALUE / width)
+            return Long.MAX_VALUE;
+        if (cell < Long.MIN_VALUE / width)
+            return Long.MIN_VALUE;
         return cell * width;
     }
 

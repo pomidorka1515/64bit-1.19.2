@@ -140,7 +140,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
     public void addDebugScreenInfo(List<String> pInfo, RandomState pRandom, BlockPos pPos) {
         DecimalFormat decimalformat = new DecimalFormat("0.000");
         NoiseRouter noiserouter = pRandom.router();
-        DensityFunction.SinglePointContext densityfunction$singlepointcontext = new DensityFunction.SinglePointContext(pPos.getX(), pPos.getY(), pPos.getZ());
+        DensityFunction.SinglePointContext densityfunction$singlepointcontext = new DensityFunction.SinglePointContext(pPos.getXLo(), pPos.getY(), pPos.getZLo());
         double d0 = noiserouter.ridges().compute(densityfunction$singlepointcontext);
         double d1 = noiserouter.temperature().compute(densityfunction$singlepointcontext);
         double d2 = noiserouter.vegetation().compute(densityfunction$singlepointcontext);
@@ -266,17 +266,17 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
 
         for (int j = -8; j <= 8; ++j) {
             for (int k = -8; k <= 8; ++k) {
-                ChunkPos chunkpos1 = new ChunkPos(WorldBounds.addChunkOffset(chunkpos.x, j), WorldBounds.addChunkOffset(chunkpos.z, k));
-                ChunkAccess chunkaccess = pLevel.getChunk(chunkpos1.x, chunkpos1.z);
+                ChunkPos chunkpos1 = new ChunkPos(WorldBounds.addChunkOffset(chunkpos.x(), j), WorldBounds.addChunkOffset(chunkpos.z(), k));
+                ChunkAccess chunkaccess = pLevel.getChunk(chunkpos1.x(), chunkpos1.z());
                 BiomeGenerationSettings biomegenerationsettings = chunkaccess.carverBiome(() -> {
-                    return this.getBiomeGenerationSettings(this.biomeSource.getNoiseBiome(QuartPos.fromBlock(chunkpos1.getMinBlockX()), 0, QuartPos.fromBlock(chunkpos1.getMinBlockZ()), pRandom.sampler()));
+                    return this.getBiomeGenerationSettings(this.biomeSource.getNoiseBiome(QuartPos.fromBlock(chunkpos1.getMinBlockX().toLongLow()), 0, QuartPos.fromBlock(chunkpos1.getMinBlockZ().toLongLow()), pRandom.sampler()));
                 });
                 Iterable<Holder<ConfiguredWorldCarver<?>>> iterable = biomegenerationsettings.getCarvers(pStep);
                 int l = 0;
 
                 for (Holder<ConfiguredWorldCarver<?>> holder : iterable) {
                     ConfiguredWorldCarver<?> configuredworldcarver = holder.value();
-                    worldgenrandom.setLargeFeatureSeed(pSeed + (long) l, chunkpos1.x, chunkpos1.z);
+                    worldgenrandom.setLargeFeatureSeed(pSeed + (long) l, chunkpos1.xLo(), chunkpos1.zLo());
                     if (configuredworldcarver.isStartChunk(worldgenrandom)) {
                         configuredworldcarver.carve(carvingcontext, pChunk, biomemanager::getBiome, worldgenrandom, aquifer, chunkpos1, carvingmask);
                     }
@@ -322,8 +322,8 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
         Heightmap heightmap = pChunk.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR_WG);
         Heightmap heightmap1 = pChunk.getOrCreateHeightmapUnprimed(Heightmap.Types.WORLD_SURFACE_WG);
         ChunkPos chunkpos = pChunk.getPos();
-        long i = chunkpos.getMinBlockX();
-        long j = chunkpos.getMinBlockZ();
+        long i = chunkpos.getMinBlockX().toLongLow();
+        long j = chunkpos.getMinBlockZ().toLongLow();
         Aquifer aquifer = noisechunk.aquifer();
         noisechunk.initializeForFirstCellX();
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
@@ -371,7 +371,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
                                 blockstate = this.debugPreliminarySurfaceLevel(noisechunk, k3, k2, j4, blockstate);
                                 if (blockstate != AIR && !SharedConstants.debugVoidTerrain(pChunk.getPos())) {
                                     if (blockstate.getLightEmission() != 0 && pChunk instanceof ProtoChunk) {
-                                        blockpos$mutableblockpos.set(k3, k2, j4);
+                                        blockpos$mutableblockpos.set(chunkpos.getBlockX(k1 * k + j3), k2, chunkpos.getBlockZ(l1 * k + i4));
                                         ((ProtoChunk) pChunk).addLight(blockpos$mutableblockpos);
                                     }
 
@@ -379,7 +379,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
                                     heightmap.update(l3, k2, k4, blockstate);
                                     heightmap1.update(l3, k2, k4, blockstate);
                                     if (aquifer.shouldScheduleFluidUpdate() && !blockstate.getFluidState().isEmpty()) {
-                                        blockpos$mutableblockpos.set(k3, k2, j4);
+                                        blockpos$mutableblockpos.set(chunkpos.getBlockX(k1 * k + j3), k2, chunkpos.getBlockZ(l1 * k + i4));
                                         pChunk.markPosForPostprocessing(blockpos$mutableblockpos);
                                     }
                                 }
@@ -417,7 +417,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
             ChunkPos chunkpos = pLevel.getCenter();
             Holder<Biome> holder = pLevel.getBiome(chunkpos.getWorldPosition().atY(pLevel.getMaxBuildHeight() - 1));
             WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(RandomSupport.generateUniqueSeed()));
-            worldgenrandom.setDecorationSeed(pLevel.getSeed(), chunkpos.getMinBlockX(), chunkpos.getMinBlockZ());
+            worldgenrandom.setDecorationSeed(pLevel.getSeed(), chunkpos.getMinBlockX().toLongLow(), chunkpos.getMinBlockZ().toLongLow());
             NaturalSpawner.spawnMobsForChunkGeneration(pLevel, holder, chunkpos, worldgenrandom);
         }
     }

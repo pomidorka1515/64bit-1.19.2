@@ -69,8 +69,8 @@ public class SurfaceSystem {
     public void buildSurface(RandomState p_224649_, BiomeManager p_224650_, Registry<Biome> p_224651_, boolean p_224652_, WorldGenerationContext p_224653_, final ChunkAccess p_224654_, NoiseChunk p_224655_, SurfaceRules.RuleSource p_224656_) {
         final BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
         final ChunkPos chunkpos = p_224654_.getPos();
-        long i = chunkpos.getMinBlockX();
-        long j = chunkpos.getMinBlockZ();
+        long i = chunkpos.getMinBlockX().toLongLow();
+        long j = chunkpos.getMinBlockZ().toLongLow();
         LevelHeightAccessor heightAccessor = p_224654_.getHeightAccessorForGeneration();
         int minBuildHeight = heightAccessor.getMinBuildHeight();
         int maxBuildHeight = heightAccessor.getMaxBuildHeight();
@@ -102,8 +102,8 @@ public class SurfaceSystem {
                 long i1 = WorldBounds.addBlockOffset(i, k);
                 long j1 = WorldBounds.addBlockOffset(j, l);
                 int k1 = clampSurfaceHeight(WorldBounds.addSaturated(p_224654_.getHeight(Heightmap.Types.WORLD_SURFACE_WG, k, l), 1), minBuildHeight, maxBuildHeight);
-                blockpos$mutableblockpos.setX(i1).setZ(j1);
-                Holder<Biome> holder = p_224650_.getBiome(blockpos$mutableblockpos1.set(i1, p_224652_ ? 0 : k1, j1));
+                blockpos$mutableblockpos.setX(chunkpos.getBlockX(k)).setZ(chunkpos.getBlockZ(l));
+                Holder<Biome> holder = p_224650_.getBiome(blockpos$mutableblockpos1.set(chunkpos.getBlockX(k), p_224652_ ? 0 : k1, chunkpos.getBlockZ(l)));
                 if (holder.is(Biomes.ERODED_BADLANDS)) {
                     this.erodedBadlandsExtension(blockcolumn, i1, j1, k1, p_224654_);
                 }
@@ -193,9 +193,9 @@ public class SurfaceSystem {
     public Optional<BlockState> topMaterial(SurfaceRules.RuleSource p_189972_, CarvingContext p_189973_, Function<BlockPos, Holder<Biome>> p_189974_, ChunkAccess p_189975_, NoiseChunk p_189976_, BlockPos p_189977_, boolean p_189978_) {
         SurfaceRules.Context surfacerules$context = new SurfaceRules.Context(this, p_189973_.randomState(), p_189975_, p_189976_, p_189974_, p_189973_.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY), p_189973_);
         SurfaceRules.SurfaceRule surfacerules$surfacerule = p_189972_.apply(surfacerules$context);
-        long i = p_189977_.getX();
+        long i = p_189977_.getXLo();
         int j = p_189977_.getY();
-        long k = p_189977_.getZ();
+        long k = p_189977_.getZLo();
         surfacerules$context.updateXZ(i, k);
         surfacerules$context.updateY(1, 1, p_189978_ ? WorldBounds.addSaturated(j, 1) : Integer.MIN_VALUE, i, j, k);
         BlockState blockstate = surfacerules$surfacerule.tryApply(i, j, k);

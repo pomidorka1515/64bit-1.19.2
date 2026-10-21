@@ -97,15 +97,15 @@ public interface Aquifer {
             this.erosion = pNoiseRouter.erosion();
             this.depth = pNoiseRouter.depth();
             this.positionalRandomFactory = pPositionalRandomFactory;
-            this.minGridX = WorldBounds.addChunkOffset(this.gridX(pChunkPos.getMinBlockX()), -1L);
+            this.minGridX = WorldBounds.addChunkOffset(this.gridX(pChunkPos.getMinBlockX().toLongLow()), -1L);
             this.globalFluidPicker = pGlobalFluidPicker;
-            long i = WorldBounds.addChunkOffset(this.gridX(pChunkPos.getMaxBlockX()), 1L);
+            long i = WorldBounds.addChunkOffset(this.gridX(pChunkPos.getMaxBlockX().toLongLow()), 1L);
             this.gridSizeX = (int) (WorldBounds.signedDifferenceAsLong(i, this.minGridX) + 1L);
             this.minGridY = this.gridY(pMinY) - 1;
             int j = this.gridY(pMinY + pHeight) + 1;
             int k = j - this.minGridY + 1;
-            this.minGridZ = WorldBounds.addChunkOffset(this.gridZ(pChunkPos.getMinBlockZ()), -1L);
-            long l = WorldBounds.addChunkOffset(this.gridZ(pChunkPos.getMaxBlockZ()), 1L);
+            this.minGridZ = WorldBounds.addChunkOffset(this.gridZ(pChunkPos.getMinBlockZ().toLongLow()), -1L);
+            long l = WorldBounds.addChunkOffset(this.gridZ(pChunkPos.getMaxBlockZ().toLongLow()), 1L);
             this.gridSizeZ = (int) (WorldBounds.signedDifferenceAsLong(l, this.minGridZ) + 1L);
             int i1 = this.gridSizeX * k * this.gridSizeZ;
             this.aquiferCache = new Aquifer.FluidStatus[i1];
@@ -161,9 +161,9 @@ public interface Aquifer {
                                     this.aquiferLocationCache[k4] = l4;
                                 }
 
-                                double i6 = WorldBounds.signedDifference(l4.getX(), i);
+                                double i6 = WorldBounds.signedDifference(l4.getXLo(), i);
                                 int j5 = l4.getY() - j;
-                                double k5 = WorldBounds.signedDifference(l4.getZ(), k);
+                                double k5 = WorldBounds.signedDifference(l4.getZLo(), k);
                                 double l5 = i6 * i6 + (double) j5 * j5 + k5 * k5;
                                 if (k1 >= l5) {
                                     l2 = k2;
@@ -309,9 +309,9 @@ public interface Aquifer {
         }
 
         private Aquifer.FluidStatus getAquiferStatus(BlockPos j2) {
-            long i = j2.getX();
+            long i = j2.getXLo();
             int j = j2.getY();
-            long k = j2.getZ();
+            long k = j2.getZLo();
             long l = this.gridX(i);
             int i1 = this.gridY(j);
             long j1 = this.gridZ(k);

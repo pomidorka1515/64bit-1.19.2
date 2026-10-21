@@ -6,6 +6,7 @@ import net.minecraft.CrashReportCategory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.resources.ResourceLocation;
@@ -33,13 +34,7 @@ public abstract class BlockEntity {
     }
 
     public static BlockPos getPosFromTag(CompoundTag pTag) {
-        // Block entities in protochunks are keyed by this position.  In particular,
-        // WorldGenRegion writes a DUMMY block-entity tag before the real entity is
-        // created.  Reading x/z as ints here truncated positions outside the signed
-        // 32-bit range, so the pending entity was stored under a different key than
-        // the placed block and could never be retrieved during feature generation.
-        // getLong also accepts legacy IntTag coordinates, preserving old saves.
-        return new BlockPos(pTag.getLong("x"), pTag.getInt("y"), pTag.getLong("z"));
+        return new BlockPos(NbtUtils.readInt128(pTag, "x"), pTag.getInt("y"), NbtUtils.readInt128(pTag, "z"));
     }
 
     @Nullable
@@ -76,6 +71,7 @@ public abstract class BlockEntity {
     public final CompoundTag saveWithoutMetadata() {
         CompoundTag compoundtag = new CompoundTag();
         this.saveAdditional(compoundtag);
+        this.savePosition(compoundtag);
         return compoundtag;
     }
 
@@ -98,9 +94,13 @@ public abstract class BlockEntity {
 
     private void saveMetadata(CompoundTag pTag) {
         this.saveId(pTag);
-        pTag.putInt("x", this.worldPosition.getX());
+        this.savePosition(pTag);
+    }
+
+    private void savePosition(CompoundTag pTag) {
+        NbtUtils.writeInt128(pTag, "x", this.worldPosition.getX());
         pTag.putInt("y", this.worldPosition.getY());
-        pTag.putInt("z", this.worldPosition.getZ());
+        NbtUtils.writeInt128(pTag, "z", this.worldPosition.getZ());
     }
 
     @Nullable
@@ -157,11 +157,7 @@ public abstract class BlockEntity {
     * its long X/Z coordinates as an absolute double.
     */
     protected final boolean isWithinUsableDistance(Player p_155252_, double pLevel) {
-        SectorVec3 position = p_155252_.exactPosition();
-        return position != null ? isWithinUsableDistance(position, this.worldPosition, pLevel)
-                                : p_155252_.distanceToSqr((double) this.worldPosition.getX() + 0.5D,
-                                          (double) this.worldPosition.getY() + 0.5D, (double) this.worldPosition.getZ() + 0.5D)
-                        <= pLevel * pLevel;
+        return isWithinUsableDistance(p_155252_.exactPosition(), this.worldPosition, pLevel);
     }
 
     /** Exact variant shared by block-entity menu validation and regression tests. */

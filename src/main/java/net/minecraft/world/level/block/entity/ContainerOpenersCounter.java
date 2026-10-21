@@ -58,21 +58,16 @@ public abstract class ContainerOpenersCounter {
     }
 
     static boolean isWithinRecheckRange(Player pLevel, BlockPos pPos) {
-        SectorVec3 position = pLevel.exactPosition();
-        return position != null ? isWithinRecheckRange(position, pPos)
-                                : pLevel.getX() >= (double) pPos.getX() - 5.0D && pLevel.getX() <= (double) pPos.getX() + 6.0D
-                        && pLevel.getY() >= (double) pPos.getY() - 5.0D && pLevel.getY() <= (double) pPos.getY() + 6.0D
-                        && pLevel.getZ() >= (double) pPos.getZ() - 5.0D && pLevel.getZ() <= (double) pPos.getZ() + 6.0D;
+        return isWithinRecheckRange(pLevel.exactPosition(), pPos);
     }
 
     static boolean isWithinRecheckRange(SectorVec3 pLevel, BlockPos pPos) {
-        SectorVec3 minimum = SectorVec3.fromBlockAndFraction(pPos.getX(), -5.0D,
-                (double) pPos.getY() - 5.0D, pPos.getZ(), -5.0D);
-        SectorVec3 maximum = SectorVec3.fromBlockAndFraction(pPos.getX(), 6.0D,
-                (double) pPos.getY() + 6.0D, pPos.getZ(), 6.0D);
-        return pLevel.relativeX(minimum) >= 0.0D && pLevel.relativeX(maximum) <= 0.0D
-                && pLevel.relativeY(minimum) >= 0.0D && pLevel.relativeY(maximum) <= 0.0D
-                && pLevel.relativeZ(minimum) >= 0.0D && pLevel.relativeZ(maximum) <= 0.0D;
+        SectorVec3 origin = SectorVec3.fromBlockAndFraction(pPos.getX(), 0.0D,
+                pPos.getY(), pPos.getZ(), 0.0D);
+        double x = pLevel.relativeX(origin);
+        double y = pLevel.relativeY(origin);
+        double z = pLevel.relativeZ(origin);
+        return x >= -5.0D && x <= 6.0D && y >= -5.0D && y <= 6.0D && z >= -5.0D && z <= 6.0D;
     }
 
     public void recheckOpeners(Level pLevel, BlockPos pPos, BlockState pState) {

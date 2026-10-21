@@ -142,7 +142,7 @@ public class StructureUtils {
         if (p_127886_ == Rotation.NONE) {
             blockpos = p_127885_;
         } else if (p_127886_ == Rotation.CLOCKWISE_90) {
-            blockpos = p_127885_.offset(WorldBounds.subtractBlockOffset(vec3i.getZ(), 1), 0, 0);
+            blockpos = p_127885_.offset(vec3i.getZ().lo() - 1, 0, 0);
         } else if (p_127886_ == Rotation.CLOCKWISE_180) {
             blockpos = p_127885_.offset(WorldBounds.subtractBlockOffset(vec3i.getX(), 1), 0, WorldBounds.subtractBlockOffset(vec3i.getZ(), 1));
         } else {
@@ -150,7 +150,7 @@ public class StructureUtils {
                 throw new IllegalArgumentException("Invalid rotation: " + p_127886_);
             }
 
-            blockpos = p_127885_.offset(0, 0, WorldBounds.subtractBlockOffset(vec3i.getX(), 1));
+            blockpos = p_127885_.offset(0, 0, vec3i.getX().lo() - 1);
         }
 
         forceLoadChunks(p_127885_, p_127888_);
@@ -166,21 +166,21 @@ public class StructureUtils {
 
         for (int i = -1; i < 4; ++i) {
             for (int j = -1; j < 4; ++j) {
-                long k = chunkpos.x + i;
-                long l = chunkpos.z + j;
+                net.minecraft.core.Int128 k = WorldBounds.addBlockOffset(chunkpos.x(), i);
+                net.minecraft.core.Int128 l = WorldBounds.addBlockOffset(chunkpos.z(), j);
                 pServerLevel.setChunkForced(k, l, true);
             }
         }
     }
 
     public static void clearSpaceForStructure(BoundingBox p_127850_, int p_127851_, ServerLevel p_127852_) {
-        BoundingBox boundingbox = new BoundingBox(p_127850_.minX() - 2, p_127850_.minY() - 3, p_127850_.minZ() - 3, p_127850_.maxX() + 3, p_127850_.maxY() + 20, p_127850_.maxZ() + 3);
+        BoundingBox boundingbox = new BoundingBox(WorldBounds.addBlockOffset(p_127850_.minX(), -2), p_127850_.minY() - 3, WorldBounds.addBlockOffset(p_127850_.minZ(), -3), WorldBounds.addBlockOffset(p_127850_.maxX(), 3), p_127850_.maxY() + 20, WorldBounds.addBlockOffset(p_127850_.maxZ(), 3));
         BlockPos.betweenClosedStream(boundingbox).forEach((p_177748_) -> {
             clearBlock(p_127851_, p_177748_, p_127852_);
         });
         p_127852_.getBlockTicks().clearArea(boundingbox);
         p_127852_.clearBlockEvents(boundingbox);
-        AABB aabb = new AABB((double) boundingbox.minX(), (double) boundingbox.minY(), (double) boundingbox.minZ(), (double) boundingbox.maxX(), (double) boundingbox.maxY(), (double) boundingbox.maxZ());
+        AABB aabb = new AABB(new BlockPos(boundingbox.minX(), boundingbox.minY(), boundingbox.minZ()), new BlockPos(boundingbox.maxX(), boundingbox.maxY(), boundingbox.maxZ()));
         List<Entity> list = p_127852_.getEntitiesOfClass(Entity.class, aabb, (p_177750_) -> {
             return !(p_177750_ instanceof Player);
         });
@@ -191,9 +191,9 @@ public class StructureUtils {
         BlockPos blockpos = pPos.offset(pOffset).offset(-1, -1, -1);
         BlockPos blockpos1 = StructureTemplate.transform(blockpos, Mirror.NONE, pRotation, pPos);
         BoundingBox boundingbox = BoundingBox.fromCorners(pPos, blockpos1);
-        long i = Math.min(boundingbox.minX(), boundingbox.maxX());
-        long j = Math.min(boundingbox.minZ(), boundingbox.maxZ());
-        return boundingbox.move(WorldBounds.subtractBlockOffset(pPos.getX(), i), 0, WorldBounds.subtractBlockOffset(pPos.getZ(), j));
+        net.minecraft.core.Int128 i = boundingbox.minX();
+        net.minecraft.core.Int128 j = boundingbox.minZ();
+        return boundingbox.move(pPos.getX().subtractSaturated(i), 0, pPos.getZ().subtractSaturated(j));
     }
 
     public static Optional<BlockPos> findStructureBlockContainingPos(BlockPos p_127854_, int p_127855_, ServerLevel p_127856_) {

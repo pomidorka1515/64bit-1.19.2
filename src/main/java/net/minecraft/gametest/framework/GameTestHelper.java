@@ -452,7 +452,7 @@ public class GameTestHelper {
 
     public void assertSameBlockStates(BoundingBox pBoundingBox, BlockPos pPos) {
         BlockPos.betweenClosedStream(pBoundingBox).forEach((p_177267_) -> {
-            BlockPos blockpos = pPos.offset(p_177267_.getX() - pBoundingBox.minX(), p_177267_.getY() - pBoundingBox.minY(), p_177267_.getZ() - pBoundingBox.minZ());
+            BlockPos blockpos = pPos.offset(p_177267_.getX().subtractSaturated(pBoundingBox.minX()), p_177267_.getY() - pBoundingBox.minY(), p_177267_.getZ().subtractSaturated(pBoundingBox.minZ()));
             this.assertSameBlockState(p_177267_, blockpos);
         });
     }

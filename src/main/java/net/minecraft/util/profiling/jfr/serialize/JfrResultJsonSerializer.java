@@ -93,10 +93,10 @@ public class JfrResultJsonSerializer {
                 JsonObject jsonobject3 = new JsonObject();
                 jsonobject3.addProperty("durationNanos", p_185538_.duration().toNanos());
                 jsonobject3.addProperty("level", p_185538_.level());
-                jsonobject3.addProperty("chunkPosX", p_185538_.chunkPos().x);
-                jsonobject3.addProperty("chunkPosZ", p_185538_.chunkPos().z);
-                jsonobject3.addProperty("worldPosX", p_185538_.worldPos().x());
-                jsonobject3.addProperty("worldPosZ", p_185538_.worldPos().z());
+                jsonobject3.addProperty("chunkPosX", p_185538_.chunkPos().x().toDecimalString());
+                jsonobject3.addProperty("chunkPosZ", p_185538_.chunkPos().z().toDecimalString());
+                jsonobject3.addProperty("worldPosX", p_185538_.worldPos().x().toDecimalString());
+                jsonobject3.addProperty("worldPosZ", p_185538_.worldPos().z().toDecimalString());
                 return jsonobject3;
             };
             jsonobject1.add("fastest", function.apply(timedstatsummary.fastest()));

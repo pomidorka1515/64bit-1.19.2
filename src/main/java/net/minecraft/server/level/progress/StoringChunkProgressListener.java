@@ -67,6 +67,6 @@ public class StoringChunkProgressListener implements ChunkProgressListener {
 
     @Nullable
     public ChunkStatus getStatus(int pX, int pZ) {
-        return this.statuses.get(new ChunkPos(pX + this.spawnPos.x - this.radius, pZ + this.spawnPos.z - this.radius));
+        return this.statuses.get(new ChunkPos(net.minecraft.world.level.WorldBounds.addBlockOffset(this.spawnPos.x(), (long) pX - this.radius), net.minecraft.world.level.WorldBounds.addBlockOffset(this.spawnPos.z(), (long) pZ - this.radius)));
     }
 }

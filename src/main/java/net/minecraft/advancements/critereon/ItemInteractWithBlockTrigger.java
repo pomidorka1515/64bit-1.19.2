@@ -52,7 +52,7 @@ public class ItemInteractWithBlockTrigger extends SimpleCriterionTrigger<ItemInt
         }
 
         public boolean matches(BlockState pState, ServerLevel pLevel, BlockPos pPos, ItemStack pStack) {
-            return !this.location.matches(pLevel, (double) pPos.getX() + 0.5D, (double) pPos.getY() + 0.5D, (double) pPos.getZ() + 0.5D) ? false : this.item.matches(pStack);
+            return !this.location.matches(pLevel, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, pPos.getY() + 0.5D, pPos.getZ(), 0.5D)) ? false : this.item.matches(pStack);
         }
 
         public JsonObject serializeToJson(SerializationContext pConditions) {

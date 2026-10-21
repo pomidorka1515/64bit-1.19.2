@@ -8,8 +8,17 @@ import net.minecraft.core.Int128;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.WorldBounds;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeAll;
+import net.minecraft.SharedConstants;
+import net.minecraft.server.Bootstrap;
 
 class ClientChunkCoordinatesTest {
+    @BeforeAll
+    static void bootstrapMinecraft() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+    }
+
     @Test
     void ringIndicesMatchSignedFullWidthModulo() {
         for (Int128 value : new Int128[] {Int128.ZERO, Int128.MIN, Int128.MAX,

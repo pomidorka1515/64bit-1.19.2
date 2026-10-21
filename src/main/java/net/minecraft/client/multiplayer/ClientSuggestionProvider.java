@@ -128,8 +128,14 @@ public class ClientSuggestionProvider implements SharedSuggestionProvider {
     public Collection<SharedSuggestionProvider.TextCoordinates> getAbsoluteCoordinates() {
         HitResult hitresult = this.minecraft.hitResult;
         if (hitresult != null && hitresult.getType() == HitResult.Type.BLOCK) {
-            Vec3 vec3 = hitresult.getLocation();
-            return Collections.singleton(new SharedSuggestionProvider.TextCoordinates(prettyPrint(vec3.x), prettyPrint(vec3.y), prettyPrint(vec3.z)));
+            net.minecraft.world.phys.SectorVec3 position = ((BlockHitResult) hitresult).getExactLocation();
+            if (position == null) {
+                Vec3 legacy = hitresult.getLocation();
+                return Collections.singleton(new SharedSuggestionProvider.TextCoordinates(prettyPrint(legacy.x),
+                        prettyPrint(legacy.y), prettyPrint(legacy.z)));
+            }
+            return Collections.singleton(new SharedSuggestionProvider.TextCoordinates(position.formatX(2),
+                    prettyPrint(position.y()), position.formatZ(2)));
         } else {
             return SharedSuggestionProvider.super.getAbsoluteCoordinates();
         }

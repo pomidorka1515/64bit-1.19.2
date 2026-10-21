@@ -74,6 +74,8 @@ import net.minecraft.client.searchtree.SearchRegistry;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
+import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.Position;
@@ -259,7 +261,6 @@ import net.minecraft.world.item.MapItem;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
@@ -398,6 +399,8 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
     public void handleAddEntity(ClientboundAddEntityPacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
+        if (!this.isTrackedPosition(pPacket.getExactPosition()))
+            return;
         EntityType<?> entitytype = pPacket.getType();
         Entity entity = entitytype.create(this.level);
         if (entity != null) {
@@ -429,8 +432,9 @@ public class ClientPacketListener implements ClientGamePacketListener {
     public void handleAddExperienceOrb(ClientboundAddExperienceOrbPacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
         SectorVec3 exactPosition = pPacket.getExactPosition();
-        Vec3 approximate = exactPosition.toApproximateVec3();
-        Entity entity = new ExperienceOrb(this.level, approximate.x, exactPosition.y(), approximate.z, pPacket.getValue());
+        if (!this.isTrackedPosition(exactPosition))
+            return;
+        Entity entity = new ExperienceOrb(this.level, 0.0D, exactPosition.y(), 0.0D, pPacket.getValue());
         entity.applyExactPosition(exactPosition);
         entity.syncSectorPacketPositionCodec();
         entity.setYRot(0.0F);
@@ -461,9 +465,8 @@ public class ClientPacketListener implements ClientGamePacketListener {
         if (playerinfo == null) {
             LOGGER.warn("Server attempted to add player prior to sending player info (Player id {})", (Object) pPacket.getPlayerId());
         } else {
-            double d0 = pPacket.getX();
-            double d1 = pPacket.getY();
-            double d2 = pPacket.getZ();
+            if (!this.isTrackedPosition(pPacket.getExactPosition()))
+                return;
             float f = (float) (pPacket.getyRot() * 360) / 256.0F;
             float f1 = (float) (pPacket.getxRot() * 360) / 256.0F;
             int i = pPacket.getEntityId();
@@ -483,6 +486,8 @@ public class ClientPacketListener implements ClientGamePacketListener {
         Entity entity = this.level.getEntity(pPacket.getId());
         if (entity != null) {
             SectorVec3 exactPosition = pPacket.getExactPosition();
+            if (!this.isTrackedPosition(exactPosition))
+                return;
             entity.getPositionCodec().setBase(exactPosition);
             if (!entity.isControlledByLocalInstance()) {
                 float f = (float) (pPacket.getyRot() * 360) / 256.0F;
@@ -511,6 +516,8 @@ public class ClientPacketListener implements ClientGamePacketListener {
             SectorVec3 exactPosition = pPacket.hasPosition()
                     ? vecdeltacodec.decodeExact((long) pPacket.getXa(), (long) pPacket.getYa(), (long) pPacket.getZa())
                     : entity.sectorPosition();
+            if (pPacket.hasPosition() && !this.isTrackedPosition(exactPosition))
+                return;
             if (pPacket.hasPosition()) {
                 vecdeltacodec.setBase(exactPosition);
             }
@@ -684,7 +691,8 @@ public class ClientPacketListener implements ClientGamePacketListener {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
         int i = 19 | (pPacket.shouldSuppressLightUpdates() ? 128 : 0);
         pPacket.runUpdates((p_205524_, p_205525_) -> {
-            this.level.setServerVerifiedBlockState(p_205524_, p_205525_, i);
+            if (this.isLoadedPosition(p_205524_))
+                this.level.setServerVerifiedBlockState(p_205524_, p_205525_, i);
         });
     }
 
@@ -696,23 +704,25 @@ public class ClientPacketListener implements ClientGamePacketListener {
         this.queueLightUpdate(pPacket.getX(), pPacket.getZ(), pPacket.getLightData());
     }
 
-    private void updateLevelChunk(long pX, long pZ, ClientboundLevelChunkPacketData pData) {
+    private void updateLevelChunk(Int128 pX, Int128 pZ, ClientboundLevelChunkPacketData pData) {
         this.level.getChunkSource().replaceWithPacketData(pX, pZ, pData.getReadBuffer(), pData.getHeightmaps(), pData.getBlockEntitiesTagsConsumer(pX, pZ));
     }
 
-    private void queueLightUpdate(long pX, long pZ, ClientboundLightUpdatePacketData pData) {
-        this.level.queueLightUpdate(() -> {
-            if (!this.level.getChunkSource().isInViewRange(pX, pZ))
+    private void queueLightUpdate(Int128 pX, Int128 pZ, ClientboundLightUpdatePacketData pData) {
+        ClientLevel queuedLevel = this.level;
+        ClientChunkCache cache = queuedLevel.getChunkSource();
+        LevelChunk expected = cache.getChunk(pX, pZ, ChunkStatus.FULL, false);
+        if (expected == null)
+            return;
+        queuedLevel.queueLightUpdate(() -> {
+            if (this.level != queuedLevel || !cache.isCurrentChunk(pX, pZ, expected))
                 return;
             this.applyLightData(pX, pZ, pData);
-            LevelChunk levelchunk = this.level.getChunkSource().getChunk(pX, pZ, false);
-            if (levelchunk != null) {
-                this.enableChunkLight(levelchunk, pX, pZ);
-            }
+            this.enableChunkLight(expected, pX, pZ);
         });
     }
 
-    private void enableChunkLight(LevelChunk pChunk, long pX, long pZ) {
+    private void enableChunkLight(LevelChunk pChunk, Int128 pX, Int128 pZ) {
         LevelLightEngine levellightengine = this.level.getChunkSource().getLightEngine();
         LevelChunkSection[] alevelchunksection = pChunk.getSections();
         ChunkPos chunkpos = pChunk.getPos();
@@ -730,15 +740,21 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
     public void handleForgetLevelChunk(ClientboundForgetLevelChunkPacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
-        long i = pPacket.getX();
-        long j = pPacket.getZ();
+        Int128 i = pPacket.getX();
+        Int128 j = pPacket.getZ();
         ClientChunkCache clientchunkcache = this.level.getChunkSource();
+        if (clientchunkcache.getChunk(i, j, ChunkStatus.FULL, false) == null)
+            return;
         clientchunkcache.drop(i, j);
         this.queueLightUpdate(pPacket);
     }
 
     private void queueLightUpdate(ClientboundForgetLevelChunkPacket pPacket) {
-        this.level.queueLightUpdate(() -> {
+        ClientLevel queuedLevel = this.level;
+        queuedLevel.queueLightUpdate(() -> {
+            if (this.level != queuedLevel || queuedLevel.getChunkSource().getChunk(
+                    pPacket.getX(), pPacket.getZ(), ChunkStatus.FULL, false) != null)
+                return;
             LevelLightEngine levellightengine = this.level.getLightEngine();
 
             for (int i = this.level.getMinSection(); i < this.level.getMaxSection(); ++i) {
@@ -752,6 +768,8 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
     public void handleBlockUpdate(ClientboundBlockUpdatePacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
+        if (!this.isLoadedPosition(pPacket.getPos()))
+            return;
         this.level.setServerVerifiedBlockState(pPacket.getPos(), pPacket.getBlockState(), 19);
     }
 
@@ -787,9 +805,9 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
         if (entity != null) {
             if (entity instanceof ExperienceOrb) {
-                this.level.playLocalSound(entity.getX(), entity.getY(), entity.getZ(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.1F, (this.random.nextFloat() - this.random.nextFloat()) * 0.35F + 0.9F, false);
+                this.level.playLocalSound(entity.sectorPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.1F, (this.random.nextFloat() - this.random.nextFloat()) * 0.35F + 0.9F, false);
             } else {
-                this.level.playLocalSound(entity.getX(), entity.getY(), entity.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, (this.random.nextFloat() - this.random.nextFloat()) * 1.4F + 2.0F, false);
+                this.level.playLocalSound(entity.sectorPosition(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, (this.random.nextFloat() - this.random.nextFloat()) * 1.4F + 2.0F, false);
             }
 
             this.minecraft.particleEngine.add(ItemPickupParticle.create(this.minecraft.getEntityRenderDispatcher(), this.minecraft.renderBuffers(), this.level, entity, livingentity));
@@ -929,7 +947,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
             } else if (pPacket.getEventId() == 35) {
                 int i = 40;
                 this.minecraft.particleEngine.createTrackingEmitter(entity, ParticleTypes.TOTEM_OF_UNDYING, 30);
-                this.level.playLocalSound(entity.getX(), entity.getY(), entity.getZ(), SoundEvents.TOTEM_USE, entity.getSoundSource(), 1.0F, 1.0F, false);
+                this.level.playLocalSound(entity.sectorPosition(), SoundEvents.TOTEM_USE, entity.getSoundSource(), 1.0F, 1.0F, false);
                 if (entity == this.minecraft.player) {
                     this.minecraft.gameRenderer.displayItemActivation(findTotem(this.minecraft.player));
                 }
@@ -1092,6 +1110,8 @@ public class ClientPacketListener implements ClientGamePacketListener {
     public void handleBlockEntityData(ClientboundBlockEntityDataPacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
         BlockPos blockpos = pPacket.getPos();
+        if (!this.isLoadedPosition(blockpos))
+            return;
         this.minecraft.level.getBlockEntity(blockpos, pPacket.getType()).ifPresent((p_205557_) -> {
             CompoundTag compoundtag = pPacket.getTag();
             if (compoundtag != null) {
@@ -1129,11 +1149,15 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
     public void handleBlockEvent(ClientboundBlockEventPacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
+        if (!this.isLoadedPosition(pPacket.getPos()))
+            return;
         this.minecraft.level.blockEvent(pPacket.getPos(), pPacket.getBlock(), pPacket.getB0(), pPacket.getB1());
     }
 
     public void handleBlockDestruction(ClientboundBlockDestructionPacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
+        if (!this.isLoadedPosition(pPacket.getPos()))
+            return;
         this.minecraft.level.destroyBlockProgress(pPacket.getId(), pPacket.getPos(), pPacket.getProgress());
     }
 
@@ -1176,18 +1200,18 @@ public class ClientPacketListener implements ClientGamePacketListener {
                 this.minecraft.gui.getChat().addMessage(Component.translatable("demo.day.6", options.keyScreenshot.getTranslatedKeyMessage()));
             }
         } else if (clientboundgameeventpacket$type == ClientboundGameEventPacket.ARROW_HIT_PLAYER) {
-            this.level.playSound(player, player.getX(), player.getEyeY(), player.getZ(), SoundEvents.ARROW_HIT_PLAYER, SoundSource.PLAYERS, 0.18F, 0.45F);
+            this.level.playSound(player, player.sectorPosition().withY(player.getEyeY()), SoundEvents.ARROW_HIT_PLAYER, SoundSource.PLAYERS, 0.18F, 0.45F);
         } else if (clientboundgameeventpacket$type == ClientboundGameEventPacket.RAIN_LEVEL_CHANGE) {
             this.level.setRainLevel(f);
         } else if (clientboundgameeventpacket$type == ClientboundGameEventPacket.THUNDER_LEVEL_CHANGE) {
             this.level.setThunderLevel(f);
         } else if (clientboundgameeventpacket$type == ClientboundGameEventPacket.PUFFER_FISH_STING) {
-            this.level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.PUFFER_FISH_STING, SoundSource.NEUTRAL, 1.0F, 1.0F);
+            this.level.playSound(player, player.sectorPosition(), SoundEvents.PUFFER_FISH_STING, SoundSource.NEUTRAL, 1.0F, 1.0F);
         } else if (clientboundgameeventpacket$type == ClientboundGameEventPacket.GUARDIAN_ELDER_EFFECT) {
             this.level.addParticle(ParticleTypes.ELDER_GUARDIAN, player.particlePosition(0.0D, 0.0D, 0.0D),
                     0.0D, 0.0D, 0.0D);
             if (i == 1) {
-                this.level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.ELDER_GUARDIAN_CURSE, SoundSource.HOSTILE, 1.0F, 1.0F);
+                this.level.playSound(player, player.sectorPosition(), SoundEvents.ELDER_GUARDIAN_CURSE, SoundSource.HOSTILE, 1.0F, 1.0F);
             }
         } else if (clientboundgameeventpacket$type == ClientboundGameEventPacket.IMMEDIATE_RESPAWN) {
             this.minecraft.player.setShowDeathScreen(f == 0.0F);
@@ -2100,17 +2124,22 @@ public class ClientPacketListener implements ClientGamePacketListener {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
         if (!this.level.getChunkSource().isInViewRange(pPacket.getX(), pPacket.getZ()))
             return;
-        long i = pPacket.getX();
-        long j = pPacket.getZ();
+        Int128 i = pPacket.getX();
+        Int128 j = pPacket.getZ();
         ClientboundLightUpdatePacketData clientboundlightupdatepacketdata = pPacket.getLightData();
-        this.level.queueLightUpdate(() -> {
-            if (!this.level.getChunkSource().isInViewRange(i, j))
+        ClientLevel queuedLevel = this.level;
+        ClientChunkCache cache = queuedLevel.getChunkSource();
+        LevelChunk expected = cache.getChunk(i, j, ChunkStatus.FULL, false);
+        if (expected == null)
+            return;
+        queuedLevel.queueLightUpdate(() -> {
+            if (this.level != queuedLevel || !cache.isCurrentChunk(i, j, expected))
                 return;
             this.applyLightData(i, j, clientboundlightupdatepacketdata);
         });
     }
 
-    private void applyLightData(long pX, long pZ, ClientboundLightUpdatePacketData pData) {
+    private void applyLightData(Int128 pX, Int128 pZ, ClientboundLightUpdatePacketData pData) {
         LevelLightEngine levellightengine = this.level.getChunkSource().getLightEngine();
         BitSet bitset = pData.getSkyYMask();
         BitSet bitset1 = pData.getEmptySkyYMask();
@@ -2150,9 +2179,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
     public void handleSetChunkCacheCenter(ClientboundSetChunkCacheCenterPacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
-        long x = WorldBounds.clampChunk(pPacket.getX());
-        long z = WorldBounds.clampChunk(pPacket.getZ());
-        this.level.getChunkSource().updateViewCenter(x, z);
+        this.level.getChunkSource().updateViewCenter(pPacket.getX(), pPacket.getZ());
     }
 
     public void handleBlockChangedAck(ClientboundBlockChangedAckPacket pPacket) {
@@ -2160,7 +2187,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
         this.level.handleBlockChangedAck(pPacket.sequence());
     }
 
-    private void readSectionList(long pX, long pY, LevelLightEngine pLightEngine, LightLayer pLightLayer, BitSet pYMask, BitSet pEmptyYMask, Iterator<byte[]> pUpdatesIterator, boolean pTrusted) {
+    private void readSectionList(Int128 pX, Int128 pY, LevelLightEngine pLightEngine, LightLayer pLightLayer, BitSet pYMask, BitSet pEmptyYMask, Iterator<byte[]> pUpdatesIterator, boolean pTrusted) {
         for (int i = 0; i < pLightEngine.getLightSectionCount(); ++i) {
             int j = pLightEngine.getMinLightSection() + i;
             boolean flag = pYMask.get(i);
@@ -2174,6 +2201,15 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
     public Connection getConnection() {
         return this.connection;
+    }
+
+    private boolean isTrackedPosition(SectorVec3 position) {
+        return this.level.getChunkSource().isInViewRange(position.blockX().shiftRight(4), position.blockZ().shiftRight(4));
+    }
+
+    private boolean isLoadedPosition(BlockPos position) {
+        return this.level.getChunkSource().getChunk(position.getX().shiftRight(4), position.getZ().shiftRight(4),
+                ChunkStatus.FULL, false) != null;
     }
 
     public Collection<PlayerInfo> getOnlinePlayers() {

@@ -51,7 +51,6 @@ public class EntitySelector {
     @Nullable
     private final AABB aabb;
     private final BiConsumer<Vec3, List<? extends Entity>> order;
-    private final boolean exactCoordinateSelector;
     @Nullable
     private SectorVec3 exactOriginForSorting;
     private final boolean currentEntity;
@@ -74,7 +73,6 @@ public class EntitySelector {
         this.exactZ = exactZ;
         this.aabb = pAabb;
         this.order = pOrder;
-        this.exactCoordinateSelector = exactX != null || exactZ != null;
         this.currentEntity = pCurrentEntity;
         this.playerName = pPlayerName;
         this.entityUUID = pEntityUUID;

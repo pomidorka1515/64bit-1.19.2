@@ -1,4 +1,5 @@
 package net.minecraft.server.commands;
+import net.minecraft.world.level.WorldBounds;
 
 import com.google.common.collect.Lists;
 import com.mojang.brigadier.CommandDispatcher;

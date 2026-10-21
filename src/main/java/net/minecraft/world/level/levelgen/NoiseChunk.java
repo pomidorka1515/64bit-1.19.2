@@ -173,7 +173,8 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
         if (FarlandsMode.usesPreciseCoordinates()) {
             // ChunkPos clamps to the chunk domain; these are block-column keys.
             return this.exactPreliminarySurfaceLevel.computeIfAbsent(new ColumnPos(i, j),
-                    (ToIntFunction<ColumnPos>) column -> this.computePreliminarySurfaceLevel(column.x(), column.z()));
+                    // The deferred worldgen noise algorithm intentionally consumes low 64 bits.
+                    (ToIntFunction<ColumnPos>) column -> this.computePreliminarySurfaceLevel(column.x().lo(), column.z().lo()));
         }
         return this.preliminarySurfaceLevel.computeIfAbsent(new ChunkPos(i, j), (ToIntFunction<ChunkPos>) this::computePreliminarySurfaceLevel);
     }

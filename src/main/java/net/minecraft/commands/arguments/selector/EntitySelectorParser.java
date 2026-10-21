@@ -404,6 +404,7 @@ public class EntitySelectorParser {
     }
 
     public void setExactX(String value) {
+        net.minecraft.commands.arguments.coordinates.WorldCoordinate.absoluteDecimal(value, false);
         this.exactX = value;
         this.x = Double.parseDouble(value);
     }
@@ -417,6 +418,7 @@ public class EntitySelectorParser {
     }
 
     public void setExactZ(String value) {
+        net.minecraft.commands.arguments.coordinates.WorldCoordinate.absoluteDecimal(value, false);
         this.exactZ = value;
         this.z = Double.parseDouble(value);
     }

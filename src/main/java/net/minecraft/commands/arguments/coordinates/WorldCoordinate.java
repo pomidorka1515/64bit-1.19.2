@@ -60,6 +60,8 @@ public class WorldCoordinate {
                     if (!isDecimal(literal))
                         throw new NumberFormatException(literal);
                     double d0 = Double.parseDouble(literal);
+                    if (!Double.isFinite(d0))
+                        throw new NumberFormatException(literal);
                     if (!s.contains(".") && !flag && pCenterCorrect) {
                         d0 += 0.5D;
                         literal = new BigDecimal(literal).add(BigDecimal.valueOf(0.5D)).toPlainString();

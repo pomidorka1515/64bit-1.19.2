@@ -99,7 +99,7 @@ public class PlaceCommand {
         ServerLevel serverlevel = pSource.getLevel();
         ConfiguredFeature<?, ?> configuredfeature = pFeature.value();
         ChunkPos chunkpos = new ChunkPos(pPos);
-        checkLoaded(serverlevel, new ChunkPos(chunkpos.x - 1, chunkpos.z - 1), new ChunkPos(chunkpos.x + 1, chunkpos.z + 1));
+        checkLoaded(serverlevel, new ChunkPos(net.minecraft.world.level.WorldBounds.addChunkOffset(chunkpos.x(), -1), net.minecraft.world.level.WorldBounds.addChunkOffset(chunkpos.z(), -1)), new ChunkPos(net.minecraft.world.level.WorldBounds.addChunkOffset(chunkpos.x(), 1), net.minecraft.world.level.WorldBounds.addChunkOffset(chunkpos.z(), 1)));
         if (!configuredfeature.place(serverlevel, serverlevel.getChunkSource().getGenerator(), serverlevel.getRandom(), pPos)) {
             throw ERROR_FEATURE_FAILED.create();
         } else {

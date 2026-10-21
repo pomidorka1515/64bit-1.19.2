@@ -63,7 +63,7 @@ public class ResetChunksCommand {
             boolean moreX = k.compareTo(l) <= 0;
             for (net.minecraft.core.Int128 j1 = k; moreX; moreX = j1.compareTo(l) < 0, j1 = WorldBounds.addChunkOffset(j1, 1L)) {
                 ChunkPos chunkpos1 = new ChunkPos(j1, i1);
-                LevelChunk levelchunk = serverchunkcache.getChunk(j1, i1, false);
+                LevelChunk levelchunk = (LevelChunk) serverchunkcache.getChunk(j1, i1, ChunkStatus.FULL, false);
                 if (levelchunk != null && (!pSkipOldChunks || !levelchunk.isOldNoiseGeneration())) {
                     for (BlockPos blockpos : BlockPos.betweenClosed(chunkpos1.getMinBlockX(), serverlevel.getMinBuildHeight(), chunkpos1.getMinBlockZ(), chunkpos1.getMaxBlockX(), serverlevel.getMaxBuildHeight() - 1, chunkpos1.getMaxBlockZ())) {
                         serverlevel.setBlock(blockpos, Blocks.AIR.defaultBlockState(), 16);
@@ -87,7 +87,7 @@ public class ResetChunksCommand {
                 boolean moreStageX = k.compareTo(l) <= 0;
                 for (net.minecraft.core.Int128 j2 = k; moreStageX; moreStageX = j2.compareTo(l) < 0, j2 = WorldBounds.addChunkOffset(j2, 1L)) {
                     ChunkPos chunkpos2 = new ChunkPos(j2, i2);
-                    LevelChunk levelchunk1 = serverchunkcache.getChunk(j2, i2, false);
+                    LevelChunk levelchunk1 = (LevelChunk) serverchunkcache.getChunk(j2, i2, ChunkStatus.FULL, false);
                     if (levelchunk1 != null && (!pSkipOldChunks || !levelchunk1.isOldNoiseGeneration())) {
                         List<ChunkAccess> list = Lists.newArrayList();
                         int k2 = Math.max(1, chunkstatus.getRange());
@@ -139,7 +139,7 @@ public class ResetChunksCommand {
             boolean moreX = k.compareTo(l) <= 0;
             for (net.minecraft.core.Int128 l1 = k; moreX; moreX = l1.compareTo(l) < 0, l1 = WorldBounds.addChunkOffset(l1, 1L)) {
                 ChunkPos chunkpos3 = new ChunkPos(l1, i4);
-                LevelChunk levelchunk2 = serverchunkcache.getChunk(l1, i4, false);
+                LevelChunk levelchunk2 = (LevelChunk) serverchunkcache.getChunk(l1, i4, ChunkStatus.FULL, false);
                 if (levelchunk2 != null && (!pSkipOldChunks || !levelchunk2.isOldNoiseGeneration())) {
                     for (BlockPos blockpos1 : BlockPos.betweenClosed(chunkpos3.getMinBlockX(), serverlevel.getMinBuildHeight(), chunkpos3.getMinBlockZ(), chunkpos3.getMaxBlockX(), serverlevel.getMaxBuildHeight() - 1, chunkpos3.getMaxBlockZ())) {
                         serverchunkcache.blockChanged(blockpos1);

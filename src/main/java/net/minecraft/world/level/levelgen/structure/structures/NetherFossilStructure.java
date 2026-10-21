@@ -5,6 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Int128;
 import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.NoiseColumn;
 import net.minecraft.world.level.WorldBounds;
@@ -32,12 +33,12 @@ public class NetherFossilStructure extends Structure {
 
     public Optional<Structure.GenerationStub> findGenerationPoint(Structure.GenerationContext p_228576_) {
         WorldgenRandom worldgenrandom = p_228576_.random();
-        long i = WorldBounds.addBlockOffset(p_228576_.chunkPos().getMinBlockX(), worldgenrandom.nextInt(16));
-        long j = WorldBounds.addBlockOffset(p_228576_.chunkPos().getMinBlockZ(), worldgenrandom.nextInt(16));
+        Int128 i = WorldBounds.addBlockOffset(p_228576_.chunkPos().getMinBlockX(), worldgenrandom.nextInt(16));
+        Int128 j = WorldBounds.addBlockOffset(p_228576_.chunkPos().getMinBlockZ(), worldgenrandom.nextInt(16));
         int k = p_228576_.chunkGenerator().getSeaLevel();
         WorldGenerationContext worldgenerationcontext = new WorldGenerationContext(p_228576_.chunkGenerator(), p_228576_.heightAccessor());
         int l = this.height.sample(worldgenrandom, worldgenerationcontext);
-        NoiseColumn noisecolumn = p_228576_.chunkGenerator().getBaseColumn(i, j, p_228576_.heightAccessor(), p_228576_.randomState());
+        NoiseColumn noisecolumn = p_228576_.chunkGenerator().getBaseColumn(i.lo(), j.lo(), p_228576_.heightAccessor(), p_228576_.randomState());
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(i, l, j);
 
         while (l > k) {

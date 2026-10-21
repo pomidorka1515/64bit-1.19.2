@@ -12,6 +12,7 @@ import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
+import net.minecraft.core.Int128;
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -93,15 +94,16 @@ public abstract class Structure {
 
     protected static Optional<Structure.GenerationStub> onTopOfChunkCenter(Structure.GenerationContext pContext, Heightmap.Types pHeightmapTypes, Consumer<StructurePiecesBuilder> pGenerator) {
         ChunkPos chunkpos = pContext.chunkPos();
-        long i = chunkpos.getMiddleBlockX();
-        long j = chunkpos.getMiddleBlockZ();
-        int k = pContext.chunkGenerator().getFirstOccupiedHeight(i, j, pHeightmapTypes, pContext.heightAccessor(), pContext.randomState());
+        Int128 i = chunkpos.getMiddleBlockX();
+        Int128 j = chunkpos.getMiddleBlockZ();
+        // Deferred worldgen seam: sample height using only low 64 bits.
+        int k = pContext.chunkGenerator().getFirstOccupiedHeight(i.lo(), j.lo(), pHeightmapTypes, pContext.heightAccessor(), pContext.randomState());
         return Optional.of(new Structure.GenerationStub(new BlockPos(i, k, j), pGenerator));
     }
 
     private static boolean isValidBiome(Structure.GenerationStub p_226590_, ChunkGenerator p_226591_, RandomState p_226592_, Predicate<Holder<Biome>> p_226593_) {
         BlockPos blockpos = p_226590_.position();
-        return p_226593_.test(p_226591_.getBiomeSource().getNoiseBiome(QuartPos.fromBlock(blockpos.getX()), QuartPos.fromBlock(blockpos.getY()), QuartPos.fromBlock(blockpos.getZ()), p_226592_.sampler()));
+        return p_226593_.test(p_226591_.getBiomeSource().getNoiseBiome(QuartPos.fromBlock(blockpos.getXLo()), QuartPos.fromBlock(blockpos.getY()), QuartPos.fromBlock(blockpos.getZLo()), p_226592_.sampler()));
     }
 
     public void afterPlace(WorldGenLevel p_226560_, StructureManager p_226561_, ChunkGenerator p_226562_, RandomSource p_226563_, BoundingBox p_226564_, ChunkPos p_226565_, PiecesContainer p_226566_) {
@@ -116,14 +118,19 @@ public abstract class Structure {
 
     protected static int getLowestY(Structure.GenerationContext p_226573_, int p_226574_, int p_226575_) {
         ChunkPos chunkpos = p_226573_.chunkPos();
-        long i = chunkpos.getMinBlockX();
-        long j = chunkpos.getMinBlockZ();
+        Int128 i = chunkpos.getMinBlockX();
+        Int128 j = chunkpos.getMinBlockZ();
         return getLowestY(p_226573_, i, j, p_226574_, p_226575_);
     }
 
     protected static int getLowestY(Structure.GenerationContext p_226577_, long p_226578_, long p_226579_, int p_226580_, int p_226581_) {
         int[] aint = getCornerHeights(p_226577_, p_226578_, p_226580_, p_226579_, p_226581_);
         return Math.min(Math.min(aint[0], aint[1]), Math.min(aint[2], aint[3]));
+    }
+
+    protected static int getLowestY(Structure.GenerationContext context, Int128 x, Int128 z, int width, int depth) {
+        // Height generation is intentionally still a low-64 algorithm.
+        return getLowestY(context, x.lo(), z.lo(), width, depth);
     }
 
     /** @deprecated */
@@ -141,8 +148,8 @@ public abstract class Structure {
         }
 
         ChunkPos chunkpos = pContext.chunkPos();
-        long k = chunkpos.getBlockX(7);
-        long l = chunkpos.getBlockZ(7);
+        Int128 k = chunkpos.getBlockX(7);
+        Int128 l = chunkpos.getBlockZ(7);
         return new BlockPos(k, getLowestY(pContext, k, l, i, j), l);
     }
 
@@ -157,7 +164,7 @@ public abstract class Structure {
 
         private static WorldgenRandom makeRandom(long pSeed, ChunkPos pChunkPos) {
             WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(0L));
-            worldgenrandom.setLargeFeatureSeed(pSeed, pChunkPos.x, pChunkPos.z);
+            worldgenrandom.setLargeFeatureSeed(pSeed, pChunkPos.xLo(), pChunkPos.zLo());
             return worldgenrandom;
         }
     }

@@ -34,8 +34,9 @@ public interface PieceGeneratorSupplier<C extends FeatureConfiguration> {
 
     public static record Context<C extends FeatureConfiguration>(ChunkGenerator chunkGenerator, BiomeSource biomeSource, RandomState randomState, long seed, ChunkPos chunkPos, C config, LevelHeightAccessor heightAccessor, Predicate<Holder<Biome>> validBiome, StructureTemplateManager structureTemplateManager, RegistryAccess registryAccess) {
         public boolean validBiomeOnTop(Heightmap.Types p_197381_) {
-            long i = this.chunkPos.getMiddleBlockX();
-            long j = this.chunkPos.getMiddleBlockZ();
+            // Deferred worldgen seam: these coordinates only feed height/biome noise.
+            long i = this.chunkPos.getMiddleBlockX().lo();
+            long j = this.chunkPos.getMiddleBlockZ().lo();
             int k = this.chunkGenerator.getFirstOccupiedHeight(i, j, p_197381_, this.heightAccessor, this.randomState);
             Holder<Biome> holder = this.chunkGenerator.getBiomeSource().getNoiseBiome(QuartPos.fromBlock(i), QuartPos.fromBlock(k), QuartPos.fromBlock(j), this.randomState.sampler());
             return this.validBiome.test(holder);

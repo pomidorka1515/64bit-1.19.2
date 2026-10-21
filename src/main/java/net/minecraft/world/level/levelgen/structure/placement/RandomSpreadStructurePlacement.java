@@ -59,7 +59,8 @@ public class RandomSpreadStructurePlacement extends StructurePlacement {
 
     protected boolean isPlacementChunk(ChunkGenerator pGenerator, RandomState pRandomState, long pSeed, long pX, long pY) {
         ChunkPos chunkpos = this.getPotentialStructureChunk(pSeed, pX, pY);
-        return chunkpos.x == pX && chunkpos.z == pY;
+        // Placement algorithms retain their legacy low-64 input domain.
+        return chunkpos.xLo() == pX && chunkpos.zLo() == pY;
     }
 
     public StructurePlacementType<?> type() {

@@ -28,6 +28,10 @@ public class SwampHutPiece extends ScatteredFeaturePiece {
     private boolean spawnedCat;
 
     public SwampHutPiece(RandomSource pRandom, long pX, long pZ) {
+        this(pRandom, net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ));
+    }
+
+    public SwampHutPiece(RandomSource pRandom, net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ) {
         super(StructurePieceType.SWAMPLAND_HUT, pX, 64, pZ, 7, 7, 9, getRandomHorizontalDirection(pRandom));
     }
 

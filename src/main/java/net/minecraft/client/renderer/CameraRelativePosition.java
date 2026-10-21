@@ -1,6 +1,7 @@
 package net.minecraft.client.renderer;
 
 import net.minecraft.core.Int128;
+import net.minecraft.core.Int128Math;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.phys.SectorVec3;
 import net.minecraftforge.api.distmarker.Dist;
@@ -65,7 +66,12 @@ public final class CameraRelativePosition {
     }
 
     public double relativeX(Int128 blockX) {
-        return WorldBounds.signedDifference(blockX, this.baseX) - this.fractionX;
+        return this.relativeX(blockX.hi(), blockX.lo());
+    }
+
+    /** Allocation-free variant of {@link #relativeX(Int128)} for hot callers holding raw halves. */
+    public double relativeX(long blockXHi, long blockXLo) {
+        return Int128Math.signedDifferenceAsLong(blockXHi, blockXLo, this.baseX.hi(), this.baseX.lo()) - this.fractionX;
     }
 
     public double relativeX(long blockX) {
@@ -77,7 +83,12 @@ public final class CameraRelativePosition {
     }
 
     public double relativeZ(Int128 blockZ) {
-        return WorldBounds.signedDifference(blockZ, this.baseZ) - this.fractionZ;
+        return this.relativeZ(blockZ.hi(), blockZ.lo());
+    }
+
+    /** Allocation-free variant of {@link #relativeZ(Int128)} for hot callers holding raw halves. */
+    public double relativeZ(long blockZHi, long blockZLo) {
+        return Int128Math.signedDifferenceAsLong(blockZHi, blockZLo, this.baseZ.hi(), this.baseZ.lo()) - this.fractionZ;
     }
 
     public double relativeZ(long blockZ) {

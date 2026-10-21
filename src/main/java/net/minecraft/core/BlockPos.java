@@ -498,7 +498,10 @@ public class BlockPos extends Vec3i {
         }
 
         public BlockPos.MutableBlockPos set(Vec3i pVector) {
-            return this.set(pVector.getX(), pVector.getY(), pVector.getZ());
+            this.setX(pVector.xHi(), pVector.xLo());
+            this.setY(pVector.getY());
+            this.setZ(pVector.zHi(), pVector.zLo());
+            return this;
         }
 
         public BlockPos.MutableBlockPos set(AxisCycle pCycle, int pX, int pY, int pZ) {
@@ -506,13 +509,17 @@ public class BlockPos extends Vec3i {
         }
 
         public BlockPos.MutableBlockPos setWithOffset(Vec3i pPos, Direction pDirection) {
-            return this.set(WorldBounds.addBlockOffset(pPos.getX(), pDirection.getStepX()),
-                    pPos.getY() + pDirection.getStepY(), WorldBounds.addBlockOffset(pPos.getZ(), pDirection.getStepZ()));
+            return this.setWithOffset(pPos, (long) pDirection.getStepX(), pDirection.getStepY(), (long) pDirection.getStepZ());
         }
 
         public BlockPos.MutableBlockPos setWithOffset(Vec3i pVector, long pOffsetX, int pOffsetY, long pOffsetZ) {
-            return this.set(WorldBounds.addBlockOffset(pVector.getX(), pOffsetX), pVector.getY() + pOffsetY,
-                    WorldBounds.addBlockOffset(pVector.getZ(), pOffsetZ));
+            // Raw signed 128-bit add; saturates exactly like WorldBounds.addBlockOffset
+            // (block.addSaturated(Int128.fromLong(offset))) but without allocation. The
+            // offsets fed here by block iteration are tiny, so this is the hot form.
+            this.addOffsetToX(pVector.xHi(), pVector.xLo(), pOffsetX);
+            this.setY(pVector.getY() + pOffsetY);
+            this.addOffsetToZ(pVector.zHi(), pVector.zLo(), pOffsetZ);
+            return this;
         }
 
         public BlockPos.MutableBlockPos setWithOffset(Vec3i pPos, Vec3i pOffset) {
@@ -525,14 +532,42 @@ public class BlockPos extends Vec3i {
         }
 
         public BlockPos.MutableBlockPos move(Direction pDirection, int pN) {
-            return this.set(WorldBounds.addBlockOffset(this.getX(), (long) pDirection.getStepX() * pN),
-                    this.getY() + pDirection.getStepY() * pN,
-                    WorldBounds.addBlockOffset(this.getZ(), (long) pDirection.getStepZ() * pN));
+            this.addOffsetToX(this.xHi(), this.xLo(), (long) pDirection.getStepX() * pN);
+            this.setY(this.getY() + pDirection.getStepY() * pN);
+            this.addOffsetToZ(this.zHi(), this.zLo(), (long) pDirection.getStepZ() * pN);
+            return this;
         }
 
         public BlockPos.MutableBlockPos move(int pX, int pY, int pZ) {
-            return this.set(WorldBounds.addBlockOffset(this.getX(), pX), this.getY() + pY,
-                    WorldBounds.addBlockOffset(this.getZ(), pZ));
+            this.addOffsetToX(this.xHi(), this.xLo(), (long) pX);
+            this.setY(this.getY() + pY);
+            this.addOffsetToZ(this.zHi(), this.zLo(), (long) pZ);
+            return this;
+        }
+
+        /** Signs a Java long offset into 128 bits and adds it, saturating like addSaturated. */
+        private void addOffsetToX(long pBlockHi, long pBlockLo, long pOffset) {
+            long offsetHi = pOffset >> 63;
+            long low = pBlockLo + pOffset;
+            long carry = Int128Math.addCarry(pBlockLo, pOffset, low);
+            long high = pBlockHi + offsetHi + carry;
+            if (Int128Math.addOverflowed(pBlockHi, offsetHi, carry, high)) {
+                high = pBlockHi < 0L ? Int128.MIN.hi() : Int128.MAX.hi();
+                low = pBlockHi < 0L ? Int128.MIN.lo() : Int128.MAX.lo();
+            }
+            this.setX(high, low);
+        }
+
+        private void addOffsetToZ(long pBlockHi, long pBlockLo, long pOffset) {
+            long offsetHi = pOffset >> 63;
+            long low = pBlockLo + pOffset;
+            long carry = Int128Math.addCarry(pBlockLo, pOffset, low);
+            long high = pBlockHi + offsetHi + carry;
+            if (Int128Math.addOverflowed(pBlockHi, offsetHi, carry, high)) {
+                high = pBlockHi < 0L ? Int128.MIN.hi() : Int128.MAX.hi();
+                low = pBlockHi < 0L ? Int128.MIN.lo() : Int128.MAX.lo();
+            }
+            this.setZ(high, low);
         }
 
         public BlockPos.MutableBlockPos move(Vec3i pOffset) {

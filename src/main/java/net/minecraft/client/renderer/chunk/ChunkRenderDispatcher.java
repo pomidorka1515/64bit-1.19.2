@@ -377,9 +377,9 @@ public class ChunkRenderDispatcher {
 
         protected double getDistToPlayerSqr() {
             CameraRelativePosition camerarelativeposition = ChunkRenderDispatcher.this.getCameraRelativePosition();
-            double d0 = camerarelativeposition.relativeX(this.origin.getX()) + 8.0D;
+            double d0 = camerarelativeposition.relativeX(this.origin.xHi(), this.origin.xLo()) + 8.0D;
             double d1 = camerarelativeposition.relativeY(this.origin.getY()) + 8.0D;
-            double d2 = camerarelativeposition.relativeZ(this.origin.getZ()) + 8.0D;
+            double d2 = camerarelativeposition.relativeZ(this.origin.zHi(), this.origin.zLo()) + 8.0D;
             return d0 * d0 + d1 * d1 + d2 * d2;
         }
 

@@ -125,6 +125,58 @@ public final class Int128Math {
         return second != 0L && first > Long.MAX_VALUE / second ? Long.MAX_VALUE : first * second;
     }
 
+    /**
+     * Raw high half of {@link Int128#fromDoubleFloorSaturated(double)}. Hot callers
+     * keep results in their own locals; the low half comes from {@link #doubleFloorLo(double)}.
+     */
+    public static long doubleFloorHi(double value) {
+        return doubleFloor(value, true);
+    }
+
+    /** Raw low half of {@link Int128#fromDoubleFloorSaturated(double)}; see {@link #doubleFloorHi(double)}. */
+    public static long doubleFloorLo(double value) {
+        return doubleFloor(value, false);
+    }
+
+    /** Mirrors {@link Int128#fromDoubleFloorSaturated(double)} without allocation. */
+    private static long doubleFloor(double value, boolean high) {
+        if (Double.isNaN(value)) {
+            return 0L;
+        }
+        if (value >= 0x1p127) {
+            return high ? Long.MAX_VALUE : -1L;
+        }
+        if (value <= -0x1p127) {
+            return high ? Long.MIN_VALUE : 0L;
+        }
+        if (value >= -0x1p63 && value < 0x1p63) {
+            // The long-range cast truncates toward zero and is then corrected; it is not the floor.
+            long truncated = (long) value;
+            long floored = value < truncated ? truncated - 1L : truncated;
+            return high ? (floored < 0L ? -1L : 0L) : floored;
+        }
+        // |value| >= 2^63 and |value| < 2^127, so the double is already an integer.
+        long bits = Double.doubleToRawLongBits(value);
+        int shift = (int) ((bits >>> 52) & 0x7FFL) - 1075;
+        long significand = (bits & 0xFFFFFFFFFFFFFL) | 0x10000000000000L;
+        long magnitudeHi;
+        long magnitudeLo;
+        if (shift >= 64) {
+            magnitudeHi = significand << (shift - 64);
+            magnitudeLo = 0L;
+        } else {
+            magnitudeHi = significand >>> (64 - shift);
+            magnitudeLo = significand << shift;
+        }
+        if (bits < 0L) {
+            // Two's complement negate of the exact magnitude.
+            long low = -magnitudeLo;
+            long top = ~magnitudeHi + (magnitudeLo == 0L ? 1L : 0L);
+            return high ? top : low;
+        }
+        return high ? magnitudeHi : magnitudeLo;
+    }
+
     /** Cold boundary returning a value object. Floors before saturated addition. */
     public static Int128 addDoubleBlockOffset(long hi, long lo, double offset) {
         if (Double.isNaN(offset)) return Int128.of(hi, lo);

@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Int128;
 import net.minecraft.core.Int128Map;
+import net.minecraft.core.Int128Math;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -78,12 +79,12 @@ public class RenderRegionCache {
     }
 
     private static boolean isAllEmpty(BlockPos p_200471_, BlockPos p_200472_, Int128 p_200473_, Int128 p_200474_, RenderRegionCache.ChunkInfo[][] p_200475_) {
-        int firstX = RenderChunkRegion.localIndex(p_200471_.getX().shiftRight(4), p_200473_, p_200475_.length);
-        int lastX = RenderChunkRegion.localIndex(p_200472_.getX().shiftRight(4), p_200473_, p_200475_.length);
+        int firstX = RenderChunkRegion.localIndex(Int128Math.rightShiftHi(p_200471_.xHi(), 4), Int128Math.rightShiftLo(p_200471_.xHi(), p_200471_.xLo(), 4), p_200473_.hi(), p_200473_.lo(), p_200475_.length);
+        int lastX = RenderChunkRegion.localIndex(Int128Math.rightShiftHi(p_200472_.xHi(), 4), Int128Math.rightShiftLo(p_200472_.xHi(), p_200472_.xLo(), 4), p_200473_.hi(), p_200473_.lo(), p_200475_.length);
         for (int x = firstX; x >= 0 && x <= lastX; ++x) {
             RenderRegionCache.ChunkInfo[] column = p_200475_[x];
-            int firstZ = RenderChunkRegion.localIndex(p_200471_.getZ().shiftRight(4), p_200474_, column.length);
-            int lastZ = RenderChunkRegion.localIndex(p_200472_.getZ().shiftRight(4), p_200474_, column.length);
+            int firstZ = RenderChunkRegion.localIndex(Int128Math.rightShiftHi(p_200471_.zHi(), 4), Int128Math.rightShiftLo(p_200471_.zHi(), p_200471_.zLo(), 4), p_200474_.hi(), p_200474_.lo(), column.length);
+            int lastZ = RenderChunkRegion.localIndex(Int128Math.rightShiftHi(p_200472_.zHi(), 4), Int128Math.rightShiftLo(p_200472_.zHi(), p_200472_.zLo(), 4), p_200474_.hi(), p_200474_.lo(), column.length);
             for (int z = firstZ; z >= 0 && z <= lastZ; ++z) {
                 RenderRegionCache.ChunkInfo info = column[z];
                 if (info != null && info.chunk() != null && !info.chunk().isYSpaceEmpty(p_200471_.getY(), p_200472_.getY())) {

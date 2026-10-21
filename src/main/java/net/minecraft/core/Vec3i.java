@@ -120,6 +120,13 @@ public class Vec3i implements Comparable<Vec3i> {
         return this;
     }
 
+    /** Allocation-free variant of {@link #setX(Int128)} for hot callers holding raw halves. */
+    protected Vec3i setX(long pHi, long pLo) {
+        this.xHi = pHi;
+        this.xLo = pLo;
+        return this;
+    }
+
     protected Vec3i setY(int pY) {
         this.y = pY;
         return this;
@@ -132,6 +139,13 @@ public class Vec3i implements Comparable<Vec3i> {
     protected Vec3i setZ(Int128 pZ) {
         this.zHi = pZ.hi();
         this.zLo = pZ.lo();
+        return this;
+    }
+
+    /** Allocation-free variant of {@link #setZ(Int128)} for hot callers holding raw halves. */
+    protected Vec3i setZ(long pHi, long pLo) {
+        this.zHi = pHi;
+        this.zLo = pLo;
         return this;
     }
 

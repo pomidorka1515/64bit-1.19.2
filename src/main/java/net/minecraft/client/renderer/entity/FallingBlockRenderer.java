@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.level.Level;
@@ -32,7 +33,7 @@ public class FallingBlockRenderer extends EntityRenderer<FallingBlockEntity> {
             Level level = pEntity.getLevel();
             if (blockstate != level.getBlockState(pEntity.blockPosition()) && blockstate.getRenderShape() != RenderShape.INVISIBLE) {
                 pMatrixStack.pushPose();
-                BlockPos blockpos = new BlockPos(pEntity.getX(), pEntity.getBoundingBox().maxY, pEntity.getZ());
+                BlockPos blockpos = new BlockPos(pEntity.getBlockX(), Mth.floor(pEntity.getBoundingBox().maxY), pEntity.getBlockZ());
                 pMatrixStack.translate(-0.5D, 0.0D, -0.5D);
                 this.dispatcher.getModelRenderer().tesselateBlock(level, this.dispatcher.getBlockModel(blockstate), blockstate, blockpos, pMatrixStack, pBuffer.getBuffer(ItemBlockRenderTypes.getMovingBlockRenderType(blockstate)), false, RandomSource.create(), blockstate.getSeed(pEntity.getStartPos()), OverlayTexture.NO_OVERLAY);
                 pMatrixStack.popPose();

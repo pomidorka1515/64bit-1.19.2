@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.PaintingTextureManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -74,24 +75,24 @@ public class PaintingRenderer extends EntityRenderer<Painting> {
                 float f16 = f + (float) (k * 16);
                 float f17 = f1 + (float) ((l + 1) * 16);
                 float f18 = f1 + (float) (l * 16);
-                long i1 = p_115561_.getBlockX();
+                Int128 i1 = p_115561_.getBlockX();
                 int j1 = Mth.floor(p_115561_.getY() + (double) ((f17 + f18) / 2.0F / 16.0F));
-                long k1 = p_115561_.getBlockZ();
+                Int128 k1 = p_115561_.getBlockZ();
                 Direction direction = p_115561_.getDirection();
                 if (direction == Direction.NORTH) {
-                    i1 = Mth.lfloor(p_115561_.getX() + (double) ((f15 + f16) / 2.0F / 16.0F));
+                    i1 = p_115561_.sectorPosition().add((f15 + f16) / 2.0F / 16.0F, 0.0D, 0.0D).blockX();
                 }
 
                 if (direction == Direction.WEST) {
-                    k1 = Mth.lfloor(p_115561_.getZ() - (double) ((f15 + f16) / 2.0F / 16.0F));
+                    k1 = p_115561_.sectorPosition().add(0.0D, 0.0D, -(f15 + f16) / 2.0F / 16.0F).blockZ();
                 }
 
                 if (direction == Direction.SOUTH) {
-                    i1 = Mth.lfloor(p_115561_.getX() - (double) ((f15 + f16) / 2.0F / 16.0F));
+                    i1 = p_115561_.sectorPosition().add(-(f15 + f16) / 2.0F / 16.0F, 0.0D, 0.0D).blockX();
                 }
 
                 if (direction == Direction.EAST) {
-                    k1 = Mth.lfloor(p_115561_.getZ() + (double) ((f15 + f16) / 2.0F / 16.0F));
+                    k1 = p_115561_.sectorPosition().add(0.0D, 0.0D, (f15 + f16) / 2.0F / 16.0F).blockZ();
                 }
 
                 int l1 = LevelRenderer.getLightColor(p_115561_.level, new BlockPos(i1, j1, k1));

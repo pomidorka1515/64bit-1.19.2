@@ -304,8 +304,8 @@ public class EntityRenderDispatcher implements ResourceManagerReloadListener {
                         }
 
                         AABB aabb = voxelshape.bounds();
-                        double localX = WorldBounds.signedDifference(pBlockPos.getX(), position.blockX()) - position.subX();
-                        double localZ = WorldBounds.signedDifference(pBlockPos.getZ(), position.blockZ()) - position.subZ();
+                        double localX = shadowOffset(pBlockPos.getX(), position.blockX(), position.subX());
+                        double localZ = shadowOffset(pBlockPos.getZ(), position.blockZ(), position.subZ());
                         double d0 = localX + aabb.minX;
                         double d1 = localX + aabb.maxX;
                         double d2 = (double) pBlockPos.getY() + aabb.minY;
@@ -330,6 +330,10 @@ public class EntityRenderDispatcher implements ResourceManagerReloadListener {
         }
     }
 
+    static double shadowOffset(Int128 block, Int128 origin, double fraction) {
+        return WorldBounds.signedDifference(block, origin) - fraction;
+    }
+
     private static void shadowVertex(PoseStack.Pose pMatrixEntry, VertexConsumer pBuffer, float pAlpha, float pX, float pY, float pZ, float pTexU, float pTexV) {
         pBuffer.vertex(pMatrixEntry.pose(), pX, pY, pZ).color(1.0F, 1.0F, 1.0F, pAlpha).uv(pTexU, pTexV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(pMatrixEntry.normal(), 0.0F, 1.0F, 0.0F).endVertex();
     }
@@ -345,8 +349,8 @@ public class EntityRenderDispatcher implements ResourceManagerReloadListener {
         return pEntity.sectorPosition().relativeTo(this.camera.getExactPosition()).lengthSqr();
     }
 
-    public double distanceToSqr(double pX, double pY, double pZ) {
-        return this.camera.getPosition().distanceToSqr(pX, pY, pZ);
+    public double distanceToSqr(SectorVec3 position) {
+        return position.relativeTo(this.camera.getExactPosition()).lengthSqr();
     }
 
     public Quaternion cameraOrientation() {

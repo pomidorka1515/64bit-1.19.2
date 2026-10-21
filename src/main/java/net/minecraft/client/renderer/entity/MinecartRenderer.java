@@ -42,12 +42,6 @@ public class MinecartRenderer<T extends AbstractMinecart> extends EntityRenderer
         float f2 = (((float) (i >> 24 & 7L) + 0.5F) / 8.0F - 0.5F) * 0.004F;
         pMatrixStack.translate((double) f, (double) f1, (double) f2);
         SectorVec3 cartPosition = pEntity.interpolatedExactPosition(pPartialTicks);
-        double d1 = Mth.lerp((double) pPartialTicks, pEntity.yOld, pEntity.getY());
-        if (cartPosition == null) {
-            cartPosition = SectorVec3.fromApproximate(Mth.lerp((double) pPartialTicks, pEntity.xOld, pEntity.getX()),
-                    d1, Mth.lerp((double) pPartialTicks, pEntity.zOld, pEntity.getZ()));
-        }
-
         SectorVec3 railPosition = pEntity.getExactPos(cartPosition);
         float f3 = Mth.lerp(pPartialTicks, pEntity.xRotO, pEntity.getXRot());
         if (railPosition != null) {

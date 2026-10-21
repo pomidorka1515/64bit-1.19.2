@@ -63,6 +63,9 @@ public class FishingHookRenderer extends EntityRenderer<FishingHook> {
             double d4;
             double d5;
             double d6;
+            // All endpoints below are local to the interpolated hook, never world doubles.
+            Vec3 playerOffset = player.interpolatedExactPosition(pPartialTicks)
+                    .relativeTo(pEntity.interpolatedExactPosition(pPartialTicks));
             float f3;
             if ((this.entityRenderDispatcher.options == null || this.entityRenderDispatcher.options.getCameraType().isFirstPerson()) && player == Minecraft.getInstance().player) {
                 double d7 = 960.0D / (double) this.entityRenderDispatcher.options.fov().get().intValue();
@@ -70,23 +73,20 @@ public class FishingHookRenderer extends EntityRenderer<FishingHook> {
                 vec3 = vec3.scale(d7);
                 vec3 = vec3.yRot(f1 * 0.5F);
                 vec3 = vec3.xRot(-f1 * 0.7F);
-                d4 = Mth.lerp((double) pPartialTicks, player.xo, player.getX()) + vec3.x;
-                d5 = Mth.lerp((double) pPartialTicks, player.yo, player.getY()) + vec3.y;
-                d6 = Mth.lerp((double) pPartialTicks, player.zo, player.getZ()) + vec3.z;
+                d4 = playerOffset.x + vec3.x;
+                d5 = playerOffset.y + vec3.y;
+                d6 = playerOffset.z + vec3.z;
                 f3 = player.getEyeHeight();
             } else {
-                d4 = Mth.lerp((double) pPartialTicks, player.xo, player.getX()) - d1 * d2 - d0 * 0.8D;
-                d5 = player.yo + (double) player.getEyeHeight() + (player.getY() - player.yo) * (double) pPartialTicks - 0.45D;
-                d6 = Mth.lerp((double) pPartialTicks, player.zo, player.getZ()) - d0 * d2 + d1 * 0.8D;
+                d4 = playerOffset.x - d1 * d2 - d0 * 0.8D;
+                d5 = playerOffset.y + player.getEyeHeight() - 0.45D;
+                d6 = playerOffset.z - d0 * d2 + d1 * 0.8D;
                 f3 = player.isCrouching() ? -0.1875F : 0.0F;
             }
 
-            double d9 = Mth.lerp((double) pPartialTicks, pEntity.xo, pEntity.getX());
-            double d10 = Mth.lerp((double) pPartialTicks, pEntity.yo, pEntity.getY()) + 0.25D;
-            double d8 = Mth.lerp((double) pPartialTicks, pEntity.zo, pEntity.getZ());
-            float f4 = (float) (d4 - d9);
-            float f5 = (float) (d5 - d10) + f3;
-            float f6 = (float) (d6 - d8);
+            float f4 = (float) d4;
+            float f5 = (float) (d5 - 0.25D) + f3;
+            float f6 = (float) d6;
             VertexConsumer vertexconsumer1 = pBuffer.getBuffer(RenderType.lineStrip());
             PoseStack.Pose posestack$pose1 = pMatrixStack.last();
             int j = 16;

@@ -11,7 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Shulker;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorAABB;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -40,8 +41,11 @@ public class ShulkerRenderer extends MobRenderer<Shulker, ShulkerModel<Shulker>>
                                                                                                                                        EntityType<?> entitytype = pLivingEntity.getType();
                                                                                                                                        float f = entitytype.getHeight() / 2.0F;
                                                                                                                                        float f1 = entitytype.getWidth() / 2.0F;
-                                                                                                                                       Vec3 vec3 = Vec3.atBottomCenterOf(pLivingEntity.blockPosition());
-                                                                                                                                       return pCamera.isVisible((new AABB(p_174374_.x, p_174374_.y + (double) f, p_174374_.z, vec3.x, vec3.y + (double) f, vec3.z)).inflate((double) f1, (double) f, (double) f1));
+                                                                                                                                        SectorVec3 current = pLivingEntity.sectorPosition();
+                                                                                                                                        SectorVec3 previous = current.add(p_174374_.x, p_174374_.y, p_174374_.z);
+                                                                                                                                        return pCamera.isVisible(new SectorAABB(previous.blockX(), previous.subX(), previous.y() + f,
+                                                                                                                                                previous.blockZ(), previous.subZ(), current.blockX(), current.subX(), current.y() + f,
+                                                                                                                                                current.blockZ(), current.subZ()).inflate(f1, f, f1));
                                                                                                                                    })
                                                                                                           .isPresent();
     }

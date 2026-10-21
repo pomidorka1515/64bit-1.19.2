@@ -33,14 +33,15 @@ public class WaterDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
             FluidState fluidstate = levelreader.getFluidState(blockpos1);
             if (fluidstate.is(FluidTags.WATER)) {
                 double d0 = (double) ((float) blockpos1.getY() + fluidstate.getHeight(levelreader, blockpos1));
-                DebugRenderer.renderFilledBox((new AABB((double) ((float) blockpos1.getX() + 0.01F), (double) ((float) blockpos1.getY() + 0.01F), (double) ((float) blockpos1.getZ() + 0.01F), (double) ((float) blockpos1.getX() + 0.99F), d0, (double) ((float) blockpos1.getZ() + 0.99F))).move(-pCamX, -pCamY, -pCamZ), 1.0F, 1.0F, 1.0F, 0.2F);
+                var local = DebugRenderer.localPosition(blockpos1, 0, 0, 0);
+                DebugRenderer.renderFilledBox(new AABB(local.x + 0.01D, local.y + 0.01D, local.z + 0.01D, local.x + 0.99D, local.y + fluidstate.getHeight(levelreader, blockpos1), local.z + 0.99D), 1.0F, 1.0F, 1.0F, 0.2F);
             }
         }
 
         for (BlockPos blockpos2 : BlockPos.betweenClosed(blockpos.offset(-10, -10, -10), blockpos.offset(10, 10, 10))) {
             FluidState fluidstate1 = levelreader.getFluidState(blockpos2);
             if (fluidstate1.is(FluidTags.WATER)) {
-                DebugRenderer.renderFloatingText(String.valueOf(fluidstate1.getAmount()), (double) blockpos2.getX() + 0.5D, (double) ((float) blockpos2.getY() + fluidstate1.getHeight(levelreader, blockpos2)), (double) blockpos2.getZ() + 0.5D, -16777216);
+                DebugRenderer.renderFloatingText(String.valueOf(fluidstate1.getAmount()), blockpos2, 0.5D, fluidstate1.getHeight(levelreader, blockpos2), 0.5D, -16777216, 0.02F, true, 0, false);
             }
         }
 

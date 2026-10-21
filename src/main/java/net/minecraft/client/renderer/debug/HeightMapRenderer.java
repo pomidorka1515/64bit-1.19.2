@@ -37,7 +37,8 @@ public class HeightMapRenderer implements DebugRenderer.SimpleDebugRenderer {
         RenderSystem.disableTexture();
         RenderSystem.enableDepthTest();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        BlockPos blockpos = new BlockPos(pCamX, 0.0D, pCamZ);
+        BlockPos blockpos = this.minecraft.gameRenderer.getMainCamera().getBlockPosition();
+        var camera = DebugRenderer.cameraPosition();
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
         bufferbuilder.begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
@@ -53,10 +54,12 @@ public class HeightMapRenderer implements DebugRenderer.SimpleDebugRenderer {
 
                     for (int k = 0; k < 16; ++k) {
                         for (int l = 0; l < 16; ++l) {
-                            long i1 = SectionPos.sectionToBlockCoord(chunkpos.x, k);
-                            long j1 = SectionPos.sectionToBlockCoord(chunkpos.z, l);
-                            float f = (float) ((double) ((float) levelaccessor.getHeight(heightmap$types, i1, j1) + (float) heightmap$types.ordinal() * 0.09375F) - pCamY);
-                            LevelRenderer.addChainedFilledBoxVertices(bufferbuilder, (double) ((float) i1 + 0.25F) - pCamX, (double) f, (double) ((float) j1 + 0.25F) - pCamZ, (double) ((float) i1 + 0.75F) - pCamX, (double) (f + 0.09375F), (double) ((float) j1 + 0.75F) - pCamZ, vector3f.x(), vector3f.y(), vector3f.z(), 1.0F);
+                            var i1 = chunkpos.getBlockX(k);
+                            var j1 = chunkpos.getBlockZ(l);
+                            double f = camera.relativeY(levelaccessor.getHeight(heightmap$types, i1, j1)) + heightmap$types.ordinal() * 0.09375D;
+                            double x = camera.relativeX(i1);
+                            double z = camera.relativeZ(j1);
+                            LevelRenderer.addChainedFilledBoxVertices(bufferbuilder, x + 0.25D, f, z + 0.25D, x + 0.75D, f + 0.09375D, z + 0.75D, vector3f.x(), vector3f.y(), vector3f.z(), 1.0F);
                         }
                     }
                 }

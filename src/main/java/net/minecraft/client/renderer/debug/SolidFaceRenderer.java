@@ -35,7 +35,7 @@ public class SolidFaceRenderer implements DebugRenderer.SimpleDebugRenderer {
         RenderSystem.disableTexture();
         RenderSystem.depthMask(false);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        BlockPos blockpos = new BlockPos(pCamX, pCamY, pCamZ);
+        BlockPos blockpos = this.minecraft.gameRenderer.getMainCamera().getBlockPosition();
 
         for (BlockPos blockpos1 : BlockPos.betweenClosed(blockpos.offset(-6, -6, -6), blockpos.offset(6, 6, 6))) {
             BlockState blockstate = blockgetter.getBlockState(blockpos1);
@@ -43,7 +43,7 @@ public class SolidFaceRenderer implements DebugRenderer.SimpleDebugRenderer {
                 VoxelShape voxelshape = blockstate.getShape(blockgetter, blockpos1);
 
                 for (AABB aabb : voxelshape.toAabbs()) {
-                    AABB aabb1 = aabb.move(blockpos1).inflate(0.002D).move(-pCamX, -pCamY, -pCamZ);
+                    AABB aabb1 = aabb.move(DebugRenderer.localPosition(blockpos1, 0, 0, 0)).inflate(0.002D);
                     double d0 = aabb1.minX;
                     double d1 = aabb1.minY;
                     double d2 = aabb1.minZ;

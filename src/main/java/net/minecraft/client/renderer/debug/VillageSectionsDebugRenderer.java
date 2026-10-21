@@ -40,7 +40,7 @@ public class VillageSectionsDebugRenderer implements DebugRenderer.SimpleDebugRe
     }
 
     private void doRender(double pX, double pY, double pZ) {
-        BlockPos blockpos = new BlockPos(pX, pY, pZ);
+        BlockPos blockpos = net.minecraft.client.Minecraft.getInstance().gameRenderer.getMainCamera().getBlockPosition();
         this.villageSections.forEach((p_113708_) -> {
             if (blockpos.closerThan(p_113708_.center(), 60.0D)) {
                 highlightVillageSection(p_113708_);

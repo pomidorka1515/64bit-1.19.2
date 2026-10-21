@@ -13,6 +13,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.SectionPos;
+import net.minecraft.core.Int128;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerChunkCache;
@@ -41,7 +42,7 @@ public class ChunkDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
             this.lastUpdateTime = d0;
             IntegratedServer integratedserver = this.minecraft.getSingleplayerServer();
             if (integratedserver != null) {
-                this.data = new ChunkDebugRenderer.ChunkData(integratedserver, pCamX, pCamZ);
+                this.data = new ChunkDebugRenderer.ChunkData(integratedserver, new ChunkPos(this.minecraft.gameRenderer.getMainCamera().getBlockPosition()));
             } else {
                 this.data = null;
             }
@@ -67,7 +68,7 @@ public class ChunkDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
                 int i = 0;
 
                 for (String s1 : astring) {
-                    DebugRenderer.renderFloatingText(s1, (double) SectionPos.sectionToBlockCoord(chunkpos.x, 8), d1 + (double) i, (double) SectionPos.sectionToBlockCoord(chunkpos.z, 8), -1, 0.15F);
+                    DebugRenderer.renderFloatingText(s1, new net.minecraft.core.BlockPos(chunkpos.getBlockX(8), 0, chunkpos.getBlockZ(8)), 0, d1 + i, 0, -1, 0.15F, true, 0, false);
                     i -= 2;
                 }
             }
@@ -83,23 +84,23 @@ public class ChunkDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
         final Map<ChunkPos, String> clientData;
         final CompletableFuture<Map<ChunkPos, String>> serverData;
 
-        ChunkData(IntegratedServer p_113382_, double p_113383_, double p_113384_) {
+        ChunkData(IntegratedServer p_113382_, ChunkPos center) {
             ClientLevel clientlevel = ChunkDebugRenderer.this.minecraft.level;
             ResourceKey<Level> resourcekey = clientlevel.dimension();
-            long i = SectionPos.posToSectionCoord(p_113383_);
-            long j = SectionPos.posToSectionCoord(p_113384_);
+            Int128 i = center.x();
+            Int128 j = center.z();
             ImmutableMap.Builder<ChunkPos, String> builder = ImmutableMap.builder();
             ClientChunkCache clientchunkcache = clientlevel.getChunkSource();
 
-            long minX = WorldBounds.addChunkOffset(i, -12L);
-            long maxX = WorldBounds.addChunkOffset(i, 12L);
-            long minZ = WorldBounds.addChunkOffset(j, -12L);
-            long maxZ = WorldBounds.addChunkOffset(j, 12L);
-            for (long k = minX;; k = WorldBounds.addChunkOffset(k, 1L)) {
-                for (long l = minZ;; l = WorldBounds.addChunkOffset(l, 1L)) {
+            Int128 minX = WorldBounds.addChunkOffset(i, -12L);
+            Int128 maxX = WorldBounds.addChunkOffset(i, 12L);
+            Int128 minZ = WorldBounds.addChunkOffset(j, -12L);
+            Int128 maxZ = WorldBounds.addChunkOffset(j, 12L);
+            for (Int128 k = minX;; k = WorldBounds.addChunkOffset(k, 1L)) {
+                for (Int128 l = minZ;; l = WorldBounds.addChunkOffset(l, 1L)) {
                     ChunkPos chunkpos = new ChunkPos(k, l);
                     String s = "";
-                    LevelChunk levelchunk = clientchunkcache.getChunk(k, l, false);
+                    LevelChunk levelchunk = clientchunkcache.getChunk(k, l, net.minecraft.world.level.chunk.ChunkStatus.FULL, false);
                     s = s + "Client: ";
                     if (levelchunk == null) {
                         s = s + "0n/a\n";
@@ -109,10 +110,10 @@ public class ChunkDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
                     }
 
                     builder.put(chunkpos, s);
-                    if (l == maxZ)
+                    if (l.equals(maxZ))
                         break;
                 }
-                if (k == maxX)
+                if (k.equals(maxX))
                     break;
             }
 
@@ -125,14 +126,14 @@ public class ChunkDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
                     ImmutableMap.Builder<ChunkPos, String> builder1 = ImmutableMap.builder();
                     ServerChunkCache serverchunkcache = serverlevel.getChunkSource();
 
-                    for (long i1 = minX;; i1 = WorldBounds.addChunkOffset(i1, 1L)) {
-                        for (long j1 = minZ;; j1 = WorldBounds.addChunkOffset(j1, 1L)) {
+                    for (Int128 i1 = minX;; i1 = WorldBounds.addChunkOffset(i1, 1L)) {
+                        for (Int128 j1 = minZ;; j1 = WorldBounds.addChunkOffset(j1, 1L)) {
                             ChunkPos chunkpos1 = new ChunkPos(i1, j1);
                             builder1.put(chunkpos1, "Server: " + serverchunkcache.getChunkDebugData(chunkpos1));
-                            if (j1 == maxZ)
+                            if (j1.equals(maxZ))
                                 break;
                         }
-                        if (i1 == maxX)
+                        if (i1.equals(maxX))
                             break;
                     }
 

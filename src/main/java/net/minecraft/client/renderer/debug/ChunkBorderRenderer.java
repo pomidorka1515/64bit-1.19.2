@@ -47,8 +47,7 @@ public class ChunkBorderRenderer implements DebugRenderer.SimpleDebugRenderer {
             d2 = chunkOrigin.relativeX(camera);
             d3 = chunkOrigin.relativeZ(camera);
         } else {
-            d2 = (double) chunkpos.getMinBlockX() - pCamX;
-            d3 = (double) chunkpos.getMinBlockZ() - pCamZ;
+            return;
         }
         RenderSystem.lineWidth(1.0F);
         bufferbuilder.begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);

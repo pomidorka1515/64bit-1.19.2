@@ -52,7 +52,7 @@ public abstract class EntityRenderer<T extends Entity> {
         } else {
             AABB aabb = pLivingEntity.getBoundingBoxForCulling().inflate(0.5D);
             if (aabb.hasNaN() || aabb.getSize() == 0.0D) {
-                aabb = new AABB(pLivingEntity.getX() - 2.0D, pLivingEntity.getY() - 2.0D, pLivingEntity.getZ() - 2.0D, pLivingEntity.getX() + 2.0D, pLivingEntity.getY() + 2.0D, pLivingEntity.getZ() + 2.0D);
+                return pCamera.isVisible(SectorAABB.around(pLivingEntity.sectorPosition().add(0.0D, -2.0D, 0.0D), 4.0D, 4.0D));
             }
 
             SectorAABB exactBox = pLivingEntity.getSectorBoundingBoxForCulling();

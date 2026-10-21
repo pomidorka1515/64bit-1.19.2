@@ -7,8 +7,10 @@ import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.StructureBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -25,26 +27,27 @@ public class StructureBlockRenderer implements BlockEntityRenderer<StructureBloc
         if (Minecraft.getInstance().player.canUseGameMasterBlocks() || Minecraft.getInstance().player.isSpectator()) {
             BlockPos blockpos = pBlockEntity.getStructurePos();
             Vec3i vec3i = pBlockEntity.getStructureSize();
-            if (vec3i.getX() >= 1 && vec3i.getY() >= 1 && vec3i.getZ() >= 1) {
+            if (vec3i.getX().compareTo(Int128.ONE) >= 0 && vec3i.getY() >= 1 && vec3i.getZ().compareTo(Int128.ONE) >= 0) {
                 if (pBlockEntity.getMode() == StructureMode.SAVE || pBlockEntity.getMode() == StructureMode.LOAD) {
-                    double d0 = (double) blockpos.getX();
-                    double d1 = (double) blockpos.getZ();
+                    // Structure position and size are bounded template-local offsets.
+                    double d0 = WorldBounds.signedDifference(blockpos.getX(), Int128.ZERO);
+                    double d1 = WorldBounds.signedDifference(blockpos.getZ(), Int128.ZERO);
                     double d5 = (double) blockpos.getY();
                     double d8 = d5 + (double) vec3i.getY();
                     double d2;
                     double d3;
                     switch (pBlockEntity.getMirror()) {
                         case LEFT_RIGHT:
-                            d2 = (double) vec3i.getX();
-                            d3 = (double) (-vec3i.getZ());
+                            d2 = WorldBounds.signedDifference(vec3i.getX(), Int128.ZERO);
+                            d3 = -WorldBounds.signedDifference(vec3i.getZ(), Int128.ZERO);
                             break;
                         case FRONT_BACK:
-                            d2 = (double) (-vec3i.getX());
-                            d3 = (double) vec3i.getZ();
+                            d2 = -WorldBounds.signedDifference(vec3i.getX(), Int128.ZERO);
+                            d3 = WorldBounds.signedDifference(vec3i.getZ(), Int128.ZERO);
                             break;
                         default:
-                            d2 = (double) vec3i.getX();
-                            d3 = (double) vec3i.getZ();
+                            d2 = WorldBounds.signedDifference(vec3i.getX(), Int128.ZERO);
+                            d3 = WorldBounds.signedDifference(vec3i.getZ(), Int128.ZERO);
                     }
 
                     double d4;
@@ -107,12 +110,12 @@ public class StructureBlockRenderer implements BlockEntityRenderer<StructureBloc
             boolean flag4 = flag1 || flag2 || flag3;
             if (flag || flag4) {
                 float f = flag ? 0.05F : 0.0F;
-                double d0 = (double) ((float) (blockpos2.getX() - blockpos.getX()) + 0.45F - f);
+                double d0 = (double) ((float) WorldBounds.signedDifference(blockpos2.getX(), blockpos.getX()) + 0.45F - f);
                 double d1 = (double) ((float) (blockpos2.getY() - blockpos.getY()) + 0.45F - f);
-                double d2 = (double) ((float) (blockpos2.getZ() - blockpos.getZ()) + 0.45F - f);
-                double d3 = (double) ((float) (blockpos2.getX() - blockpos.getX()) + 0.55F + f);
+                double d2 = (double) ((float) WorldBounds.signedDifference(blockpos2.getZ(), blockpos.getZ()) + 0.45F - f);
+                double d3 = (double) ((float) WorldBounds.signedDifference(blockpos2.getX(), blockpos.getX()) + 0.55F + f);
                 double d4 = (double) ((float) (blockpos2.getY() - blockpos.getY()) + 0.55F + f);
-                double d5 = (double) ((float) (blockpos2.getZ() - blockpos.getZ()) + 0.55F + f);
+                double d5 = (double) ((float) WorldBounds.signedDifference(blockpos2.getZ(), blockpos.getZ()) + 0.55F + f);
                 if (flag) {
                     LevelRenderer.renderLineBox(pPoseStack, pConsumer, d0, d1, d2, d3, d4, d5, 0.5F, 0.5F, 1.0F, 1.0F, 0.5F, 0.5F, 1.0F);
                 } else if (flag1) {

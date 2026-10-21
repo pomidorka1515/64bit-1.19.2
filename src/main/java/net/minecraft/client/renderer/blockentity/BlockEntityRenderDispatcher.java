@@ -65,14 +65,7 @@ public class BlockEntityRenderDispatcher implements ResourceManagerReloadListene
         BlockEntityRenderer<E> blockentityrenderer = this.getRenderer(pBlockEntity);
         if (blockentityrenderer != null) {
             if (pBlockEntity.hasLevel() && pBlockEntity.getType().isValid(pBlockEntity.getBlockState())) {
-                // A sector camera's Vec3 is only a legacy mirror. Derive an exact
-                // split position for the ordinary-camera fallback so every block
-                // entity range check uses the same precision-preserving API.
-                SectorVec3 cameraPosition = this.camera.exactPosition();
-                if (cameraPosition == null) {
-                    cameraPosition = SectorVec3.fromApproximate(this.camera.getPosition().x,
-                            this.camera.getPosition().y, this.camera.getPosition().z);
-                }
+                SectorVec3 cameraPosition = this.camera.getExactPosition();
                 if (blockentityrenderer.shouldRender(pBlockEntity, cameraPosition)) {
                     tryRender(pBlockEntity, () -> {
                         setupAndRender(blockentityrenderer, pBlockEntity, pPartialTick, pPoseStack, pBufferSource);

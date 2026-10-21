@@ -2,11 +2,7 @@ package net.minecraft.world.level.levelgen.feature;
 
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.longs.LongArrayList;
-
 import java.util.stream.IntStream;
-import java.util.stream.LongStream;
-
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -29,13 +25,14 @@ public class BonusChestFeature extends Feature<NoneFeatureConfiguration> {
         RandomSource randomsource = p_159477_.random();
         WorldGenLevel worldgenlevel = p_159477_.level();
         ChunkPos chunkpos = new ChunkPos(p_159477_.origin());
-        LongArrayList intarraylist = Util.toShuffledList(LongStream.rangeClosed(chunkpos.getMinBlockX(), chunkpos.getMaxBlockX()), randomsource);
-        LongArrayList intarraylist1 = Util.toShuffledList(LongStream.rangeClosed(chunkpos.getMinBlockZ(), chunkpos.getMaxBlockZ()), randomsource);
+        // Shuffle local offsets with the same RNG calls/order as the former world-coordinate lists.
+        IntArrayList intarraylist = Util.toShuffledList(IntStream.range(0, 16), randomsource);
+        IntArrayList intarraylist1 = Util.toShuffledList(IntStream.range(0, 16), randomsource);
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-        for (long integer : intarraylist) {
-            for (long integer1 : intarraylist1) {
-                blockpos$mutableblockpos.set(integer, 0, integer1);
+        for (int integer : intarraylist) {
+            for (int integer1 : intarraylist1) {
+                blockpos$mutableblockpos.set(chunkpos.getBlockX(integer), 0, chunkpos.getBlockZ(integer1));
                 BlockPos blockpos = worldgenlevel.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, blockpos$mutableblockpos);
                 if (worldgenlevel.isEmptyBlock(blockpos) || worldgenlevel.getBlockState(blockpos).getCollisionShape(worldgenlevel, blockpos).isEmpty()) {
                     worldgenlevel.setBlock(blockpos, Blocks.CHEST.defaultBlockState(), 2);

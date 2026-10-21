@@ -323,6 +323,10 @@ public class ChunkRenderDispatcher {
         private boolean playerChanged;
 
         public RenderChunk(int p_202436_, long p_202437_, int p_202438_, long p_202439_) {
+            this(p_202436_, net.minecraft.core.Int128.fromLong(p_202437_), p_202438_, net.minecraft.core.Int128.fromLong(p_202439_));
+        }
+
+        public RenderChunk(int p_202436_, net.minecraft.core.Int128 p_202437_, int p_202438_, net.minecraft.core.Int128 p_202439_) {
             this.index = p_202436_;
             this.setOrigin(p_202437_, p_202438_, p_202439_);
         }
@@ -359,11 +363,15 @@ public class ChunkRenderDispatcher {
         }
 
         public void setOrigin(long pX, int pY, long pZ) {
+            this.setOrigin(net.minecraft.core.Int128.fromLong(pX), pY, net.minecraft.core.Int128.fromLong(pZ));
+        }
+
+        public void setOrigin(net.minecraft.core.Int128 pX, int pY, net.minecraft.core.Int128 pZ) {
             this.reset();
             this.origin.set(pX, pY, pZ);
-            this.bb = new AABB((double) pX, (double) pY, (double) pZ,
-                    (double) WorldBounds.addBlockOffset(pX, 16L), (double) (pY + 16),
-                    (double) WorldBounds.addBlockOffset(pZ, 16L));
+            this.bb = AABB.fromSectorBounds(new net.minecraft.world.phys.SectorAABB(
+                    pX, 0.0D, pY, pZ, 0.0D, pX, 0.0D, (double) pY + 16.0D, pZ, 0.0D)
+                    .expandTowards(16.0D, 0.0D, 16.0D));
 
             for (Direction direction : Direction.values()) {
                 this.relativeOrigins[direction.ordinal()].set(this.origin).move(direction, 16);

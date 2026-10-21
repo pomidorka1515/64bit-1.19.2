@@ -394,7 +394,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
 
             for (int j1 = 0; j1 < Mth.square(11); ++j1) {
                 if (k1 >= -5 && k1 <= 5 && j >= -5 && j <= 5) {
-                    BlockPos blockpos1 = PlayerRespawnLogic.getSpawnPosInChunk(pLevel, new ChunkPos(chunkpos.x + k1, chunkpos.z + j));
+                    BlockPos blockpos1 = PlayerRespawnLogic.getSpawnPosInChunk(pLevel, new ChunkPos(WorldBounds.addChunkOffset(chunkpos.x(), k1), WorldBounds.addChunkOffset(chunkpos.z(), j)));
                     if (blockpos1 != null) {
                         pLevelData.setSpawn(blockpos1, 0.0F);
                         break;

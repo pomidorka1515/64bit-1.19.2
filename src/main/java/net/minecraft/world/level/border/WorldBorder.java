@@ -6,6 +6,8 @@ import java.util.List;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
@@ -252,7 +254,7 @@ public class WorldBorder {
     }
 
     public void applySettings(WorldBorder.Settings pSerializer) {
-        this.setCenter(pSerializer.getCenterX(), pSerializer.getCenterZ());
+        this.setCenter(pSerializer.getExactCenter());
         this.setDamagePerBlock(pSerializer.getDamagePerBlock());
         this.setDamageSafeZone(pSerializer.getSafeZone());
         this.setWarningBlocks(pSerializer.getWarningBlocks());
@@ -360,6 +362,7 @@ public class WorldBorder {
     }
 
     public static class Settings {
+        private final SectorVec3 exactCenter;
         private final double centerX;
         private final double centerZ;
         private final double damagePerBlock;
@@ -371,6 +374,13 @@ public class WorldBorder {
         private final double sizeLerpTarget;
 
         Settings(double pCenterX, double pCenterZ, double pDamagePerBlock, double pSafeZone, int pWarningBlocks, int pWarningTime, double pSize, long pSizeLerpTime, double pSizeLerpTarget) {
+            this(SectorVec3.fromApproximate(pCenterX, 0.0D, pCenterZ), pDamagePerBlock, pSafeZone, pWarningBlocks, pWarningTime, pSize, pSizeLerpTime, pSizeLerpTarget);
+        }
+
+        Settings(SectorVec3 center, double pDamagePerBlock, double pSafeZone, int pWarningBlocks, int pWarningTime, double pSize, long pSizeLerpTime, double pSizeLerpTarget) {
+            this.exactCenter = SectorVec3.fromBlockAndFraction(center.blockX(), center.subX(), 0.0D, center.blockZ(), center.subZ());
+            double pCenterX = this.exactCenter.toApproximateVec3().x;
+            double pCenterZ = this.exactCenter.toApproximateVec3().z;
             this.centerX = pCenterX;
             this.centerZ = pCenterZ;
             this.damagePerBlock = pDamagePerBlock;
@@ -383,6 +393,7 @@ public class WorldBorder {
         }
 
         Settings(WorldBorder pBorder) {
+            this.exactCenter = pBorder.getExactCenter();
             this.centerX = pBorder.getCenterX();
             this.centerZ = pBorder.getCenterZ();
             this.damagePerBlock = pBorder.getDamagePerBlock();
@@ -392,6 +403,10 @@ public class WorldBorder {
             this.size = pBorder.getSize();
             this.sizeLerpTime = pBorder.getLerpRemainingTime();
             this.sizeLerpTarget = pBorder.getLerpTarget();
+        }
+
+        public SectorVec3 getExactCenter() {
+            return this.exactCenter;
         }
 
         public double getCenterX() {
@@ -431,8 +446,19 @@ public class WorldBorder {
         }
 
         public static WorldBorder.Settings read(DynamicLike<?> pDynamic, WorldBorder.Settings pDefaultValue) {
-            double d0 = Mth.clamp(pDynamic.get("BorderCenterX").asDouble(pDefaultValue.centerX), -2.9999984E7D, 2.9999984E7D);
-            double d1 = Mth.clamp(pDynamic.get("BorderCenterZ").asDouble(pDefaultValue.centerZ), -2.9999984E7D, 2.9999984E7D);
+            CompoundTag centerTag = new CompoundTag();
+            for (String key : new String[]{"BorderCenterX", "BorderCenterXHi", "BorderCenterZ", "BorderCenterZHi", "BorderCenterXFraction", "BorderCenterZFraction"}) {
+                centerTag.put(key, pDynamic.get(key).get().result().orElseThrow(() -> new IllegalArgumentException("Missing required border tag: " + key)).convert(NbtOps.INSTANCE).getValue());
+            }
+            double fractionX = centerTag.getDouble("BorderCenterXFraction");
+            double fractionZ = centerTag.getDouble("BorderCenterZFraction");
+            if (!centerTag.contains("BorderCenterXFraction", 6) || !centerTag.contains("BorderCenterZFraction", 6)
+                    || !Double.isFinite(fractionX) || !Double.isFinite(fractionZ)
+                    || fractionX < 0.0D || fractionX >= 1.0D || fractionZ < 0.0D || fractionZ >= 1.0D) {
+                throw new IllegalArgumentException("Invalid border center fractions");
+            }
+            SectorVec3 center = SectorVec3.fromBlockAndFraction(NbtUtils.readInt128(centerTag, "BorderCenterX"), fractionX,
+                    0.0D, NbtUtils.readInt128(centerTag, "BorderCenterZ"), fractionZ);
             double d2 = pDynamic.get("BorderSize").asDouble(pDefaultValue.size);
             long i = pDynamic.get("BorderSizeLerpTime").asLong(pDefaultValue.sizeLerpTime);
             double d3 = pDynamic.get("BorderSizeLerpTarget").asDouble(pDefaultValue.sizeLerpTarget);
@@ -440,12 +466,14 @@ public class WorldBorder {
             double d5 = pDynamic.get("BorderDamagePerBlock").asDouble(pDefaultValue.damagePerBlock);
             int j = pDynamic.get("BorderWarningBlocks").asInt(pDefaultValue.warningBlocks);
             int k = pDynamic.get("BorderWarningTime").asInt(pDefaultValue.warningTime);
-            return new WorldBorder.Settings(d0, d1, d5, d4, j, k, d2, i, d3);
+            return new WorldBorder.Settings(center, d5, d4, j, k, d2, i, d3);
         }
 
         public void write(CompoundTag pNbt) {
-            pNbt.putDouble("BorderCenterX", this.centerX);
-            pNbt.putDouble("BorderCenterZ", this.centerZ);
+            NbtUtils.writeInt128(pNbt, "BorderCenterX", this.exactCenter.blockX());
+            NbtUtils.writeInt128(pNbt, "BorderCenterZ", this.exactCenter.blockZ());
+            pNbt.putDouble("BorderCenterXFraction", this.exactCenter.subX());
+            pNbt.putDouble("BorderCenterZFraction", this.exactCenter.subZ());
             pNbt.putDouble("BorderSize", this.size);
             pNbt.putLong("BorderSizeLerpTime", this.sizeLerpTime);
             pNbt.putDouble("BorderSafeZone", this.safeZone);

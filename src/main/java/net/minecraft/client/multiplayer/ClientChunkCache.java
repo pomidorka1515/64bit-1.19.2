@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
+import net.minecraft.core.Int128;
 import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -138,8 +139,8 @@ public class ClientChunkCache extends ChunkSource {
     }
 
     public void updateViewCenter(net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ) {
-        this.storage.viewCenterX = WorldBounds.clampChunk(pX);
-        this.storage.viewCenterZ = WorldBounds.clampChunk(pZ);
+        this.storage.viewCenterX = pX;
+        this.storage.viewCenterZ = pZ;
     }
 
     public void updateViewRadius(int pViewDistance) {
@@ -180,6 +181,22 @@ public class ClientChunkCache extends ChunkSource {
         Minecraft.getInstance().levelRenderer.setSectionDirty(pPos.x(), pPos.y(), pPos.z());
     }
 
+    boolean isCurrentChunk(Int128 x, Int128 z, @Nullable LevelChunk expected) {
+        return expected != null && this.getChunk(x, z, ChunkStatus.FULL, false) == expected;
+    }
+
+    static boolean inTrackingRange(Int128 x, Int128 z, Int128 centerX, Int128 centerZ, int radius) {
+        return radius >= 0 && WorldBounds.distance(x, centerX) <= radius
+                && WorldBounds.distance(z, centerZ) <= radius;
+    }
+
+    static int storageModulo(Int128 value, int range) {
+        // Signed hi * 2^64 + unsigned lo, reduced before multiplication.
+        long radix = (Long.remainderUnsigned(-1L, range) + 1L) % range;
+        return (int) ((Math.floorMod(value.hi(), (long) range) * radix
+                + Long.remainderUnsigned(value.lo(), range)) % range);
+    }
+
     @OnlyIn(Dist.CLIENT)
     final class Storage {
         final AtomicReferenceArray<LevelChunk> chunks;
@@ -206,10 +223,7 @@ public class ClientChunkCache extends ChunkSource {
         }
 
         private long floorMod(net.minecraft.core.Int128 value) {
-            // Signed hi * 2^64 + unsigned lo, reduced before multiplication.
-            long radix = (Long.remainderUnsigned(-1L, this.viewRange) + 1L) % this.viewRange;
-            return (Math.floorMod(value.hi(), (long) this.viewRange) * radix
-                    + Long.remainderUnsigned(value.lo(), this.viewRange)) % this.viewRange;
+            return storageModulo(value, this.viewRange);
         }
 
         protected void replace(int pChunkIndex, @Nullable LevelChunk pChunk) {
@@ -238,8 +252,7 @@ public class ClientChunkCache extends ChunkSource {
         }
 
         boolean inRange(net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ) {
-            return WorldBounds.distance(pX, this.viewCenterX) <= this.chunkRadius
-                    && WorldBounds.distance(pZ, this.viewCenterZ) <= this.chunkRadius;
+            return inTrackingRange(pX, pZ, this.viewCenterX, this.viewCenterZ, this.chunkRadius);
         }
 
         @Nullable
@@ -252,24 +265,13 @@ public class ClientChunkCache extends ChunkSource {
                 FileOutputStream fileoutputstream = new FileOutputStream(pFilePath);
 
                 try {
-                    long radius = (long) ClientChunkCache.this.storage.chunkRadius;
-                    net.minecraft.core.Int128 minZ = WorldBounds.addChunkOffset(this.viewCenterZ, -radius);
-                    net.minecraft.core.Int128 maxZ = WorldBounds.addChunkOffset(this.viewCenterZ, radius);
-                    net.minecraft.core.Int128 minX = WorldBounds.addChunkOffset(this.viewCenterX, -radius);
-                    net.minecraft.core.Int128 maxX = WorldBounds.addChunkOffset(this.viewCenterX, radius);
-
-                    for (net.minecraft.core.Int128 z = minZ;; z = WorldBounds.addChunkOffset(z, 1L)) {
-                        for (net.minecraft.core.Int128 x = minX;; x = WorldBounds.addChunkOffset(x, 1L)) {
-                            LevelChunk levelchunk = ClientChunkCache.this.storage.chunks.get(ClientChunkCache.this.storage.getIndex(x, z));
-                            if (levelchunk != null) {
-                                ChunkPos chunkpos = levelchunk.getPos();
-                                fileoutputstream.write((chunkpos.x() + "\t" + chunkpos.z() + "\t" + levelchunk.isEmpty() + "\n").getBytes(StandardCharsets.UTF_8));
-                            }
-                            if (x.equals(maxX))
-                                break;
+                    ClientChunkCache.Storage snapshot = ClientChunkCache.this.storage;
+                    for (int index = 0; index < snapshot.chunks.length(); ++index) {
+                        LevelChunk chunk = snapshot.chunks.get(index);
+                        if (chunk != null && snapshot.inRange(chunk.getPos().x(), chunk.getPos().z())) {
+                            ChunkPos pos = chunk.getPos();
+                            fileoutputstream.write((pos.x() + "\t" + pos.z() + "\t" + chunk.isEmpty() + "\n").getBytes(StandardCharsets.UTF_8));
                         }
-                        if (z.equals(maxZ))
-                            break;
                     }
                 } catch (Throwable throwable1) {
                     try {

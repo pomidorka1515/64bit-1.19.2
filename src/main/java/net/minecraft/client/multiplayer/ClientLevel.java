@@ -29,6 +29,7 @@ import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.resources.sounds.EntityBoundSoundInstance;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Cursor3D;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -296,7 +297,7 @@ public class ClientLevel extends Level {
 
     public void onChunkLoaded(ChunkPos pChunkPos) {
         this.tintCaches.forEach((p_194154_, p_194155_) -> {
-            p_194155_.invalidateForChunk(pChunkPos.x, pChunkPos.z);
+            p_194155_.invalidateForChunk(pChunkPos.x(), pChunkPos.z());
         });
         this.entityStorage.startTicking(pChunkPos);
     }
@@ -346,6 +347,10 @@ public class ClientLevel extends Level {
     }
 
     public void animateTick(long pPosX, int pPosY, long pPosZ) {
+        this.animateTick(Int128.fromLong(pPosX), pPosY, Int128.fromLong(pPosZ));
+    }
+
+    public void animateTick(Int128 pPosX, int pPosY, Int128 pPosZ) {
         int i = 32;
         RandomSource randomsource = RandomSource.create();
         Block block = this.getMarkerParticleTarget();
@@ -372,9 +377,13 @@ public class ClientLevel extends Level {
     }
 
     public void doAnimateTick(long pPosX, int pPosY, long pPosZ, int pRange, RandomSource pRandom, @Nullable Block pBlock, BlockPos.MutableBlockPos pBlockPos) {
-        long i = pPosX + this.random.nextInt(pRange) - this.random.nextInt(pRange);
+        this.doAnimateTick(Int128.fromLong(pPosX), pPosY, Int128.fromLong(pPosZ), pRange, pRandom, pBlock, pBlockPos);
+    }
+
+    public void doAnimateTick(Int128 pPosX, int pPosY, Int128 pPosZ, int pRange, RandomSource pRandom, @Nullable Block pBlock, BlockPos.MutableBlockPos pBlockPos) {
+        Int128 i = WorldBounds.addBlockOffset(pPosX, this.random.nextInt(pRange) - this.random.nextInt(pRange));
         int j = pPosY + this.random.nextInt(pRange) - this.random.nextInt(pRange);
-        long k = pPosZ + this.random.nextInt(pRange) - this.random.nextInt(pRange);
+        Int128 k = WorldBounds.addBlockOffset(pPosZ, this.random.nextInt(pRange) - this.random.nextInt(pRange));
         pBlockPos.set(i, j, k);
         BlockState blockstate = this.getBlockState(pBlockPos);
         blockstate.getBlock().animateTick(blockstate, this, pBlockPos, pRandom);
@@ -499,16 +508,7 @@ public class ClientLevel extends Level {
     private void playSound(SectorVec3 position, SoundEvent sound, SoundSource source, float volume, float pitch,
             boolean distanceDelay, long seed) {
         SectorVec3 camera = this.minecraft.gameRenderer.getMainCamera().exactPosition();
-        double distanceSquared;
-        if (camera == null) {
-            Vec3 legacyCamera = this.minecraft.gameRenderer.getMainCamera().getPosition();
-            double dx = ((double) position.blockX() + position.subX()) - legacyCamera.x;
-            double dy = position.y() - legacyCamera.y;
-            double dz = ((double) position.blockZ() + position.subZ()) - legacyCamera.z;
-            distanceSquared = dx * dx + dy * dy + dz * dz;
-        } else {
-            distanceSquared = position.relativeTo(camera).lengthSqr();
-        }
+        double distanceSquared = position.relativeTo(camera).lengthSqr();
         SimpleSoundInstance instance = new SimpleSoundInstance(sound, source, volume, pitch, RandomSource.create(seed), position);
         if (distanceDelay && distanceSquared > 100.0D) {
             double delay = Math.sqrt(distanceSquared) / 40.0D;
@@ -581,11 +581,19 @@ public class ClientLevel extends Level {
     }
 
     public void setSectionDirtyWithNeighbors(long pSectionX, int pSectionY, long pSectionZ) {
+        this.setSectionDirtyWithNeighbors(Int128.fromLong(pSectionX), pSectionY, Int128.fromLong(pSectionZ));
+    }
+
+    public void setSectionDirtyWithNeighbors(Int128 pSectionX, int pSectionY, Int128 pSectionZ) {
         this.levelRenderer.setSectionDirtyWithNeighbors(pSectionX, pSectionY, pSectionZ);
     }
 
     public void setLightReady(long pX, long pZ) {
-        LevelChunk levelchunk = this.chunkSource.getChunk(pX, pZ, false);
+        this.setLightReady(Int128.fromLong(pX), Int128.fromLong(pZ));
+    }
+
+    public void setLightReady(Int128 pX, Int128 pZ) {
+        LevelChunk levelchunk = this.chunkSource.getChunk(pX, pZ, ChunkStatus.FULL, false);
         if (levelchunk != null) {
             levelchunk.setClientLightReady(true);
         }
@@ -787,7 +795,9 @@ public class ClientLevel extends Level {
 
     public int calculateBlockTint(BlockPos pBlockPos, ColorResolver pColorResolver) {
         int i = Minecraft.getInstance().options.biomeBlendRadius().get();
-        return calculateBlockTint(pBlockPos, i, pos -> pColorResolver.getColor(this.getBiome(pos).value(), (double) pos.getX(), (double) pos.getZ()));
+        // Only the legacy biome color pattern is projected; biome lookup keeps exact identity.
+        return calculateBlockTint(pBlockPos, i, pos -> pColorResolver.getColor(this.getBiome(pos).value(),
+                WorldBounds.noiseCoordinate(pos.getX()), WorldBounds.noiseCoordinate(pos.getZ())));
     }
 
     static int calculateBlockTint(BlockPos pBlockPos, int i, java.util.function.ToIntFunction<BlockPos> colorSource) {
@@ -861,9 +871,9 @@ public class ClientLevel extends Level {
         private final boolean hardcore;
         private final GameRules gameRules;
         private final boolean isFlat;
-        private long xSpawn;
+        private Int128 xSpawn = Int128.ZERO;
         private int ySpawn;
-        private long zSpawn;
+        private Int128 zSpawn = Int128.ZERO;
         private float spawnAngle;
         private long gameTime;
         private long dayTime;
@@ -878,7 +888,7 @@ public class ClientLevel extends Level {
             this.gameRules = new GameRules();
         }
 
-        public long getXSpawn() {
+        public Int128 getXSpawn() {
             return this.xSpawn;
         }
 
@@ -886,7 +896,7 @@ public class ClientLevel extends Level {
             return this.ySpawn;
         }
 
-        public long getZSpawn() {
+        public Int128 getZSpawn() {
             return this.zSpawn;
         }
 
@@ -902,7 +912,7 @@ public class ClientLevel extends Level {
             return this.dayTime;
         }
 
-        public void setXSpawn(long pX) {
+        public void setXSpawn(Int128 pX) {
             this.xSpawn = pX;
         }
 
@@ -910,7 +920,7 @@ public class ClientLevel extends Level {
             this.ySpawn = pY;
         }
 
-        public void setZSpawn(long pZ) {
+        public void setZSpawn(Int128 pZ) {
             this.zSpawn = pZ;
         }
 

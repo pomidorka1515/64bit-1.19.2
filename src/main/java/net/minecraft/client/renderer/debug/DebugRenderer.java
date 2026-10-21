@@ -23,6 +23,8 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
+import net.minecraft.client.renderer.CameraRelativePosition;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -106,19 +108,18 @@ public class DebugRenderer {
         if (pEntity == null) {
             return Optional.empty();
         } else {
-            Vec3 vec3 = pEntity.getEyePosition();
+            SectorVec3 start = pEntity.exactEyePosition();
             Vec3 vec31 = pEntity.getViewVector(1.0F).scale((double) pDistance);
-            Vec3 vec32 = vec3.add(vec31);
-            AABB aabb = pEntity.getBoundingBox().expandTowards(vec31).inflate(1.0D);
+            SectorVec3 end = start.add(vec31.x, vec31.y, vec31.z);
             int i = pDistance * pDistance;
             Predicate<Entity> predicate = (p_113447_) -> {
                 return !p_113447_.isSpectator() && p_113447_.isPickable();
             };
-            EntityHitResult entityhitresult = ProjectileUtil.getEntityHitResult(pEntity, vec3, vec32, aabb, predicate, (double) i);
+            EntityHitResult entityhitresult = ProjectileUtil.getSectorEntityHitResult(pEntity, start, end, predicate, 1.0D, (double) i);
             if (entityhitresult == null) {
                 return Optional.empty();
             } else {
-                return vec3.distanceToSqr(entityhitresult.getLocation()) > (double) i ? Optional.empty() : Optional.of(entityhitresult.getEntity());
+                return Optional.of(entityhitresult.getEntity());
             }
         }
     }
@@ -126,8 +127,7 @@ public class DebugRenderer {
     public static void renderFilledBox(BlockPos pStart, BlockPos pEnd, float pRed, float pGreen, float pBlue, float pAlpha) {
         Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
         if (camera.isInitialized()) {
-            Vec3 vec3 = camera.getPosition().reverse();
-            AABB aabb = (new AABB(pStart, pEnd)).move(vec3);
+            AABB aabb = localBox(new AABB(pStart, pEnd));
             renderFilledBox(aabb, pRed, pGreen, pBlue, pAlpha);
         }
     }
@@ -135,8 +135,7 @@ public class DebugRenderer {
     public static void renderFilledBox(BlockPos pPos, float pSize, float pRed, float pGreen, float pBlue, float pAlpha) {
         Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
         if (camera.isInitialized()) {
-            Vec3 vec3 = camera.getPosition().reverse();
-            AABB aabb = (new AABB(pPos)).move(vec3).inflate((double) pSize);
+            AABB aabb = localBox(new AABB(pPos)).inflate((double) pSize);
             renderFilledBox(aabb, pRed, pGreen, pBlue, pAlpha);
         }
     }
@@ -167,16 +166,43 @@ public class DebugRenderer {
     }
 
     public static void renderFloatingText(String pText, double pX, double pY, double pZ, int pColor, float pScale, boolean pCenter, float pXOffset, boolean pTransparent) {
+        // Explicit legacy input boundary; exact debug positions use the overload below.
+        renderFloatingText(pText, SectorVec3.fromApproximate(pX, pY, pZ), pColor, pScale, pCenter, pXOffset, pTransparent);
+    }
+
+    public static CameraRelativePosition cameraPosition() {
+        return CameraRelativePosition.of(Minecraft.getInstance().gameRenderer.getMainCamera().getExactPosition());
+    }
+
+    public static Vec3 localPosition(BlockPos pos, double x, double y, double z) {
+        CameraRelativePosition camera = cameraPosition();
+        return new Vec3(camera.relativeX(pos.getX()) + x, camera.relativeY(pos.getY()) + y,
+                camera.relativeZ(pos.getZ()) + z);
+    }
+
+    /** Exact world boxes become local only after subtracting the full-width camera. */
+    public static AABB localBox(AABB box) {
+        SectorVec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera().getExactPosition();
+        return box.getSectorBounds() != null ? box.getSectorBounds().toLocalAABB(camera)
+                : box.move(-camera.subX(), -camera.y(), -camera.subZ());
+    }
+
+    public static void renderFloatingText(String text, BlockPos pos, double x, double y, double z,
+            int color, float scale, boolean center, float xOffset, boolean transparent) {
+        renderFloatingText(text, SectorVec3.fromBlockAndFraction(pos.getX(), x, pos.getY() + y, pos.getZ(), z),
+                color, scale, center, xOffset, transparent);
+    }
+
+    public static void renderFloatingText(String pText, SectorVec3 position, int pColor, float pScale,
+            boolean pCenter, float pXOffset, boolean pTransparent) {
         Minecraft minecraft = Minecraft.getInstance();
         Camera camera = minecraft.gameRenderer.getMainCamera();
         if (camera.isInitialized() && minecraft.getEntityRenderDispatcher().options != null) {
             Font font = minecraft.font;
-            double d0 = camera.getPosition().x;
-            double d1 = camera.getPosition().y;
-            double d2 = camera.getPosition().z;
+            Vec3 local = position.relativeTo(camera.getExactPosition());
             PoseStack posestack = RenderSystem.getModelViewStack();
             posestack.pushPose();
-            posestack.translate((double) ((float) (pX - d0)), (double) ((float) (pY - d1) + 0.07F), (double) ((float) (pZ - d2)));
+            posestack.translate((float) local.x, (float) local.y + 0.07F, (float) local.z);
             posestack.mulPoseMatrix(new Matrix4f(camera.rotation()));
             posestack.scale(pScale, -pScale, pScale);
             RenderSystem.enableTexture();

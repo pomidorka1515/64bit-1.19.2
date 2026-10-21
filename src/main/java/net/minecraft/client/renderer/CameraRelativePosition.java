@@ -1,5 +1,6 @@
 package net.minecraft.client.renderer;
 
+import net.minecraft.core.Int128;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.phys.SectorVec3;
 import net.minecraftforge.api.distmarker.Dist;
@@ -12,14 +13,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
  */
 @OnlyIn(Dist.CLIENT)
 public final class CameraRelativePosition {
-    private final long baseX;
+    private final Int128 baseX;
     private final int baseY;
-    private final long baseZ;
+    private final Int128 baseZ;
     private final double fractionX;
     private final double fractionY;
     private final double fractionZ;
 
-    private CameraRelativePosition(long baseX, int baseY, long baseZ,
+    private CameraRelativePosition(Int128 baseX, int baseY, Int128 baseZ,
             double fractionX, double fractionY, double fractionZ) {
         this.baseX = baseX;
         this.baseY = baseY;
@@ -39,7 +40,7 @@ public final class CameraRelativePosition {
                 exact.subZ());
     }
 
-    public long baseX() {
+    public Int128 baseX() {
         return this.baseX;
     }
 
@@ -47,7 +48,7 @@ public final class CameraRelativePosition {
         return this.baseY;
     }
 
-    public long baseZ() {
+    public Int128 baseZ() {
         return this.baseZ;
     }
 
@@ -63,27 +64,43 @@ public final class CameraRelativePosition {
         return this.fractionZ;
     }
 
-    public double relativeX(long blockX) {
+    public double relativeX(Int128 blockX) {
         return WorldBounds.signedDifference(blockX, this.baseX) - this.fractionX;
     }
 
-    public double relativeY(int blockY) {
-        return (double) (blockY - this.baseY) - this.fractionY;
+    public double relativeX(long blockX) {
+        return this.relativeX(Int128.fromLong(blockX));
     }
 
-    public double relativeZ(long blockZ) {
+    public double relativeY(int blockY) {
+        return ((double) blockY - (double) this.baseY) - this.fractionY;
+    }
+
+    public double relativeZ(Int128 blockZ) {
         return WorldBounds.signedDifference(blockZ, this.baseZ) - this.fractionZ;
     }
 
-    public double cameraRelativeToX(long blockX) {
+    public double relativeZ(long blockZ) {
+        return this.relativeZ(Int128.fromLong(blockZ));
+    }
+
+    public double cameraRelativeToX(Int128 blockX) {
         return -this.relativeX(blockX);
+    }
+
+    public double cameraRelativeToX(long blockX) {
+        return this.cameraRelativeToX(Int128.fromLong(blockX));
     }
 
     public double cameraRelativeToY(int blockY) {
         return -this.relativeY(blockY);
     }
 
-    public double cameraRelativeToZ(long blockZ) {
+    public double cameraRelativeToZ(Int128 blockZ) {
         return -this.relativeZ(blockZ);
+    }
+
+    public double cameraRelativeToZ(long blockZ) {
+        return this.cameraRelativeToZ(Int128.fromLong(blockZ));
     }
 }

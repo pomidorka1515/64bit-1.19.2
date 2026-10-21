@@ -11,14 +11,12 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.SectorClipper;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.FogType;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.ExactVec3;
 import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
@@ -29,7 +27,6 @@ public class Camera {
     private boolean initialized;
     private BlockGetter level;
     private Entity entity;
-    private Vec3 position = Vec3.ZERO;
     @Nullable
     private SectorVec3 exactPosition;
     private final BlockPos.MutableBlockPos blockPosition = new BlockPos.MutableBlockPos();
@@ -52,17 +49,17 @@ public class Camera {
         this.detached = pDetached;
         this.playerThirdPerson = pDetached && pEntity == Minecraft.getInstance().player;
         this.setRotation(pEntity.getViewYRot(pPartialTick), pEntity.getViewXRot(pPartialTick));
-        this.exactPosition = pEntity.interpolatedExactPosition(pPartialTick);
-        if (this.exactPosition != null) {
-            // exactPosition must describe the actual camera, not the player's feet.
-            // The legacy Vec3 path already added eyeHeight to the camera position;
-            // keeping that addition only in the compatibility mirror left sector
-            // rendering and third-person camera motion one eye-height below it.
-            this.exactPosition = this.exactPosition.withY(this.exactPosition.y()
-                    + (double) pEntity.getEyeHeight());
-            this.setPosition(this.exactPosition.toApproximateVec3());
+        SectorVec3 interpolated = pEntity.interpolatedExactPosition(pPartialTick);
+        if (interpolated != null) {
+            this.setPosition(interpolated.withY(interpolated.y() + (double) pEntity.getEyeHeight()));
         } else {
-            this.setPosition(Mth.lerp((double) pPartialTick, pEntity.xo, pEntity.getX()), Mth.lerp((double) pPartialTick, pEntity.yo, pEntity.getY()) + (double) Mth.lerp(pPartialTick, this.eyeHeightOld, this.eyeHeight), Mth.lerp((double) pPartialTick, pEntity.zo, pEntity.getZ()));
+            // Legacy non-sector entities supply doubles; split those inputs before
+            // interpolation rather than reconstructing an absolute camera double.
+            SectorVec3 old = SectorVec3.fromApproximate(pEntity.xo, pEntity.yo, pEntity.zo);
+            SectorVec3 current = SectorVec3.fromApproximate(pEntity.getX(), pEntity.getY(), pEntity.getZ());
+            interpolated = old.lerpTo(current, (double) pPartialTick);
+            this.setPosition(interpolated.withY(interpolated.y()
+                    + (double) Mth.lerp(pPartialTick, this.eyeHeightOld, this.eyeHeight)));
         }
         if (pDetached) {
             if (pThirdPersonReverse) {
@@ -92,45 +89,12 @@ public class Camera {
             f *= 0.1F;
             f1 *= 0.1F;
             f2 *= 0.1F;
-            HitResult hitresult;
-            if (this.exactPosition != null) {
-                if (this.playerThirdPerson) {
-                    double distance = SectorClipper.clipCameraDistance(this.level, this.exactPosition,
-                            new Vec3(f, f1, f2),
-                            new Vec3(-this.forwards.x() * pStartingDistance + f + f2,
-                                    -this.forwards.y() * pStartingDistance + f1,
-                                    -this.forwards.z() * pStartingDistance + f2), this.entity);
-                    pStartingDistance = Math.min(pStartingDistance, distance);
-                    continue;
-                }
-                SectorVec3 from = this.exactPosition.add(f, f1, f2);
-                // Both endpoints are relative to the camera. Do not add the
-                // corner offset twice by deriving the far endpoint from `from`.
-                SectorVec3 to = this.exactPosition.add(-this.forwards.x() * pStartingDistance + f + f2,
-                        -this.forwards.y() * pStartingDistance + f1,
-                        -this.forwards.z() * pStartingDistance + f2);
-                hitresult = SectorClipper.clip(this.level, from, to, this.entity,
-                        ClipContext.Block.VISUAL, ClipContext.Fluid.NONE);
-            } else {
-                Vec3 vec3 = this.position.add((double) f, (double) f1, (double) f2);
-                Vec3 vec31 = new Vec3(this.position.x - (double) this.forwards.x() * pStartingDistance + (double) f + (double) f2, this.position.y - (double) this.forwards.y() * pStartingDistance + (double) f1, this.position.z - (double) this.forwards.z() * pStartingDistance + (double) f2);
-                hitresult = this.level.clip(new ClipContext(vec3, vec31, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, this.entity));
-            }
-            if (hitresult.getType() != HitResult.Type.MISS) {
-                double d0;
-                if (this.exactPosition != null && hitresult instanceof BlockHitResult blockHit
-                        && blockHit.getExactLocation() != null) {
-                    // The hit point is also split-coordinate data. Comparing its
-                    // lossy Vec3 mirror with the camera position can turn a wall
-                    // hit into a zero-distance hit at large coordinates.
-                    d0 = blockHit.getExactLocation().relativeTo(this.exactPosition).length();
-                } else {
-                    d0 = hitresult.getLocation().distanceTo(this.position);
-                }
-                if (d0 < pStartingDistance) {
-                    pStartingDistance = d0;
-                }
-            }
+            double distance = SectorClipper.clipCameraDistance(this.level, this.exactPosition,
+                    new Vec3(f, f1, f2),
+                    new Vec3(-this.forwards.x() * pStartingDistance + f + f2,
+                            -this.forwards.y() * pStartingDistance + f1,
+                            -this.forwards.z() * pStartingDistance + f2), this.entity);
+            pStartingDistance = Math.min(pStartingDistance, distance);
         }
 
         return pStartingDistance;
@@ -145,12 +109,9 @@ public class Camera {
             // split-coordinate position in sync, otherwise renderers still use the
             // first-person eye position while the actual camera has moved behind
             // the player (making the player appear enormous/in the camera).
-            this.exactPosition = this.playerThirdPerson
+            this.setPosition(this.playerThirdPerson
                     ? this.exactPosition.offsetCamera(d0, d1, d2)
-                    : this.exactPosition.add(d0, d1, d2);
-            this.setPosition(this.exactPosition.toApproximateVec3());
-        } else {
-            this.setPosition(new Vec3(this.position.x + d0, this.position.y + d1, this.position.z + d2));
+                    : this.exactPosition.add(d0, d1, d2));
         }
     }
 
@@ -169,16 +130,22 @@ public class Camera {
     }
 
     protected void setPosition(double pX, double pY, double pZ) {
-        this.setPosition(new Vec3(pX, pY, pZ));
+        this.setPosition(SectorVec3.fromApproximate(pX, pY, pZ));
     }
 
     protected void setPosition(Vec3 pPos) {
-        this.position = pPos;
-        this.blockPosition.set(pPos.x, pPos.y, pPos.z);
+        this.setPosition(ExactVec3.position(pPos));
     }
 
+    protected void setPosition(SectorVec3 pPos) {
+        this.exactPosition = pPos;
+        this.blockPosition.set(pPos.blockPosition());
+    }
+
+    /** Local X/Z offsets from the exact horizontal block base; Y remains vertical world height. */
     public Vec3 getPosition() {
-        return this.position;
+        return this.exactPosition == null ? Vec3.ZERO
+                : new Vec3(this.exactPosition.subX(), this.exactPosition.y(), this.exactPosition.subZ());
     }
 
     public BlockPos getBlockPosition() {
@@ -235,25 +202,23 @@ public class Camera {
         if (!this.initialized) {
             return FogType.NONE;
         } else {
-            BlockPos cameraBlock = this.exactPosition != null ? this.exactPosition.blockPosition() : this.blockPosition;
-            boolean inside = this.exactPosition == null || this.exactPosition.isInsideWorld();
+            BlockPos cameraBlock = this.blockPosition;
+            boolean inside = this.exactPosition.isInsideWorld();
             FluidState fluidstate = inside ? this.level.getFluidState(cameraBlock) : net.minecraft.world.level.material.Fluids.EMPTY.defaultFluidState();
-            if (fluidstate.is(FluidTags.WATER) && this.position.y < (double) ((float) cameraBlock.getY() + fluidstate.getHeight(this.level, cameraBlock))) {
+            if (fluidstate.is(FluidTags.WATER) && this.exactPosition.y() < (double) cameraBlock.getY() + fluidstate.getHeight(this.level, cameraBlock)) {
                 return FogType.WATER;
             } else {
                 Camera.NearPlane camera$nearplane = this.getNearPlane();
 
                 for (Vec3 vec3 : Arrays.asList(camera$nearplane.forward, camera$nearplane.getTopLeft(), camera$nearplane.getTopRight(), camera$nearplane.getBottomLeft(), camera$nearplane.getBottomRight())) {
-                    Vec3 vec31 = this.position.add(vec3);
-                    SectorVec3 exactSample = this.exactPosition != null
-                            ? this.exactPosition.offsetCamera(vec3.x, vec3.y, vec3.z) : null;
-                    if (exactSample != null && !exactSample.isInsideWorld()) {
+                    SectorVec3 exactSample = this.exactPosition.offsetCamera(vec3.x, vec3.y, vec3.z);
+                    if (!exactSample.isInsideWorld()) {
                         continue;
                     }
-                    BlockPos blockpos = exactSample != null ? exactSample.blockPosition() : new BlockPos(vec31);
+                    BlockPos blockpos = exactSample.blockPosition();
                     FluidState fluidstate1 = this.level.getFluidState(blockpos);
                     if (fluidstate1.is(FluidTags.LAVA)) {
-                        if (vec31.y <= (double) (fluidstate1.getHeight(this.level, blockpos) + (float) blockpos.getY())) {
+                        if (exactSample.y() <= (double) blockpos.getY() + fluidstate1.getHeight(this.level, blockpos)) {
                             return FogType.LAVA;
                         }
                     } else {

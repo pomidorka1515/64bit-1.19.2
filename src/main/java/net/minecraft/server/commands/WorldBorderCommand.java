@@ -115,15 +115,14 @@ public class WorldBorderCommand {
 
     private static int setCenter(CommandSourceStack source, SectorVec3 position) throws CommandSyntaxException {
         WorldBorder worldborder = source.getServer().overworld().getWorldBorder();
-        double x = position.toApproximateVec3().x;
-        double z = position.toApproximateVec3().z;
-        if (worldborder.getCenterX() == x && worldborder.getCenterZ() == z)
+        SectorVec3 center = worldborder.getExactCenter();
+        if (center.blockX().equals(position.blockX()) && center.subX() == position.subX()
+                && center.blockZ().equals(position.blockZ()) && center.subZ() == position.subZ())
             throw ERROR_SAME_CENTER.create();
-        if (position.blockX() < -29999984L || position.blockX() > 29999984L
-                || position.blockZ() < -29999984L || position.blockZ() > 29999984L)
-            throw ERROR_TOO_FAR_OUT.create();
-        worldborder.setCenter(x, z);
-        source.sendSuccess(Component.translatable("commands.worldborder.center.success", String.format(Locale.ROOT, "%.2f", x), String.format(Locale.ROOT, "%.2f", z)), true);
+        worldborder.setCenter(position);
+        source.sendSuccess(Component.translatable("commands.worldborder.center.success",
+                new java.math.BigDecimal(position.blockX().toString()).add(java.math.BigDecimal.valueOf(position.subX())).setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                new java.math.BigDecimal(position.blockZ().toString()).add(java.math.BigDecimal.valueOf(position.subZ())).setScale(2, java.math.RoundingMode.HALF_UP).toPlainString()), true);
         return 0;
     }
 

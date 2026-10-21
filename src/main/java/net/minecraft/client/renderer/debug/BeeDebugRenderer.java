@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Position;
@@ -257,21 +258,15 @@ public class BeeDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
     private static void renderTextOverPos(String pText, BlockPos pPos, int pYScale, int pColor) {
         double d0 = 1.3D;
         double d1 = 0.2D;
-        double d2 = (double) pPos.getX() + 0.5D;
-        double d3 = (double) pPos.getY() + 1.3D + (double) pYScale * 0.2D;
-        double d4 = (double) pPos.getZ() + 0.5D;
-        DebugRenderer.renderFloatingText(pText, d2, d3, d4, pColor, 0.02F, true, 0.0F, true);
+        DebugRenderer.renderFloatingText(pText, pPos, 0.5D, 1.3D + pYScale * 0.2D, 0.5D, pColor, 0.02F, true, 0.0F, true);
     }
 
-    private static void renderTextOverMob(Position pPos, int pYScale, String pText, int pColor, float pScale) {
+    private static void renderTextOverMob(SectorVec3 pPos, int pYScale, String pText, int pColor, float pScale) {
         double d0 = 2.4D;
         double d1 = 0.25D;
-        BlockPos blockpos = new BlockPos(pPos);
-        double d2 = (double) blockpos.getX() + 0.5D;
-        double d3 = pPos.y() + 2.4D + (double) pYScale * 0.25D;
-        double d4 = (double) blockpos.getZ() + 0.5D;
+        BlockPos blockpos = pPos.blockPosition();
         float f = 0.5F;
-        DebugRenderer.renderFloatingText(pText, d2, d3, d4, pColor, pScale, false, 0.5F, true);
+        DebugRenderer.renderFloatingText(pText, blockpos, 0.5D, pPos.y() - blockpos.getY() + 2.4D + pYScale * 0.25D, 0.5D, pColor, pScale, false, 0.5F, true);
     }
 
     private Camera getCamera() {
@@ -283,7 +278,7 @@ public class BeeDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
     }
 
     private String getPosDescription(BeeDebugRenderer.BeeInfo pBeeInfo, BlockPos pPos) {
-        double d0 = Math.sqrt(pPos.distToCenterSqr(pBeeInfo.pos));
+        double d0 = pBeeInfo.pos.relativeTo(SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, pPos.getY() + 0.5D, pPos.getZ(), 0.5D)).length();
         double d1 = (double) Math.round(d0 * 10.0D) / 10.0D;
         return pPos.toShortString() + " (dist " + d1 + ")";
     }
@@ -294,8 +289,8 @@ public class BeeDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
 
     private boolean isPlayerCloseEnoughToMob(BeeDebugRenderer.BeeInfo pBeeInfo) {
         Player player = this.minecraft.player;
-        BlockPos blockpos = new BlockPos(player.getX(), pBeeInfo.pos.y(), player.getZ());
-        BlockPos blockpos1 = new BlockPos(pBeeInfo.pos);
+        BlockPos blockpos = player.blockPosition().atY(pBeeInfo.pos.blockPosition().getY());
+        BlockPos blockpos1 = pBeeInfo.pos.blockPosition();
         return blockpos.closerThan(blockpos1, 30.0D);
     }
 
@@ -331,7 +326,7 @@ public class BeeDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
     public static class BeeInfo {
         public final UUID uuid;
         public final int id;
-        public final Position pos;
+        public final SectorVec3 pos;
         @Nullable
         public final Path path;
         @Nullable
@@ -343,6 +338,11 @@ public class BeeDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
         public final Set<BlockPos> blacklistedHives = Sets.newHashSet();
 
         public BeeInfo(UUID pUuid, int pId, Position pPos, @Nullable Path pPath, @Nullable BlockPos pHivePos, @Nullable BlockPos pFlowerPos, int pTravelTicks) {
+            this(pUuid, pId, SectorVec3.fromApproximate(pPos.x(), pPos.y(), pPos.z()),
+                    pPath, pHivePos, pFlowerPos, pTravelTicks);
+        }
+
+        public BeeInfo(UUID pUuid, int pId, SectorVec3 pPos, @Nullable Path pPath, @Nullable BlockPos pHivePos, @Nullable BlockPos pFlowerPos, int pTravelTicks) {
             this.uuid = pUuid;
             this.id = pId;
             this.pos = pPos;

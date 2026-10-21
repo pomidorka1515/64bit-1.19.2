@@ -39,16 +39,13 @@ public class GoalSelectorDebugRenderer implements DebugRenderer.SimpleDebugRende
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableTexture();
-        BlockPos blockpos = new BlockPos(camera.getPosition().x, 0.0D, camera.getPosition().z);
+        BlockPos blockpos = camera.getBlockPosition().atY(0);
         this.goalSelectors.forEach((p_113559_, p_113560_) -> {
             for (int i = 0; i < p_113560_.size(); ++i) {
                 GoalSelectorDebugRenderer.DebugGoal goalselectordebugrenderer$debuggoal = p_113560_.get(i);
                 if (blockpos.closerThan(goalselectordebugrenderer$debuggoal.pos, 160.0D)) {
-                    double d0 = (double) goalselectordebugrenderer$debuggoal.pos.getX() + 0.5D;
-                    double d1 = (double) goalselectordebugrenderer$debuggoal.pos.getY() + 2.0D + (double) i * 0.25D;
-                    double d2 = (double) goalselectordebugrenderer$debuggoal.pos.getZ() + 0.5D;
                     int j = goalselectordebugrenderer$debuggoal.isRunning ? -16711936 : -3355444;
-                    DebugRenderer.renderFloatingText(goalselectordebugrenderer$debuggoal.name, d0, d1, d2, j);
+                    DebugRenderer.renderFloatingText(goalselectordebugrenderer$debuggoal.name, goalselectordebugrenderer$debuggoal.pos, 0.5D, 2.0D + i * 0.25D, 0.5D, j, 0.02F, true, 0, false);
                 }
             }
         });

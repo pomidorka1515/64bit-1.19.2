@@ -55,7 +55,7 @@ public class NeighborsUpdateRenderer implements DebugRenderer.SimpleDebugRendere
                     BlockPos blockpos = entry1.getKey();
                     Integer integer = entry1.getValue();
                     if (set.add(blockpos)) {
-                        AABB aabb = (new AABB(BlockPos.ZERO)).inflate(0.002D).deflate(0.0025D * (double) k).move((double) blockpos.getX(), (double) blockpos.getY(), (double) blockpos.getZ()).move(-pCamX, -pCamY, -pCamZ);
+                        AABB aabb = (new AABB(0, 0, 0, 1, 1, 1)).inflate(0.002D).deflate(0.0025D * (double) k).move(DebugRenderer.localPosition(blockpos, 0, 0, 0));
                         LevelRenderer.renderLineBox(pPoseStack, vertexconsumer, aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ, 1.0F, 1.0F, 1.0F, 1.0F);
                         map.put(blockpos, integer);
                     }
@@ -66,7 +66,7 @@ public class NeighborsUpdateRenderer implements DebugRenderer.SimpleDebugRendere
         for (Map.Entry<BlockPos, Integer> entry2 : map.entrySet()) {
             BlockPos blockpos1 = entry2.getKey();
             Integer integer1 = entry2.getValue();
-            DebugRenderer.renderFloatingText(String.valueOf((Object) integer1), blockpos1.getX(), blockpos1.getY(), blockpos1.getZ(), -1);
+            DebugRenderer.renderFloatingText(String.valueOf((Object) integer1), blockpos1, 0, 0, 0, -1, 0.02F, true, 0, false);
         }
     }
 }

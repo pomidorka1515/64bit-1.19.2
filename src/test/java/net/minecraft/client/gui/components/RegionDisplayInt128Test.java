@@ -31,4 +31,12 @@ class RegionDisplayInt128Test {
         cache.update(new ChunkPos(Int128.of(1L, 30L), Int128.ZERO));
         assertSame(high, cache.firstLine);
     }
+
+    @Test
+    void fullBlockDomainRegionEndpoints() {
+        DebugScreenOverlay.RegionDisplayCache cache = new DebugScreenOverlay.RegionDisplayCache();
+        cache.update(new ChunkPos(Int128.MIN.shiftRight(4), Int128.MAX.shiftRight(4)));
+        assertEquals(" (r.-332306998946228968225951765070086144.332306998946228968225951765070086143.mca)", cache.secondLine);
+        assertEquals("Region: -332306998946228968225951765070086144 332306998946228968225951765070086143 in r.ffc00000000000000000000000000000.003fffffffffffffffffffffffffffff.mca", cache.firstLine);
+    }
 }

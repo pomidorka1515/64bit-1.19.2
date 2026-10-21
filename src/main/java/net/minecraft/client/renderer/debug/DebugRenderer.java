@@ -175,7 +175,10 @@ public class DebugRenderer {
     }
 
     public static Vec3 localPosition(BlockPos pos, double x, double y, double z) {
-        CameraRelativePosition camera = cameraPosition();
+        return localPosition(cameraPosition(), pos, x, y, z);
+    }
+
+    static Vec3 localPosition(CameraRelativePosition camera, BlockPos pos, double x, double y, double z) {
         return new Vec3(camera.relativeX(pos.getX()) + x, camera.relativeY(pos.getY()) + y,
                 camera.relativeZ(pos.getZ()) + z);
     }
@@ -183,8 +186,10 @@ public class DebugRenderer {
     /** Exact world boxes become local only after subtracting the full-width camera. */
     public static AABB localBox(AABB box) {
         SectorVec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera().getExactPosition();
-        return box.getSectorBounds() != null ? box.getSectorBounds().toLocalAABB(camera)
-                : box.move(-camera.subX(), -camera.y(), -camera.subZ());
+        if (box.getSectorBounds() == null) {
+            throw new IllegalArgumentException("World debug box requires exact bounds");
+        }
+        return box.getSectorBounds().toLocalAABB(camera);
     }
 
     public static void renderFloatingText(String text, BlockPos pos, double x, double y, double z,

@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Position;
@@ -129,7 +130,7 @@ public class BrainDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
     }
 
     private void doRender(double pX, double pY, double pZ) {
-        BlockPos blockpos = new BlockPos(pX, pY, pZ);
+        BlockPos blockpos = this.minecraft.gameRenderer.getMainCamera().getBlockPosition();
         this.brainDumpsPerEntity.values().forEach((p_113210_) -> {
             if (this.isPlayerCloseEnoughToMob(p_113210_)) {
                 this.renderBrainInfo(p_113210_, pX, pY, pZ);
@@ -276,21 +277,15 @@ public class BrainDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
     private static void renderTextOverPos(String pText, BlockPos pPos, int pYScale, int pColor) {
         double d0 = 1.3D;
         double d1 = 0.2D;
-        double d2 = (double) pPos.getX() + 0.5D;
-        double d3 = (double) pPos.getY() + 1.3D + (double) pYScale * 0.2D;
-        double d4 = (double) pPos.getZ() + 0.5D;
-        DebugRenderer.renderFloatingText(pText, d2, d3, d4, pColor, 0.02F, true, 0.0F, true);
+        DebugRenderer.renderFloatingText(pText, pPos, 0.5D, 1.3D + pYScale * 0.2D, 0.5D, pColor, 0.02F, true, 0.0F, true);
     }
 
-    private static void renderTextOverMob(Position pPos, int pYScale, String pText, int pColor, float pScale) {
+    private static void renderTextOverMob(SectorVec3 pPos, int pYScale, String pText, int pColor, float pScale) {
         double d0 = 2.4D;
         double d1 = 0.25D;
-        BlockPos blockpos = new BlockPos(pPos);
-        double d2 = (double) blockpos.getX() + 0.5D;
-        double d3 = pPos.y() + 2.4D + (double) pYScale * 0.25D;
-        double d4 = (double) blockpos.getZ() + 0.5D;
+        BlockPos blockpos = pPos.blockPosition();
         float f = 0.5F;
-        DebugRenderer.renderFloatingText(pText, d2, d3, d4, pColor, pScale, false, 0.5F, true);
+        DebugRenderer.renderFloatingText(pText, blockpos, 0.5D, pPos.y() - blockpos.getY() + 2.4D + pYScale * 0.25D, 0.5D, pColor, pScale, false, 0.5F, true);
     }
 
     private Set<String> getTicketHolderNames(BrainDebugRenderer.PoiInfo pPoiInfo) {
@@ -307,8 +302,8 @@ public class BrainDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
 
     private boolean isPlayerCloseEnoughToMob(BrainDebugRenderer.BrainDump pBrainDump) {
         Player player = this.minecraft.player;
-        BlockPos blockpos = new BlockPos(player.getX(), pBrainDump.pos.y(), player.getZ());
-        BlockPos blockpos1 = new BlockPos(pBrainDump.pos);
+        BlockPos blockpos = player.blockPosition().atY(pBrainDump.pos.blockPosition().getY());
+        BlockPos blockpos1 = pBrainDump.pos.blockPosition();
         return blockpos.closerThan(blockpos1, 30.0D);
     }
 
@@ -359,7 +354,7 @@ public class BrainDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
         public final int xp;
         public final float health;
         public final float maxHealth;
-        public final Position pos;
+        public final SectorVec3 pos;
         public final String inventory;
         public final Path path;
         public final boolean wantsGolem;
@@ -372,6 +367,12 @@ public class BrainDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
         public final Set<BlockPos> potentialPois = Sets.newHashSet();
 
         public BrainDump(UUID pUuid, int pId, String pName, String pProfession, int pXp, float pHealth, float pMaxHealth, Position pPos, String pInventory, @Nullable Path pPath, boolean pWantsGolem, int pAngerLevel) {
+            this(pUuid, pId, pName, pProfession, pXp, pHealth, pMaxHealth,
+                    SectorVec3.fromApproximate(pPos.x(), pPos.y(), pPos.z()),
+                    pInventory, pPath, pWantsGolem, pAngerLevel);
+        }
+
+        public BrainDump(UUID pUuid, int pId, String pName, String pProfession, int pXp, float pHealth, float pMaxHealth, SectorVec3 pPos, String pInventory, @Nullable Path pPath, boolean pWantsGolem, int pAngerLevel) {
             this.uuid = pUuid;
             this.id = pId;
             this.name = pName;

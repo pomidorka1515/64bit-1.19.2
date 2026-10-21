@@ -73,14 +73,14 @@ public class PathfindingRenderer implements DebugRenderer.SimpleDebugRenderer {
         renderPathLine(pPath, pX, pY, pZ);
         BlockPos blockpos = pPath.getTarget();
         if (distanceToCamera(blockpos, pX, pY, pZ) <= 80.0F) {
-            DebugRenderer.renderFilledBox((new AABB((double) ((float) blockpos.getX() + 0.25F), (double) ((float) blockpos.getY() + 0.25F), (double) blockpos.getZ() + 0.25D, (double) ((float) blockpos.getX() + 0.75F), (double) ((float) blockpos.getY() + 0.75F), (double) ((float) blockpos.getZ() + 0.75F))).move(-pX, -pY, -pZ), 0.0F, 1.0F, 0.0F, 0.5F);
+            DebugRenderer.renderFilledBox(localNodeBox(blockpos, 0.25D, 0.25D, 0.75D, 0.75D), 0.0F, 1.0F, 0.0F, 0.5F);
 
             for (int i = 0; i < pPath.getNodeCount(); ++i) {
                 Node node = pPath.getNode(i);
                 if (distanceToCamera(node.asBlockPos(), pX, pY, pZ) <= 80.0F) {
                     float f = i == pPath.getNextNodeIndex() ? 1.0F : 0.0F;
                     float f1 = i == pPath.getNextNodeIndex() ? 0.0F : 1.0F;
-                    DebugRenderer.renderFilledBox((new AABB((double) ((float) node.x + 0.5F - pMaxDistanceToWaypoint), (double) ((float) node.y + 0.01F * (float) i), (double) ((float) node.z + 0.5F - pMaxDistanceToWaypoint), (double) ((float) node.x + 0.5F + pMaxDistanceToWaypoint), (double) ((float) node.y + 0.25F + 0.01F * (float) i), (double) ((float) node.z + 0.5F + pMaxDistanceToWaypoint))).move(-pX, -pY, -pZ), f, 0.0F, f1, 0.5F);
+                    DebugRenderer.renderFilledBox(localNodeBox(node.asBlockPos(), 0.5D - pMaxDistanceToWaypoint, 0.01D * i, 0.5D + pMaxDistanceToWaypoint, 0.25D + 0.01D * i), f, 0.0F, f1, 0.5F);
                 }
             }
         }
@@ -88,13 +88,13 @@ public class PathfindingRenderer implements DebugRenderer.SimpleDebugRenderer {
         if (pRenderOpenAndClosedSet) {
             for (Node node2 : pPath.getClosedSet()) {
                 if (distanceToCamera(node2.asBlockPos(), pX, pY, pZ) <= 80.0F) {
-                    DebugRenderer.renderFilledBox((new AABB((double) ((float) node2.x + 0.5F - pMaxDistanceToWaypoint / 2.0F), (double) ((float) node2.y + 0.01F), (double) ((float) node2.z + 0.5F - pMaxDistanceToWaypoint / 2.0F), (double) ((float) node2.x + 0.5F + pMaxDistanceToWaypoint / 2.0F), (double) node2.y + 0.1D, (double) ((float) node2.z + 0.5F + pMaxDistanceToWaypoint / 2.0F))).move(-pX, -pY, -pZ), 1.0F, 0.8F, 0.8F, 0.5F);
+                    DebugRenderer.renderFilledBox(localNodeBox(node2.asBlockPos(), 0.5D - pMaxDistanceToWaypoint / 2, 0.01D, 0.5D + pMaxDistanceToWaypoint / 2, 0.1D), 1.0F, 0.8F, 0.8F, 0.5F);
                 }
             }
 
             for (Node node3 : pPath.getOpenSet()) {
                 if (distanceToCamera(node3.asBlockPos(), pX, pY, pZ) <= 80.0F) {
-                    DebugRenderer.renderFilledBox((new AABB((double) ((float) node3.x + 0.5F - pMaxDistanceToWaypoint / 2.0F), (double) ((float) node3.y + 0.01F), (double) ((float) node3.z + 0.5F - pMaxDistanceToWaypoint / 2.0F), (double) ((float) node3.x + 0.5F + pMaxDistanceToWaypoint / 2.0F), (double) node3.y + 0.1D, (double) ((float) node3.z + 0.5F + pMaxDistanceToWaypoint / 2.0F))).move(-pX, -pY, -pZ), 0.8F, 1.0F, 1.0F, 0.5F);
+                    DebugRenderer.renderFilledBox(localNodeBox(node3.asBlockPos(), 0.5D - pMaxDistanceToWaypoint / 2, 0.01D, 0.5D + pMaxDistanceToWaypoint / 2, 0.1D), 0.8F, 1.0F, 1.0F, 0.5F);
                 }
             }
         }
@@ -103,8 +103,8 @@ public class PathfindingRenderer implements DebugRenderer.SimpleDebugRenderer {
             for (int j = 0; j < pPath.getNodeCount(); ++j) {
                 Node node1 = pPath.getNode(j);
                 if (distanceToCamera(node1.asBlockPos(), pX, pY, pZ) <= 80.0F) {
-                    DebugRenderer.renderFloatingText(String.valueOf((Object) node1.type), (double) node1.x + 0.5D, (double) node1.y + 0.75D, (double) node1.z + 0.5D, -1, 0.02F, true, 0.0F, true);
-                    DebugRenderer.renderFloatingText(String.format(Locale.ROOT, "%.2f", node1.costMalus), (double) node1.x + 0.5D, (double) node1.y + 0.25D, (double) node1.z + 0.5D, -1, 0.02F, true, 0.0F, true);
+                    DebugRenderer.renderFloatingText(String.valueOf((Object) node1.type), node1.asBlockPos(), 0.5D, 0.75D, 0.5D, -1, 0.02F, true, 0.0F, true);
+                    DebugRenderer.renderFloatingText(String.format(Locale.ROOT, "%.2f", node1.costMalus), node1.asBlockPos(), 0.5D, 0.25D, 0.5D, -1, 0.02F, true, 0.0F, true);
                 }
             }
         }
@@ -124,7 +124,8 @@ public class PathfindingRenderer implements DebugRenderer.SimpleDebugRenderer {
                 int k = j >> 16 & 255;
                 int l = j >> 8 & 255;
                 int i1 = j & 255;
-                bufferbuilder.vertex((double) node.x - pX + 0.5D, (double) node.y - pY + 0.5D, (double) node.z - pZ + 0.5D).color(k, l, i1, 255).endVertex();
+                var local = DebugRenderer.localPosition(node.asBlockPos(), 0.5D, 0.5D, 0.5D);
+                bufferbuilder.vertex(local.x, local.y, local.z).color(k, l, i1, 255).endVertex();
             }
         }
 
@@ -132,6 +133,12 @@ public class PathfindingRenderer implements DebugRenderer.SimpleDebugRenderer {
     }
 
     private static float distanceToCamera(BlockPos pPos, double pX, double pY, double pZ) {
-        return (float) (Math.abs((double) pPos.getX() - pX) + Math.abs((double) pPos.getY() - pY) + Math.abs((double) pPos.getZ() - pZ));
+        var local = DebugRenderer.localPosition(pPos, 0, 0, 0);
+        return (float) (Math.abs(local.x) + Math.abs(local.y) + Math.abs(local.z));
+    }
+
+    private static AABB localNodeBox(BlockPos pos, double min, double minY, double max, double maxY) {
+        var local = DebugRenderer.localPosition(pos, 0, 0, 0);
+        return new AABB(local.x + min, local.y + minY, local.z + min, local.x + max, local.y + maxY, local.z + max);
     }
 }

@@ -64,7 +64,7 @@ public class CarvedPumpkinBlock extends HorizontalDirectionalBlock implements We
 
             SnowGolem snowgolem = EntityType.SNOW_GOLEM.create(pLevel);
             BlockPos blockpos1 = blockpattern$blockpatternmatch.getBlock(0, 2, 0).getPos();
-            snowgolem.moveTo((double) blockpos1.getX() + 0.5D, (double) blockpos1.getY() + 0.05D, (double) blockpos1.getZ() + 0.5D, 0.0F, 0.0F);
+            snowgolem.moveTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos1.getX(), 0.5D, blockpos1.getY() + 0.05D, blockpos1.getZ(), 0.5D), 0.0F, 0.0F);
             pLevel.addFreshEntity(snowgolem);
 
             for (ServerPlayer serverplayer : pLevel.getEntitiesOfClass(ServerPlayer.class, snowgolem.getBoundingBox().inflate(5.0D))) {
@@ -89,7 +89,7 @@ public class CarvedPumpkinBlock extends HorizontalDirectionalBlock implements We
                 BlockPos blockpos = blockpattern$blockpatternmatch.getBlock(1, 2, 0).getPos();
                 IronGolem irongolem = EntityType.IRON_GOLEM.create(pLevel);
                 irongolem.setPlayerCreated(true);
-                irongolem.moveTo((double) blockpos.getX() + 0.5D, (double) blockpos.getY() + 0.05D, (double) blockpos.getZ() + 0.5D, 0.0F, 0.0F);
+                irongolem.moveTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, blockpos.getY() + 0.05D, blockpos.getZ(), 0.5D), 0.0F, 0.0F);
                 pLevel.addFreshEntity(irongolem);
 
                 for (ServerPlayer serverplayer1 : pLevel.getEntitiesOfClass(ServerPlayer.class, irongolem.getBoundingBox().inflate(5.0D))) {

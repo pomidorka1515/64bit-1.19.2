@@ -46,7 +46,7 @@ public class SculkCatalystBlock extends BaseEntityBlock {
     public static void bloom(ServerLevel pLevel, BlockPos pPos, BlockState pState, RandomSource pSource) {
         pLevel.setBlock(pPos, pState.setValue(PULSE, Boolean.valueOf(true)), 3);
         pLevel.scheduleTick(pPos, pState.getBlock(), 8);
-        pLevel.sendParticles(ParticleTypes.SCULK_SOUL, (double) pPos.getX() + 0.5D, (double) pPos.getY() + 1.15D, (double) pPos.getZ() + 0.5D, 2, 0.2D, 0.0D, 0.2D, 0.0D);
+        pLevel.sendParticles(ParticleTypes.SCULK_SOUL, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, pPos.getY() + 1.15D, pPos.getZ(), 0.5D), 2, 0.2D, 0.0D, 0.2D, 0.0D);
         pLevel.playSound((Player) null, pPos, SoundEvents.SCULK_CATALYST_BLOOM, SoundSource.BLOCKS, 2.0F, 0.6F + pSource.nextFloat() * 0.4F);
     }
 

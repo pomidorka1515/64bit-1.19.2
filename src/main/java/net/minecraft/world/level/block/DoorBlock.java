@@ -143,9 +143,9 @@ public class DoorBlock extends Block {
             if ((!flag1 || flag) && i >= 0) {
                 long j = direction.getStepX();
                 long k = direction.getStepZ();
-                Vec3 vec3 = pContext.getClickLocation();
-                double d0 = vec3.x - (double) blockpos.getX();
-                double d1 = vec3.z - (double) blockpos.getZ();
+                net.minecraft.world.phys.SectorVec3 vec3 = pContext.getExactClickLocation();
+                double d0 = net.minecraft.world.level.WorldBounds.signedDifference(vec3.blockX(), blockpos.getX()) + vec3.subX();
+                double d1 = net.minecraft.world.level.WorldBounds.signedDifference(vec3.blockZ(), blockpos.getZ()) + vec3.subZ();
                 return (j >= 0 || !(d1 < 0.5D)) && (j <= 0 || !(d1 > 0.5D)) && (k >= 0 || !(d0 > 0.5D)) && (k <= 0 || !(d0 < 0.5D)) ? DoorHingeSide.LEFT : DoorHingeSide.RIGHT;
             } else {
                 return DoorHingeSide.LEFT;
@@ -214,7 +214,7 @@ public class DoorBlock extends Block {
     }
 
     public long getSeed(BlockState pState, BlockPos pPos) {
-        return Mth.getSeed(pPos.getX(), pPos.below(pState.getValue(HALF) == DoubleBlockHalf.LOWER ? 0 : 1).getY(), pPos.getZ());
+        return Mth.getSeed(pPos.getX().lo(), pPos.below(pState.getValue(HALF) == DoubleBlockHalf.LOWER ? 0 : 1).getY(), pPos.getZ().lo());
     }
 
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {

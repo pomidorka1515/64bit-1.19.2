@@ -310,7 +310,7 @@ public class ChestBlock extends AbstractChestBlock<ChestBlockEntity> implements 
     }
 
     private static boolean isCatSittingOnChest(LevelAccessor pLevel, BlockPos pPos) {
-        List<Cat> list = pLevel.getEntitiesOfClass(Cat.class, new AABB((double) pPos.getX(), (double) (pPos.getY() + 1), (double) pPos.getZ(), (double) (WorldBounds.addBlockOffset(pPos.getX(), 1)), (double) (pPos.getY() + 2), (double) (WorldBounds.addBlockOffset(pPos.getZ(), 1))));
+        List<Cat> list = pLevel.getEntitiesOfClass(Cat.class, new AABB(pPos).move(0.0D, 1.0D, 0.0D));
         if (!list.isEmpty()) {
             for (Cat cat : list) {
                 if (cat.isInSittingPose()) {

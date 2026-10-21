@@ -38,11 +38,7 @@ public class LeadItem extends Item {
         LeashFenceKnotEntity leashfenceknotentity = null;
         boolean flag = false;
         double d0 = 7.0D;
-        long i = pPos.getX();
-        int j = pPos.getY();
-        long k = pPos.getZ();
-
-        for (Mob mob : pLevel.getEntitiesOfClass(Mob.class, new AABB((double) i - 7.0D, (double) j - 7.0D, (double) k - 7.0D, (double) i + 7.0D, (double) j + 7.0D, (double) k + 7.0D))) {
+        for (Mob mob : pLevel.getEntitiesOfClass(Mob.class, new AABB(-7.0D, -7.0D, -7.0D, 7.0D, 7.0D, 7.0D).move(pPos))) {
             if (mob.getLeashHolder() == pPlayer) {
                 if (leashfenceknotentity == null) {
                     leashfenceknotentity = LeashFenceKnotEntity.getOrCreateKnot(pLevel, pPos);

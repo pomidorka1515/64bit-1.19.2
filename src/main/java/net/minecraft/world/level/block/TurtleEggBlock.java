@@ -94,7 +94,7 @@ public class TurtleEggBlock extends Block {
                     Turtle turtle = EntityType.TURTLE.create(pLevel);
                     turtle.setAge(-24000);
                     turtle.setHomePos(pPos);
-                    turtle.moveTo((double) pPos.getX() + 0.3D + (double) j * 0.2D, (double) pPos.getY(), (double) pPos.getZ() + 0.3D, 0.0F, 0.0F);
+                    turtle.moveTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.3D + (double) j * 0.2D, pPos.getY(), pPos.getZ(), 0.3D), 0.0F, 0.0F);
                     pLevel.addFreshEntity(turtle);
                 }
             }

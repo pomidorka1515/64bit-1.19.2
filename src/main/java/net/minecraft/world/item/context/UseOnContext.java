@@ -46,6 +46,10 @@ public class UseOnContext {
         return this.hitResult.getLocation();
     }
 
+    public net.minecraft.world.phys.SectorVec3 getExactClickLocation() {
+        return this.hitResult.getExactLocation();
+    }
+
     public boolean isInside() {
         return this.hitResult.isInside();
     }

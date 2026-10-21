@@ -138,7 +138,8 @@ public class SpikeFeature extends Feature<SpikeConfiguration> {
         }
 
         public boolean isCenterWithinChunk(BlockPos pPos) {
-            return SectionPos.blockToSectionCoord(pPos.getX()) == SectionPos.blockToSectionCoord(this.centerX) && SectionPos.blockToSectionCoord(pPos.getZ()) == SectionPos.blockToSectionCoord(this.centerZ);
+            return SectionPos.blockToSectionCoord(pPos.getX()).equals(net.minecraft.core.Int128.fromLong(SectionPos.blockToSectionCoord(this.centerX)))
+                && SectionPos.blockToSectionCoord(pPos.getZ()).equals(net.minecraft.core.Int128.fromLong(SectionPos.blockToSectionCoord(this.centerZ)));
         }
 
         public int getCenterX() {

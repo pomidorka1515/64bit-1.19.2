@@ -23,7 +23,7 @@ public class CoralMushroomFeature extends CoralFeature {
         for (int i1 = 0; i1 <= j; ++i1) {
             for (int j1 = 0; j1 <= i; ++j1) {
                 for (int k1 = 0; k1 <= k; ++k1) {
-                    blockpos$mutableblockpos.set(i1 + p_224984_.getX(), j1 + p_224984_.getY(), k1 + p_224984_.getZ());
+                    blockpos$mutableblockpos.setWithOffset(p_224984_, i1, j1, k1);
                     blockpos$mutableblockpos.move(Direction.DOWN, l);
                     if ((i1 != 0 && i1 != j || j1 != 0 && j1 != i) && (k1 != 0 && k1 != k || j1 != 0 && j1 != i) && (i1 != 0 && i1 != j || k1 != 0 && k1 != k) && (i1 == 0 || i1 == j || j1 == 0 || j1 == i || k1 == 0 || k1 == k) && !(p_224983_.nextFloat() < 0.1F) && !this.placeCoralBlock(p_224982_, p_224983_, blockpos$mutableblockpos, p_224985_)) {
                     }

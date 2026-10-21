@@ -7,7 +7,8 @@ import net.minecraft.util.RandomSource;
 
 public interface PositionalRandomFactory {
     default RandomSource at(BlockPos pPos) {
-        return this.at(pPos.getX(), pPos.getY(), pPos.getZ());
+        // Explicit low-64 content/seed projection; the caller retains the exact placement identity.
+        return this.at(pPos.getXLo(), pPos.getY(), pPos.getZLo());
     }
 
     default RandomSource fromHashOf(ResourceLocation pName) {

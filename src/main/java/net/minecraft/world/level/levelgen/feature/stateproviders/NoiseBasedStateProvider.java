@@ -37,8 +37,9 @@ public abstract class NoiseBasedStateProvider extends BlockStateProvider {
     }
 
     protected double getNoiseValue(BlockPos pPos, double pDelta) {
-        long blockX = pPos.getX();
-        long blockZ = pPos.getZ();
+        // Deferred noise sampling projects content only, never the placement anchor.
+        long blockX = pPos.getXLo();
+        long blockZ = pPos.getZLo();
         if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))) {
             return this.noise.getValueScaled(blockX, pDelta, pPos.getY(), pDelta, blockZ);
         }

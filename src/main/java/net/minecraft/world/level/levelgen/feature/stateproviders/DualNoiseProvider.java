@@ -60,8 +60,9 @@ public class DualNoiseProvider extends NoiseProvider {
     }
 
     protected double getSlowNoiseValue(BlockPos pPos) {
-        long blockX = pPos.getX();
-        long blockZ = pPos.getZ();
+        // Deferred noise sampling projects content only, never the placement anchor.
+        long blockX = pPos.getXLo();
+        long blockZ = pPos.getZLo();
         if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))) {
             return this.slowNoise.getValueScaled(blockX, this.slowScale, pPos.getY(), this.slowScale, blockZ);
         }

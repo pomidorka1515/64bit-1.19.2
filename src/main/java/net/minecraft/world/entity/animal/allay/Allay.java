@@ -418,10 +418,10 @@ public class Allay extends PathfinderMob implements InventoryCarrier {
 
     public Iterable<BlockPos> iteratePathfindingStartNodeCandidatePositions() {
         SectorAABB aabb = this.getSectorBoundingBox().inflate(0.5D, 0.5D, 0.5D);
-        long i = aabb.minBlockXForRange();
-        long j = aabb.maxBlockX();
-        long k = aabb.minBlockZForRange();
-        long l = aabb.maxBlockZ();
+        var i = aabb.minBlockXForRange();
+        var j = aabb.maxBlockX();
+        var k = aabb.minBlockZForRange();
+        var l = aabb.maxBlockZ();
         int i1 = Mth.floor(aabb.minY());
         int j1 = Mth.floor(aabb.maxY());
         return BlockPos.betweenClosed(i, i1, k, j, j1, l);

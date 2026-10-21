@@ -29,7 +29,7 @@ public class BlockPlaceContext extends UseOnContext {
     }
 
     public static BlockPlaceContext at(BlockPlaceContext pContext, BlockPos pPos, Direction pDirection) {
-        return new BlockPlaceContext(pContext.getLevel(), pContext.getPlayer(), pContext.getHand(), pContext.getItemInHand(), new BlockHitResult(new Vec3((double) pPos.getX() + 0.5D + (double) pDirection.getStepX() * 0.5D, (double) pPos.getY() + 0.5D + (double) pDirection.getStepY() * 0.5D, (double) pPos.getZ() + 0.5D + (double) pDirection.getStepZ() * 0.5D), pDirection, pPos, false));
+        return new BlockPlaceContext(pContext.getLevel(), pContext.getPlayer(), pContext.getHand(), pContext.getItemInHand(), new BlockHitResult(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D + pDirection.getStepX() * 0.5D, pPos.getY() + 0.5D + pDirection.getStepY() * 0.5D, pPos.getZ(), 0.5D + pDirection.getStepZ() * 0.5D), pDirection, pPos, false));
     }
 
     public BlockPos getClickedPos() {

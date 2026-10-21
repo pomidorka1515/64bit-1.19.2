@@ -235,16 +235,16 @@ public class ZombieVillager extends Zombie implements VillagerDataHolder {
         if (this.random.nextFloat() < 0.01F) {
             int j = 0;
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
-            long baseX = this.getBlockX();
-            long baseZ = this.getBlockZ();
+            var baseX = this.getBlockX();
+            var baseZ = this.getBlockZ();
 
-            long maxX = WorldBounds.addBlockOffset(baseX, 3L);
-            long maxZ = WorldBounds.addBlockOffset(baseZ, 3L);
+            var maxX = WorldBounds.addBlockOffset(baseX, 3L);
+            var maxZ = WorldBounds.addBlockOffset(baseZ, 3L);
             boolean moreX = true;
-            for (long k = WorldBounds.addBlockOffset(baseX, -4L); moreX && j < 14; moreX = k < maxX, k = WorldBounds.addBlockOffset(k, 1L)) {
+            for (var k = WorldBounds.addBlockOffset(baseX, -4L); moreX && j < 14; moreX = k.compareTo(maxX) < 0, k = WorldBounds.addBlockOffset(k, 1L)) {
                 for (int l = this.getBlockY() - 4; l < this.getBlockY() + 4 && j < 14; ++l) {
                     boolean moreZ = true;
-                    for (long i1 = WorldBounds.addBlockOffset(baseZ, -4L); moreZ && j < 14; moreZ = i1 < maxZ, i1 = WorldBounds.addBlockOffset(i1, 1L)) {
+                    for (var i1 = WorldBounds.addBlockOffset(baseZ, -4L); moreZ && j < 14; moreZ = i1.compareTo(maxZ) < 0, i1 = WorldBounds.addBlockOffset(i1, 1L)) {
                         BlockState blockstate = this.level.getBlockState(blockpos$mutableblockpos.set(k, l, i1));
                         if (blockstate.is(Blocks.IRON_BARS) || blockstate.getBlock() instanceof BedBlock) {
                             if (this.random.nextFloat() < 0.3F) {

@@ -149,8 +149,8 @@ public class DragonStrafePlayerPhase extends AbstractDragonPhaseInstance {
         this.attackTarget = pAttackTarget;
         int i = this.dragon.findClosestNode();
         int j = this.dragon.findClosestNode(this.attackTarget.sectorPosition());
-        long k = this.attackTarget.getBlockX();
-        long l = this.attackTarget.getBlockZ();
+        var k = this.attackTarget.getBlockX();
+        var l = this.attackTarget.getBlockZ();
         net.minecraft.world.phys.SectorVec3 blockTarget = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(k, 0.0D, this.attackTarget.getY(), l, 0.0D);
         double d0 = blockTarget.relativeX(this.dragon.sectorPosition());
         double d1 = blockTarget.relativeZ(this.dragon.sectorPosition());

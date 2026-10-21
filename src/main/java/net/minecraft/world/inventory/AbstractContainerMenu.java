@@ -73,16 +73,9 @@ public abstract class AbstractContainerMenu {
 
     /** Tests menu range without reconstructing a long X/Z block position as an absolute double. */
     protected static boolean isWithinUsableDistance(Player p_38893_, net.minecraft.core.BlockPos pListener) {
-        SectorVec3 position = p_38893_.exactPosition();
-        if (position != null) {
-            SectorVec3 center = SectorVec3.fromBlockAndFraction(pListener.getX(), 0.5D,
-                    (double) pListener.getY() + 0.5D, pListener.getZ(), 0.5D);
-            return position.relativeTo(center).lengthSqr() <= 64.0D;
-        }
-
-        return p_38893_.distanceToSqr((double) pListener.getX() + 0.5D,
-                       (double) pListener.getY() + 0.5D, (double) pListener.getZ() + 0.5D)
-                <= 64.0D;
+        SectorVec3 center = SectorVec3.fromBlockAndFraction(pListener.getX(), 0.5D,
+                (double) pListener.getY() + 0.5D, pListener.getZ(), 0.5D);
+        return p_38893_.sectorPosition().relativeTo(center).lengthSqr() <= 64.0D;
     }
 
     public MenuType<?> getType() {

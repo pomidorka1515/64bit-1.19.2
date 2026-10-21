@@ -123,9 +123,9 @@ public class ShulkerBullet extends Projectile {
             BlockPos blockpos1 = this.blockPosition();
             List<Direction> list = Lists.newArrayList();
             if (pAxis != Direction.Axis.X) {
-                if (blockpos1.getX() < targetBlock.getX() && this.level.isEmptyBlock(blockpos1.east())) {
+                if (blockpos1.getX().compareTo(targetBlock.getX()) < 0 && this.level.isEmptyBlock(blockpos1.east())) {
                     list.add(Direction.EAST);
-                } else if (blockpos1.getX() > targetBlock.getX() && this.level.isEmptyBlock(blockpos1.west())) {
+                } else if (blockpos1.getX().compareTo(targetBlock.getX()) > 0 && this.level.isEmptyBlock(blockpos1.west())) {
                     list.add(Direction.WEST);
                 }
             }
@@ -139,9 +139,9 @@ public class ShulkerBullet extends Projectile {
             }
 
             if (pAxis != Direction.Axis.Z) {
-                if (blockpos1.getZ() < targetBlock.getZ() && this.level.isEmptyBlock(blockpos1.south())) {
+                if (blockpos1.getZ().compareTo(targetBlock.getZ()) < 0 && this.level.isEmptyBlock(blockpos1.south())) {
                     list.add(Direction.SOUTH);
-                } else if (blockpos1.getZ() > targetBlock.getZ() && this.level.isEmptyBlock(blockpos1.north())) {
+                } else if (blockpos1.getZ().compareTo(targetBlock.getZ()) > 0 && this.level.isEmptyBlock(blockpos1.north())) {
                     list.add(Direction.NORTH);
                 }
             }

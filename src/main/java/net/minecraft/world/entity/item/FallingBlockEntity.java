@@ -71,12 +71,13 @@ public class FallingBlockEntity extends Entity {
     }
 
     public static FallingBlockEntity fall(Level pLevel, BlockPos pPos, BlockState pBlockState) {
-        FallingBlockEntity fallingblockentity = new FallingBlockEntity(pLevel, (double) pPos.getX() + 0.5D,
-                (double) pPos.getY(), (double) pPos.getZ() + 0.5D,
+        FallingBlockEntity fallingblockentity = new FallingBlockEntity(pLevel, 0.5D,
+                (double) pPos.getY(), 0.5D,
                 pBlockState.hasProperty(BlockStateProperties.WATERLOGGED) ? pBlockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.valueOf(false)) : pBlockState);
         fallingblockentity.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(),
                 0.5D, (double) pPos.getY(), pPos.getZ(), 0.5D));
         fallingblockentity.setOldPosAndRot();
+        fallingblockentity.setStartPos(pPos);
         pLevel.setBlock(pPos, pBlockState.getFluidState().createLegacyBlock(), 3);
         pLevel.addFreshEntity(fallingblockentity);
         return fallingblockentity;

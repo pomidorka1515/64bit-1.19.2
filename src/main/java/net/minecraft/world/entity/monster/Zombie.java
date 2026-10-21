@@ -270,15 +270,15 @@ public class Zombie extends Monster {
             }
 
             if (livingentity != null && this.level.getDifficulty() == Difficulty.HARD && (double) this.random.nextFloat() < this.getAttributeValue(Attributes.SPAWN_REINFORCEMENTS_CHANCE) && this.level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING)) {
-                long i = this.getBlockX();
+                var i = this.getBlockX();
                 int j = Mth.floor(this.getY());
-                long k = this.getBlockZ();
+                var k = this.getBlockZ();
                 Zombie zombie = new Zombie(this.level);
 
                 for (int l = 0; l < 50; ++l) {
-                    long i1 = net.minecraft.world.level.WorldBounds.addBlockOffset(i, Mth.nextInt(this.random, 7, 40) * Mth.nextInt(this.random, -1, 1));
+                    var i1 = net.minecraft.world.level.WorldBounds.addBlockOffset(i, Mth.nextInt(this.random, 7, 40) * Mth.nextInt(this.random, -1, 1));
                     int j1 = j + Mth.nextInt(this.random, 7, 40) * Mth.nextInt(this.random, -1, 1);
-                    long k1 = net.minecraft.world.level.WorldBounds.addBlockOffset(k, Mth.nextInt(this.random, 7, 40) * Mth.nextInt(this.random, -1, 1));
+                    var k1 = net.minecraft.world.level.WorldBounds.addBlockOffset(k, Mth.nextInt(this.random, 7, 40) * Mth.nextInt(this.random, -1, 1));
                     BlockPos blockpos = new BlockPos(i1, j1, k1);
                     EntityType<?> entitytype = zombie.getType();
                     SpawnPlacements.Type spawnplacements$type = SpawnPlacements.getPlacementType(entitytype);

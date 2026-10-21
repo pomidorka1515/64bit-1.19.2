@@ -180,7 +180,7 @@ public abstract class AbstractMinecart extends Entity {
 
                 for (int i : POSE_DISMOUNT_HEIGHTS.get(pose)) {
                     for (int[] aint1 : aint) {
-                        blockpos$mutableblockpos.set(blockpos.getX() + aint1[0], blockpos.getY() + i, blockpos.getZ() + aint1[1]);
+                        blockpos$mutableblockpos.setWithOffset(blockpos, aint1[0], i, aint1[1]);
                         double d0 = this.level.getBlockFloorHeight(DismountHelper.nonClimbableShape(this.level, blockpos$mutableblockpos), () -> {
                             return DismountHelper.nonClimbableShape(this.level, blockpos$mutableblockpos.below());
                         });
@@ -197,7 +197,7 @@ public abstract class AbstractMinecart extends Entity {
             }
 
             double d1 = this.getBoundingBox().maxY;
-            blockpos$mutableblockpos.set((double) blockpos.getX(), d1, (double) blockpos.getZ());
+            blockpos$mutableblockpos.set(blockpos.getX(), Mth.floor(d1), blockpos.getZ());
 
             for (Pose pose1 : immutablelist) {
                 double d2 = (double) pLivingEntity.getDimensions(pose1).height;
@@ -361,9 +361,9 @@ public abstract class AbstractMinecart extends Entity {
             }
 
             SectorVec3 position = this.sectorPosition();
-            long k = position.blockX();
+            var k = position.blockX();
             int i = Mth.floor(position.y());
-            long j = position.blockZ();
+            var j = position.blockZ();
             if (this.level.getBlockState(new BlockPos(k, i - 1, j)).is(BlockTags.RAILS)) {
                 --i;
             }
@@ -493,8 +493,8 @@ public abstract class AbstractMinecart extends Entity {
         Pair<Vec3i, Vec3i> pair = exits(railshape);
         Vec3i vec3i = pair.getFirst();
         Vec3i vec3i1 = pair.getSecond();
-        double d4 = (double) (vec3i1.getX() - vec3i.getX());
-        double d5 = (double) (vec3i1.getZ() - vec3i.getZ());
+        double d4 = WorldBounds.signedDifference(vec3i1.getX(), vec3i.getX());
+        double d5 = WorldBounds.signedDifference(vec3i1.getZ(), vec3i.getZ());
         double d6 = Math.sqrt(d4 * d4 + d5 * d5);
         double d7 = vec31.x * d4 + vec31.z * d5;
         if (d7 < 0.0D) {
@@ -525,10 +525,10 @@ public abstract class AbstractMinecart extends Entity {
             }
         }
 
-        double d23 = 0.5D + (double) vec3i.getX() * 0.5D;
-        double d10 = 0.5D + (double) vec3i.getZ() * 0.5D;
-        double d12 = 0.5D + (double) vec3i1.getX() * 0.5D;
-        double d13 = 0.5D + (double) vec3i1.getZ() * 0.5D;
+        double d23 = 0.5D + vec3i.getX().toDoubleSaturated() * 0.5D;
+        double d10 = 0.5D + vec3i.getZ().toDoubleSaturated() * 0.5D;
+        double d12 = 0.5D + vec3i1.getX().toDoubleSaturated() * 0.5D;
+        double d13 = 0.5D + vec3i1.getZ().toDoubleSaturated() * 0.5D;
         d4 = d12 - d23;
         d5 = d13 - d10;
         double d14;
@@ -550,11 +550,11 @@ public abstract class AbstractMinecart extends Entity {
         vec31 = this.getDeltaMovement();
         this.move(MoverType.SELF, new Vec3(Mth.clamp(d24 * vec31.x, -d25, d25), 0.0D, Mth.clamp(d24 * vec31.z, -d25, d25)));
         SectorVec3 postMovePosition = this.sectorPosition();
-        if (vec3i.getY() != 0 && postMovePosition.blockX() - pPos.getX() == vec3i.getX()
-                && postMovePosition.blockZ() - pPos.getZ() == vec3i.getZ()) {
+        if (vec3i.getY() != 0 && postMovePosition.blockX().subtract(pPos.getX()).equals(vec3i.getX())
+                && postMovePosition.blockZ().subtract(pPos.getZ()).equals(vec3i.getZ())) {
             this.applyExactPosition(postMovePosition.withY(postMovePosition.y() + (double) vec3i.getY()));
-        } else if (vec3i1.getY() != 0 && postMovePosition.blockX() - pPos.getX() == vec3i1.getX()
-                && postMovePosition.blockZ() - pPos.getZ() == vec3i1.getZ()) {
+        } else if (vec3i1.getY() != 0 && postMovePosition.blockX().subtract(pPos.getX()).equals(vec3i1.getX())
+                && postMovePosition.blockZ().subtract(pPos.getZ()).equals(vec3i1.getZ())) {
             this.applyExactPosition(postMovePosition.withY(postMovePosition.y() + (double) vec3i1.getY()));
         }
 
@@ -572,12 +572,12 @@ public abstract class AbstractMinecart extends Entity {
         }
 
         SectorVec3 finalPosition = this.sectorPosition();
-        long j = finalPosition.blockX();
-        long i = finalPosition.blockZ();
-        if (j != pPos.getX() || i != pPos.getZ()) {
+        var j = finalPosition.blockX();
+        var i = finalPosition.blockZ();
+        if (!j.equals(pPos.getX()) || !i.equals(pPos.getZ())) {
             Vec3 vec35 = this.getDeltaMovement();
             double d26 = vec35.horizontalDistance();
-            this.setDeltaMovement(d26 * (double) (j - pPos.getX()), vec35.y, d26 * (double) (i - pPos.getZ()));
+            this.setDeltaMovement(d26 * WorldBounds.signedDifference(j, pPos.getX()), vec35.y, d26 * WorldBounds.signedDifference(i, pPos.getZ()));
         }
 
         if (flag) {
@@ -637,9 +637,9 @@ public abstract class AbstractMinecart extends Entity {
     /** Calculates an offset rail point without reconstructing an absolute X/Z double. */
     @Nullable
     public SectorVec3 getExactPosOffs(SectorVec3 position, double offset) {
-        long blockX = position.blockX();
+        var blockX = position.blockX();
         int blockY = Mth.floor(position.y());
-        long blockZ = position.blockZ();
+        var blockZ = position.blockZ();
         if (this.level.getBlockState(new BlockPos(blockX, blockY - 1, blockZ)).is(BlockTags.RAILS)) {
             --blockY;
         }
@@ -656,17 +656,17 @@ public abstract class AbstractMinecart extends Entity {
         Vec3i secondExit = pair.getSecond();
         double railX = position.subX();
         double railZ = position.subZ();
-        double directionX = (double) (secondExit.getX() - firstExit.getX());
-        double directionZ = (double) (secondExit.getZ() - firstExit.getZ());
+        double directionX = WorldBounds.signedDifference(secondExit.getX(), firstExit.getX());
+        double directionZ = WorldBounds.signedDifference(secondExit.getZ(), firstExit.getZ());
         double directionLength = Math.sqrt(directionX * directionX + directionZ * directionZ);
         railX += directionX / directionLength * offset;
         railZ += directionZ / directionLength * offset;
         SectorVec3 offsetPosition = SectorVec3.fromBlockAndFraction(blockX, railX, railY, blockZ, railZ);
-        if (firstExit.getY() != 0 && offsetPosition.blockX() - blockX == firstExit.getX()
-                && offsetPosition.blockZ() - blockZ == firstExit.getZ()) {
+        if (firstExit.getY() != 0 && offsetPosition.blockX().subtract(blockX).equals(firstExit.getX())
+                && offsetPosition.blockZ().subtract(blockZ).equals(firstExit.getZ())) {
             offsetPosition = offsetPosition.withY(offsetPosition.y() + (double) firstExit.getY());
-        } else if (secondExit.getY() != 0 && offsetPosition.blockX() - blockX == secondExit.getX()
-                && offsetPosition.blockZ() - blockZ == secondExit.getZ()) {
+        } else if (secondExit.getY() != 0 && offsetPosition.blockX().subtract(blockX).equals(secondExit.getX())
+                && offsetPosition.blockZ().subtract(blockZ).equals(secondExit.getZ())) {
             offsetPosition = offsetPosition.withY(offsetPosition.y() + (double) secondExit.getY());
         }
 
@@ -682,9 +682,9 @@ public abstract class AbstractMinecart extends Entity {
     /** Snaps a split-coordinate point to its rail centerline in exact X/Z space. */
     @Nullable
     public SectorVec3 getExactPos(SectorVec3 position) {
-        long blockX = position.blockX();
+        var blockX = position.blockX();
         int blockY = Mth.floor(position.y());
-        long blockZ = position.blockZ();
+        var blockZ = position.blockZ();
         if (this.level.getBlockState(new BlockPos(blockX, blockY - 1, blockZ)).is(BlockTags.RAILS)) {
             --blockY;
         }
@@ -698,12 +698,12 @@ public abstract class AbstractMinecart extends Entity {
         Pair<Vec3i, Vec3i> pair = exits(railshape);
         Vec3i firstExit = pair.getFirst();
         Vec3i secondExit = pair.getSecond();
-        double startX = 0.5D + (double) firstExit.getX() * 0.5D;
+        double startX = 0.5D + firstExit.getX().toDoubleSaturated() * 0.5D;
         double startY = (double) blockY + 0.0625D + (double) firstExit.getY() * 0.5D;
-        double startZ = 0.5D + (double) firstExit.getZ() * 0.5D;
-        double endX = 0.5D + (double) secondExit.getX() * 0.5D;
+        double startZ = 0.5D + firstExit.getZ().toDoubleSaturated() * 0.5D;
+        double endX = 0.5D + secondExit.getX().toDoubleSaturated() * 0.5D;
         double endY = (double) blockY + 0.0625D + (double) secondExit.getY() * 0.5D;
-        double endZ = 0.5D + (double) secondExit.getZ() * 0.5D;
+        double endZ = 0.5D + secondExit.getZ().toDoubleSaturated() * 0.5D;
         double directionX = endX - startX;
         double directionY = (endY - startY) * 2.0D;
         double directionZ = endZ - startZ;

@@ -966,8 +966,8 @@ public abstract class AbstractHorse extends Animal implements ContainerListener,
         SectorVec3 base = this.sectorPosition();
         long floorX = (long) Math.floor(escape.x);
         long floorZ = (long) Math.floor(escape.z);
-        long blockX = WorldBounds.addBlockOffset(base.blockX(), floorX);
-        long blockZ = WorldBounds.addBlockOffset(base.blockZ(), floorZ);
+        var blockX = WorldBounds.addBlockOffset(base.blockX(), floorX);
+        var blockZ = WorldBounds.addBlockOffset(base.blockZ(), floorZ);
         double subX = base.subX() + escape.x - (double) floorX;
         double subZ = base.subZ() + escape.z - (double) floorZ;
         double minY = this.getBoundingBox().minY;
@@ -975,7 +975,7 @@ public abstract class AbstractHorse extends Animal implements ContainerListener,
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
         for (Pose pose : passenger.getDismountPoses()) {
-            blockpos$mutableblockpos.set(blockX, minY, blockZ);
+            blockpos$mutableblockpos.set(blockX, Mth.floor(minY), blockZ);
             if (blockpos$mutableblockpos.getY() > maxY)
                 continue;
 

@@ -726,8 +726,8 @@ public class Boat extends Entity {
         Vec3 escape = getCollisionHorizontalEscapeVector((double) (this.getBbWidth() * Mth.SQRT_OF_TWO), (double) passenger.getBbWidth(), passenger.getYRot());
         double maxY = this.getBoundingBox().maxY;
         SectorVec3 escaped = base.add(escape.x, 0.0D, escape.z);
-        long blockX = escaped.blockX();
-        long blockZ = escaped.blockZ();
+        var blockX = escaped.blockX();
+        var blockZ = escaped.blockZ();
         double subX = escaped.subX();
         double subZ = escaped.subZ();
         BlockPos blockpos = new BlockPos(blockX, Mth.floor(maxY), blockZ);

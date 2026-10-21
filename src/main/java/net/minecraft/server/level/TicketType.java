@@ -16,10 +16,10 @@ public class TicketType<T> {
     public static final TicketType<Unit> DRAGON = create("dragon", (p_9460_, p_9461_) -> {
         return 0;
     });
-    /* ChunkPos coordinates are longs; hashCode() is only a lossy int hash. */
+    /* Compare both full-width axes; hashCode() is only a lossy int hash. */
     private static final Comparator<ChunkPos> CHUNK_POS_COMPARATOR = Comparator
-                                                                             .comparingLong((ChunkPos p_9469_) -> p_9469_.x)
-                                                                             .thenComparingLong((ChunkPos p_9470_) -> p_9470_.z);
+                                                                             .comparing(ChunkPos::x)
+                                                                             .thenComparing(ChunkPos::z);
     public static final TicketType<ChunkPos> PLAYER = create("player", CHUNK_POS_COMPARATOR);
     public static final TicketType<ChunkPos> FORCED = create("forced", CHUNK_POS_COMPARATOR);
     public static final TicketType<ChunkPos> LIGHT = create("light", CHUNK_POS_COMPARATOR);

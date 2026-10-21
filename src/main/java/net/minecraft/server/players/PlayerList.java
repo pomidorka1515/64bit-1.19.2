@@ -613,19 +613,11 @@ public abstract class PlayerList {
         for (int i = 0; i < this.players.size(); ++i) {
             ServerPlayer player = this.players.get(i);
             if (player != excluded && player.level.dimension() == dimension) {
-                SectorVec3 playerPosition = player.exactPosition();
-                double distanceSquared;
-                if (playerPosition != null) {
-                    double dx = position.relativeX(playerPosition);
-                    double dy = position.relativeY(playerPosition);
-                    double dz = position.relativeZ(playerPosition);
-                    distanceSquared = dx * dx + dy * dy + dz * dz;
-                } else {
-                    double dx = ((double) position.blockX() + position.subX()) - player.getX();
-                    double dy = position.y() - player.getY();
-                    double dz = ((double) position.blockZ() + position.subZ()) - player.getZ();
-                    distanceSquared = dx * dx + dy * dy + dz * dz;
-                }
+                SectorVec3 playerPosition = player.sectorPosition();
+                double dx = position.relativeX(playerPosition);
+                double dy = position.relativeY(playerPosition);
+                double dz = position.relativeZ(playerPosition);
+                double distanceSquared = dx * dx + dy * dy + dz * dz;
                 if (distanceSquared < radiusSquared) {
                     player.connection.send(packet);
                 }

@@ -3,6 +3,7 @@ package net.minecraft.world.level.entity;
 import java.util.UUID;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
+import net.minecraft.core.Int128;
 import net.minecraft.world.phys.AABB;
 
 public class LevelEntityGetterAdapter<T extends EntityAccess> implements LevelEntityGetter<T> {
@@ -29,8 +30,8 @@ public class LevelEntityGetterAdapter<T extends EntityAccess> implements LevelEn
     }
 
     @Override
-    public void getInSections(long minSectionX, long maxSectionX, int minSectionY, int maxSectionY,
-            long minSectionZ, long maxSectionZ, Consumer<T> consumer) {
+    public void getInSections(Int128 minSectionX, Int128 maxSectionX, int minSectionY, int maxSectionY,
+            Int128 minSectionZ, Int128 maxSectionZ, Consumer<T> consumer) {
         this.sectionStorage.getEntitiesInSections(minSectionX, maxSectionX, minSectionY, maxSectionY,
                 minSectionZ, maxSectionZ, consumer);
     }

@@ -2,10 +2,6 @@ package net.minecraft.world.level.levelgen.structure;
 
 import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
-import it.unimi.dsi.fastutil.longs.Long2BooleanMap;
-import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -197,7 +193,7 @@ public class StructureCheck {
     private void storeFullResults(ChunkPos p_197264_, Object2IntMap<Structure> p_197265_) {
         this.loadedChunks.put(p_197264_, deduplicateEmptyMap(p_197265_));
         this.featureChecks.values().forEach((p_209956_) -> {
-            p_209956_.removeBoolean(p_197265_);
+            p_209956_.removeBoolean(p_197264_);
         });
     }
 

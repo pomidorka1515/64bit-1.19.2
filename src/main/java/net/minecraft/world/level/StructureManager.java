@@ -1,7 +1,6 @@
 package net.minecraft.world.level;
 
 import com.google.common.collect.ImmutableList;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 
 import java.util.List;
@@ -11,6 +10,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
@@ -48,7 +48,7 @@ public class StructureManager {
     }
 
     public List<StructureStart> startsForStructure(ChunkPos pChunkPos, Predicate<Structure> pStructurePredicate) {
-        ChunkAccess referencesChunk = this.getChunkForStructureQuery(pChunkPos.x, pChunkPos.z, ChunkStatus.STRUCTURE_REFERENCES);
+        ChunkAccess referencesChunk = this.getChunkForStructureQuery(pChunkPos.x(), pChunkPos.z(), ChunkStatus.STRUCTURE_REFERENCES);
         if (referencesChunk == null) {
             return List.of();
         }
@@ -111,7 +111,7 @@ public class StructureManager {
     * region still has to use its bounded cache and may load from that cache.
     */
     @Nullable
-    private ChunkAccess getChunkForStructureQuery(long chunkX, long chunkZ, ChunkStatus status) {
+    private ChunkAccess getChunkForStructureQuery(Int128 chunkX, Int128 chunkZ, ChunkStatus status) {
         if (this.level instanceof ServerLevel serverLevel) {
             return serverLevel.getChunkSource().getChunkNow(chunkX, chunkZ, status);
         }

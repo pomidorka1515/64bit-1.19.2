@@ -155,8 +155,8 @@ public class CommandSourceStack implements SharedSuggestionProvider {
             throw new IllegalArgumentException("Invalid dimension scale: " + scale);
         // Dimension scales used by vanilla are powers of two. Scaling the split
         // components independently avoids forming a huge global double.
-        java.math.BigDecimal x = java.math.BigDecimal.valueOf(position.blockX()).add(java.math.BigDecimal.valueOf(position.subX())).multiply(java.math.BigDecimal.valueOf(scale));
-        java.math.BigDecimal z = java.math.BigDecimal.valueOf(position.blockZ()).add(java.math.BigDecimal.valueOf(position.subZ())).multiply(java.math.BigDecimal.valueOf(scale));
+        java.math.BigDecimal x = new java.math.BigDecimal(position.blockX().toString()).add(java.math.BigDecimal.valueOf(position.subX())).multiply(java.math.BigDecimal.valueOf(scale));
+        java.math.BigDecimal z = new java.math.BigDecimal(position.blockZ().toString()).add(java.math.BigDecimal.valueOf(position.subZ())).multiply(java.math.BigDecimal.valueOf(scale));
         return SectorVec3.fromDecimal(x.toPlainString(), position.y(), z.toPlainString());
     }
 

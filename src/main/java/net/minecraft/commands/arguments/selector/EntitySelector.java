@@ -21,6 +21,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.SectorVec3;
+import net.minecraft.world.phys.SectorAABB;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.phys.Vec3;
 
 public class EntitySelector {
@@ -144,10 +146,10 @@ public class EntitySelector {
             } else {
                 List<Entity> list = Lists.newArrayList();
                 if (this.isWorldLimited()) {
-                    this.addEntities(list, pSource.getLevel(), vec3, predicate);
+                    this.addEntities(list, pSource.getLevel(), exactOrigin, predicate);
                 } else {
                     for (ServerLevel serverlevel : pSource.getServer().getAllLevels()) {
-                        this.addEntities(list, serverlevel, vec3, predicate);
+                        this.addEntities(list, serverlevel, exactOrigin, predicate);
                     }
                 }
 
@@ -156,9 +158,9 @@ public class EntitySelector {
         }
     }
 
-    private void addEntities(List<Entity> pResult, ServerLevel pLevel, Vec3 pPos, Predicate<Entity> pPredicate) {
+    private void addEntities(List<Entity> pResult, ServerLevel pLevel, SectorVec3 pPos, Predicate<Entity> pPredicate) {
         if (this.aabb != null) {
-            pResult.addAll(pLevel.getEntities(this.type, this.aabb.move(pPos), pPredicate));
+            pResult.addAll(pLevel.getEntities(this.type, AABB.fromSectorBounds(this.exactBox(pPos)), pPredicate));
         } else {
             pResult.addAll(pLevel.getEntities(this.type, pPredicate));
         }
@@ -227,18 +229,18 @@ public class EntitySelector {
     private Predicate<Entity> getPredicate(Vec3 pPos, SectorVec3 exactOrigin) {
         Predicate<Entity> predicate = this.predicate;
         if (this.aabb != null) {
-            AABB aabb = this.aabb.move(pPos);
+            SectorAABB aabb = this.exactBox(exactOrigin);
             predicate = predicate.and((entity) -> {
                 if (entity.exactPosition() == null)
-                    return aabb.intersects(entity.getBoundingBox());
-                return entity.getSectorBoundingBox().toLocalAABB(exactOrigin).intersects(this.aabb);
+                    return AABB.fromSectorBounds(aabb).intersects(entity.getBoundingBox());
+                return entity.getSectorBoundingBox().intersects(aabb);
             });
         }
 
         if (!this.range.isAny()) {
             predicate = predicate.and((entity) -> {
                 double distance = entity.exactPosition() != null
-                        ? entity.exactPosition().relativeTo(exactOrigin).lengthSqr()
+                         ? distanceSquared(entity.exactPosition(), exactOrigin)
                         : entity.distanceToSqr(pPos);
                 return this.range.matchesSqr(distance);
             });
@@ -249,7 +251,7 @@ public class EntitySelector {
 
     private <T extends Entity> List<T> sortAndLimit(Vec3 origin, List<T> entities) {
         if (entities.size() > 1) {
-            if (this.exactCoordinateSelector && this.exactOriginForSorting != null && this.order != EntitySelectorParser.ORDER_RANDOM && this.order != EntitySelectorParser.ORDER_ARBITRARY) {
+            if (this.exactOriginForSorting != null && this.order != EntitySelectorParser.ORDER_RANDOM && this.order != EntitySelectorParser.ORDER_ARBITRARY) {
                 entities.sort((first, second) -> {
                     int comparison = Double.compare(exactDistance(first), exactDistance(second));
                     return EntitySelectorParser.ORDER_FURTHEST.equals(this.order) ? -comparison : comparison;
@@ -265,7 +267,21 @@ public class EntitySelector {
         SectorVec3 origin = this.exactOriginForSorting;
         if (origin == null)
             return Double.POSITIVE_INFINITY;
-        return entity.exactPosition() != null ? entity.exactPosition().relativeTo(origin).lengthSqr() : entity.distanceToSqr(origin.toApproximateVec3());
+        return entity.exactPosition() != null ? distanceSquared(entity.exactPosition(), origin) : entity.distanceToSqr(origin.toApproximateVec3());
+    }
+
+    private SectorAABB exactBox(SectorVec3 origin) {
+        SectorVec3 min = origin.add(this.aabb.minX, this.aabb.minY, this.aabb.minZ);
+        SectorVec3 max = origin.add(this.aabb.maxX, this.aabb.maxY, this.aabb.maxZ);
+        return new SectorAABB(min.blockX(), min.subX(), min.y(), min.blockZ(), min.subZ(),
+                max.blockX(), max.subX(), max.y(), max.blockZ(), max.subZ());
+    }
+
+    private static double distanceSquared(SectorVec3 position, SectorVec3 origin) {
+        double x = WorldBounds.signedDifference(position.blockX(), origin.blockX()) + position.subX() - origin.subX();
+        double z = WorldBounds.signedDifference(position.blockZ(), origin.blockZ()) + position.subZ() - origin.subZ();
+        double y = position.y() - origin.y();
+        return x * x + y * y + z * z;
     }
 
     public static Component joinNames(List<? extends Entity> pNames) {

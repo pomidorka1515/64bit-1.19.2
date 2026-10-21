@@ -4,6 +4,8 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import net.minecraft.core.Int128;
 import net.minecraft.network.chat.Component;
 
 public class WorldCoordinate {
@@ -13,6 +15,7 @@ public class WorldCoordinate {
     private final boolean relative;
     private final double value;
     private final String literal;
+    private final Int128 absoluteBlock;
 
     public WorldCoordinate(boolean relative, double value) {
         this(relative, value, Double.toString(value));
@@ -22,6 +25,7 @@ public class WorldCoordinate {
         this.relative = relative;
         this.value = value;
         this.literal = literal;
+        this.absoluteBlock = relative ? null : Int128.parseDecimal(new BigDecimal(literal).setScale(0, RoundingMode.FLOOR).toPlainString());
     }
 
     public double get(double pCoord) {
@@ -33,6 +37,10 @@ public class WorldCoordinate {
     }
     public String getLiteral() {
         return this.literal;
+    }
+
+    public Int128 getAbsoluteBlock() {
+        return this.absoluteBlock;
     }
 
     public static WorldCoordinate parseDouble(StringReader pReader, boolean pCenterCorrect) throws CommandSyntaxException {
@@ -76,7 +84,9 @@ public class WorldCoordinate {
             String token = pReader.canRead() && pReader.peek() != ' ' ? readCoordinateToken(pReader) : "";
             try {
                 String literal = token.isEmpty() ? "0" : token;
-                double d0 = token.isEmpty() ? 0.0D : (flag ? Double.parseDouble(token) : Long.parseLong(token));
+                double d0 = flag ? Double.parseDouble(literal) : Int128.parseDecimal(literal).toDoubleSaturated();
+                if (!Double.isFinite(d0))
+                    throw new NumberFormatException(literal);
                 return new WorldCoordinate(flag, d0, literal);
             } catch (NumberFormatException exception) {
                 pReader.setCursor(valueStart);
@@ -122,12 +132,15 @@ public class WorldCoordinate {
             if (this.relative != worldcoordinate.relative) {
                 return false;
             } else {
-                return Double.compare(worldcoordinate.value, this.value) == 0;
+                return this.relative ? Double.compare(worldcoordinate.value, this.value) == 0
+                        : new BigDecimal(this.literal).compareTo(new BigDecimal(worldcoordinate.literal)) == 0;
             }
         }
     }
 
     public int hashCode() {
+        if (!this.relative)
+            return new BigDecimal(this.literal).stripTrailingZeros().hashCode();
         int i = this.relative ? 1 : 0;
         long j = Double.doubleToLongBits(this.value);
         return 31 * i + (int) (j ^ j >>> 32);

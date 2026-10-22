@@ -11,9 +11,11 @@ public class Cursor3D {
     private final Int128 endX;
     private final int endY;
     private final Int128 endZ;
-    private Int128 x;
+    private long xHi;
+    private long xLo;
     private int y;
-    private Int128 z;
+    private long zHi;
+    private long zLo;
     private boolean started;
     private boolean done;
 
@@ -23,9 +25,13 @@ public class Cursor3D {
     }
 
     public Cursor3D(Int128 pOriginX, int pOriginY, Int128 pOriginZ, Int128 pEndX, int pEndY, Int128 pEndZ) {
-        this.originX = this.x = pOriginX;
+        this.originX = pOriginX;
+        this.xHi = pOriginX.hi();
+        this.xLo = pOriginX.lo();
         this.originY = this.y = pOriginY;
-        this.originZ = this.z = pOriginZ;
+        this.originZ = pOriginZ;
+        this.zHi = pOriginZ.hi();
+        this.zLo = pOriginZ.lo();
         this.endX = pEndX;
         this.endY = pEndY;
         this.endZ = pEndZ;
@@ -38,15 +44,17 @@ public class Cursor3D {
         }
         if (!this.started) {
             this.started = true;
-        } else if (this.x.compareTo(this.endX) < 0) {
-            this.x = this.x.add(Int128.ONE);
+        } else if (this.xHi != this.endX.hi() || this.xLo != this.endX.lo()) {
+            if (++this.xLo == 0) ++this.xHi;
         } else if (this.y < this.endY) {
-            this.x = this.originX;
+            this.xHi = this.originX.hi();
+            this.xLo = this.originX.lo();
             ++this.y;
-        } else if (this.z.compareTo(this.endZ) < 0) {
-            this.x = this.originX;
+        } else if (this.zHi != this.endZ.hi() || this.zLo != this.endZ.lo()) {
+            this.xHi = this.originX.hi();
+            this.xLo = this.originX.lo();
             this.y = this.originY;
-            this.z = this.z.add(Int128.ONE);
+            if (++this.zLo == 0) ++this.zHi;
         } else {
             this.done = true;
             return false;
@@ -55,15 +63,15 @@ public class Cursor3D {
     }
 
     public Int128 nextX() {
-        return this.x;
+        return Int128.of(this.xHi, this.xLo);
     }
 
     public long nextXHi() {
-        return this.x.hi();
+        return this.xHi;
     }
 
     public long nextXLo() {
-        return this.x.lo();
+        return this.xLo;
     }
 
     public int nextY() {
@@ -71,22 +79,24 @@ public class Cursor3D {
     }
 
     public Int128 nextZ() {
-        return this.z;
+        return Int128.of(this.zHi, this.zLo);
     }
 
     public long nextZHi() {
-        return this.z.hi();
+        return this.zHi;
     }
 
     public long nextZLo() {
-        return this.z.lo();
+        return this.zLo;
     }
 
     public int getNextType() {
         int type = 0;
-        if (this.x.equals(this.originX) || this.x.equals(this.endX)) ++type;
+        if (this.xHi == this.originX.hi() && this.xLo == this.originX.lo()
+                || this.xHi == this.endX.hi() && this.xLo == this.endX.lo()) ++type;
         if (this.y == this.originY || this.y == this.endY) ++type;
-        if (this.z.equals(this.originZ) || this.z.equals(this.endZ)) ++type;
+        if (this.zHi == this.originZ.hi() && this.zLo == this.originZ.lo()
+                || this.zHi == this.endZ.hi() && this.zLo == this.endZ.lo()) ++type;
         return type;
     }
 }

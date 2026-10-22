@@ -156,7 +156,7 @@ class CoordinateBenchmark {
             }
             Cursor3D cursor = new Cursor3D(x0, 0, z0, x0 + 15L, 15, z0 + 15L);
             while (cursor.advance()) {
-                checksum += cursor.nextX().lo() ^ (cursor.nextZ().lo() << 1) ^ cursor.nextY();
+                checksum += cursor.nextXLo() ^ (cursor.nextZLo() << 1) ^ cursor.nextY();
                 ++ops;
             }
         }

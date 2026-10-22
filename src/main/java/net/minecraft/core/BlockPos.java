@@ -346,9 +346,11 @@ public class BlockPos extends Vec3i {
         // an edge range could wrap into an effectively endless generator loop.
         return () -> new AbstractIterator<BlockPos>() {
             private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-            private Int128 x = pX1;
+            private long xHi = pX1.hi();
+            private long xLo = pX1.lo();
             private int y = pY1;
-            private Int128 z = pZ1;
+            private long zHi = pZ1.hi();
+            private long zLo = pZ1.lo();
             private boolean done;
 
             protected BlockPos computeNext() {
@@ -356,16 +358,18 @@ public class BlockPos extends Vec3i {
                     return this.endOfData();
                 }
 
-                this.cursor.set(this.x, this.y, this.z);
-                if (WorldBounds.canAdvanceBlock(this.x, pX2)) {
-                    this.x = WorldBounds.addBlockOffset(this.x, 1L);
+                this.cursor.set(this.xHi, this.xLo, this.y, this.zHi, this.zLo);
+                if (this.xHi != pX2.hi() || this.xLo != pX2.lo()) {
+                    if (++this.xLo == 0) ++this.xHi;
                 } else if (this.y != pY2) {
-                    this.x = pX1;
+                    this.xHi = pX1.hi();
+                    this.xLo = pX1.lo();
                     ++this.y;
-                } else if (WorldBounds.canAdvanceBlock(this.z, pZ2)) {
-                    this.x = pX1;
+                } else if (this.zHi != pZ2.hi() || this.zLo != pZ2.lo()) {
+                    this.xHi = pX1.hi();
+                    this.xLo = pX1.lo();
                     this.y = pY1;
-                    this.z = WorldBounds.addBlockOffset(this.z, 1L);
+                    if (++this.zLo == 0) ++this.zHi;
                 } else {
                     this.done = true;
                 }
@@ -485,6 +489,14 @@ public class BlockPos extends Vec3i {
             this.setX(pX);
             this.setY(pY);
             this.setZ(pZ);
+            return this;
+        }
+
+        /** Full-width allocation-free setter for primitive traversal. */
+        public BlockPos.MutableBlockPos set(long xHi, long xLo, int y, long zHi, long zLo) {
+            this.setX(xHi, xLo);
+            this.setY(y);
+            this.setZ(zHi, zLo);
             return this;
         }
 

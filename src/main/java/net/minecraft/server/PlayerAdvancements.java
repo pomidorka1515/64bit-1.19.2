@@ -12,7 +12,6 @@ import com.google.gson.JsonParseException;
 import com.google.gson.internal.Streams;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
@@ -45,7 +44,6 @@ import net.minecraft.network.protocol.game.ClientboundUpdateAdvancementsPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.GameRules;
 import org.slf4j.Logger;
 
@@ -55,7 +53,6 @@ public class PlayerAdvancements {
     private static final Gson GSON = (new GsonBuilder()).registerTypeAdapter(AdvancementProgress.class, new AdvancementProgress.Serializer()).registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer()).setPrettyPrinting().create();
     private static final TypeToken<Map<ResourceLocation, AdvancementProgress>> TYPE_TOKEN = new TypeToken<Map<ResourceLocation, AdvancementProgress>>() {
     };
-    private final DataFixer dataFixer;
     private final PlayerList playerList;
     private final File file;
     private final Map<Advancement, AdvancementProgress> advancements = Maps.newLinkedHashMap();
@@ -67,8 +64,7 @@ public class PlayerAdvancements {
     private Advancement lastSelectedTab;
     private boolean isFirstPacket = true;
 
-    public PlayerAdvancements(DataFixer p_135973_, PlayerList p_135974_, ServerAdvancementManager p_135975_, File p_135976_, ServerPlayer p_135977_) {
-        this.dataFixer = p_135973_;
+    public PlayerAdvancements(PlayerList p_135974_, ServerAdvancementManager p_135975_, File p_135976_, ServerPlayer p_135977_) {
         this.playerList = p_135974_;
         this.file = p_135976_;
         this.player = p_135977_;
@@ -134,11 +130,6 @@ public class PlayerAdvancements {
                 try {
                     jsonreader.setLenient(false);
                     Dynamic<JsonElement> dynamic = new Dynamic<>(JsonOps.INSTANCE, Streams.parse(jsonreader));
-                    if (!dynamic.get("DataVersion").asNumber().result().isPresent()) {
-                        dynamic = dynamic.set("DataVersion", dynamic.createInt(1343));
-                    }
-
-                    dynamic = this.dataFixer.update(DataFixTypes.ADVANCEMENTS.getType(), dynamic, dynamic.get("DataVersion").asInt(0), SharedConstants.getCurrentVersion().getWorldVersion());
                     dynamic = dynamic.remove("DataVersion");
                     Map<ResourceLocation, AdvancementProgress> map = GSON.getAdapter(TYPE_TOKEN).fromJsonTree(dynamic.getValue());
                     if (map == null) {

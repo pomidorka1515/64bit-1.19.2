@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -28,7 +27,6 @@ import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringUtil;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -508,14 +506,6 @@ public final class NbtUtils {
         }
 
         return pStringBuilder;
-    }
-
-    public static CompoundTag update(DataFixer pDataFixer, DataFixTypes pType, CompoundTag pCompoundTag, int pVersion) {
-        return pCompoundTag;
-    }
-
-    public static CompoundTag update(DataFixer pDataFixer, DataFixTypes pType, CompoundTag pCompoundTag, int pVersion, int pNewVersion) {
-        return pCompoundTag;
     }
 
     public static Component toPrettyComponent(Tag pTag) {

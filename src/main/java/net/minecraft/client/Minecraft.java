@@ -28,7 +28,6 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
 import com.mojang.math.Matrix4f;
 import com.mojang.realmsclient.client.RealmsClient;
@@ -199,7 +198,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.SignatureValidator;
 import net.minecraft.util.TimeUtil;
 import net.minecraft.util.Unit;
-import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.util.profiling.ContinuousProfiler;
 import net.minecraft.util.profiling.EmptyProfileResults;
 import net.minecraft.util.profiling.InactiveProfiler;
@@ -259,7 +257,6 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
     private final File resourcePackDirectory;
     private final PropertyMap profileProperties;
     private final TextureManager textureManager;
-    private final DataFixer fixerUpper;
     private final VirtualScreen virtualScreen;
     private final Window window;
     private final Timer timer = new Timer(20.0F, 0L);
@@ -423,13 +420,12 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
         }
 
         KeybindResolver.setKeyResolver(KeyMapping::createNameSupplier);
-        this.fixerUpper = DataFixers.getDataFixer();
         this.toast = new ToastComponent(this);
         this.gameThread = Thread.currentThread();
         this.options = new Options(this, this.gameDirectory);
         this.running = true;
         this.tutorial = new Tutorial(this, this.options);
-        this.hotbarManager = new HotbarManager(this.gameDirectory, this.fixerUpper);
+        this.hotbarManager = new HotbarManager(this.gameDirectory);
         LOGGER.info("Backend library: {}", (Object) RenderSystem.getBackendDescription());
         DisplayData displaydata;
         if (this.options.overrideHeight > 0 && this.options.overrideWidth > 0) {
@@ -473,7 +469,7 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
         this.textureManager = new TextureManager(this.resourceManager);
         this.resourceManager.registerReloadListener(this.textureManager);
         this.skinManager = new SkinManager(this.textureManager, new File(file1, "skins"), this.minecraftSessionService);
-        this.levelSource = new LevelStorageSource(this.gameDirectory.toPath().resolve("saves"), this.gameDirectory.toPath().resolve("backups"), this.fixerUpper);
+        this.levelSource = new LevelStorageSource(this.gameDirectory.toPath().resolve("saves"), this.gameDirectory.toPath().resolve("backups"));
         this.soundManager = new SoundManager(this.resourceManager, this.options);
         this.resourceManager.registerReloadListener(this.soundManager);
         this.splashManager = new SplashManager(this.user);
@@ -2453,10 +2449,6 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
 
     public void setConnectedToRealms(boolean pIsConnected) {
         this.connectedToRealms = pIsConnected;
-    }
-
-    public DataFixer getFixerUpper() {
-        return this.fixerUpper;
     }
 
     public float getFrameTime() {

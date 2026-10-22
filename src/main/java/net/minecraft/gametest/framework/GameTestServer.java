@@ -31,7 +31,6 @@ import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.util.SignatureValidator;
-import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.DataPackConfig;
 import net.minecraft.world.level.GameRules;
@@ -90,7 +89,7 @@ public class GameTestServer extends MinecraftServer {
     }
 
     private GameTestServer(Thread pServerThread, LevelStorageSource.LevelStorageAccess pStorageSource, PackRepository pPackRepository, WorldStem pWorldStem, Collection<GameTestBatch> pTestBatches, BlockPos pSpawnPos) {
-        super(pServerThread, pStorageSource, pPackRepository, pWorldStem, Proxy.NO_PROXY, DataFixers.getDataFixer(), NO_SERVICES, LoggerChunkProgressListener::new);
+        super(pServerThread, pStorageSource, pPackRepository, pWorldStem, Proxy.NO_PROXY, NO_SERVICES, LoggerChunkProgressListener::new);
         this.testBatches = Lists.newArrayList(pTestBatches);
         this.spawnPos = pSpawnPos;
     }

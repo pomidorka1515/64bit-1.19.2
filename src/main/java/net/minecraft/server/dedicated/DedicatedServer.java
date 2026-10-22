@@ -2,7 +2,6 @@ package net.minecraft.server.dedicated;
 
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -72,8 +71,8 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface 
     @Nullable
     private final TextFilterClient textFilterClient;
 
-    public DedicatedServer(Thread pServerThread, LevelStorageSource.LevelStorageAccess pStorageSource, PackRepository pPackRepository, WorldStem pWorldStem, DedicatedServerSettings pSettings, DataFixer pFixerUpper, Services pServices, ChunkProgressListenerFactory pProgressListenerFactory) {
-        super(pServerThread, pStorageSource, pPackRepository, pWorldStem, Proxy.NO_PROXY, pFixerUpper, pServices, pProgressListenerFactory);
+    public DedicatedServer(Thread pServerThread, LevelStorageSource.LevelStorageAccess pStorageSource, PackRepository pPackRepository, WorldStem pWorldStem, DedicatedServerSettings pSettings, Services pServices, ChunkProgressListenerFactory pProgressListenerFactory) {
+        super(pServerThread, pStorageSource, pPackRepository, pWorldStem, Proxy.NO_PROXY, pServices, pProgressListenerFactory);
         this.settings = pSettings;
         this.rconConsoleSource = new RconConsoleSource(this);
         this.textFilterClient = TextFilterClient.createFromConfig(pSettings.getProperties().textFilteringConfig);

@@ -25,7 +25,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
-import net.minecraft.util.datafix.fixes.References;
 import net.minecraft.world.entity.ambient.Bat;
 import net.minecraft.world.entity.animal.Bee;
 import net.minecraft.world.entity.animal.Cat;
@@ -677,10 +676,6 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
         }
 
         public EntityType<T> build(String pKey) {
-            if (this.serialize) {
-                Util.fetchChoiceType(References.ENTITY_TREE, pKey);
-            }
-
             return new EntityType<>(this.factory, this.category, this.serialize, this.summon, this.fireImmune, this.canSpawnFarFromPlayer, this.immuneTo, this.dimensions, this.clientTrackingRange, this.updateInterval);
         }
     }

@@ -51,7 +51,6 @@ import net.minecraft.client.sounds.SoundEngine;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.client.tutorial.TutorialSteps;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -63,7 +62,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.Mth;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.ChatVisiblity;
 import net.minecraft.world.entity.player.PlayerModelPart;
@@ -862,7 +860,7 @@ public class Options {
                 bufferedreader.close();
             }
 
-            final CompoundTag compoundtag1 = this.dataFix(compoundtag);
+            final CompoundTag compoundtag1 = compoundtag;
             if (!compoundtag1.contains("graphicsMode") && compoundtag1.contains("fancyGraphics")) {
                 if (isTrue(compoundtag1.getString("fancyGraphics"))) {
                     this.graphicsMode.set(GraphicsStatus.FANCY);
@@ -958,17 +956,6 @@ public class Options {
 
     static boolean isFalse(String pValue) {
         return "false".equals(pValue);
-    }
-
-    private CompoundTag dataFix(CompoundTag pNbt) {
-        int i = 0;
-
-        try {
-            i = Integer.parseInt(pNbt.getString("version"));
-        } catch (RuntimeException runtimeexception) {
-        }
-
-        return NbtUtils.update(this.minecraft.getFixerUpper(), DataFixTypes.OPTIONS, pNbt, i);
     }
 
     public void save() {

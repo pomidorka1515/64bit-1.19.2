@@ -3,7 +3,6 @@ package net.minecraft.world.level.levelgen.structure.templatesystem;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
 import java.io.BufferedReader;
 import java.io.File;
@@ -34,7 +33,6 @@ import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import org.apache.commons.io.IOUtils;
@@ -47,14 +45,12 @@ public class StructureTemplateManager {
     private static final String STRUCTURE_FILE_EXTENSION = ".nbt";
     private static final String STRUCTURE_TEXT_FILE_EXTENSION = ".snbt";
     private final Map<ResourceLocation, Optional<StructureTemplate>> structureRepository = Maps.newConcurrentMap();
-    private final DataFixer fixerUpper;
     private ResourceManager resourceManager;
     private final Path generatedDir;
     private final List<StructureTemplateManager.Source> sources;
 
-    public StructureTemplateManager(ResourceManager pResourceManager, LevelStorageSource.LevelStorageAccess pLevelStorageAccess, DataFixer pFixerUpper) {
+    public StructureTemplateManager(ResourceManager pResourceManager, LevelStorageSource.LevelStorageAccess pLevelStorageAccess) {
         this.resourceManager = pResourceManager;
-        this.fixerUpper = pFixerUpper;
         this.generatedDir = pLevelStorageAccess.getLevelPath(LevelResource.GENERATED_DIR).normalize();
         ImmutableList.Builder<StructureTemplateManager.Source> builder = ImmutableList.builder();
         builder.add(new StructureTemplateManager.Source(this::loadFromGenerated, this::listGenerated));
@@ -267,12 +263,8 @@ public class StructureTemplateManager {
     }
 
     public StructureTemplate readStructure(CompoundTag pNbt) {
-        if (!pNbt.contains("DataVersion", 99)) {
-            pNbt.putInt("DataVersion", 500);
-        }
-
         StructureTemplate structuretemplate = new StructureTemplate();
-        structuretemplate.load(NbtUtils.update(this.fixerUpper, DataFixTypes.STRUCTURE, pNbt, pNbt.getInt("DataVersion")));
+        structuretemplate.load(pNbt);
         return structuretemplate;
     }
 

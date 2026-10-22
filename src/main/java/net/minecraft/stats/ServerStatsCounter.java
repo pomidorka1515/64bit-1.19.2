@@ -8,7 +8,6 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonReader;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -23,12 +22,10 @@ import net.minecraft.SharedConstants;
 import net.minecraft.Util;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.game.ClientboundAwardStatsPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.entity.player.Player;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -44,7 +41,7 @@ public class ServerStatsCounter extends StatsCounter {
         this.file = pFile;
         if (pFile.isFile()) {
             try {
-                this.parseLocal(pServer.getFixerUpper(), FileUtils.readFileToString(pFile));
+                this.parseLocal(FileUtils.readFileToString(pFile));
             } catch (IOException ioexception) {
                 LOGGER.error("Couldn't read statistics file {}", pFile, ioexception);
             } catch (JsonParseException jsonparseexception) {
@@ -72,7 +69,7 @@ public class ServerStatsCounter extends StatsCounter {
         return set;
     }
 
-    public void parseLocal(DataFixer pFixerUpper, String pJson) {
+    public void parseLocal(String pJson) {
         try {
             JsonReader jsonreader = new JsonReader(new StringReader(pJson));
 
@@ -82,11 +79,6 @@ public class ServerStatsCounter extends StatsCounter {
                 JsonElement jsonelement = Streams.parse(jsonreader);
                 if (!jsonelement.isJsonNull()) {
                     CompoundTag compoundtag = fromJson(jsonelement.getAsJsonObject());
-                    if (!compoundtag.contains("DataVersion", 99)) {
-                        compoundtag.putInt("DataVersion", 1343);
-                    }
-
-                    compoundtag = NbtUtils.update(pFixerUpper, DataFixTypes.STATS, compoundtag, compoundtag.getInt("DataVersion"));
                     if (!compoundtag.contains("stats", 10)) {
                         break label51;
                     }

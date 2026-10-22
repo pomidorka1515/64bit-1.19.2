@@ -2,7 +2,6 @@ package net.minecraft.server.level;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.datafixers.util.Either;
 import java.io.File;
 import java.io.IOException;
@@ -14,7 +13,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
@@ -67,14 +65,14 @@ public class ServerChunkCache extends ChunkSource {
     @VisibleForDebug
     private NaturalSpawner.SpawnState lastSpawnState;
 
-    public ServerChunkCache(ServerLevel pLevel, LevelStorageSource.LevelStorageAccess pLevelStorageAccess, DataFixer pFixerUpper, StructureTemplateManager pStructureManager, Executor pDispatcher, ChunkGenerator pGenerator, int pViewDistance, int pSimulationDistance, boolean pSync, ChunkProgressListener pProgressListener, ChunkStatusUpdateListener pChunkStatusListener, Supplier<DimensionDataStorage> pOverworldDataStorage) {
+    public ServerChunkCache(ServerLevel pLevel, LevelStorageSource.LevelStorageAccess pLevelStorageAccess, StructureTemplateManager pStructureManager, Executor pDispatcher, ChunkGenerator pGenerator, int pViewDistance, int pSimulationDistance, boolean pSync, ChunkProgressListener pProgressListener, ChunkStatusUpdateListener pChunkStatusListener) {
         this.level = pLevel;
         this.mainThreadProcessor = new ServerChunkCache.MainThreadExecutor(pLevel);
         this.mainThread = Thread.currentThread();
         File file1 = pLevelStorageAccess.getDimensionPath(pLevel.dimension()).resolve("data").toFile();
         file1.mkdirs();
-        this.dataStorage = new DimensionDataStorage(file1, pFixerUpper);
-        this.chunkMap = new ChunkMap(pLevel, pLevelStorageAccess, pFixerUpper, pStructureManager, pDispatcher, this.mainThreadProcessor, this, pGenerator, pProgressListener, pChunkStatusListener, pOverworldDataStorage, pViewDistance, pSync);
+        this.dataStorage = new DimensionDataStorage(file1);
+        this.chunkMap = new ChunkMap(pLevel, pLevelStorageAccess, pStructureManager, pDispatcher, this.mainThreadProcessor, this, pGenerator, pProgressListener, pChunkStatusListener, pViewDistance, pSync);
         this.lightEngine = this.chunkMap.getLightEngine();
         this.distanceManager = this.chunkMap.getDistanceManager();
         this.distanceManager.updateSimulationDistance(pSimulationDistance);

@@ -6,7 +6,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.datafixers.util.Either;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.DataResult;
@@ -92,7 +91,6 @@ import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.blending.BlendingData;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
-import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.phys.SectorVec3;
 import org.apache.commons.lang3.mutable.MutableBoolean;
@@ -120,7 +118,6 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     private final BlockableEventLoop<Runnable> mainThreadExecutor;
     private ChunkGenerator generator;
     private RandomState randomState;
-    private final Supplier<DimensionDataStorage> overworldDataStorage;
     private final PoiManager poiManager;
     final ObjectSet<ChunkPos> toDrop = new ObjectOpenHashSet<>();
     private boolean modified;
@@ -140,8 +137,8 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     private final Queue<Runnable> unloadQueue = Queues.newConcurrentLinkedQueue();
     int viewDistance;
 
-    public ChunkMap(ServerLevel pLevel, LevelStorageSource.LevelStorageAccess pLevelStorageAccess, DataFixer pFixerUpper, StructureTemplateManager pStructureManager, Executor pDispatcher, BlockableEventLoop<Runnable> pMainThreadExecutor, LightChunkGetter pLightChunk, ChunkGenerator pGenerator, ChunkProgressListener pProgressListener, ChunkStatusUpdateListener pChunkStatusListener, Supplier<DimensionDataStorage> pOverworldDataStorage, int pViewDistance, boolean pSync) {
-        super(pLevelStorageAccess.getDimensionPath(pLevel.dimension()).resolve("region"), pFixerUpper, pSync);
+    public ChunkMap(ServerLevel pLevel, LevelStorageSource.LevelStorageAccess pLevelStorageAccess, StructureTemplateManager pStructureManager, Executor pDispatcher, BlockableEventLoop<Runnable> pMainThreadExecutor, LightChunkGetter pLightChunk, ChunkGenerator pGenerator, ChunkProgressListener pProgressListener, ChunkStatusUpdateListener pChunkStatusListener, int pViewDistance, boolean pSync) {
+        super(pLevelStorageAccess.getDimensionPath(pLevel.dimension()).resolve("region"), pSync);
         this.structureTemplateManager = pStructureManager;
         Path path = pLevelStorageAccess.getDimensionPath(pLevel.dimension());
         this.storageName = path.getFileName().toString();
@@ -164,8 +161,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
         this.mainThreadMailbox = this.queueSorter.getProcessor(processorhandle, false);
         this.lightEngine = new ThreadedLevelLightEngine(pLightChunk, this, this.level.dimensionType().hasSkyLight(), processormailbox, this.queueSorter.getProcessor(processormailbox, false));
         this.distanceManager = new ChunkMap.DistanceManager(pDispatcher, pMainThreadExecutor);
-        this.overworldDataStorage = pOverworldDataStorage;
-        this.poiManager = new PoiManager(path.resolve("poi"), pFixerUpper, pSync, pLevel.registryAccess(), pLevel);
+        this.poiManager = new PoiManager(path.resolve("poi"), pSync, pLevel.registryAccess(), pLevel);
         this.setViewDistance(pViewDistance);
     }
 
@@ -927,13 +923,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     }
 
     private CompletableFuture<Optional<CompoundTag>> readChunk(ChunkPos pPos) {
-        return this.read(pPos).thenApplyAsync((p_214907_) -> {
-            return p_214907_.map(this::upgradeChunkTag);
-        }, Util.backgroundExecutor());
-    }
-
-    private CompoundTag upgradeChunkTag(CompoundTag p_214948_) {
-        return this.upgradeChunkTag(this.level.dimension(), this.overworldDataStorage, p_214948_, this.generator.getTypeNameForDataFixer());
+        return this.read(pPos);
     }
 
     boolean anyPlayerCloseEnoughForSpawning(ChunkPos pChunkPos) {

@@ -2,7 +2,6 @@ package net.minecraft.server.level;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -205,12 +204,9 @@ public class ServerLevel extends Level implements WorldGenLevel {
         this.serverLevelData = pServerLevelData;
         ChunkGenerator chunkgenerator = pLevelStem.generator();
         boolean flag = pServer.forceSynchronousWrites();
-        DataFixer datafixer = pServer.getFixerUpper();
-        EntityPersistentStorage<Entity> entitypersistentstorage = new EntityStorage(this, pLevelStorageAccess.getDimensionPath(pDimensionKey).resolve("entities"), datafixer, flag, pServer);
+        EntityPersistentStorage<Entity> entitypersistentstorage = new EntityStorage(this, pLevelStorageAccess.getDimensionPath(pDimensionKey).resolve("entities"), flag, pServer);
         this.entityManager = new PersistentEntitySectionManager<>(Entity.class, new ServerLevel.EntityCallbacks(), entitypersistentstorage);
-        this.chunkSource = new ServerChunkCache(this, pLevelStorageAccess, datafixer, pServer.getStructureManager(), pDispatcher, chunkgenerator, pServer.getPlayerList().getViewDistance(), pServer.getPlayerList().getSimulationDistance(), flag, pProgressListener, this.entityManager::updateChunkStatus, () -> {
-            return pServer.overworld().getDataStorage();
-        });
+        this.chunkSource = new ServerChunkCache(this, pLevelStorageAccess, pServer.getStructureManager(), pDispatcher, chunkgenerator, pServer.getPlayerList().getViewDistance(), pServer.getPlayerList().getSimulationDistance(), flag, pProgressListener, this.entityManager::updateChunkStatus);
         chunkgenerator.ensureStructuresGenerated(this.chunkSource.randomState());
         this.portalForcer = new PortalForcer(this);
         this.updateSkyBrightness();
@@ -222,7 +218,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
         }
 
         long i = pServer.getWorldData().worldGenSettings().seed();
-        this.structureCheck = new StructureCheck(this.chunkSource.chunkScanner(), this.registryAccess(), pServer.getStructureManager(), pDimensionKey, chunkgenerator, this.chunkSource.randomState(), this, chunkgenerator.getBiomeSource(), i, datafixer);
+        this.structureCheck = new StructureCheck(this.chunkSource.chunkScanner(), this.registryAccess(), pServer.getStructureManager(), chunkgenerator, this.chunkSource.randomState(), this, chunkgenerator.getBiomeSource(), i);
         this.structureManager = new StructureManager(this, pServer.getWorldData().worldGenSettings(), this.structureCheck);
         if (this.dimension() == Level.END && this.dimensionTypeRegistration().is(BuiltinDimensionTypes.END)) {
             this.dragonFight = new EndDragonFight(this, i, pServer.getWorldData().endDragonFightData());

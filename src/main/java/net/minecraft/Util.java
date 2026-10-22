@@ -5,9 +5,6 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.mojang.datafixers.DSL;
-import com.mojang.datafixers.DataFixUtils;
-import com.mojang.datafixers.types.Type;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.DataResult;
@@ -74,7 +71,6 @@ import net.minecraft.server.Bootstrap;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.TimeSource;
-import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.world.level.block.state.properties.Property;
 import org.slf4j.Logger;
 
@@ -238,27 +234,6 @@ public class Util {
         }
 
         LOGGER.error(String.format(Locale.ROOT, "Caught exception in thread %s", p_137496_), p_137497_);
-    }
-
-    @Nullable
-    public static Type<?> fetchChoiceType(DSL.TypeReference pType, String pChoiceName) {
-        return !SharedConstants.CHECK_DATA_FIXER_SCHEMA ? null : doFetchChoiceType(pType, pChoiceName);
-    }
-
-    @Nullable
-    private static Type<?> doFetchChoiceType(DSL.TypeReference pType, String pChoiceName) {
-        Type<?> type = null;
-
-        try {
-            type = DataFixers.getDataFixer().getSchema(DataFixUtils.makeKey(SharedConstants.getCurrentVersion().getWorldVersion())).getChoiceType(pType, pChoiceName);
-        } catch (IllegalArgumentException illegalargumentexception) {
-            LOGGER.error("No data fixer registered for {}", (Object) pChoiceName);
-            if (SharedConstants.IS_RUNNING_IN_IDE) {
-                throw illegalargumentexception;
-            }
-        }
-
-        return type;
     }
 
     public static Runnable wrapThreadWithTaskName(String pName, Runnable pTask) {

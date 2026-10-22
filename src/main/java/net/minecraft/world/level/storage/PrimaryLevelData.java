@@ -2,7 +2,6 @@ package net.minecraft.world.level.storage;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.DynamicOps;
@@ -26,7 +25,6 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.DataPackConfig;
 import net.minecraft.world.level.GameRules;
@@ -56,10 +54,6 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
     private long gameTime;
     private long dayTime;
     @Nullable
-    private final DataFixer fixerUpper;
-    private final int playerDataVersion;
-    private boolean upgradedPlayerTag;
-    @Nullable
     private CompoundTag loadedPlayerTag;
     private final int version;
     private int clearWeatherTime;
@@ -81,11 +75,10 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
     private boolean wasModded;
     private final TimerQueue<MinecraftServer> scheduledEvents;
 
-    private PrimaryLevelData(@Nullable DataFixer pFixerUpper, int pPlayerDataVersion, @Nullable CompoundTag pLoadedPlayerTag, boolean pWasModded, Int128 pXSpawn, int pYSpawn, Int128 pZSpawn, float pSpawnAngle, long pGameTime, long pDayTime, int pVersion, int pClearWeatherTime, int pRainTime, boolean pRaining, int pThunderTime, boolean pThundering, boolean pInitialized, boolean pDifficultyLocked, WorldBorder.Settings pWorldBorder, int pWanderingTraderSpawnDelay, int pWanderingTraderSpawnChance, @Nullable UUID pWanderingTraderId, Set<String> pKnownServerBrands, TimerQueue<MinecraftServer> pScheduledEvents, @Nullable CompoundTag pCustomBossEvents, CompoundTag pEndDragonFightData, LevelSettings pSettings, WorldGenSettings pWorldGenSettings, Lifecycle pWorldGenSettingsLifecycle) {
+    private PrimaryLevelData(@Nullable CompoundTag pLoadedPlayerTag, boolean pWasModded, Int128 pXSpawn, int pYSpawn, Int128 pZSpawn, float pSpawnAngle, long pGameTime, long pDayTime, int pVersion, int pClearWeatherTime, int pRainTime, boolean pRaining, int pThunderTime, boolean pThundering, boolean pInitialized, boolean pDifficultyLocked, WorldBorder.Settings pWorldBorder, int pWanderingTraderSpawnDelay, int pWanderingTraderSpawnChance, @Nullable UUID pWanderingTraderId, Set<String> pKnownServerBrands, TimerQueue<MinecraftServer> pScheduledEvents, @Nullable CompoundTag pCustomBossEvents, CompoundTag pEndDragonFightData, LevelSettings pSettings, WorldGenSettings pWorldGenSettings, Lifecycle pWorldGenSettingsLifecycle) {
         if (!pWorldGenSettings.dimensions().containsKey(LevelStem.OVERWORLD)) {
             throw new IllegalStateException("Missing Overworld dimension data");
         } else {
-            this.fixerUpper = pFixerUpper;
             this.wasModded = pWasModded;
             this.xSpawn = pXSpawn;
             this.ySpawn = pYSpawn;
@@ -107,7 +100,6 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
             this.wanderingTraderId = pWanderingTraderId;
             this.knownServerBrands = pKnownServerBrands;
             this.loadedPlayerTag = pLoadedPlayerTag;
-            this.playerDataVersion = pPlayerDataVersion;
             this.scheduledEvents = pScheduledEvents;
             this.customBossEvents = pCustomBossEvents;
             this.endDragonFightData = pEndDragonFightData;
@@ -118,10 +110,10 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
     }
 
     public PrimaryLevelData(LevelSettings pLevelSettings, WorldGenSettings pWorldGenSettings, Lifecycle pWorldGenSettingsLifecycle) {
-        this((DataFixer) null, SharedConstants.getCurrentVersion().getWorldVersion(), (CompoundTag) null, false, Int128.ZERO, 0, Int128.ZERO, 0.0F, 0L, 0L, ForkSaveFormat.STORAGE_VERSION, 0, 0, false, 0, false, false, false, WorldBorder.DEFAULT_SETTINGS, 0, 0, (UUID) null, Sets.newLinkedHashSet(), new TimerQueue<>(TimerCallbacks.SERVER_CALLBACKS), (CompoundTag) null, new CompoundTag(), pLevelSettings.copy(), pWorldGenSettings, pWorldGenSettingsLifecycle);
+        this((CompoundTag) null, false, Int128.ZERO, 0, Int128.ZERO, 0.0F, 0L, 0L, ForkSaveFormat.STORAGE_VERSION, 0, 0, false, 0, false, false, false, WorldBorder.DEFAULT_SETTINGS, 0, 0, (UUID) null, Sets.newLinkedHashSet(), new TimerQueue<>(TimerCallbacks.SERVER_CALLBACKS), (CompoundTag) null, new CompoundTag(), pLevelSettings.copy(), pWorldGenSettings, pWorldGenSettingsLifecycle);
     }
 
-    public static PrimaryLevelData parse(Dynamic<Tag> pDynamic, DataFixer pDataFixer, int pVersion, @Nullable CompoundTag pPlayerNBT, LevelSettings pLevelSettings, LevelVersion pVersionData, WorldGenSettings pGeneratorSettings, Lifecycle pLifecycle) {
+    public static PrimaryLevelData parse(Dynamic<Tag> pDynamic, @Nullable CompoundTag pPlayerNBT, LevelSettings pLevelSettings, LevelVersion pVersionData, WorldGenSettings pGeneratorSettings, Lifecycle pLifecycle) {
         long i = pDynamic.get("Time").asLong(0L);
         CompoundTag compoundtag = (CompoundTag) pDynamic.get("DragonFight").result().map(Dynamic::getValue).orElseGet(() -> {
             return pDynamic.get("DimensionData").get("1").get("DragonFight").orElseEmptyMap().getValue();
@@ -132,7 +124,7 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
         if (!(pDynamic.getValue() instanceof CompoundTag levelTag)) {
             throw new IllegalArgumentException("Level data must be a compound");
         }
-        return new PrimaryLevelData(pDataFixer, pVersion, pPlayerNBT, pDynamic.get("WasModded").asBoolean(false), NbtUtils.readInt128(levelTag, "SpawnX"), pDynamic.get("SpawnY").asInt(0), NbtUtils.readInt128(levelTag, "SpawnZ"), pDynamic.get("SpawnAngle").asFloat(0.0F), i, pDynamic.get("DayTime").asLong(i), pVersionData.levelDataVersion(), pDynamic.get("clearWeatherTime").asInt(0), pDynamic.get("rainTime").asInt(0), pDynamic.get("raining").asBoolean(false), pDynamic.get("thunderTime").asInt(0), pDynamic.get("thundering").asBoolean(false), pDynamic.get("initialized").asBoolean(true), pDynamic.get("DifficultyLocked").asBoolean(false), WorldBorder.Settings.read(pDynamic, WorldBorder.DEFAULT_SETTINGS), pDynamic.get("WanderingTraderSpawnDelay").asInt(0), pDynamic.get("WanderingTraderSpawnChance").asInt(0), pDynamic.get("WanderingTraderId").read(UUIDUtil.CODEC).result().orElse((UUID) null), pDynamic.get("ServerBrands").asStream().flatMap((p_78529_) -> {
+        return new PrimaryLevelData(pPlayerNBT, pDynamic.get("WasModded").asBoolean(false), NbtUtils.readInt128(levelTag, "SpawnX"), pDynamic.get("SpawnY").asInt(0), NbtUtils.readInt128(levelTag, "SpawnZ"), pDynamic.get("SpawnAngle").asFloat(0.0F), i, pDynamic.get("DayTime").asLong(i), pVersionData.levelDataVersion(), pDynamic.get("clearWeatherTime").asInt(0), pDynamic.get("rainTime").asInt(0), pDynamic.get("raining").asBoolean(false), pDynamic.get("thunderTime").asInt(0), pDynamic.get("thundering").asBoolean(false), pDynamic.get("initialized").asBoolean(true), pDynamic.get("DifficultyLocked").asBoolean(false), WorldBorder.Settings.read(pDynamic, WorldBorder.DEFAULT_SETTINGS), pDynamic.get("WanderingTraderSpawnDelay").asInt(0), pDynamic.get("WanderingTraderSpawnChance").asInt(0), pDynamic.get("WanderingTraderId").read(UUIDUtil.CODEC).result().orElse((UUID) null), pDynamic.get("ServerBrands").asStream().flatMap((p_78529_) -> {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      return p_78529_.asString().result().stream();
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  })
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   .collect(Collectors.toCollection(Sets::newLinkedHashSet)),
@@ -140,7 +132,6 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
     }
 
     public CompoundTag createTag(RegistryAccess pRegistries, @Nullable CompoundTag pHostPlayerNBT) {
-        this.updatePlayerTag();
         if (pHostPlayerNBT == null) {
             pHostPlayerNBT = this.loadedPlayerTag;
         }
@@ -235,22 +226,7 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
         return this.dayTime;
     }
 
-    private void updatePlayerTag() {
-        if (!this.upgradedPlayerTag && this.loadedPlayerTag != null) {
-            if (this.playerDataVersion < SharedConstants.getCurrentVersion().getWorldVersion()) {
-                if (this.fixerUpper == null) {
-                    throw (NullPointerException) Util.pauseInIde(new NullPointerException("Fixer Upper not set inside LevelData, and the player tag is not upgraded."));
-                }
-
-                this.loadedPlayerTag = NbtUtils.update(this.fixerUpper, DataFixTypes.PLAYER, this.loadedPlayerTag, this.playerDataVersion);
-            }
-
-            this.upgradedPlayerTag = true;
-        }
-    }
-
     public CompoundTag getLoadedPlayerTag() {
-        this.updatePlayerTag();
         return this.loadedPlayerTag;
     }
 

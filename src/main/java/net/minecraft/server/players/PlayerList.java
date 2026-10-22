@@ -811,7 +811,7 @@ public abstract class PlayerList {
         if (playeradvancements == null) {
             File file1 = this.server.getWorldPath(LevelResource.PLAYER_ADVANCEMENTS_DIR).toFile();
             File file2 = new File(file1, uuid + ".json");
-            playeradvancements = new PlayerAdvancements(this.server.getFixerUpper(), this, this.server.getAdvancements(), file2, pPlayer);
+            playeradvancements = new PlayerAdvancements(this, this.server.getAdvancements(), file2, pPlayer);
             this.advancements.put(uuid, playeradvancements);
         }
 

@@ -48,15 +48,11 @@ public class Main {
 
     @DontObfuscate
     public static void main(String[] pArgs) {
-        run(pArgs, true);
+        run(pArgs);
     }
 
-    public static void run(String[] pArgs, boolean pEnableDataFixerOptimizations) {
+    public static void run(String[] pArgs) {
         SharedConstants.tryDetectVersion();
-        if (pEnableDataFixerOptimizations) {
-            SharedConstants.enableDataFixerOptimizations();
-        }
-
         OptionParser optionparser = new OptionParser();
         optionparser.allowsUnrecognizedOptions();
         optionparser.accepts("demo");

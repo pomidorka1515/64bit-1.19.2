@@ -1,15 +1,12 @@
 package net.minecraft.world.level.block.entity;
 
 import com.google.common.collect.ImmutableSet;
-import com.mojang.datafixers.types.Type;
 import com.mojang.logging.LogUtils;
 import java.util.Set;
 import javax.annotation.Nullable;
-import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.datafix.fixes.References;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -57,7 +54,6 @@ public class BlockEntityType<T extends BlockEntity> {
     public static final BlockEntityType<SculkShriekerBlockEntity> SCULK_SHRIEKER = register("sculk_shrieker", BlockEntityType.Builder.of(SculkShriekerBlockEntity::new, Blocks.SCULK_SHRIEKER));
     private final BlockEntityType.BlockEntitySupplier<? extends T> factory;
     private final Set<Block> validBlocks;
-    private final Type<?> dataType;
 
     @Nullable
     public static ResourceLocation getKey(BlockEntityType<?> pBlockEntityType) {
@@ -69,14 +65,12 @@ public class BlockEntityType<T extends BlockEntity> {
             LOGGER.warn("Block entity type {} requires at least one valid block to be defined!", (Object) pKey);
         }
 
-        Type<?> type = Util.fetchChoiceType(References.BLOCK_ENTITY, pKey);
-        return Registry.register(Registry.BLOCK_ENTITY_TYPE, pKey, pBuilder.build(type));
+        return Registry.register(Registry.BLOCK_ENTITY_TYPE, pKey, pBuilder.build());
     }
 
-    public BlockEntityType(BlockEntityType.BlockEntitySupplier<? extends T> pFactory, Set<Block> pValidBlocks, Type<?> pDataType) {
+    public BlockEntityType(BlockEntityType.BlockEntitySupplier<? extends T> pFactory, Set<Block> pValidBlocks) {
         this.factory = pFactory;
         this.validBlocks = pValidBlocks;
-        this.dataType = pDataType;
     }
 
     @Nullable
@@ -112,8 +106,8 @@ public class BlockEntityType<T extends BlockEntity> {
             return new BlockEntityType.Builder<>(pFactory, ImmutableSet.copyOf(pValidBlocks));
         }
 
-        public BlockEntityType<T> build(Type<?> pDataType) {
-            return new BlockEntityType<>(this.factory, this.validBlocks, pDataType);
+        public BlockEntityType<T> build() {
+            return new BlockEntityType<>(this.factory, this.validBlocks);
         }
     }
 }

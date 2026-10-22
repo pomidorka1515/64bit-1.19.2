@@ -2,7 +2,6 @@ package net.minecraft.world.level.chunk.storage;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
@@ -30,7 +29,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelHeightAccessor;
 import org.slf4j.Logger;
@@ -43,16 +41,12 @@ public class SectionStorage<R> implements AutoCloseable {
     private final ObjectLinkedOpenHashSet<SectionPos> dirty = new ObjectLinkedOpenHashSet<>();
     private final Function<Runnable, Codec<R>> codec;
     private final Function<Runnable, R> factory;
-    private final DataFixer fixerUpper;
-    private final DataFixTypes type;
     private final RegistryAccess registryAccess;
     protected final LevelHeightAccessor levelHeightAccessor;
 
-    public SectionStorage(Path pFolder, Function<Runnable, Codec<R>> pCodec, Function<Runnable, R> pFactory, DataFixer pFixerUpper, DataFixTypes pType, boolean pSync, RegistryAccess pRegistryAccess, LevelHeightAccessor pLevelHeightAccessor) {
+    public SectionStorage(Path pFolder, Function<Runnable, Codec<R>> pCodec, Function<Runnable, R> pFactory, boolean pSync, RegistryAccess pRegistryAccess, LevelHeightAccessor pLevelHeightAccessor) {
         this.codec = pCodec;
         this.factory = pFactory;
-        this.fixerUpper = pFixerUpper;
-        this.type = pType;
         this.registryAccess = pRegistryAccess;
         this.levelHeightAccessor = pLevelHeightAccessor;
         this.worker = new IOWorker(pFolder, pSync, pFolder.getFileName().toString());
@@ -138,11 +132,7 @@ public class SectionStorage<R> implements AutoCloseable {
                 this.storage.put(getKey(pChunkPos, i), Optional.empty());
             }
         } else {
-            Dynamic<T> dynamic1 = new Dynamic<>(pOps, pValue);
-            int j = getVersion(dynamic1);
-            int k = SharedConstants.getCurrentVersion().getWorldVersion();
-            boolean flag = j != k;
-            Dynamic<T> dynamic = this.fixerUpper.update(this.type.getType(), dynamic1, j, k);
+            Dynamic<T> dynamic = new Dynamic<>(pOps, pValue);
             OptionalDynamic<T> optionaldynamic = dynamic.get("Sections");
 
             for (int l = this.levelHeightAccessor.getMinSection(); l < this.levelHeightAccessor.getMaxSection(); ++l) {
@@ -157,9 +147,6 @@ public class SectionStorage<R> implements AutoCloseable {
                 this.storage.put(i1, optional);
                 optional.ifPresent((p_223523_) -> {
                     this.onSectionLoad(i1);
-                    if (flag) {
-                        this.setDirty(i1);
-                    }
                 });
             }
         }
@@ -212,10 +199,6 @@ public class SectionStorage<R> implements AutoCloseable {
         } else {
             LOGGER.warn("No data for position: {}", pSectionPos);
         }
-    }
-
-    private static int getVersion(Dynamic<?> pColumnData) {
-        return pColumnData.get("DataVersion").asInt(1945);
     }
 
     public void flush(ChunkPos pChunkPos) {

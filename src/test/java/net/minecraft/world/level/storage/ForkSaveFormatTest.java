@@ -1,9 +1,5 @@
 package net.minecraft.world.level.storage;
 
-import com.mojang.datafixers.DSL;
-import com.mojang.datafixers.DataFixer;
-import com.mojang.datafixers.schemas.Schema;
-import com.mojang.serialization.Dynamic;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,16 +19,6 @@ import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ForkSaveFormatTest {
-    private static final DataFixer IDENTITY_FIXER = new DataFixer() {
-        public <T> Dynamic<T> update(DSL.TypeReference type, Dynamic<T> input, int version, int newVersion) {
-            return input;
-        }
-
-        public Schema getSchema(int key) {
-            throw new UnsupportedOperationException();
-        }
-    };
-
     @TempDir
     Path directory;
 
@@ -65,7 +51,7 @@ class ForkSaveFormatTest {
     }
 
     private LevelStorageSource storage() {
-        return new LevelStorageSource(directory, directory.resolve("backups"), IDENTITY_FIXER);
+        return new LevelStorageSource(directory, directory.resolve("backups"));
     }
 
     private void write(String name, CompoundTag data) throws IOException {
@@ -196,7 +182,7 @@ class ForkSaveFormatTest {
         for (ForkSaveFormat.Format format : ForkSaveFormat.Format.values()) {
             write("level.dat", metadata(format));
             for (boolean locked : new boolean[] {false, true}) {
-                LevelSummary summary = storage.levelSummaryReader(world, locked).apply(world.dataFile(), IDENTITY_FIXER);
+                LevelSummary summary = storage.levelSummaryReader(world, locked).apply(world.dataFile());
                 if (format == ForkSaveFormat.Format.UNKNOWN) {
                     assertNull(summary);
                 } else {

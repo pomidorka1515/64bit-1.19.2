@@ -46,7 +46,6 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
 import net.minecraft.network.protocol.game.DebugPackets;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.util.RandomSource;
@@ -199,10 +198,6 @@ public abstract class ChunkGenerator {
     }
 
     protected abstract Codec<? extends ChunkGenerator> codec();
-
-    public Optional<ResourceKey<Codec<? extends ChunkGenerator>>> getTypeNameForDataFixer() {
-        return Registry.CHUNK_GENERATOR.getResourceKey(this.codec());
-    }
 
     public CompletableFuture<ChunkAccess> createBiomes(Registry<Biome> pBiomeRegistry, Executor pExecutor, RandomState pRandom, Blender pBlender, StructureManager pStructureManager, ChunkAccess pChunk) {
         return CompletableFuture.supplyAsync(Util.wrapThreadWithTaskName("init_biomes", () -> {

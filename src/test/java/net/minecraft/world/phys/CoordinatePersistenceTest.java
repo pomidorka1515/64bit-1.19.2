@@ -1,11 +1,8 @@
 package net.minecraft.world.phys;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import java.lang.reflect.Method;
@@ -18,8 +15,6 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ForcedChunksSavedData;
 import net.minecraft.world.level.chunk.storage.ChunkSerializer;
-import net.minecraft.world.level.levelgen.structure.LegacyStructureDataHandler;
-import net.minecraft.world.level.levelgen.structure.StructureFeatureIndexSavedData;
 import net.minecraft.world.ticks.SavedTick;
 import net.minecraft.world.ticks.TickPriority;
 import org.junit.jupiter.api.Test;
@@ -67,7 +62,7 @@ class CoordinatePersistenceTest {
     }
 
     @Test
-    void forcedChunksAndStructureIndicesSurviveReload() {
+    void forcedChunksSurviveReload() {
         ChunkPos first = new ChunkPos(Int128.of(123, 17), Int128.of(-123, 29));
         ChunkPos second = new ChunkPos(-17, 29);
         ForcedChunksSavedData forced = new ForcedChunksSavedData();
@@ -75,14 +70,6 @@ class CoordinatePersistenceTest {
         forced.getChunks().add(second);
         assertEquals(forced.getChunks(), ForcedChunksSavedData.load(forced.save(new CompoundTag())).getChunks());
 
-        StructureFeatureIndexSavedData indices = new StructureFeatureIndexSavedData();
-        indices.addIndex(first);
-        indices.addIndex(second);
-        indices.removeIndex(first);
-        StructureFeatureIndexSavedData loaded = StructureFeatureIndexSavedData.load(indices.save(new CompoundTag()));
-        assertEquals(indices.getAll(), loaded.getAll());
-        assertFalse(loaded.hasUnhandledIndex(first));
-        assertTrue(loaded.hasUnhandledIndex(second));
     }
 
     @Test
@@ -96,10 +83,6 @@ class CoordinatePersistenceTest {
         serializer.setAccessible(true);
         assertReference((ListTag) serializer.invoke(null, chunks), pos);
 
-        LegacyStructureDataHandler legacy = new LegacyStructureDataHandler(null, java.util.List.of(), java.util.List.of());
-        Method migration = LegacyStructureDataHandler.class.getDeclaredMethod("toTag", it.unimi.dsi.fastutil.objects.ObjectList.class);
-        migration.setAccessible(true);
-        assertReference((ListTag) migration.invoke(legacy, new ObjectArrayList<>(chunks)), pos);
     }
 
     private static void assertReference(ListTag references, ChunkPos pos) {

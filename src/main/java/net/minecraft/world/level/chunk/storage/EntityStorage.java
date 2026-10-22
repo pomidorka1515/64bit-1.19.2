@@ -1,7 +1,6 @@
 package net.minecraft.world.level.chunk.storage;
 
 import com.google.common.collect.ImmutableList;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
@@ -17,9 +16,7 @@ import net.minecraft.core.Int128;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.LongArrayTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.util.thread.ProcessorMailbox;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -36,11 +33,9 @@ public class EntityStorage implements EntityPersistentStorage<Entity> {
     private final IOWorker worker;
     private final ObjectSet<ChunkPos> emptyChunks = new ObjectOpenHashSet<>();
     private final ProcessorMailbox<Runnable> entityDeserializerQueue;
-    protected final DataFixer fixerUpper;
 
-    public EntityStorage(ServerLevel pLevel, Path pFolder, DataFixer pFixerUpper, boolean pSync, Executor pMainThreadExecutor) {
+    public EntityStorage(ServerLevel pLevel, Path pFolder, boolean pSync, Executor pMainThreadExecutor) {
         this.level = pLevel;
-        this.fixerUpper = pFixerUpper;
         this.entityDeserializerQueue = ProcessorMailbox.create(pMainThreadExecutor, "entity-deserializer");
         this.worker = new IOWorker(pFolder, pSync, "entities");
     }
@@ -56,7 +51,7 @@ public class EntityStorage implements EntityPersistentStorage<Entity> {
                     LOGGER.error("Chunk file at {} is in the wrong location. (Expected {}, got {})", pPos, pPos, chunkpos);
                 }
 
-                CompoundTag compoundtag = this.upgradeChunkTag(p_223458_.get());
+                CompoundTag compoundtag = p_223458_.get();
                 ListTag listtag = compoundtag.getList("Entities", 10);
                 List<Entity> list = EntityType.loadEntitiesRecursive(listtag, this.level).collect(ImmutableList.toImmutableList());
                 return new ChunkEntities<>(pPos, list);
@@ -116,15 +111,6 @@ public class EntityStorage implements EntityPersistentStorage<Entity> {
     public void flush(boolean pSynchronize) {
         this.worker.synchronize(pSynchronize).join();
         this.entityDeserializerQueue.runAll();
-    }
-
-    private CompoundTag upgradeChunkTag(CompoundTag pTag) {
-        int i = getVersion(pTag);
-        return NbtUtils.update(this.fixerUpper, DataFixTypes.ENTITY_CHUNK, pTag, i);
-    }
-
-    public static int getVersion(CompoundTag pTag) {
-        return pTag.contains("DataVersion", 99) ? pTag.getInt("DataVersion") : -1;
     }
 
     public void close() throws IOException {

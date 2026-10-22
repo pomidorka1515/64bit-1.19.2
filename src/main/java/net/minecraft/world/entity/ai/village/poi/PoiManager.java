@@ -1,6 +1,5 @@
 package net.minecraft.world.entity.ai.village.poi;
 
-import com.mojang.datafixers.DataFixer;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.Object2ByteMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
@@ -27,7 +26,6 @@ import net.minecraft.server.level.SectionTracker;
 import net.minecraft.tags.PoiTypeTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.VisibleForDebug;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.LevelReader;
@@ -42,8 +40,8 @@ public class PoiManager extends SectionStorage<PoiSection> {
     private final PoiManager.DistanceTracker distanceTracker;
     private final ObjectSet<ChunkPos> loadedChunks = new ObjectOpenHashSet<>();
 
-    public PoiManager(Path pFolder, DataFixer pFixerUpper, boolean pSync, RegistryAccess pRegistryAccess, LevelHeightAccessor pLevelHeightAccessor) {
-        super(pFolder, PoiSection::codec, PoiSection::new, pFixerUpper, DataFixTypes.POI_CHUNK, pSync, pRegistryAccess, pLevelHeightAccessor);
+    public PoiManager(Path pFolder, boolean pSync, RegistryAccess pRegistryAccess, LevelHeightAccessor pLevelHeightAccessor) {
+        super(pFolder, PoiSection::codec, PoiSection::new, pSync, pRegistryAccess, pLevelHeightAccessor);
         this.distanceTracker = new PoiManager.DistanceTracker();
     }
 

@@ -39,7 +39,7 @@ class TreeFeatureInt128Test {
 
     @Test
     void leafUpdatesUseExactPositionsAndLocalVoxelIndices() throws Exception {
-        for (Int128 x : List.of(Int128.of(123L, -1L), Int128.MIN, Int128.MAX.add(-2L))) {
+        for (Int128 x : List.of(Int128.of(123L, -1L), Int128.MIN, Int128.MAX.add(Int128.fromLong(-2L)))) {
             BlockPos root = new BlockPos(x, 70, Int128.of(-98L, -1L));
             BlockPos leaf = root.east();
             Map<BlockPos, BlockState> states = new HashMap<>();
@@ -54,7 +54,7 @@ class TreeFeatureInt128Test {
                         }
                         default -> throw new AssertionError(method.getName());
                     });
-            BoundingBox box = new BoundingBox(root.getX(), 70, root.getZ(), root.getX().add(2L), 70, root.getZ());
+            BoundingBox box = new BoundingBox(root.getX(), 70, root.getZ(), root.getX().add(Int128.fromLong(2L)), 70, root.getZ());
             DiscreteVoxelShape shape = updateLeaves(level, box, Set.of(root), Set.of(), Set.of(leaf));
             assertNotNull(shape);
             assertTrue(shape.isFull(0, 0, 0));

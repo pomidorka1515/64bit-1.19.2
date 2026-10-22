@@ -50,7 +50,8 @@ class ViewAreaTest {
         Set<Integer> slots = new HashSet<>();
         for (int offset = 0; offset < width; ++offset) {
             Int128 chunk = first.add(Int128.fromLong(offset));
-            assertTrue(WorldBounds.isValidChunkCoordinate(chunk));
+            assertTrue(chunk.compareTo(WorldBounds.MIN_CHUNK) >= 0);
+            assertTrue(chunk.compareTo(WorldBounds.MAX_CHUNK) <= 0);
             chunks.add(chunk);
             slots.add(ViewArea.floorMod(chunk, width));
         }

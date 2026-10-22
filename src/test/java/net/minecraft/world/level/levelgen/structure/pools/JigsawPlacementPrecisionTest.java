@@ -10,6 +10,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.FrontAndTop;
+import net.minecraft.core.Int128;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.Vec3i;
@@ -84,8 +85,8 @@ class JigsawPlacementPrecisionTest {
         }
         return pieces.stream().map(piece -> {
             BoundingBox b = piece.getBoundingBox();
-            return new BoundingBox(b.minX() - origin, b.minY(), b.minZ() - origin,
-                    b.maxX() - origin, b.maxY(), b.maxZ() - origin);
+            return new BoundingBox(b.minX().subtract(Int128.fromLong(origin)), b.minY(), b.minZ().subtract(Int128.fromLong(origin)),
+                    b.maxX().subtract(Int128.fromLong(origin)), b.maxY(), b.maxZ().subtract(Int128.fromLong(origin)));
         }).toList();
     }
 

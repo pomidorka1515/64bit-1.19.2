@@ -15,7 +15,7 @@ public interface PositionSource {
 
     /** Exact world position where one is available; defaults to the legacy boundary. */
     default Optional<SectorVec3> exactPosition(Level level) {
-        return this.getPosition(level).map(position -> SectorVec3.fromApproximate(position.x, position.y, position.z));
+        return this.getPosition(level).map(SectorVec3::fromApproximate);
     }
 
     PositionSourceType<?> getType();

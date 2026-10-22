@@ -59,7 +59,7 @@ public class HangingEntityItem extends Item {
             if (hangingentity.survives()) {
                 if (!level.isClientSide) {
                     hangingentity.playPlacementSound();
-                    level.gameEvent(player, GameEvent.ENTITY_PLACE, hangingentity.position());
+                    level.gameEvent(player, GameEvent.ENTITY_PLACE, hangingentity.exactPositionVector());
                     level.addFreshEntity(hangingentity);
                 }
 

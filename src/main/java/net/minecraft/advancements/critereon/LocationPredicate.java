@@ -69,15 +69,20 @@ public class LocationPredicate {
         return this.matches(pLevel, net.minecraft.world.phys.SectorVec3.fromApproximate(pX, pY, pZ));
     }
 
+    private static boolean matchesCoordinate(MinMaxBounds.Doubles bounds, net.minecraft.core.Int128 block, double fraction) {
+        if (bounds.isAny()) return true;
+        java.math.BigDecimal value = new java.math.BigDecimal(block.toString()).add(new java.math.BigDecimal(fraction));
+        return (bounds.getMin() == null || value.compareTo(new java.math.BigDecimal(bounds.getMin())) >= 0)
+                && (bounds.getMax() == null || value.compareTo(new java.math.BigDecimal(bounds.getMax())) <= 0);
+    }
+
     public boolean matches(ServerLevel pLevel, net.minecraft.world.phys.SectorVec3 position) {
-        double pX = position.toApproximateVec3().x;
         double pY = position.y();
-        double pZ = position.toApproximateVec3().z;
-        if (!this.x.matches(pX)) {
+        if (!matchesCoordinate(this.x, position.blockX(), position.subX())) {
             return false;
         } else if (!this.y.matches(pY)) {
             return false;
-        } else if (!this.z.matches(pZ)) {
+        } else if (!matchesCoordinate(this.z, position.blockZ(), position.subZ())) {
             return false;
         } else if (this.dimension != null && this.dimension != pLevel.dimension()) {
             return false;

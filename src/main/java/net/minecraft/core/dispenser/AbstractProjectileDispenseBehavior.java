@@ -14,6 +14,7 @@ public abstract class AbstractProjectileDispenseBehavior extends DefaultDispense
         Position position = DispenserBlock.getDispensePosition(pSource);
         Direction direction = pSource.getBlockState().getValue(DispenserBlock.FACING);
         Projectile projectile = this.getProjectile(level, position, pStack);
+        projectile.applyExactPosition(position.exactPosition());
         projectile.shoot((double) direction.getStepX(), (double) ((float) direction.getStepY() + 0.1F), (double) direction.getStepZ(), this.getPower(), this.getUncertainty());
         level.addFreshEntity(projectile);
         pStack.shrink(1);

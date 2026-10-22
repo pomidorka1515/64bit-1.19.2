@@ -847,7 +847,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
 
     @Override
     public void gameEvent(GameEvent pEvent, SectorVec3 exactPosition, GameEvent.Context pContext) {
-        Vec3 pPosition = exactPosition.toApproximateVec3();
+        Vec3 pPosition = exactPosition.toExactVec3();
         int i = pEvent.getNotificationRadius();
         BlockPos blockpos = new BlockPos(exactPosition.blockX(), Mth.floor(exactPosition.y()), exactPosition.blockZ());
         Int128 j = SectionPos.blockToSectionCoord(WorldBounds.subtractBlockOffset(blockpos.getX(), i));

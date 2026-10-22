@@ -227,7 +227,7 @@ public class Strider extends Animal implements ItemSteerable, Saddleable {
             }
         }
 
-        return new Vec3(this.getX(), this.getBoundingBox().maxY, this.getZ());
+        return this.sectorPosition().withY(this.getBoundingBox().maxY).toExactVec3();
     }
 
     /** Exact split-coordinate strider dismount target from long block offsets only. */

@@ -88,14 +88,16 @@ public interface DispenseItemBehavior {
     static void bootStrap() {
         DispenserBlock.registerBehavior(Items.ARROW, new AbstractProjectileDispenseBehavior() {
             protected Projectile getProjectile(Level p_123407_, Position p_123408_, ItemStack p_123409_) {
-                Arrow arrow = new Arrow(p_123407_, p_123408_.x(), p_123408_.y(), p_123408_.z());
+                Arrow arrow = new Arrow(p_123407_, 0.0D, p_123408_.y(), 0.0D);
+                arrow.applyExactPosition(p_123408_.exactPosition());
                 arrow.pickup = AbstractArrow.Pickup.ALLOWED;
                 return arrow;
             }
         });
         DispenserBlock.registerBehavior(Items.TIPPED_ARROW, new AbstractProjectileDispenseBehavior() {
             protected Projectile getProjectile(Level p_123420_, Position p_123421_, ItemStack p_123422_) {
-                Arrow arrow = new Arrow(p_123420_, p_123421_.x(), p_123421_.y(), p_123421_.z());
+                Arrow arrow = new Arrow(p_123420_, 0.0D, p_123421_.y(), 0.0D);
+                arrow.applyExactPosition(p_123421_.exactPosition());
                 arrow.setEffectsFromItem(p_123422_);
                 arrow.pickup = AbstractArrow.Pickup.ALLOWED;
                 return arrow;
@@ -103,28 +105,32 @@ public interface DispenseItemBehavior {
         });
         DispenserBlock.registerBehavior(Items.SPECTRAL_ARROW, new AbstractProjectileDispenseBehavior() {
             protected Projectile getProjectile(Level p_123456_, Position p_123457_, ItemStack p_123458_) {
-                AbstractArrow abstractarrow = new SpectralArrow(p_123456_, p_123457_.x(), p_123457_.y(), p_123457_.z());
+                AbstractArrow abstractarrow = new SpectralArrow(p_123456_, 0.0D, p_123457_.y(), 0.0D);
+                abstractarrow.applyExactPosition(p_123457_.exactPosition());
                 abstractarrow.pickup = AbstractArrow.Pickup.ALLOWED;
                 return abstractarrow;
             }
         });
         DispenserBlock.registerBehavior(Items.EGG, new AbstractProjectileDispenseBehavior() {
             protected Projectile getProjectile(Level p_123468_, Position p_123469_, ItemStack p_123470_) {
-                return Util.make(new ThrownEgg(p_123468_, p_123469_.x(), p_123469_.y(), p_123469_.z()), (p_123466_) -> {
+                return Util.make(new ThrownEgg(p_123468_, 0.0D, p_123469_.y(), 0.0D), (p_123466_) -> {
+                    p_123466_.applyExactPosition(p_123469_.exactPosition());
                     p_123466_.setItem(p_123470_);
                 });
             }
         });
         DispenserBlock.registerBehavior(Items.SNOWBALL, new AbstractProjectileDispenseBehavior() {
             protected Projectile getProjectile(Level p_123476_, Position p_123477_, ItemStack p_123478_) {
-                return Util.make(new Snowball(p_123476_, p_123477_.x(), p_123477_.y(), p_123477_.z()), (p_123474_) -> {
+                return Util.make(new Snowball(p_123476_, 0.0D, p_123477_.y(), 0.0D), (p_123474_) -> {
+                    p_123474_.applyExactPosition(p_123477_.exactPosition());
                     p_123474_.setItem(p_123478_);
                 });
             }
         });
         DispenserBlock.registerBehavior(Items.EXPERIENCE_BOTTLE, new AbstractProjectileDispenseBehavior() {
             protected Projectile getProjectile(Level p_123485_, Position p_123486_, ItemStack p_123487_) {
-                return Util.make(new ThrownExperienceBottle(p_123485_, p_123486_.x(), p_123486_.y(), p_123486_.z()), (p_123483_) -> {
+                return Util.make(new ThrownExperienceBottle(p_123485_, 0.0D, p_123486_.y(), 0.0D), (p_123483_) -> {
+                    p_123483_.applyExactPosition(p_123486_.exactPosition());
                     p_123483_.setItem(p_123487_);
                 });
             }
@@ -141,7 +147,8 @@ public interface DispenseItemBehavior {
             public ItemStack dispense(BlockSource p_123491_, ItemStack p_123492_) {
                 return (new AbstractProjectileDispenseBehavior() {
                     protected Projectile getProjectile(Level p_123501_, Position p_123502_, ItemStack p_123503_) {
-                        return Util.make(new ThrownPotion(p_123501_, p_123502_.x(), p_123502_.y(), p_123502_.z()), (p_123499_) -> {
+                        return Util.make(new ThrownPotion(p_123501_, 0.0D, p_123502_.y(), 0.0D), (p_123499_) -> {
+                            p_123499_.applyExactPosition(p_123502_.exactPosition());
                             p_123499_.setItem(p_123503_);
                         });
                     }
@@ -160,7 +167,8 @@ public interface DispenseItemBehavior {
             public ItemStack dispense(BlockSource p_123507_, ItemStack p_123508_) {
                 return (new AbstractProjectileDispenseBehavior() {
                     protected Projectile getProjectile(Level p_123517_, Position p_123518_, ItemStack p_123519_) {
-                        return Util.make(new ThrownPotion(p_123517_, p_123518_.x(), p_123518_.y(), p_123518_.z()), (p_123515_) -> {
+                        return Util.make(new ThrownPotion(p_123517_, 0.0D, p_123518_.y(), 0.0D), (p_123515_) -> {
+                            p_123515_.applyExactPosition(p_123518_.exactPosition());
                             p_123515_.setItem(p_123519_);
                         });
                     }
@@ -304,15 +312,15 @@ public interface DispenseItemBehavior {
             public ItemStack execute(BlockSource p_123556_, ItemStack p_123557_) {
                 Direction direction = p_123556_.getBlockState().getValue(DispenserBlock.FACING);
                 Position position = DispenserBlock.getDispensePosition(p_123556_);
-                double d0 = position.x() + (double) ((float) direction.getStepX() * 0.3F);
-                double d1 = position.y() + (double) ((float) direction.getStepY() * 0.3F);
-                double d2 = position.z() + (double) ((float) direction.getStepZ() * 0.3F);
+                SectorVec3 spawn = position.exactPosition().add((double) ((float) direction.getStepX() * 0.3F),
+                        (double) ((float) direction.getStepY() * 0.3F), (double) ((float) direction.getStepZ() * 0.3F));
                 Level level = p_123556_.getLevel();
                 RandomSource randomsource = level.random;
                 double d3 = randomsource.triangle((double) direction.getStepX(), 0.11485000000000001D);
                 double d4 = randomsource.triangle((double) direction.getStepY(), 0.11485000000000001D);
                 double d5 = randomsource.triangle((double) direction.getStepZ(), 0.11485000000000001D);
-                SmallFireball smallfireball = new SmallFireball(level, d0, d1, d2, d3, d4, d5);
+                SmallFireball smallfireball = new SmallFireball(level, 0.0D, spawn.y(), 0.0D, d3, d4, d5);
+                smallfireball.applyExactPosition(spawn);
                 level.addFreshEntity(Util.make(smallfireball, (p_123552_) -> {
                     p_123552_.setItem(p_123557_);
                 }));
@@ -444,7 +452,7 @@ public interface DispenseItemBehavior {
                 primedtnt.applyExactPosition(SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, (double) blockpos.getY(), blockpos.getZ(), 0.5D));
                 primedtnt.setOldPosAndRot();
                 level.addFreshEntity(primedtnt);
-                level.playSound((Player) null, primedtnt.getX(), primedtnt.getY(), primedtnt.getZ(), SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
+                level.playSound((Player) null, primedtnt.sectorPosition(), SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
                 level.gameEvent((Entity) null, GameEvent.ENTITY_PLACE, blockpos);
                 p_123426_.shrink(1);
                 return p_123426_;
@@ -614,6 +622,9 @@ public interface DispenseItemBehavior {
     }
 
     static void setEntityPokingOutOfBlock(BlockSource pSource, Entity pEntity, Direction pDirection) {
-        pEntity.setPos(pSource.x() + (double) pDirection.getStepX() * (0.5000099999997474D - (double) pEntity.getBbWidth() / 2.0D), pSource.y() + (double) pDirection.getStepY() * (0.5000099999997474D - (double) pEntity.getBbHeight() / 2.0D) - (double) pEntity.getBbHeight() / 2.0D, pSource.z() + (double) pDirection.getStepZ() * (0.5000099999997474D - (double) pEntity.getBbWidth() / 2.0D));
+        pEntity.applyExactPosition(pSource.exactPosition().add(
+                pDirection.getStepX() * (0.5000099999997474D - pEntity.getBbWidth() / 2.0D),
+                pDirection.getStepY() * (0.5000099999997474D - pEntity.getBbHeight() / 2.0D) - pEntity.getBbHeight() / 2.0D,
+                pDirection.getStepZ() * (0.5000099999997474D - pEntity.getBbWidth() / 2.0D)));
     }
 }

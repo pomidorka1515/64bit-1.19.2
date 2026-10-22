@@ -17,6 +17,13 @@ import net.minecraft.world.level.WorldBounds;
  * is explicitly a lossy compatibility conversion.</p>
  */
 public final class SectorVec3 {
+    public static final com.mojang.serialization.Codec<SectorVec3> CODEC = com.mojang.serialization.codecs.RecordCodecBuilder.create(instance -> instance.group(
+            Int128.CODEC.fieldOf("block_x").forGetter(SectorVec3::blockX),
+            com.mojang.serialization.Codec.DOUBLE.fieldOf("sub_x").forGetter(SectorVec3::subX),
+            com.mojang.serialization.Codec.DOUBLE.fieldOf("y").forGetter(SectorVec3::y),
+            Int128.CODEC.fieldOf("block_z").forGetter(SectorVec3::blockZ),
+            com.mojang.serialization.Codec.DOUBLE.fieldOf("sub_z").forGetter(SectorVec3::subZ)
+    ).apply(instance, SectorVec3::fromBlockAndFraction));
     private static final double TWO_TO_THE_63 = 0x1.0p63;
 
     private final Int128 blockX;
@@ -449,6 +456,11 @@ public final class SectorVec3 {
         // Keep the lossy mirror below 2^127 even when MAX rounds upward.
         return new Vec3(approximateCoordinate(this.blockX, this.subX), this.y,
                 approximateCoordinate(this.blockZ, this.subZ));
+    }
+
+    /** Compatibility carrier that retains the authoritative split position. */
+    public Vec3 toExactVec3() {
+        return new ExactVec3(this);
     }
 
     private static double approximateCoordinate(Int128 block, double fraction) {

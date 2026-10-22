@@ -46,7 +46,7 @@ public class BlockPos extends Vec3i {
     }
 
     public BlockPos(Position pPos) {
-        this(pPos.x(), pPos.y(), pPos.z());
+        this(pPos.exactPosition().blockPosition());
     }
 
     public BlockPos(Vec3i pVector) {

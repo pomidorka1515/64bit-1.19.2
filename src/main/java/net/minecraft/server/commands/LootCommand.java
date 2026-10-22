@@ -295,7 +295,7 @@ public class LootCommand {
             lootcontext$builder.withOptionalParameter(LootContextParams.DIRECT_KILLER_ENTITY, entity);
             lootcontext$builder.withOptionalParameter(LootContextParams.KILLER_ENTITY, entity);
             lootcontext$builder.withParameter(LootContextParams.THIS_ENTITY, pEntity);
-            lootcontext$builder.withParameter(LootContextParams.ORIGIN, commandsourcestack.getExactPosition().toApproximateVec3());
+            lootcontext$builder.withParameter(LootContextParams.ORIGIN, commandsourcestack.getExactPosition().toExactVec3());
             LootTable loottable = commandsourcestack.getServer().getLootTables().get(resourcelocation);
             List<ItemStack> list = loottable.getRandomItems(lootcontext$builder.create(LootContextParamSets.ENTITY));
             return pDropConsumer.accept(pContext, list, (p_137975_) -> {
@@ -306,7 +306,7 @@ public class LootCommand {
 
     private static int dropChestLoot(CommandContext<CommandSourceStack> pContext, ResourceLocation pLootTable, LootCommand.DropConsumer pDropConsumer) throws CommandSyntaxException {
         CommandSourceStack commandsourcestack = pContext.getSource();
-        LootContext.Builder lootcontext$builder = (new LootContext.Builder(commandsourcestack.getLevel())).withOptionalParameter(LootContextParams.THIS_ENTITY, commandsourcestack.getEntity()).withParameter(LootContextParams.ORIGIN, commandsourcestack.getExactPosition().toApproximateVec3());
+        LootContext.Builder lootcontext$builder = (new LootContext.Builder(commandsourcestack.getLevel())).withOptionalParameter(LootContextParams.THIS_ENTITY, commandsourcestack.getEntity()).withParameter(LootContextParams.ORIGIN, commandsourcestack.getExactPosition().toExactVec3());
         return drop(pContext, pLootTable, lootcontext$builder.create(LootContextParamSets.CHEST), pDropConsumer);
     }
 

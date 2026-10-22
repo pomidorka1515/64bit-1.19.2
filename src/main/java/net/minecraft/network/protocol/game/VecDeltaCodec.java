@@ -46,7 +46,7 @@ public class VecDeltaCodec {
     /** Lossy compatibility view of the exact decoded target. */
     public Vec3 decode(long x, long y, long z) {
         SectorVec3 position = this.decodeExact(x, y, z);
-        return x == 0L && y == 0L && z == 0L ? this.base : position.toApproximateVec3();
+        return x == 0L && y == 0L && z == 0L ? this.base : position.toExactVec3();
     }
 
     /**
@@ -98,7 +98,7 @@ public class VecDeltaCodec {
 
     public void setBase(SectorVec3 position) {
         this.sectorBase = position;
-        this.base = position.toApproximateVec3();
+        this.base = position.toExactVec3();
     }
 
     public SectorVec3 getSectorBase() {

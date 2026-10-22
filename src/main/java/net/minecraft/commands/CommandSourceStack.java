@@ -76,7 +76,7 @@ public class CommandSourceStack implements SharedSuggestionProvider {
             EntityAnchorArgument.Anchor anchor, CommandSigningContext signingContext, TaskChainer chatMessageChainer) {
         this.source = source;
         this.worldPosition = position;
-        this.exactPosition = exactPosition != null ? exactPosition : SectorVec3.fromApproximate(position.x, position.y, position.z);
+        this.exactPosition = exactPosition != null ? exactPosition : SectorVec3.fromApproximate(position);
         this.level = level;
         this.silent = silent;
         this.entity = entity;
@@ -102,7 +102,7 @@ public class CommandSourceStack implements SharedSuggestionProvider {
     }
 
     public CommandSourceStack withPosition(Vec3 position) {
-        return this.worldPosition.equals(position) ? this : new CommandSourceStack(this.source, position, SectorVec3.fromApproximate(position.x, position.y, position.z), this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
+        return this.withExactPosition(SectorVec3.fromApproximate(position));
     }
 
     public CommandSourceStack withExactPosition(SectorVec3 position) {

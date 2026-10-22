@@ -410,7 +410,7 @@ public abstract class Player extends LivingEntity {
     }
 
     public void playSound(SoundEvent pSound, float pVolume, float pPitch) {
-        this.level.playSound(this, this.getX(), this.getY(), this.getZ(), pSound, this.getSoundSource(), pVolume, pPitch);
+        this.level.playSound(this, this.sectorPosition(), pSound, this.getSoundSource(), pVolume, pPitch);
     }
 
     public void playNotifySound(SoundEvent pSound, SoundSource pSource, float pVolume, float pPitch) {
@@ -543,7 +543,7 @@ public abstract class Player extends LivingEntity {
                                   })
                     .ifPresent((p_36255_) -> {
                         if (!Parrot.imitateNearbyMobs(this.level, this)) {
-                            this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), Parrot.getAmbient(this.level, this.level.random), this.getSoundSource(), 1.0F, Parrot.getPitch(this.level.random));
+                            this.level.playSound((Player) null, this.sectorPosition(), Parrot.getAmbient(this.level, this.level.random), this.getSoundSource(), 1.0F, Parrot.getPitch(this.level.random));
                         }
                     });
         }
@@ -1082,7 +1082,7 @@ public abstract class Player extends LivingEntity {
                     int i = 0;
                     i += EnchantmentHelper.getKnockbackBonus(this);
                     if (this.isSprinting() && flag) {
-                        this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_ATTACK_KNOCKBACK, this.getSoundSource(), 1.0F, 1.0F);
+                        this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.PLAYER_ATTACK_KNOCKBACK, this.getSoundSource(), 1.0F, 1.0F);
                         ++i;
                         flag1 = true;
                     }
@@ -1138,7 +1138,7 @@ public abstract class Player extends LivingEntity {
                                 }
                             }
 
-                            this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_ATTACK_SWEEP, this.getSoundSource(), 1.0F, 1.0F);
+                            this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.PLAYER_ATTACK_SWEEP, this.getSoundSource(), 1.0F, 1.0F);
                             this.sweepAttack();
                         }
 
@@ -1149,15 +1149,15 @@ public abstract class Player extends LivingEntity {
                         }
 
                         if (flag2) {
-                            this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_ATTACK_CRIT, this.getSoundSource(), 1.0F, 1.0F);
+                            this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.PLAYER_ATTACK_CRIT, this.getSoundSource(), 1.0F, 1.0F);
                             this.crit(pTarget);
                         }
 
                         if (!flag2 && !flag3) {
                             if (flag) {
-                                this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_ATTACK_STRONG, this.getSoundSource(), 1.0F, 1.0F);
+                                this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.PLAYER_ATTACK_STRONG, this.getSoundSource(), 1.0F, 1.0F);
                             } else {
-                                this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_ATTACK_WEAK, this.getSoundSource(), 1.0F, 1.0F);
+                                this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.PLAYER_ATTACK_WEAK, this.getSoundSource(), 1.0F, 1.0F);
                             }
                         }
 
@@ -1199,7 +1199,7 @@ public abstract class Player extends LivingEntity {
 
                         this.causeFoodExhaustion(0.1F);
                     } else {
-                        this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_ATTACK_NODAMAGE, this.getSoundSource(), 1.0F, 1.0F);
+                        this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.PLAYER_ATTACK_NODAMAGE, this.getSoundSource(), 1.0F, 1.0F);
                         if (flag4) {
                             pTarget.clearFire();
                         }
@@ -1300,7 +1300,7 @@ public abstract class Player extends LivingEntity {
 
     public static Optional<Vec3> findRespawnPositionAndUseSpawnBlock(ServerLevel pServerLevel, BlockPos pSpawnBlockPos, float pPlayerOrientation, boolean pIsRespawnForced, boolean pRespawnAfterWinningTheGame) {
         return findExactRespawnPositionAndUseSpawnBlock(pServerLevel, pSpawnBlockPos, pPlayerOrientation, pIsRespawnForced, pRespawnAfterWinningTheGame)
-                .map(SectorVec3::toApproximateVec3);
+                .map(SectorVec3::toExactVec3);
     }
 
     /** Exact split-coordinate respawn resolution; never reconstructs a global X/Z double. */
@@ -1604,7 +1604,7 @@ public abstract class Player extends LivingEntity {
 
         if (pLevels > 0 && this.experienceLevel % 5 == 0 && (float) this.lastLevelUpTime < (float) this.tickCount - 100.0F) {
             float f = this.experienceLevel > 30 ? 1.0F : (float) this.experienceLevel / 30.0F;
-            this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_LEVELUP, this.getSoundSource(), f * 0.75F, 1.0F);
+            this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.PLAYER_LEVELUP, this.getSoundSource(), f * 0.75F, 1.0F);
             this.lastLevelUpTime = this.tickCount;
         }
     }
@@ -1937,7 +1937,7 @@ public abstract class Player extends LivingEntity {
     public ItemStack eat(Level pLevel, ItemStack pFood) {
         this.getFoodData().eat(pFood.getItem(), pFood);
         this.awardStat(Stats.ITEM_USED.get(pFood.getItem()));
-        pLevel.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_BURP, SoundSource.PLAYERS, 0.5F, pLevel.random.nextFloat() * 0.1F + 0.9F);
+        pLevel.playSound((Player) null, this.sectorPosition(), SoundEvents.PLAYER_BURP, SoundSource.PLAYERS, 0.5F, pLevel.random.nextFloat() * 0.1F + 0.9F);
         if (this instanceof ServerPlayer) {
             CriteriaTriggers.CONSUME_ITEM.trigger((ServerPlayer) this, pFood);
         }

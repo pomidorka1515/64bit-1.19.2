@@ -12,7 +12,7 @@ public class LandRandomPos {
     @Nullable
     public static Vec3 getPos(PathfinderMob mob, int horizontalRange, int verticalRange) {
         SectorVec3 exact = getSectorPos(mob, horizontalRange, verticalRange);
-        return exact == null ? null : exact.toApproximateVec3();
+        return exact == null ? null : exact.toExactVec3();
     }
 
     @Nullable
@@ -24,7 +24,7 @@ public class LandRandomPos {
     public static Vec3 getPos(PathfinderMob mob, int horizontalRange, int verticalRange,
             ToDoubleFunction<BlockPos> score) {
         SectorVec3 exact = getSectorPos(mob, horizontalRange, verticalRange, score);
-        return exact == null ? null : exact.toApproximateVec3();
+        return exact == null ? null : exact.toExactVec3();
     }
 
     @Nullable
@@ -42,7 +42,7 @@ public class LandRandomPos {
     public static Vec3 getPosTowards(PathfinderMob mob, int horizontalRange, int verticalRange, Vec3 target) {
         SectorVec3 exact = getSectorPosTowards(mob, horizontalRange, verticalRange,
                 SectorVec3.fromApproximate(target.x, target.y, target.z));
-        return exact == null ? null : exact.toApproximateVec3();
+        return exact == null ? null : exact.toExactVec3();
     }
 
     @Nullable
@@ -62,7 +62,7 @@ public class LandRandomPos {
     public static Vec3 getPosAway(PathfinderMob mob, int horizontalRange, int verticalRange, Vec3 avoid) {
         SectorVec3 exact = getSectorPosAway(mob, horizontalRange, verticalRange,
                 SectorVec3.fromApproximate(avoid.x, avoid.y, avoid.z));
-        return exact == null ? null : exact.toApproximateVec3();
+        return exact == null ? null : exact.toExactVec3();
     }
 
     @Nullable

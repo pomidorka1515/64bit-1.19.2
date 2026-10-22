@@ -28,12 +28,12 @@ public class Vec3 implements Position {
 
     public static Vec3 atCenterOf(Vec3i pToCopy) {
         return SectorVec3.fromBlockAndFraction(pToCopy.getX(), 0.5D, (double) pToCopy.getY() + 0.5D,
-                pToCopy.getZ(), 0.5D).toApproximateVec3();
+                pToCopy.getZ(), 0.5D).toExactVec3();
     }
 
     public static Vec3 atLowerCornerOf(Vec3i pToCopy) {
         return SectorVec3.fromBlockAndFraction(pToCopy.getX(), 0.0D, pToCopy.getY(),
-                pToCopy.getZ(), 0.0D).toApproximateVec3();
+                pToCopy.getZ(), 0.0D).toExactVec3();
     }
 
     public static Vec3 atBottomCenterOf(Vec3i pToCopy) {
@@ -42,7 +42,7 @@ public class Vec3 implements Position {
 
     public static Vec3 upFromBottomCenterOf(Vec3i pToCopy, double pVerticalOffset) {
         return SectorVec3.fromBlockAndFraction(pToCopy.getX(), 0.5D, (double) pToCopy.getY() + pVerticalOffset,
-                pToCopy.getZ(), 0.5D).toApproximateVec3();
+                pToCopy.getZ(), 0.5D).toExactVec3();
     }
 
     public Vec3(double pX, double pY, double pZ) {
@@ -56,7 +56,7 @@ public class Vec3 implements Position {
     }
 
     public Vec3 vectorTo(Vec3 pVec) {
-        return new Vec3(pVec.x - this.x, pVec.y - this.y, pVec.z - this.z);
+        return pVec.subtract(this);
     }
 
     public Vec3 normalize() {
@@ -84,6 +84,9 @@ public class Vec3 implements Position {
     }
 
     public Vec3 add(Vec3 pVec) {
+        if (!(this instanceof ExactVec3) && pVec instanceof ExactVec3) {
+            return pVec.add(this.x, this.y, this.z);
+        }
         return this.add(pVec.x, pVec.y, pVec.z);
     }
 
@@ -92,14 +95,11 @@ public class Vec3 implements Position {
     }
 
     public boolean closerThan(Position pPos, double pDistance) {
-        return this.distanceToSqr(pPos.x(), pPos.y(), pPos.z()) < pDistance * pDistance;
+        return this.exactPosition().relativeTo(pPos.exactPosition()).lengthSqr() < pDistance * pDistance;
     }
 
     public double distanceTo(Vec3 pVec) {
-        double d0 = pVec.x - this.x;
-        double d1 = pVec.y - this.y;
-        double d2 = pVec.z - this.z;
-        return Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
+        return Math.sqrt(this.distanceToSqr(pVec));
     }
 
     public double distanceToSqr(Vec3 pVec) {
@@ -182,6 +182,9 @@ public class Vec3 implements Position {
     }
 
     public Vec3 lerp(Vec3 pTo, double pDelta) {
+        if (this instanceof ExactVec3 || pTo instanceof ExactVec3) {
+            return ExactVec3.position(this).lerpTo(ExactVec3.position(pTo), pDelta).toExactVec3();
+        }
         return new Vec3(Mth.lerp(pDelta, this.x, pTo.x), Mth.lerp(pDelta, this.y, pTo.y), Mth.lerp(pDelta, this.z, pTo.z));
     }
 
@@ -244,7 +247,7 @@ public class Vec3 implements Position {
 
     public Vec3 relative(Direction p_231076_, double p_231077_) {
         Vec3i vec3i = p_231076_.getNormal();
-        return new Vec3(this.x + p_231077_ * (double) vec3i.getXLo(), this.y + p_231077_ * (double) vec3i.getY(), this.z + p_231077_ * (double) vec3i.getZLo());
+        return this.add(p_231077_ * (double) vec3i.getXLo(), p_231077_ * (double) vec3i.getY(), p_231077_ * (double) vec3i.getZLo());
     }
 
     public final double x() {

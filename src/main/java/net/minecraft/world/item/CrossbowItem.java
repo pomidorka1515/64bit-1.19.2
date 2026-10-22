@@ -83,7 +83,7 @@ public class CrossbowItem extends ProjectileWeaponItem implements Vanishable {
         if (f >= 1.0F && !isCharged(pStack) && tryLoadProjectiles(pEntityLiving, pStack)) {
             setCharged(pStack, true);
             SoundSource soundsource = pEntityLiving instanceof Player ? SoundSource.PLAYERS : SoundSource.HOSTILE;
-            pLevel.playSound((Player) null, pEntityLiving.getX(), pEntityLiving.getY(), pEntityLiving.getZ(), SoundEvents.CROSSBOW_LOADING_END, soundsource, 1.0F, 1.0F / (pLevel.getRandom().nextFloat() * 0.5F + 1.0F) + 0.2F);
+            pLevel.playSound((Player) null, pEntityLiving.sectorPosition(), SoundEvents.CROSSBOW_LOADING_END, soundsource, 1.0F, 1.0F / (pLevel.getRandom().nextFloat() * 0.5F + 1.0F) + 0.2F);
         }
     }
 
@@ -194,6 +194,7 @@ public class CrossbowItem extends ProjectileWeaponItem implements Vanishable {
             Projectile projectile;
             if (flag) {
                 projectile = new FireworkRocketEntity(pLevel, pAmmoStack, pShooter, pShooter.getX(), pShooter.getEyeY() - (double) 0.15F, pShooter.getZ(), true);
+                projectile.applyExactPosition(pShooter.sectorPosition().withY(pShooter.getEyeY() - (double) 0.15F));
             } else {
                 projectile = getArrow(pLevel, pShooter, pCrossbowStack, pAmmoStack);
                 if (pIsCreativeMode || pProjectileAngle != 0.0F) {
@@ -217,7 +218,7 @@ public class CrossbowItem extends ProjectileWeaponItem implements Vanishable {
                 p_40858_.broadcastBreakEvent(pHand);
             });
             pLevel.addFreshEntity(projectile);
-            pLevel.playSound((Player) null, pShooter.getX(), pShooter.getY(), pShooter.getZ(), SoundEvents.CROSSBOW_SHOOT, SoundSource.PLAYERS, 1.0F, pSoundPitch);
+            pLevel.playSound((Player) null, pShooter.sectorPosition(), SoundEvents.CROSSBOW_SHOOT, SoundSource.PLAYERS, 1.0F, pSoundPitch);
         }
     }
 
@@ -294,12 +295,12 @@ public class CrossbowItem extends ProjectileWeaponItem implements Vanishable {
 
             if (f >= 0.2F && !this.startSoundPlayed) {
                 this.startSoundPlayed = true;
-                pLevel.playSound((Player) null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), soundevent, SoundSource.PLAYERS, 0.5F, 1.0F);
+                pLevel.playSound((Player) null, pLivingEntity.sectorPosition(), soundevent, SoundSource.PLAYERS, 0.5F, 1.0F);
             }
 
             if (f >= 0.5F && soundevent1 != null && !this.midLoadSoundPlayed) {
                 this.midLoadSoundPlayed = true;
-                pLevel.playSound((Player) null, pLivingEntity.getX(), pLivingEntity.getY(), pLivingEntity.getZ(), soundevent1, SoundSource.PLAYERS, 0.5F, 1.0F);
+                pLevel.playSound((Player) null, pLivingEntity.sectorPosition(), soundevent1, SoundSource.PLAYERS, 0.5F, 1.0F);
             }
         }
     }

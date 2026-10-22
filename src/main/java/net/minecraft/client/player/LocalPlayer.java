@@ -598,11 +598,11 @@ public class LocalPlayer extends AbstractClientPlayer {
     }
 
     public void playSound(SoundEvent pSound, float pVolume, float pPitch) {
-        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), pSound, this.getSoundSource(), pVolume, pPitch, false);
+        this.level.playLocalSound(this.sectorPosition(), pSound, this.getSoundSource(), pVolume, pPitch, false);
     }
 
     public void playNotifySound(SoundEvent pSound, SoundSource pSource, float pVolume, float pPitch) {
-        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), pSound, pSource, pVolume, pPitch, false);
+        this.level.playLocalSound(this.sectorPosition(), pSound, pSource, pVolume, pPitch, false);
     }
 
     public boolean isEffectiveAi() {
@@ -1167,12 +1167,12 @@ public class LocalPlayer extends AbstractClientPlayer {
             return this.wasUnderwater;
         } else {
             if (!flag && flag1) {
-                this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.AMBIENT_UNDERWATER_ENTER, SoundSource.AMBIENT, 1.0F, 1.0F, false);
+                this.level.playLocalSound(this.sectorPosition(), SoundEvents.AMBIENT_UNDERWATER_ENTER, SoundSource.AMBIENT, 1.0F, 1.0F, false);
                 this.minecraft.getSoundManager().play(new UnderwaterAmbientSoundInstances.UnderwaterAmbientSoundInstance(this));
             }
 
             if (flag && !flag1) {
-                this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.AMBIENT_UNDERWATER_EXIT, SoundSource.AMBIENT, 1.0F, 1.0F, false);
+                this.level.playLocalSound(this.sectorPosition(), SoundEvents.AMBIENT_UNDERWATER_EXIT, SoundSource.AMBIENT, 1.0F, 1.0F, false);
             }
 
             return this.wasUnderwater;

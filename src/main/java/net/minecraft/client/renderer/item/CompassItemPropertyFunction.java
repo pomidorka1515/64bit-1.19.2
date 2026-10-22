@@ -73,12 +73,13 @@ public class CompassItemPropertyFunction implements ClampedItemPropertyFunction 
     }
 
     private boolean isValidCompassTargetPos(Entity pEntity, @Nullable GlobalPos pPos) {
-        return pPos != null && pPos.dimension() == pEntity.level.dimension() && !(pPos.pos().distToCenterSqr(pEntity.position()) < (double) 1.0E-5F);
+        return pPos != null && pPos.dimension() == pEntity.level.dimension() && !(pPos.pos().distToCenterSqr(pEntity.sectorPosition()) < (double) 1.0E-5F);
     }
 
     private double getAngleFromEntityToPos(Entity pEntity, BlockPos pPos) {
         Vec3 vec3 = Vec3.atCenterOf(pPos);
-        return Math.atan2(vec3.z() - pEntity.getZ(), vec3.x() - pEntity.getX()) / (double) ((float) Math.PI * 2F);
+        Vec3 delta = net.minecraft.world.phys.SectorVec3.fromApproximate(vec3).relativeTo(pEntity.sectorPosition());
+        return Math.atan2(delta.z, delta.x) / (double) ((float) Math.PI * 2F);
     }
 
     private double getWrappedVisualRotationY(Entity p_234940_) {

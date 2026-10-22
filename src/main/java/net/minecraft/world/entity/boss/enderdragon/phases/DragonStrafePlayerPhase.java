@@ -167,7 +167,7 @@ public class DragonStrafePlayerPhase extends AbstractDragonPhaseInstance {
 
     @Nullable
     public Vec3 getFlyTargetLocation() {
-        return this.targetLocation == null ? null : this.targetLocation.toApproximateVec3();
+        return this.targetLocation == null ? null : this.targetLocation.toExactVec3();
     }
 
     public net.minecraft.world.phys.SectorVec3 getExactFlyTargetLocation() {

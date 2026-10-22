@@ -21,4 +21,9 @@ public final class ExactVec3 extends Vec3 {
     public Vec3 add(double x, double y, double z) {
         return new ExactVec3(this.exact.add(x, y, z));
     }
+
+    @Override
+    public SectorVec3 exactPosition() {
+        return this.exact;
+    }
 }

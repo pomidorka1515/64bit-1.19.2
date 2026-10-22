@@ -83,7 +83,7 @@ public class BeehiveBlockEntity extends BlockEntity {
             for (Entity entity : list) {
                 if (entity instanceof Bee) {
                     Bee bee = (Bee) entity;
-                    if (pPlayer.position().distanceToSqr(entity.position()) <= 16.0D) {
+                    if (pPlayer.distanceToSqr(entity) <= 16.0D) {
                         if (!this.isSedated()) {
                             bee.setTarget(pPlayer);
                         } else {

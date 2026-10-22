@@ -120,7 +120,7 @@ public class ExperienceOrb extends Entity {
     }
 
     public static void award(ServerLevel pLevel, Vec3 pPos, int pAmount) {
-        award(pLevel, net.minecraft.world.phys.SectorVec3.fromApproximate(pPos.x(), pPos.y(), pPos.z()), pAmount);
+        award(pLevel, net.minecraft.world.phys.SectorVec3.fromApproximate(pPos), pAmount);
     }
 
     /** Spawns and merges experience at an exact split-coordinate location. */

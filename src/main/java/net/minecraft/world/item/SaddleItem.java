@@ -18,7 +18,7 @@ public class SaddleItem extends Item {
             if (!saddleable.isSaddled() && saddleable.isSaddleable()) {
                 if (!pPlayer.level.isClientSide) {
                     saddleable.equipSaddle(SoundSource.NEUTRAL);
-                    pTarget.level.gameEvent(pTarget, GameEvent.EQUIP, pTarget.position());
+                    pTarget.level.gameEvent(pTarget, GameEvent.EQUIP, pTarget.exactPositionVector());
                     pStack.shrink(1);
                 }
 

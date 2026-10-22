@@ -19,7 +19,7 @@ public class BlockHitResult extends HitResult {
     }
 
     public static BlockHitResult missExact(SectorVec3 pLocation, Direction pDirection, BlockPos pPos) {
-        return new BlockHitResult(true, pLocation.toApproximateVec3(), pDirection, pPos, false, pLocation);
+        return new BlockHitResult(true, pLocation.toExactVec3(), pDirection, pPos, false, pLocation);
     }
 
     public BlockHitResult(Vec3 pLocation, Direction pDirection, BlockPos pBlockPos, boolean pInside) {
@@ -29,7 +29,7 @@ public class BlockHitResult extends HitResult {
 
     /** Creates a hit whose world X/Z are retained exactly. */
     public BlockHitResult(SectorVec3 pLocation, Direction pDirection, BlockPos pBlockPos, boolean pInside) {
-        this(false, pLocation.toApproximateVec3(), pDirection, pBlockPos, pInside, pLocation);
+        this(false, pLocation.toExactVec3(), pDirection, pBlockPos, pInside, pLocation);
     }
 
     private BlockHitResult(boolean pMiss, Vec3 pLocation, Direction pDirection, BlockPos pBlockPos, boolean pInside, @Nullable SectorVec3 exactLocation) {

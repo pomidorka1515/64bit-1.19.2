@@ -79,7 +79,7 @@ public class RandomPos {
     @Nullable
     public static Vec3 generateRandomPos(PathfinderMob mob, Supplier<BlockPos> supplier) {
         SectorVec3 exact = generateRandomSectorPos(mob, supplier);
-        return exact == null ? null : exact.toApproximateVec3();
+        return exact == null ? null : exact.toExactVec3();
     }
 
     @Nullable
@@ -90,7 +90,7 @@ public class RandomPos {
     @Nullable
     public static Vec3 generateRandomPos(Supplier<BlockPos> supplier, ToDoubleFunction<BlockPos> score) {
         SectorVec3 exact = generateRandomSectorPos(supplier, score);
-        return exact == null ? null : exact.toApproximateVec3();
+        return exact == null ? null : exact.toExactVec3();
     }
 
     /** Selects a random block target without converting its exact X/Z to doubles. */

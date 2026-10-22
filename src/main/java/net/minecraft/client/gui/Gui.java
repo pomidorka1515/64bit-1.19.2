@@ -999,7 +999,7 @@ public class Gui extends GuiComponent {
 
     private void updateVignetteBrightness(Entity pEntity) {
         if (pEntity != null) {
-            BlockPos blockpos = new BlockPos(pEntity.getX(), pEntity.getEyeY(), pEntity.getZ());
+            BlockPos blockpos = pEntity.exactEyePosition().blockPosition();
             float f = LightTexture.getBrightness(pEntity.level.dimensionType(), pEntity.level.getMaxLocalRawBrightness(blockpos));
             float f1 = Mth.clamp(1.0F - f, 0.0F, 1.0F);
             this.vignetteBrightness += (f1 - this.vignetteBrightness) * 0.01F;

@@ -58,11 +58,8 @@ public class VibrationParticleOption implements ParticleOptions {
     }
 
     public String writeToString() {
-        Vec3 vec3 = this.destination.getPosition((Level) null).get();
-        double d0 = vec3.x();
-        double d1 = vec3.y();
-        double d2 = vec3.z();
-        return String.format(Locale.ROOT, "%s %.2f %.2f %.2f %d", Registry.PARTICLE_TYPE.getKey(this.getType()), d0, d1, d2, this.arrivalInTicks);
+        var position = this.destination.exactPosition((Level) null).get();
+        return String.format(Locale.ROOT, "%s %s %.2f %s %d", Registry.PARTICLE_TYPE.getKey(this.getType()), position.formatX(2), position.y(), position.formatZ(2), this.arrivalInTicks);
     }
 
     public ParticleType<VibrationParticleOption> getType() {

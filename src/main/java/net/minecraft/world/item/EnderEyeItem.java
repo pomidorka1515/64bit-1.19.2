@@ -76,15 +76,16 @@ public class EnderEyeItem extends Item {
                 BlockPos blockpos = serverlevel.findNearestMapStructure(StructureTags.EYE_OF_ENDER_LOCATED, pPlayer.blockPosition(), 100, false);
                 if (blockpos != null) {
                     EyeOfEnder eyeofender = new EyeOfEnder(pLevel, pPlayer.getX(), pPlayer.getY(0.5D), pPlayer.getZ());
+                    eyeofender.applyExactPosition(pPlayer.sectorPosition().withY(pPlayer.getY(0.5D)));
                     eyeofender.setItem(itemstack);
                     eyeofender.signalTo(blockpos);
-                    pLevel.gameEvent(GameEvent.PROJECTILE_SHOOT, eyeofender.position(), GameEvent.Context.of(pPlayer));
+                    pLevel.gameEvent(GameEvent.PROJECTILE_SHOOT, eyeofender.sectorPosition(), GameEvent.Context.of(pPlayer));
                     pLevel.addFreshEntity(eyeofender);
                     if (pPlayer instanceof ServerPlayer) {
                         CriteriaTriggers.USED_ENDER_EYE.trigger((ServerPlayer) pPlayer, blockpos);
                     }
 
-                    pLevel.playSound((Player) null, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundEvents.ENDER_EYE_LAUNCH, SoundSource.NEUTRAL, 0.5F, 0.4F / (pLevel.getRandom().nextFloat() * 0.4F + 0.8F));
+                    pLevel.playSound((Player) null, pPlayer.sectorPosition(), SoundEvents.ENDER_EYE_LAUNCH, SoundSource.NEUTRAL, 0.5F, 0.4F / (pLevel.getRandom().nextFloat() * 0.4F + 0.8F));
                     pLevel.levelEvent((Player) null, 1003, pPlayer.blockPosition(), 0);
                     if (!pPlayer.getAbilities().instabuild) {
                         itemstack.shrink(1);

@@ -40,7 +40,7 @@ public class LocalCoordinates implements Coordinates {
     }
 
     public Vec3 getPosition(CommandSourceStack source) {
-        return this.getExactPosition(source).toApproximateVec3();
+        return this.getExactPosition(source).toExactVec3();
     }
 
     public Vec2 getRotation(CommandSourceStack pSource) {

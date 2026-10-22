@@ -604,8 +604,8 @@ public class GameTestHelper {
     }
 
     public Vec3 absoluteVec(Vec3 pRelativeVec3) {
-        Vec3 vec3 = Vec3.atLowerCornerOf(this.testInfo.getStructureBlockPos());
-        return StructureTemplate.transform(vec3.add(pRelativeVec3), Mirror.NONE, this.testInfo.getRotation(), this.testInfo.getStructureBlockPos());
+        Vec3 local = StructureTemplate.transform(pRelativeVec3, Mirror.NONE, this.testInfo.getRotation(), BlockPos.ZERO);
+        return Vec3.atLowerCornerOf(this.testInfo.getStructureBlockPos()).add(local);
     }
 
     public long getTick() {

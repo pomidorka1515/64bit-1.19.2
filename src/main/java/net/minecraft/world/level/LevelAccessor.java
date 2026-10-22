@@ -110,7 +110,7 @@ public interface LevelAccessor extends CommonLevelAccessor, LevelTimeAccess {
 
     /** Exact game-event origin for precision-sensitive callers. */
     default void gameEvent(GameEvent event, SectorVec3 position, GameEvent.Context context) {
-        this.gameEvent(event, position.toApproximateVec3(), context);
+        this.gameEvent(event, position.toExactVec3(), context);
     }
 
     default void gameEvent(@Nullable Entity pEntity, GameEvent pEvent, Vec3 pPosition) {

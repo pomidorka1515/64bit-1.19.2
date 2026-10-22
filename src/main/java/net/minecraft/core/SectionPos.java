@@ -58,7 +58,7 @@ public class SectionPos extends Vec3i {
     }
 
     public static SectionPos of(Position pPosition) {
-        return new SectionPos(posToSectionCoord(pPosition.x()), blockToSectionCoord(pPosition.y()), posToSectionCoord(pPosition.z()));
+        return of(pPosition.exactPosition().blockPosition());
     }
 
     public static SectionPos bottomOf(ChunkAccess pChunk) {

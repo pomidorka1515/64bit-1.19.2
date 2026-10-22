@@ -325,7 +325,7 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public double distToCenterSqr(Position pPosition) {
-        return this.distToCenterSqr(pPosition.x(), pPosition.y(), pPosition.z());
+        return this.distToCenterSqr(pPosition.exactPosition());
     }
 
     public double distToCenterSqr(double pX, double pY, double pZ) {

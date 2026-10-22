@@ -43,13 +43,13 @@ public class AdvancementRewards {
 
     public void grant(ServerPlayer pPlayer) {
         pPlayer.giveExperiencePoints(this.experience);
-        LootContext lootcontext = (new LootContext.Builder(pPlayer.getLevel())).withParameter(LootContextParams.THIS_ENTITY, pPlayer).withParameter(LootContextParams.ORIGIN, pPlayer.position()).withRandom(pPlayer.getRandom()).create(LootContextParamSets.ADVANCEMENT_REWARD);
+        LootContext lootcontext = (new LootContext.Builder(pPlayer.getLevel())).withParameter(LootContextParams.THIS_ENTITY, pPlayer).withParameter(LootContextParams.ORIGIN, pPlayer.exactPositionVector()).withRandom(pPlayer.getRandom()).create(LootContextParamSets.ADVANCEMENT_REWARD);
         boolean flag = false;
 
         for (ResourceLocation resourcelocation : this.loot) {
             for (ItemStack itemstack : pPlayer.server.getLootTables().get(resourcelocation).getRandomItems(lootcontext)) {
                 if (pPlayer.addItem(itemstack)) {
-                    pPlayer.level.playSound((Player) null, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, ((pPlayer.getRandom().nextFloat() - pPlayer.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
+                    pPlayer.level.playSound((Player) null, pPlayer.sectorPosition(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, ((pPlayer.getRandom().nextFloat() - pPlayer.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
                     flag = true;
                 } else {
                     ItemEntity itementity = pPlayer.drop(itemstack, false);

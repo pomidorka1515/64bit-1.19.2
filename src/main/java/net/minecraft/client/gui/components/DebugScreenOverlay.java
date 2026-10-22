@@ -228,9 +228,9 @@ public class DebugScreenOverlay extends GuiComponent {
             if (exact != null) {
                 addExactPositionLines(list, exact);
             } else {
-                list.add(String.format(Locale.ROOT, "X: %.3f", entity.getX()));
+                list.add("X: " + entity.sectorPosition().formatX(3));
                 list.add(String.format(Locale.ROOT, "Y: %.5f", entity.getY()));
-                list.add(String.format(Locale.ROOT, "Z: %.3f", entity.getZ()));
+                list.add("Z: " + entity.sectorPosition().formatZ(3));
             }
             list.add(formatCoordinateHalves("x", exact != null ? exact.blockX() : blockpos.getX()));
             list.add(formatCoordinateHalves("z", exact != null ? exact.blockZ() : blockpos.getZ()));

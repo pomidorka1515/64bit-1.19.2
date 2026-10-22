@@ -471,7 +471,7 @@ public class EntitySelectorOptions {
                   if (lootitemcondition == null) {
                      return false;
                   } else {
-                     LootContext lootcontext = (new LootContext.Builder(serverlevel)).withParameter(LootContextParams.THIS_ENTITY, p_175180_).withParameter(LootContextParams.ORIGIN, p_175180_.position()).create(LootContextParamSets.SELECTOR);
+                     LootContext lootcontext = (new LootContext.Builder(serverlevel)).withParameter(LootContextParams.THIS_ENTITY, p_175180_).withParameter(LootContextParams.ORIGIN, p_175180_.exactPositionVector()).create(LootContextParamSets.SELECTOR);
                      return flag ^ lootitemcondition.test(lootcontext);
                   }
                }

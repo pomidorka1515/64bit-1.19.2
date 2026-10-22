@@ -494,7 +494,7 @@ public class EnderDragon extends Mob implements Enemy {
 
         if (this.level instanceof ServerLevel) {
             if (this.dragonDeathTime > 150 && this.dragonDeathTime % 5 == 0 && flag) {
-                ExperienceOrb.award((ServerLevel) this.level, this.position(), Mth.floor((float) i * 0.08F));
+                ExperienceOrb.award((ServerLevel) this.level, this.sectorPosition(), Mth.floor((float) i * 0.08F));
             }
 
             if (this.dragonDeathTime == 1 && !this.isSilent()) {
@@ -507,7 +507,7 @@ public class EnderDragon extends Mob implements Enemy {
         this.yBodyRot = this.getYRot();
         if (this.dragonDeathTime == 200 && this.level instanceof ServerLevel) {
             if (flag) {
-                ExperienceOrb.award((ServerLevel) this.level, this.position(), Mth.floor((float) i * 0.2F));
+                ExperienceOrb.award((ServerLevel) this.level, this.sectorPosition(), Mth.floor((float) i * 0.2F));
             }
 
             if (this.dragonFight != null) {

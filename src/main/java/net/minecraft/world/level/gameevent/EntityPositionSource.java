@@ -41,7 +41,7 @@ public class EntityPositionSource implements PositionSource {
         }
 
         return this.entityOrUuidOrId.left().map((p_223676_) -> {
-            return p_223676_.position().add(0.0D, (double) this.yOffset, 0.0D);
+            return p_223676_.exactPositionVector().add(0.0D, (double) this.yOffset, 0.0D);
         });
     }
 

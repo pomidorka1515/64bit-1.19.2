@@ -244,16 +244,16 @@ public class KeyboardHandler {
                     if (pPrivileged) {
                         if (pAskServer) {
                             this.minecraft.player.connection.getDebugQueryHandler().queryEntityTag(entity.getId(), (p_90921_) -> {
-                                this.copyCreateEntityCommand(resourcelocation, entity.position(), p_90921_);
+                                this.copyCreateEntityCommand(resourcelocation, entity.exactPositionVector(), p_90921_);
                                 this.debugFeedbackTranslated("debug.inspect.server.entity");
                             });
                         } else {
                             CompoundTag compoundtag = entity.saveWithoutId(new CompoundTag());
-                            this.copyCreateEntityCommand(resourcelocation, entity.position(), compoundtag);
+                            this.copyCreateEntityCommand(resourcelocation, entity.exactPositionVector(), compoundtag);
                             this.debugFeedbackTranslated("debug.inspect.client.entity");
                         }
                     } else {
-                        this.copyCreateEntityCommand(resourcelocation, entity.position(), (CompoundTag) null);
+                        this.copyCreateEntityCommand(resourcelocation, entity.exactPositionVector(), (CompoundTag) null);
                         this.debugFeedbackTranslated("debug.inspect.client.entity");
                     }
             }
@@ -271,15 +271,16 @@ public class KeyboardHandler {
     }
 
     private void copyCreateEntityCommand(ResourceLocation pEntityId, Vec3 pPos, @Nullable CompoundTag pCompound) {
+        SectorVec3 position = SectorVec3.fromApproximate(pPos);
         String s;
         if (pCompound != null) {
             pCompound.remove("UUID");
             pCompound.remove("Pos");
             pCompound.remove("Dimension");
             String s1 = NbtUtils.toPrettyComponent(pCompound).getString();
-            s = String.format(Locale.ROOT, "/summon %s %.2f %.2f %.2f %s", pEntityId.toString(), pPos.x, pPos.y, pPos.z, s1);
+            s = String.format(Locale.ROOT, "/summon %s %s %.2f %s %s", pEntityId.toString(), position.formatX(2), position.y(), position.formatZ(2), s1);
         } else {
-            s = String.format(Locale.ROOT, "/summon %s %.2f %.2f %.2f", pEntityId.toString(), pPos.x, pPos.y, pPos.z);
+            s = String.format(Locale.ROOT, "/summon %s %s %.2f %s", pEntityId.toString(), position.formatX(2), position.y(), position.formatZ(2));
         }
 
         this.setClipboard(s);

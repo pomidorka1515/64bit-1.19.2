@@ -90,6 +90,11 @@ public class AABB {
     }
 
     public static AABB unitCubeFromLowerCorner(Vec3 pVector) {
+        if (pVector instanceof ExactVec3) {
+            SectorVec3 p = pVector.exactPosition();
+            return fromSectorBounds(new SectorAABB(p.blockX(), p.subX(), p.y(), p.blockZ(), p.subZ(),
+                    p.blockX(), p.subX(), p.y() + 1.0D, p.blockZ(), p.subZ()).expandTowards(1.0D, 0.0D, 1.0D));
+        }
         return new AABB(pVector.x, pVector.y, pVector.z, pVector.x + 1.0D, pVector.y + 1.0D, pVector.z + 1.0D);
     }
 
@@ -340,10 +345,19 @@ public class AABB {
     }
 
     public boolean intersects(Vec3 pMin, Vec3 pMax) {
+        if (this.sectorBounds != null || pMin instanceof ExactVec3 || pMax instanceof ExactVec3) {
+            SectorVec3 min = SectorVec3.fromApproximate(pMin);
+            SectorVec3 max = SectorVec3.fromApproximate(pMax);
+            SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(min);
+            return this.exactBounds().toLocalAABB(origin).intersects(origin.toLocal(min), origin.toLocal(max));
+        }
         return this.intersects(Math.min(pMin.x, pMax.x), Math.min(pMin.y, pMax.y), Math.min(pMin.z, pMax.z), Math.max(pMin.x, pMax.x), Math.max(pMin.y, pMax.y), Math.max(pMin.z, pMax.z));
     }
 
     public boolean contains(Vec3 pVec) {
+        if (this.sectorBounds != null || pVec instanceof ExactVec3) {
+            return this.exactBounds().contains(SectorVec3.fromApproximate(pVec));
+        }
         return this.contains(pVec.x, pVec.y, pVec.z);
     }
 
@@ -387,6 +401,13 @@ public class AABB {
     }
 
     public Optional<Vec3> clip(Vec3 pFrom, Vec3 pTo) {
+        if (this.sectorBounds != null || pFrom instanceof ExactVec3 || pTo instanceof ExactVec3) {
+            SectorVec3 from = pFrom.exactPosition();
+            SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(from);
+            return this.exactBounds().toLocalAABB(origin).clip(origin.toLocal(from), origin.toLocal(pTo.exactPosition()))
+                    .map(hit -> from.add(hit.x - origin.toLocal(from).x, hit.y - origin.toLocal(from).y,
+                            hit.z - origin.toLocal(from).z).toExactVec3());
+        }
         double[] adouble = new double[] {1.0D};
         double d0 = pTo.x - pFrom.x;
         double d1 = pTo.y - pFrom.y;
@@ -481,6 +502,7 @@ public class AABB {
     }
 
     public Vec3 getCenter() {
+        if (this.sectorBounds != null) return this.sectorBounds.getCenter().toExactVec3();
         return new Vec3(Mth.lerp(0.5D, this.minX, this.maxX), Mth.lerp(0.5D, this.minY, this.maxY), Mth.lerp(0.5D, this.minZ, this.maxZ));
     }
 

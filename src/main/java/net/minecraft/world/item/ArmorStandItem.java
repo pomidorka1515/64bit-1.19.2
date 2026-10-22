@@ -37,7 +37,8 @@ public class ArmorStandItem extends Item {
             BlockPos blockpos = blockplacecontext.getClickedPos();
             ItemStack itemstack = pContext.getItemInHand();
             Vec3 vec3 = Vec3.atBottomCenterOf(blockpos);
-            AABB aabb = EntityType.ARMOR_STAND.getDimensions().makeBoundingBox(vec3.x(), vec3.y(), vec3.z());
+            AABB aabb = AABB.fromSectorBounds(net.minecraft.world.phys.SectorAABB.around(vec3.exactPosition(),
+                    EntityType.ARMOR_STAND.getDimensions().width, EntityType.ARMOR_STAND.getDimensions().height));
             if (level.noCollision((Entity) null, aabb) && level.getEntities((Entity) null, aabb).isEmpty()) {
                 if (level instanceof ServerLevel) {
                     ServerLevel serverlevel = (ServerLevel) level;
@@ -47,10 +48,10 @@ public class ArmorStandItem extends Item {
                     }
 
                     float f = (float) Mth.floor((Mth.wrapDegrees(pContext.getRotation() - 180.0F) + 22.5F) / 45.0F) * 45.0F;
-                    armorstand.moveTo(armorstand.getX(), armorstand.getY(), armorstand.getZ(), f, 0.0F);
+                    armorstand.moveTo(armorstand.sectorPosition(), f, 0.0F);
                     this.randomizePose(armorstand, level.random);
                     serverlevel.addFreshEntityWithPassengers(armorstand);
-                    level.playSound((Player) null, armorstand.getX(), armorstand.getY(), armorstand.getZ(), SoundEvents.ARMOR_STAND_PLACE, SoundSource.BLOCKS, 0.75F, 0.8F);
+                    level.playSound((Player) null, armorstand.sectorPosition(), SoundEvents.ARMOR_STAND_PLACE, SoundSource.BLOCKS, 0.75F, 0.8F);
                     armorstand.gameEvent(GameEvent.ENTITY_PLACE, pContext.getPlayer());
                 }
 

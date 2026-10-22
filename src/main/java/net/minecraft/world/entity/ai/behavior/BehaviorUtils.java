@@ -187,7 +187,7 @@ public class BehaviorUtils {
     @Nullable
     public static Vec3 getRandomSwimmablePos(PathfinderMob mob, int horizontalRange, int verticalRange) {
         SectorVec3 exact = getRandomSwimmableSectorPos(mob, horizontalRange, verticalRange);
-        return exact == null ? null : exact.toApproximateVec3();
+        return exact == null ? null : exact.toExactVec3();
     }
 
     @Nullable

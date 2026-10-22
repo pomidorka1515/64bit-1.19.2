@@ -114,6 +114,6 @@ public class InstrumentItem extends Item {
         SoundEvent soundevent = pInstrument.soundEvent();
         float f = pInstrument.range() / 16.0F;
         pLevel.playSound(pPlayer, pPlayer, soundevent, SoundSource.RECORDS, f, 1.0F);
-        pLevel.gameEvent(GameEvent.INSTRUMENT_PLAY, pPlayer.position(), GameEvent.Context.of(pPlayer));
+        pLevel.gameEvent(GameEvent.INSTRUMENT_PLAY, pPlayer.sectorPosition(), GameEvent.Context.of(pPlayer));
     }
 }

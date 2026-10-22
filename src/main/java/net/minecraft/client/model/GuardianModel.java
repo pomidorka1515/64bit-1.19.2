@@ -102,7 +102,8 @@ public class GuardianModel extends HierarchicalModel<Guardian> {
 
             Vec3 vec32 = pEntity.getViewVector(0.0F);
             vec32 = new Vec3(vec32.x, 0.0D, vec32.z);
-            Vec3 vec33 = (new Vec3(vec31.x - vec3.x, 0.0D, vec31.z - vec3.z)).normalize().yRot(((float) Math.PI / 2F));
+            Vec3 difference = vec31.subtract(vec3);
+            Vec3 vec33 = (new Vec3(difference.x, 0.0D, difference.z)).normalize().yRot(((float) Math.PI / 2F));
             double d1 = vec32.dot(vec33);
             this.eye.x = Mth.sqrt((float) Math.abs(d1)) * 2.0F * (float) Math.signum(d1);
         }

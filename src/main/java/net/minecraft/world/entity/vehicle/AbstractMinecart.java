@@ -632,7 +632,7 @@ public abstract class AbstractMinecart extends Entity {
     @Nullable
     public Vec3 getPosOffs(double x, double y, double z, double offset) {
         SectorVec3 position = this.getExactPosOffs(SectorVec3.fromApproximate(x, y, z), offset);
-        return position == null ? null : position.toApproximateVec3();
+        return position == null ? null : position.toExactVec3();
     }
 
     /** Calculates an offset rail point without reconstructing an absolute X/Z double. */
@@ -677,7 +677,7 @@ public abstract class AbstractMinecart extends Entity {
     @Nullable
     public Vec3 getPos(double x, double y, double z) {
         SectorVec3 position = this.getExactPos(SectorVec3.fromApproximate(x, y, z));
-        return position == null ? null : position.toApproximateVec3();
+        return position == null ? null : position.toExactVec3();
     }
 
     /** Snaps a split-coordinate point to its rail centerline in exact X/Z space. */

@@ -39,7 +39,8 @@ public class LevitationTrigger extends SimpleCriterionTrigger<LevitationTrigger.
         }
 
         public boolean matches(ServerPlayer pPlayer, Vec3 pStartPos, int pDuration) {
-            if (!this.distance.matches(pStartPos.x, pStartPos.y, pStartPos.z, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ())) {
+            Vec3 delta = pPlayer.sectorPosition().relativeTo(net.minecraft.world.phys.ExactVec3.position(pStartPos));
+            if (!this.distance.matches(0.0D, 0.0D, 0.0D, delta.x, delta.y, delta.z)) {
                 return false;
             } else {
                 return this.duration.matches(pDuration);

@@ -72,7 +72,7 @@ public class EntityPredicate {
     }
 
     public boolean matches(ServerPlayer pPlayer, @Nullable Entity pEntity) {
-        return this.matches(pPlayer.getLevel(), pPlayer.position(), pEntity);
+        return this.matches(pPlayer.getLevel(), pPlayer.exactPositionVector(), pEntity);
     }
 
     public boolean matches(ServerLevel pLevel, @Nullable Vec3 pPosition, @Nullable Entity pEntity) {
@@ -183,7 +183,7 @@ public class EntityPredicate {
     }
 
     public static LootContext createContext(ServerPlayer pPlayer, Entity pEntity) {
-        return (new LootContext.Builder(pPlayer.getLevel())).withParameter(LootContextParams.THIS_ENTITY, pEntity).withParameter(LootContextParams.ORIGIN, pPlayer.position()).withRandom(pPlayer.getRandom()).create(LootContextParamSets.ADVANCEMENT_ENTITY);
+        return (new LootContext.Builder(pPlayer.getLevel())).withParameter(LootContextParams.THIS_ENTITY, pEntity).withParameter(LootContextParams.ORIGIN, pPlayer.exactPositionVector()).withRandom(pPlayer.getRandom()).create(LootContextParamSets.ADVANCEMENT_ENTITY);
     }
 
     public static class Builder {

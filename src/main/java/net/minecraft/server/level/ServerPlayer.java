@@ -524,14 +524,14 @@ public class ServerPlayer extends Player {
 
     public void trackStartFallingPosition() {
         if (this.fallDistance > 0.0F && this.startingToFallPosition == null) {
-            this.startingToFallPosition = this.position();
+            this.startingToFallPosition = this.exactPositionVector();
         }
     }
 
     public void trackEnteredOrExitedLavaOnVehicle() {
         if (this.getVehicle() != null && this.getVehicle().isInLava()) {
             if (this.enteredLavaOnVehiclePosition == null) {
-                this.enteredLavaOnVehiclePosition = this.position();
+                this.enteredLavaOnVehiclePosition = this.exactPositionVector();
             } else {
                 CriteriaTriggers.RIDE_ENTITY_IN_LAVA_TRIGGER.trigger(this, this.enteredLavaOnVehiclePosition);
             }
@@ -718,7 +718,7 @@ public class ServerPlayer extends Player {
             if (portalinfo != null) {
                 serverlevel.getProfiler().push("moving");
                 if (resourcekey == Level.OVERWORLD && pServer.dimension() == Level.NETHER) {
-                    this.enteredNetherPosition = this.position();
+                    this.enteredNetherPosition = this.exactPositionVector();
                 } else if (pServer.dimension() == Level.END) {
                     this.createEndPlatform(pServer, portalinfo.exactPos.blockPosition());
                 }
@@ -1153,7 +1153,7 @@ public class ServerPlayer extends Player {
         this.connection.send(new ClientboundUpdateMobEffectPacket(this.getId(), pInstance));
         if (pInstance.getEffect() == MobEffects.LEVITATION) {
             this.levitationStartTime = this.tickCount;
-            this.levitationStartPos = this.position();
+            this.levitationStartPos = this.exactPositionVector();
         }
 
         CriteriaTriggers.EFFECTS_CHANGED.trigger(this, pEntity);

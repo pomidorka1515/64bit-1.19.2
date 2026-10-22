@@ -74,7 +74,7 @@ public class ClientboundPlayerLookAtPacket implements Packet<ClientGamePacketLis
 
     @Nullable
     public Vec3 getPosition(Level pLevel) {
-        return this.getExactPosition(pLevel).toApproximateVec3();
+        return this.getExactPosition(pLevel).toExactVec3();
     }
 
     public SectorVec3 getExactPosition(Level pLevel) {

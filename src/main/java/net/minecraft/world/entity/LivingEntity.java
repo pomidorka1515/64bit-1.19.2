@@ -296,7 +296,7 @@ public abstract class LivingEntity extends Entity {
             if (!pState.isAir()) {
                 double d0 = Math.min((double) (0.2F + f / 15.0F), 2.5D);
                 int i = (int) (150.0D * d0);
-                ((ServerLevel) this.level).sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, pState), this.getX(), this.getY(), this.getZ(), i, 0.0D, 0.0D, 0.0D, (double) 0.15F);
+                ((ServerLevel) this.level).sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, pState), this.sectorPosition(), i, 0.0D, 0.0D, 0.0D, (double) 0.15F);
             }
         }
 
@@ -1244,7 +1244,7 @@ public abstract class LivingEntity extends Entity {
     private void breakItem(ItemStack pStack) {
         if (!pStack.isEmpty()) {
             if (!this.isSilent()) {
-                this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.ITEM_BREAK, this.getSoundSource(), 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F, false);
+                this.level.playLocalSound(this.sectorPosition(), SoundEvents.ITEM_BREAK, this.getSoundSource(), 0.8F, 0.8F + this.level.random.nextFloat() * 0.4F, false);
             }
 
             this.spawnItemParticles(pStack, 5);
@@ -3204,7 +3204,7 @@ public abstract class LivingEntity extends Entity {
 
     public ItemStack eat(Level pLevel, ItemStack pFood) {
         if (pFood.isEdible()) {
-            pLevel.playSound((Player) null, this.getX(), this.getY(), this.getZ(), this.getEatingSound(pFood), SoundSource.NEUTRAL, 1.0F, 1.0F + (pLevel.random.nextFloat() - pLevel.random.nextFloat()) * 0.4F);
+            pLevel.playSound((Player) null, this.sectorPosition(), this.getEatingSound(pFood), SoundSource.NEUTRAL, 1.0F, 1.0F + (pLevel.random.nextFloat() - pLevel.random.nextFloat()) * 0.4F);
             this.addEatEffect(pFood, pLevel, this);
             if (!(this instanceof Player) || !((Player) this).getAbilities().instabuild) {
                 pFood.shrink(1);

@@ -25,7 +25,7 @@ public class DistanceTrigger extends SimpleCriterionTrigger<DistanceTrigger.Trig
     }
 
     public void trigger(ServerPlayer pPlayer, Vec3 pPosition) {
-        Vec3 vec3 = pPlayer.position();
+        Vec3 vec3 = pPlayer.exactPositionVector();
         this.trigger(pPlayer, (p_186172_) -> {
             return p_186172_.matches(pPlayer.getLevel(), pPosition, vec3);
         });
@@ -61,10 +61,11 @@ public class DistanceTrigger extends SimpleCriterionTrigger<DistanceTrigger.Trig
         }
 
         public boolean matches(ServerLevel pLevel, Vec3 pStartPosition, Vec3 pCurrentPosition) {
-            if (!this.startPosition.matches(pLevel, pStartPosition.x, pStartPosition.y, pStartPosition.z)) {
+            if (!this.startPosition.matches(pLevel, net.minecraft.world.phys.ExactVec3.position(pStartPosition))) {
                 return false;
             } else {
-                return this.distance.matches(pStartPosition.x, pStartPosition.y, pStartPosition.z, pCurrentPosition.x, pCurrentPosition.y, pCurrentPosition.z);
+                Vec3 delta = pCurrentPosition.subtract(pStartPosition);
+                return this.distance.matches(0.0D, 0.0D, 0.0D, delta.x, delta.y, delta.z);
             }
         }
     }

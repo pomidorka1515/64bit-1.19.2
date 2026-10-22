@@ -286,9 +286,7 @@ public class Explosion {
 
     public void finalizeExplosion(boolean pSpawnParticles) {
         if (this.level.isClientSide) {
-            // Sound has not yet received an exact origin overload; preserve its legacy boundary.
-            Vec3 approximatePosition = this.position.toApproximateVec3();
-            this.level.playLocalSound(approximatePosition.x, approximatePosition.y, approximatePosition.z,
+            this.level.playLocalSound(this.position,
                     SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 4.0F,
                     (1.0F + (this.level.random.nextFloat() - this.level.random.nextFloat()) * 0.2F) * 0.7F, false);
         }

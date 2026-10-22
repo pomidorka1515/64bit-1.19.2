@@ -1871,13 +1871,13 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public final Vec3 getEyePosition() {
-        return new Vec3(this.getX(), this.getEyeY(), this.getZ());
+        return this.sectorPosition().withY(this.getEyeY()).toExactVec3();
     }
 
     public final Vec3 getEyePosition(float pPartialTicks) {
         if (this.sectorPosition != null) {
             SectorVec3 interpolated = this.interpolatedExactPosition(pPartialTicks);
-            return interpolated.withY(interpolated.y() + (double) this.getEyeHeight()).toApproximateVec3();
+            return interpolated.withY(interpolated.y() + (double) this.getEyeHeight()).toExactVec3();
         }
         double d0 = Mth.lerp((double) pPartialTicks, this.xo, this.getX());
         double d1 = Mth.lerp((double) pPartialTicks, this.yo, this.getY()) + (double) this.getEyeHeight();
@@ -3622,6 +3622,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
     public Vec3 position() {
         return this.position;
+    }
+
+    /** World-position carrier for APIs whose signature still uses Vec3. */
+    public final Vec3 exactPositionVector() {
+        return this.sectorPosition().toExactVec3();
     }
 
     /** Exact position for sector-aware callers; null for vanilla entities. */

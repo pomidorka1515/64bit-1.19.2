@@ -142,7 +142,8 @@ public class ChaseClient {
 
     private void handleTeleport(Scanner p_195997_) {
         this.parseTarget(p_195997_).ifPresent((p_195999_) -> {
-            this.executeCommand(String.format(Locale.ROOT, "execute in %s run tp @s %.3f %.3f %.3f %.3f %.3f", p_195999_.level.location(), p_195999_.pos.x, p_195999_.pos.y, p_195999_.pos.z, p_195999_.rot.y, p_195999_.rot.x));
+            var position = p_195999_.pos.exactPosition();
+            this.executeCommand(String.format(Locale.ROOT, "execute in %s run tp @s %s %.3f %s %.3f %.3f", p_195999_.level.location(), position.formatX(3), position.y(), position.formatZ(3), p_195999_.rot.y, p_195999_.rot.x));
         });
     }
 
@@ -151,12 +152,12 @@ public class ChaseClient {
         if (resourcekey == null) {
             return Optional.empty();
         } else {
-            float f = p_196004_.nextFloat();
-            float f1 = p_196004_.nextFloat();
-            float f2 = p_196004_.nextFloat();
+            String x = p_196004_.next();
+            double y = p_196004_.nextDouble();
+            String z = p_196004_.next();
             float f3 = p_196004_.nextFloat();
             float f4 = p_196004_.nextFloat();
-            return Optional.of(new ChaseClient.TeleportTarget(resourcekey, new Vec3((double) f, (double) f1, (double) f2), new Vec2(f4, f3)));
+            return Optional.of(new ChaseClient.TeleportTarget(resourcekey, net.minecraft.world.phys.SectorVec3.fromDecimal(x, y, z).toExactVec3(), new Vec2(f4, f3)));
         }
     }
 

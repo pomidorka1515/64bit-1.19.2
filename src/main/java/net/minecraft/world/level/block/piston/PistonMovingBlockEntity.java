@@ -193,7 +193,14 @@ public class PistonMovingBlockEntity extends BlockEntity {
     }
 
     private static boolean matchesStickyCritera(AABB pShape, Entity pEntity) {
-        return pEntity.getPistonPushReaction() == PushReaction.NORMAL && pEntity.isOnGround() && pEntity.getX() >= pShape.minX && pEntity.getX() <= pShape.maxX && pEntity.getZ() >= pShape.minZ && pEntity.getZ() <= pShape.maxZ;
+        var origin = net.minecraft.world.phys.SectorPhysicsOrigin.from(pEntity.sectorPosition());
+        net.minecraft.world.phys.Vec3 position = origin.toLocal(pEntity.sectorPosition());
+        AABB shape = pShape.getSectorBounds() != null ? pShape.getSectorBounds().toLocalAABB(origin)
+                : new AABB(origin.toLocal(net.minecraft.world.phys.SectorVec3.fromApproximate(pShape.minX, pShape.minY, pShape.minZ)),
+                        origin.toLocal(net.minecraft.world.phys.SectorVec3.fromApproximate(pShape.maxX, pShape.maxY, pShape.maxZ)));
+        return pEntity.getPistonPushReaction() == PushReaction.NORMAL && pEntity.isOnGround()
+                && position.x >= shape.minX && position.x <= shape.maxX
+                && position.z >= shape.minZ && position.z <= shape.maxZ;
     }
 
     private boolean isStickyForEntities() {

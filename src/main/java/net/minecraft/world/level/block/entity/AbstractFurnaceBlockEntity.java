@@ -453,7 +453,7 @@ public abstract class AbstractFurnaceBlockEntity extends BaseContainerBlockEntit
     }
 
     public void awardUsedRecipesAndPopExperience(ServerPlayer pPlayer) {
-        List<Recipe<?>> list = this.getRecipesToAwardAndPopExperience(pPlayer.getLevel(), pPlayer.position());
+        List<Recipe<?>> list = this.getRecipesToAwardAndPopExperience(pPlayer.getLevel(), pPlayer.exactPositionVector());
         pPlayer.awardRecipes(list);
         this.recipesUsed.clear();
     }

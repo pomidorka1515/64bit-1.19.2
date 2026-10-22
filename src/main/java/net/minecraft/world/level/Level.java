@@ -382,12 +382,8 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
     public abstract void playSeededSound(@Nullable Player pPlayer, double pX, double pY, double pZ, SoundEvent pSoundEvent, SoundSource pSoundSource, float pVolume, float pPitch, long pSeed);
 
-    /** Exact entry point; legacy implementations receive an explicitly approximate mirror. */
-    public void playSeededSound(@Nullable Player player, SectorVec3 position, SoundEvent sound, SoundSource source,
-            float volume, float pitch, long seed) {
-        Vec3 approximate = position.toApproximateVec3();
-        this.playSeededSound(player, approximate.x, approximate.y, approximate.z, sound, source, volume, pitch, seed);
-    }
+    public abstract void playSeededSound(@Nullable Player player, SectorVec3 position, SoundEvent sound, SoundSource source,
+            float volume, float pitch, long seed);
 
     public abstract void playSeededSound(@Nullable Player pPlayer, Entity pEntity, SoundEvent pSoundEvent, SoundSource pSoundSource, float pVolume, float pPitch, long pSeed);
 
@@ -409,8 +405,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     /** Exact local-sound entry point for long-coordinate callers. */
     public void playLocalSound(SectorVec3 position, SoundEvent sound, SoundSource source, float volume, float pitch,
             boolean distanceDelay) {
-        Vec3 approximate = position.toApproximateVec3();
-        this.playLocalSound(approximate.x, position.y(), approximate.z, sound, source, volume, pitch, distanceDelay);
+        // Server levels do not play local sounds. ClientLevel implements the exact path.
     }
 
     /** Legacy double particle entry point. Exact callers use the SectorVec3 overload. */

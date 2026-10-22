@@ -45,7 +45,7 @@ public class DamageSourcePredicate {
     }
 
     public boolean matches(ServerPlayer pPlayer, DamageSource pSource) {
-        return this.matches(pPlayer.getLevel(), pPlayer.position(), pSource);
+        return this.matches(pPlayer.getLevel(), pPlayer.exactPositionVector(), pSource);
     }
 
     public boolean matches(ServerLevel pLevel, Vec3 pPosition, DamageSource pSource) {

@@ -158,7 +158,7 @@ public abstract class PlayerList {
             s1 = pNetManager.getRemoteAddress().toString();
         }
 
-        LOGGER.info("{}[{}] logged in with entity id {} at ({}, {}, {})", pPlayer.getName().getString(), s1, pPlayer.getId(), pPlayer.getX(), pPlayer.getY(), pPlayer.getZ());
+        LOGGER.info("{}[{}] logged in with entity id {} at ({}, {}, {})", pPlayer.getName().getString(), s1, pPlayer.getId(), pPlayer.sectorPosition().formatX(3), pPlayer.getY(), pPlayer.sectorPosition().formatZ(3));
         LevelData leveldata = serverlevel1.getLevelData();
         pPlayer.loadGameTypes(compoundtag);
         ServerGamePacketListenerImpl servergamepacketlistenerimpl = new ServerGamePacketListenerImpl(this.server, pNetManager, pPlayer);
@@ -450,7 +450,7 @@ public abstract class PlayerList {
         }
 
         while (!serverlevel1.noCollision(serverplayer) && serverplayer.getY() < (double) serverlevel1.getMaxBuildHeight()) {
-            serverplayer.setPos(serverplayer.getX(), serverplayer.getY() + 1.0D, serverplayer.getZ());
+            serverplayer.applyExactPosition(serverplayer.sectorPosition().add(0.0D, 1.0D, 0.0D));
         }
 
         LevelData leveldata = serverplayer.level.getLevelData();

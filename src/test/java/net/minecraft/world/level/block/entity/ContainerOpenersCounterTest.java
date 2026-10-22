@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 class ContainerOpenersCounterTest {
     @Test
     void recheckRangeAtInt128EdgesUsesUnclippedLocalOffsets() {
-        for (Int128 x : new Int128[] {Int128.MIN_VALUE, Int128.MAX_VALUE}) {
+        for (Int128 x : new Int128[] {Int128.MIN, Int128.MAX}) {
             BlockPos chest = new BlockPos(x, 64, x);
             SectorVec3 player = SectorVec3.fromBlockAndFraction(x, 0.75D, 64.5D, x, 0.25D);
             assertTrue(ContainerOpenersCounter.isWithinRecheckRange(player, chest));

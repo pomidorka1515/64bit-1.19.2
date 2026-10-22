@@ -79,7 +79,7 @@ class CoordinateBenchmark {
         System.out.print(text);
         Path benchmarks = Path.of(System.getProperty("user.dir")).resolve("../128bit-migration/benchmarks");
         Files.createDirectories(benchmarks);
-        Files.writeString(benchmarks.resolve("s0.03-coordinate-benchmark.txt"), text);
+        Files.writeString(benchmarks.resolve("current-coordinate-benchmark.txt"), text);
         SINK[0] = text.length();
     }
 
@@ -116,12 +116,12 @@ class CoordinateBenchmark {
         long z0 = -FAR;
         for (int rep = 0; rep < 32; ++rep) {
             for (BlockPos pos : BlockPos.betweenClosed(x0, 0, z0, x0 + 15L, 15, z0 + 15L)) {
-                checksum += pos.getX() ^ (pos.getZ() << 1) ^ pos.getY();
+                checksum += pos.getXLo() ^ (pos.getZLo() << 1) ^ pos.getY();
                 ++ops;
             }
             Cursor3D cursor = new Cursor3D(x0, 0, z0, x0 + 15L, 15, z0 + 15L);
             while (cursor.advance()) {
-                checksum += cursor.nextX() ^ (cursor.nextZ() << 1) ^ cursor.nextY();
+                checksum += cursor.nextX().lo() ^ (cursor.nextZ().lo() << 1) ^ cursor.nextY();
                 ++ops;
             }
         }

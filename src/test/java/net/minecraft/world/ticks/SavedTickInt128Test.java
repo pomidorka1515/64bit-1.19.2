@@ -14,7 +14,7 @@ class SavedTickInt128Test {
     @Test
     void persistedTickAndBlockEntityReadersPreserveBothCoordinateHalves() {
         Object type = new Object();
-        BlockPos pos = new BlockPos(Int128.of(91L, -7L), 64, Int128.MIN_VALUE);
+        BlockPos pos = new BlockPos(Int128.of(91L, -7L), 64, Int128.MIN);
         SavedTick<Object> tick = new SavedTick<>(type, pos, 37, TickPriority.HIGH);
         CompoundTag tag = tick.save(value -> "test");
         assertEquals(tick, SavedTick.loadTick(tag, id -> Optional.of(type)).orElseThrow());

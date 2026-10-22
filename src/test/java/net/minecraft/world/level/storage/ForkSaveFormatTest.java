@@ -109,6 +109,42 @@ class ForkSaveFormatTest {
                 assertReadOnlyRejection(format);
             }
         }
+        write("level.dat", metadata(19132, "main"));
+        assertReadOnlyRejection(ForkSaveFormat.Format.VANILLA);
+    }
+
+    @Test
+    void rejectsPartialMixedAndMistypedMarkersReadOnly() throws Exception {
+        for (String field : new String[] {"version", "Version", "ForkFormat", "Series"}) {
+            for (boolean wrongType : new boolean[] {false, true}) {
+                CompoundTag data = metadata(ForkSaveFormat.Format.CURRENT);
+                CompoundTag target = field.equals("Series") ? data.getCompound("Version") : data;
+                target.remove(field);
+                if (wrongType) {
+                    target.putLong(field, ForkSaveFormat.STORAGE_VERSION);
+                }
+                assertUnknownRejection(data);
+            }
+        }
+        CompoundTag data = metadata(ForkSaveFormat.Format.CURRENT);
+        data.putInt("version", ForkSaveFormat.STORAGE_VERSION + 1);
+        assertUnknownRejection(data);
+        data = metadata(ForkSaveFormat.Format.CURRENT);
+        data.getCompound("Version").putString("Series", "mcp-long-coordinates");
+        assertUnknownRejection(data);
+        data = metadata(ForkSaveFormat.Format.CURRENT);
+        data.putString("ForkFormat", ForkSaveFormat.FORMAT_MARKER + "-unknown");
+        assertUnknownRejection(data);
+        data = metadata(ForkSaveFormat.Format.LEGACY_64BIT_FORK);
+        data.putString("ForkFormat", ForkSaveFormat.FORMAT_MARKER);
+        assertUnknownRejection(data);
+    }
+
+    private void assertUnknownRejection(CompoundTag data) throws Exception {
+        assertEquals(ForkSaveFormat.Format.UNKNOWN, ForkSaveFormat.inspect(data));
+        assertThrows(IOException.class, () -> ForkSaveFormat.validate(data));
+        write("level.dat", data);
+        assertReadOnlyRejection(ForkSaveFormat.Format.UNKNOWN);
     }
 
     @Test
@@ -130,6 +166,8 @@ class ForkSaveFormatTest {
             Path region = Files.createDirectories(world.resolve(folder));
             Files.write(region.resolve("r.-1.2.mca"), new byte[] {1, 2, 3, 4});
             Files.write(region.resolve("c.-1.2.mcc"), new byte[] {5, 6, 7, 8});
+            Files.write(region.resolve("r.-1.-1.mca"), new byte[] {9, 10, 11});
+            Files.write(region.resolve("c.-1.-1.mcc"), new byte[] {12, 13, 14});
         }
         Map<String, String> before = checksums(world);
         IOException error = assertThrows(IOException.class, () -> storage().createAccess("world"));
@@ -181,6 +219,7 @@ class ForkSaveFormatTest {
         LevelStorageSource storage = storage();
         try (var access = storage.createAccess("world")) {
             assertEquals("world", access.getLevelId());
+            assertTrue(Files.exists(directory.resolve("world/session.lock")));
         }
         try (var access = storage.createAccess("new-world")) {
             assertEquals("new-world", access.getLevelId());

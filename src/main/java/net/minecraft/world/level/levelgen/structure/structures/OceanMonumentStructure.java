@@ -61,7 +61,7 @@ public class OceanMonumentStructure extends Structure {
         } else {
             WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(RandomSupport.generateUniqueSeed()));
             // Deferred worldgen seam: seed mixing uses low 64 bits only.
-            worldgenrandom.setLargeFeatureSeed(p_228958_, p_228957_.x().lo(), p_228957_.z().lo());
+            worldgenrandom.setLargeFeatureSeed(p_228958_, p_228957_.xLo(), p_228957_.zLo());
             StructurePiece structurepiece = p_228959_.pieces().get(0);
             BoundingBox boundingbox = structurepiece.getBoundingBox();
             Int128 i = boundingbox.minX();

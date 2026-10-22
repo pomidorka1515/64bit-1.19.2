@@ -28,7 +28,7 @@ public class StrongholdStructure extends Structure {
         do {
             p_229946_.clear();
             // Deferred worldgen seam: seed mixing uses low 64 bits only.
-            p_229947_.random().setLargeFeatureSeed(p_229947_.seed() + (long) (i++), p_229947_.chunkPos().x().lo(), p_229947_.chunkPos().z().lo());
+            p_229947_.random().setLargeFeatureSeed(p_229947_.seed() + (long) (i++), p_229947_.chunkPos().xLo(), p_229947_.chunkPos().zLo());
             StrongholdPieces.resetPieces();
             strongholdpieces$startpiece = new StrongholdPieces.StartPiece(p_229947_.random(), p_229947_.chunkPos().getBlockX(2), p_229947_.chunkPos().getBlockZ(2));
             p_229946_.addPiece(strongholdpieces$startpiece);

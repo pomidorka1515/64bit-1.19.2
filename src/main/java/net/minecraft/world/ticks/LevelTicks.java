@@ -225,8 +225,10 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
         // Visit loaded containers only: a full-width area must not trigger a world-sized scan.
         for (var entry : this.allContainers.object2ObjectEntrySet()) {
             ChunkPos pos = entry.getKey();
-            if (pos.x().compareTo(i) >= 0 && pos.x().compareTo(k) <= 0
-                    && pos.z().compareTo(j) >= 0 && pos.z().compareTo(l) <= 0) {
+            if (net.minecraft.core.Int128Math.compare(pos.xHi(), pos.xLo(), i.hi(), i.lo()) >= 0
+                    && net.minecraft.core.Int128Math.compare(pos.xHi(), pos.xLo(), k.hi(), k.lo()) <= 0
+                    && net.minecraft.core.Int128Math.compare(pos.zHi(), pos.zLo(), j.hi(), j.lo()) >= 0
+                    && net.minecraft.core.Int128Math.compare(pos.zHi(), pos.zLo(), l.hi(), l.lo()) <= 0) {
                 p_193238_.accept(pos, entry.getValue());
             }
         }

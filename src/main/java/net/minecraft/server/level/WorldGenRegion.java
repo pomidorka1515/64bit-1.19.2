@@ -139,8 +139,8 @@ public class WorldGenRegion implements WorldGenLevel {
         // the world edge. Index from the center, not the clamped first chunk:
         // duplicate edge slots must resolve to the one nearest the center,
         // which has the strongest scheduled generation-status dependency.
-        long x = WorldBounds.signedDifferenceAsLong(chunkX, center.x()) + size / 2;
-        long z = WorldBounds.signedDifferenceAsLong(chunkZ, center.z()) + size / 2;
+        long x = net.minecraft.core.Int128Math.signedDifferenceAsLong(chunkX.hi(), chunkX.lo(), center.xHi(), center.xLo()) + size / 2;
+        long z = net.minecraft.core.Int128Math.signedDifferenceAsLong(chunkZ.hi(), chunkZ.lo(), center.zHi(), center.zLo()) + size / 2;
         return (int) (x + z * size);
     }
 
@@ -181,8 +181,10 @@ public class WorldGenRegion implements WorldGenLevel {
     }
 
     public boolean hasChunk(net.minecraft.core.Int128 pChunkX, net.minecraft.core.Int128 pChunkZ) {
-        return pChunkX.compareTo(this.firstPos.x()) >= 0 && pChunkX.compareTo(this.lastPos.x()) <= 0
-                && pChunkZ.compareTo(this.firstPos.z()) >= 0 && pChunkZ.compareTo(this.lastPos.z()) <= 0;
+        return net.minecraft.core.Int128Math.compare(pChunkX.hi(), pChunkX.lo(), this.firstPos.xHi(), this.firstPos.xLo()) >= 0
+                && net.minecraft.core.Int128Math.compare(pChunkX.hi(), pChunkX.lo(), this.lastPos.xHi(), this.lastPos.xLo()) <= 0
+                && net.minecraft.core.Int128Math.compare(pChunkZ.hi(), pChunkZ.lo(), this.firstPos.zHi(), this.firstPos.zLo()) >= 0
+                && net.minecraft.core.Int128Math.compare(pChunkZ.hi(), pChunkZ.lo(), this.lastPos.zHi(), this.lastPos.zLo()) <= 0;
     }
 
     public BlockState getBlockState(BlockPos pPos) {

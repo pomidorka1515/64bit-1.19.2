@@ -237,9 +237,9 @@ public class ProtoChunk extends ChunkAccess {
     }
 
     public static BlockPos unpackOffsetCoordinates(short pPackedPos, int pYOffset, ChunkPos pChunkPos) {
-        Int128 i = SectionPos.sectionToBlockCoord(pChunkPos.x(), pPackedPos & 15);
+        Int128 i = pChunkPos.getBlockX(pPackedPos & 15);
         int j = SectionPos.sectionToBlockCoord(pYOffset, pPackedPos >>> 4 & 15);
-        Int128 k = SectionPos.sectionToBlockCoord(pChunkPos.z(), pPackedPos >>> 8 & 15);
+        Int128 k = pChunkPos.getBlockZ(pPackedPos >>> 8 & 15);
         return new BlockPos(i, j, k);
     }
 

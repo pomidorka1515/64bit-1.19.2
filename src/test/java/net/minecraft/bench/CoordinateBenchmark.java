@@ -78,12 +78,14 @@ class CoordinateBenchmark {
         report.append(measure("block-iteration", this::iterateBlocks));
         report.append(measure("collision-iteration", this::iterateCollisions));
         report.append(measure("chunk-key-lookup", this::lookupChunkKeys));
+        report.append(measure("chunk-coordinate-access", this::accessChunkCoordinates));
         report.append(measure("region-name-formatting", this::formatRegionNames));
         report.append(measure("sector-vec3-relative-math", this::relativeMath));
         report.append("allocation metric,ops,median_bytes,median_bytes_per_op\n");
         report.append(allocations("block-iteration", this::iterateBlocks));
         report.append(allocations("collision-iteration", this::iterateCollisions));
         report.append(allocations("chunk-key-lookup", this::lookupChunkKeys));
+        report.append(allocations("chunk-coordinate-access", this::accessChunkCoordinates));
         report.append(allocations("region-name-formatting", this::formatRegionNames));
         report.append(allocations("sector-vec3-relative-math", this::relativeMath));
         report.append(allocations("air-collision-small", () -> this.airCollisions(1)));
@@ -225,6 +227,20 @@ class CoordinateBenchmark {
                 checksum += name.charAt(2);
                 ++ops;
             }
+        }
+        return new Result(ops, checksum);
+    }
+
+    private Result accessChunkCoordinates() {
+        ChunkPos center = new ChunkPos(Int128.of(17L, -16L), Int128.of(-18L, 16L));
+        long checksum = 1L;
+        long ops = 0L;
+        var positions = ChunkPos.rangeClosed(center, 16).iterator();
+        while (positions.hasNext()) {
+            ChunkPos pos = positions.next();
+            checksum += pos.getChessboardDistance(center) + pos.getRegionX().lo()
+                    + pos.getRegionZ().lo() + pos.getMinBlockX().lo() + pos.getMinBlockZ().lo();
+            ++ops;
         }
         return new Result(ops, checksum);
     }

@@ -57,7 +57,8 @@ public class ClientChunkCache extends ChunkSource {
             return false;
         } else {
             ChunkPos chunkpos = pChunk.getPos();
-            return chunkpos.x().equals(pX) && chunkpos.z().equals(pZ);
+            return chunkpos.xHi() == pX.hi() && chunkpos.xLo() == pX.lo()
+                    && chunkpos.zHi() == pZ.hi() && chunkpos.zLo() == pZ.lo();
         }
     }
 
@@ -155,8 +156,8 @@ public class ClientChunkCache extends ChunkSource {
                 LevelChunk levelchunk = this.storage.chunks.get(k);
                 if (levelchunk != null) {
                     ChunkPos chunkpos = levelchunk.getPos();
-                    if (clientchunkcache$storage.inRange(chunkpos.x(), chunkpos.z())) {
-                        clientchunkcache$storage.replace(clientchunkcache$storage.getIndex(chunkpos.x(), chunkpos.z()), levelchunk);
+                    if (clientchunkcache$storage.inRange(chunkpos)) {
+                        clientchunkcache$storage.replace(clientchunkcache$storage.getIndex(chunkpos), levelchunk);
                     }
                 }
             }
@@ -191,10 +192,14 @@ public class ClientChunkCache extends ChunkSource {
     }
 
     static int storageModulo(Int128 value, int range) {
+        return storageModulo(value.hi(), value.lo(), range);
+    }
+
+    private static int storageModulo(long hi, long lo, int range) {
         // Signed hi * 2^64 + unsigned lo, reduced before multiplication.
         long radix = (Long.remainderUnsigned(-1L, range) + 1L) % range;
-        return (int) ((Math.floorMod(value.hi(), (long) range) * radix
-                + Long.remainderUnsigned(value.lo(), range)) % range);
+        return (int) ((Math.floorMod(hi, (long) range) * radix
+                + Long.remainderUnsigned(lo, range)) % range);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -220,6 +225,11 @@ public class ClientChunkCache extends ChunkSource {
             long x = floorMod(pX);
             long z = floorMod(pZ);
             return (int) (z * (long) this.viewRange + x);
+        }
+
+        int getIndex(ChunkPos pos) {
+            return storageModulo(pos.zHi(), pos.zLo(), this.viewRange) * this.viewRange
+                    + storageModulo(pos.xHi(), pos.xLo(), this.viewRange);
         }
 
         private long floorMod(net.minecraft.core.Int128 value) {
@@ -255,6 +265,11 @@ public class ClientChunkCache extends ChunkSource {
             return inTrackingRange(pX, pZ, this.viewCenterX, this.viewCenterZ, this.chunkRadius);
         }
 
+        boolean inRange(ChunkPos pos) {
+            return net.minecraft.core.Int128Math.distance(pos.xHi(), pos.xLo(), this.viewCenterX.hi(), this.viewCenterX.lo()) <= this.chunkRadius
+                    && net.minecraft.core.Int128Math.distance(pos.zHi(), pos.zLo(), this.viewCenterZ.hi(), this.viewCenterZ.lo()) <= this.chunkRadius;
+        }
+
         @Nullable
         protected LevelChunk getChunk(int pChunkIndex) {
             return this.chunks.get(pChunkIndex);
@@ -268,7 +283,7 @@ public class ClientChunkCache extends ChunkSource {
                     ClientChunkCache.Storage snapshot = ClientChunkCache.this.storage;
                     for (int index = 0; index < snapshot.chunks.length(); ++index) {
                         LevelChunk chunk = snapshot.chunks.get(index);
-                        if (chunk != null && snapshot.inRange(chunk.getPos().x(), chunk.getPos().z())) {
+                        if (chunk != null && snapshot.inRange(chunk.getPos())) {
                             ChunkPos pos = chunk.getPos();
                             fileoutputstream.write((pos.x() + "\t" + pos.z() + "\t" + chunk.isEmpty() + "\n").getBytes(StandardCharsets.UTF_8));
                         }

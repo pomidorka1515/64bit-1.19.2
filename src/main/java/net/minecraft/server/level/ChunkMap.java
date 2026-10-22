@@ -189,8 +189,8 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
 
     private static double euclideanDistanceSquared(ChunkPos pChunkPos, Entity pEntity) {
         SectorVec3 position = pEntity.sectorPosition();
-        double d0 = WorldBounds.signedDifference(SectionPos.sectionToBlockCoord(pChunkPos.x(), 8), position.blockX()) - position.subX();
-        double d1 = WorldBounds.signedDifference(SectionPos.sectionToBlockCoord(pChunkPos.z(), 8), position.blockZ()) - position.subZ();
+        double d0 = WorldBounds.signedDifference(pChunkPos.getMiddleBlockX(), position.blockX()) - position.subX();
+        double d1 = WorldBounds.signedDifference(pChunkPos.getMiddleBlockZ(), position.blockZ()) - position.subZ();
         return d0 * d0 + d1 * d1;
     }
 
@@ -200,10 +200,18 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     }
 
     public static boolean isChunkInRange(Int128 p_200879_, Int128 p_200880_, Int128 p_200881_, Int128 p_200882_, long p_200883_) {
+        return isChunkInRange(p_200879_.hi(), p_200879_.lo(), p_200880_.hi(), p_200880_.lo(), p_200881_, p_200882_, p_200883_);
+    }
+
+    private static boolean isChunkInRange(ChunkPos pos, Int128 centerX, Int128 centerZ, long radius) {
+        return isChunkInRange(pos.xHi(), pos.xLo(), pos.zHi(), pos.zLo(), centerX, centerZ, radius);
+    }
+
+    private static boolean isChunkInRange(long xHi, long xLo, long zHi, long zLo, Int128 centerX, Int128 centerZ, long p_200883_) {
         if (p_200883_ < 1L)
             return false;
-        double dx = Math.max(0.0D, WorldBounds.distance(p_200879_, p_200881_) - 1.0D);
-        double dz = Math.max(0.0D, WorldBounds.distance(p_200880_, p_200882_) - 1.0D);
+        double dx = Math.max(0.0D, (double) net.minecraft.core.Int128Math.distance(xHi, xLo, centerX.hi(), centerX.lo()) - 1.0D);
+        double dz = Math.max(0.0D, (double) net.minecraft.core.Int128Math.distance(zHi, zLo, centerZ.hi(), centerZ.lo()) - 1.0D);
         double far = Math.max(0.0D, Math.max(dx, dz) - 1.0D);
         double near = Math.min(dx, dz);
         double radius = (double) p_200883_ - 1.0D;
@@ -841,8 +849,8 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
                 MutableObject<ClientboundLevelChunkWithLightPacket> mutableobject = new MutableObject<>();
                 this.getPlayers(chunkpos, false).forEach((p_214864_) -> {
                     SectionPos sectionpos = p_214864_.getLastSectionPos();
-                    boolean flag = isChunkInRange(chunkpos.x(), chunkpos.z(), sectionpos.x(), sectionpos.z(), j);
-                    boolean flag1 = isChunkInRange(chunkpos.x(), chunkpos.z(), sectionpos.x(), sectionpos.z(), this.viewDistance);
+                    boolean flag = isChunkInRange(chunkpos, sectionpos.x(), sectionpos.z(), j);
+                    boolean flag1 = isChunkInRange(chunkpos, sectionpos.x(), sectionpos.z(), this.viewDistance);
                     this.updateChunkTracking(p_214864_, chunkpos, mutableobject, flag, flag1);
                 });
             }
@@ -991,7 +999,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
         }
 
         forEachChunkBox(i, j, i, j, (long) this.viewDistance + 1L, (chunkpos) -> {
-            if (isChunkInRange(chunkpos.x(), chunkpos.z(), i, j, this.viewDistance)) {
+            if (isChunkInRange(chunkpos, i, j, this.viewDistance)) {
                 this.updateChunkTracking(pPlayer, chunkpos, new MutableObject<>(), !pTrack, pTrack);
             }
         });
@@ -1050,19 +1058,19 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
         if (WorldBounds.distance(k, i2) <= (long) this.viewDistance * 2L
                 && WorldBounds.distance(l, j2) <= (long) this.viewDistance * 2L) {
             forEachChunkBox(k, l, i2, j2, (long) this.viewDistance + 1L, (chunkpos) -> {
-                boolean flag5 = isChunkInRange(chunkpos.x(), chunkpos.z(), k, l, this.viewDistance);
-                boolean flag6 = isChunkInRange(chunkpos.x(), chunkpos.z(), i2, j2, this.viewDistance);
+                boolean flag5 = isChunkInRange(chunkpos, k, l, this.viewDistance);
+                boolean flag6 = isChunkInRange(chunkpos, i2, j2, this.viewDistance);
                 this.updateChunkTracking(pPlayer, chunkpos, new MutableObject<>(), flag5, flag6);
             });
         } else {
             forEachChunkBox(k, l, k, l, (long) this.viewDistance + 1L, (chunkpos) -> {
-                if (isChunkInRange(chunkpos.x(), chunkpos.z(), k, l, this.viewDistance)) {
+                if (isChunkInRange(chunkpos, k, l, this.viewDistance)) {
                     this.updateChunkTracking(pPlayer, chunkpos, new MutableObject<>(), true, false);
                 }
             });
 
             forEachChunkBox(i2, j2, i2, j2, (long) this.viewDistance + 1L, (chunkpos) -> {
-                if (isChunkInRange(chunkpos.x(), chunkpos.z(), i2, j2, this.viewDistance)) {
+                if (isChunkInRange(chunkpos, i2, j2, this.viewDistance)) {
                     this.updateChunkTracking(pPlayer, chunkpos, new MutableObject<>(), false, true);
                 }
             });

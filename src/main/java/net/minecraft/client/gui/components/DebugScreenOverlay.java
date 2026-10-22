@@ -371,8 +371,8 @@ public class DebugScreenOverlay extends GuiComponent {
         String secondLine;
 
         void update(ChunkPos chunk) {
-            Int128 x = chunk.x().shiftRight(5);
-            Int128 z = chunk.z().shiftRight(5);
+            Int128 x = chunk.getRegionX();
+            Int128 z = chunk.getRegionZ();
             if (!x.equals(this.regionX) || !z.equals(this.regionZ)) {
                 this.regionX = x;
                 this.regionZ = z;

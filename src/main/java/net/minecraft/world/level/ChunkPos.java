@@ -10,6 +10,7 @@ import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Int128;
+import net.minecraft.core.Int128Math;
 
 public class ChunkPos {
     /** Exactly four longs [xHi, xLo, zHi, zLo]; legacy two-long positions are rejected. */
@@ -52,6 +53,15 @@ public class ChunkPos {
         this(pPos.getX().shiftRight(4), pPos.getZ().shiftRight(4));
     }
 
+    // Internal callers have already proved that both coordinates are in the chunk domain.
+    private ChunkPos(long xHi, long xLo, long zHi, long zLo) {
+        this.xHi = xHi;
+        this.xLo = xLo;
+        this.zHi = zHi;
+        this.zLo = zLo;
+    }
+
+    /** Materializes a value object; use the limb accessors for hot comparisons/arithmetic. */
     public Int128 x() {
         return Int128.of(this.xHi, this.xLo);
     }
@@ -136,11 +146,11 @@ public class ChunkPos {
     }
 
     public Int128 getMinBlockX() {
-        return WorldBounds.chunkToBlock(this.x());
+        return Int128.of(Int128Math.leftShiftHi(this.xHi, this.xLo, 4), this.xLo << 4);
     }
 
     public Int128 getMinBlockZ() {
-        return WorldBounds.chunkToBlock(this.z());
+        return Int128.of(Int128Math.leftShiftHi(this.zHi, this.zLo, 4), this.zLo << 4);
     }
 
     public Int128 getMaxBlockX() {
@@ -152,11 +162,11 @@ public class ChunkPos {
     }
 
     public Int128 getRegionX() {
-        return this.x().shiftRight(5);
+        return Int128.of(this.xHi >> 5, Int128Math.rightShiftLo(this.xHi, this.xLo, 5));
     }
 
     public Int128 getRegionZ() {
-        return this.z().shiftRight(5);
+        return Int128.of(this.zHi >> 5, Int128Math.rightShiftLo(this.zHi, this.zLo, 5));
     }
 
     public int getRegionLocalX() {
@@ -200,16 +210,17 @@ public class ChunkPos {
     }
 
     public long getChessboardDistance(ChunkPos pChunkPos) {
-        return Math.max(distanceLong(this.x(), pChunkPos.x()), distanceLong(this.z(), pChunkPos.z()));
+        return Math.max(distanceLong(this.xHi, this.xLo, pChunkPos.xHi, pChunkPos.xLo),
+                distanceLong(this.zHi, this.zLo, pChunkPos.zHi, pChunkPos.zLo));
     }
 
-    private static long distanceLong(Int128 first, Int128 second) {
-        double distance = WorldBounds.distance(first, second);
+    private static long distanceLong(long aHi, long aLo, long bHi, long bLo) {
+        double distance = Int128Math.distance(aHi, aLo, bHi, bLo);
         return distance >= Long.MAX_VALUE ? Long.MAX_VALUE : (long) distance;
     }
 
-    private static long distancePlusOne(Int128 first, Int128 second) {
-        double distance = WorldBounds.distance(first, second);
+    private static long distancePlusOne(long aHi, long aLo, long bHi, long bLo) {
+        double distance = Int128Math.distance(aHi, aLo, bHi, bLo);
         return distance >= (double) Long.MAX_VALUE ? Long.MAX_VALUE : (long) distance + 1L;
     }
 
@@ -224,10 +235,10 @@ public class ChunkPos {
     }
 
     public static Stream<ChunkPos> rangeClosed(final ChunkPos pStart, final ChunkPos pEnd) {
-        long i = distancePlusOne(pStart.x(), pEnd.x());
-        long j = distancePlusOne(pStart.z(), pEnd.z());
-        final int k = pStart.x().compareTo(pEnd.x()) < 0 ? 1 : -1;
-        final int l = pStart.z().compareTo(pEnd.z()) < 0 ? 1 : -1;
+        long i = distancePlusOne(pStart.xHi, pStart.xLo, pEnd.xHi, pEnd.xLo);
+        long j = distancePlusOne(pStart.zHi, pStart.zLo, pEnd.zHi, pEnd.zLo);
+        final int k = Int128Math.compare(pStart.xHi, pStart.xLo, pEnd.xHi, pEnd.xLo) < 0 ? 1 : -1;
+        final int l = Int128Math.compare(pStart.zHi, pStart.zLo, pEnd.zHi, pEnd.zLo) < 0 ? 1 : -1;
         return StreamSupport.stream(new Spliterators.AbstractSpliterator<ChunkPos>(safeProduct(i, j), 64) {
             @Nullable
             private ChunkPos pos;
@@ -236,16 +247,20 @@ public class ChunkPos {
                 if (this.pos == null) {
                     this.pos = pStart;
                 } else {
-                    Int128 i1 = this.pos.x();
-                    Int128 j1 = this.pos.z();
-                    if (i1.equals(pEnd.x())) {
-                        if (j1.equals(pEnd.z())) {
+                    if (this.pos.xHi == pEnd.xHi && this.pos.xLo == pEnd.xLo) {
+                        if (this.pos.zHi == pEnd.zHi && this.pos.zLo == pEnd.zLo) {
                             return false;
                         }
 
-                        this.pos = new ChunkPos(pStart.x(), WorldBounds.addChunkOffset(j1, l));
+                        long zLo = this.pos.zLo + l;
+                        long zHi = this.pos.zHi + (l > 0 ? Int128Math.addCarry(this.pos.zLo, l, zLo)
+                                : -Int128Math.subtractBorrow(this.pos.zLo, 1L));
+                        this.pos = new ChunkPos(pStart.xHi, pStart.xLo, zHi, zLo);
                     } else {
-                        this.pos = new ChunkPos(WorldBounds.addChunkOffset(i1, k), j1);
+                        long xLo = this.pos.xLo + k;
+                        long xHi = this.pos.xHi + (k > 0 ? Int128Math.addCarry(this.pos.xLo, k, xLo)
+                                : -Int128Math.subtractBorrow(this.pos.xLo, 1L));
+                        this.pos = new ChunkPos(xHi, xLo, this.pos.zHi, this.pos.zLo);
                     }
                 }
 

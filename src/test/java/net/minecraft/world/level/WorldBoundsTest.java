@@ -226,14 +226,14 @@ class WorldBoundsTest {
 
     @Test
     void fullWidthChunkDomainContainsExactlyTheRepresentableBlocks() {
-        assertEquals(Int128.MIN, WorldBounds.MIN_BLOCK_128);
-        assertEquals(Int128.MAX, WorldBounds.MAX_BLOCK_128);
-        assertEquals(Int128.of(Long.MIN_VALUE >> 4, 0L), WorldBounds.MIN_CHUNK_128);
-        assertEquals(Int128.of(Long.MAX_VALUE >> 4, -1L), WorldBounds.MAX_CHUNK_128);
-        assertEquals(Int128.MIN, WorldBounds.chunkToBlock(WorldBounds.MIN_CHUNK_128));
-        assertEquals(Int128.MAX.subtract(Int128.fromLong(15L)), WorldBounds.chunkToBlock(WorldBounds.MAX_CHUNK_128));
-        assertEquals(WorldBounds.MIN_CHUNK_128, WorldBounds.clampChunk(Int128.MIN));
-        assertEquals(WorldBounds.MAX_CHUNK_128, WorldBounds.clampChunk(Int128.MAX));
+        assertEquals(Int128.MIN, WorldBounds.MIN_BLOCK);
+        assertEquals(Int128.MAX, WorldBounds.MAX_BLOCK);
+        assertEquals(Int128.of(Long.MIN_VALUE >> 4, 0L), WorldBounds.MIN_CHUNK);
+        assertEquals(Int128.of(Long.MAX_VALUE >> 4, -1L), WorldBounds.MAX_CHUNK);
+        assertEquals(Int128.MIN, WorldBounds.chunkToBlock(WorldBounds.MIN_CHUNK));
+        assertEquals(Int128.MAX.subtract(Int128.fromLong(15L)), WorldBounds.chunkToBlock(WorldBounds.MAX_CHUNK));
+        assertEquals(WorldBounds.MIN_CHUNK, WorldBounds.clampChunk(Int128.MIN));
+        assertEquals(WorldBounds.MAX_CHUNK, WorldBounds.clampChunk(Int128.MAX));
         assertEquals(Int128.MIN, WorldBounds.chunkToBlock(Int128.MIN));
         assertEquals(Int128.MAX.subtract(Int128.fromLong(15L)), WorldBounds.chunkToBlock(Int128.MAX));
         assertEquals(Int128.fromLong(-16L), WorldBounds.chunkToBlock(Int128.fromLong(-1L)));
@@ -242,24 +242,24 @@ class WorldBoundsTest {
     @Test
     void fullWidthChunkOffsetsSaturateOrRejectAtTheEdges() {
         for (long offset : new long[] {1L, Long.MAX_VALUE}) {
-            assertEquals(WorldBounds.MAX_CHUNK_128, WorldBounds.addChunkOffset(WorldBounds.MAX_CHUNK_128, offset));
-            assertNull(WorldBounds.tryAddChunkOffset(WorldBounds.MAX_CHUNK_128, offset));
+            assertEquals(WorldBounds.MAX_CHUNK, WorldBounds.addChunkOffset(WorldBounds.MAX_CHUNK, offset));
+            assertNull(WorldBounds.tryAddChunkOffset(WorldBounds.MAX_CHUNK, offset));
         }
         for (long offset : new long[] {-1L, Long.MIN_VALUE}) {
-            assertEquals(WorldBounds.MIN_CHUNK_128, WorldBounds.addChunkOffset(WorldBounds.MIN_CHUNK_128, offset));
-            assertNull(WorldBounds.tryAddChunkOffset(WorldBounds.MIN_CHUNK_128, offset));
+            assertEquals(WorldBounds.MIN_CHUNK, WorldBounds.addChunkOffset(WorldBounds.MIN_CHUNK, offset));
+            assertNull(WorldBounds.tryAddChunkOffset(WorldBounds.MIN_CHUNK, offset));
         }
-        for (Int128 edge : new Int128[] {WorldBounds.MIN_CHUNK_128, WorldBounds.MAX_CHUNK_128}) {
+        for (Int128 edge : new Int128[] {WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK}) {
             assertEquals(edge, WorldBounds.tryAddChunkOffset(edge, 0L));
         }
-        assertEquals(WorldBounds.MAX_CHUNK_128.subtract(Int128.ONE),
-                WorldBounds.tryAddChunkOffset(WorldBounds.MAX_CHUNK_128, -1L));
-        assertEquals(WorldBounds.MIN_CHUNK_128.add(Int128.ONE),
-                WorldBounds.tryAddChunkOffset(WorldBounds.MIN_CHUNK_128, 1L));
+        assertEquals(WorldBounds.MAX_CHUNK.subtract(Int128.ONE),
+                WorldBounds.tryAddChunkOffset(WorldBounds.MAX_CHUNK, -1L));
+        assertEquals(WorldBounds.MIN_CHUNK.add(Int128.ONE),
+                WorldBounds.tryAddChunkOffset(WorldBounds.MIN_CHUNK, 1L));
         assertNull(WorldBounds.tryAddChunkOffset(Int128.MAX, Long.MIN_VALUE));
         assertNull(WorldBounds.tryAddChunkOffset(Int128.MIN, Long.MAX_VALUE));
-        assertEquals(WorldBounds.MAX_CHUNK_128, WorldBounds.addChunkOffset(Int128.MAX, Long.MAX_VALUE));
-        assertEquals(WorldBounds.MIN_CHUNK_128, WorldBounds.addChunkOffset(Int128.MIN, Long.MIN_VALUE));
+        assertEquals(WorldBounds.MAX_CHUNK, WorldBounds.addChunkOffset(Int128.MAX, Long.MAX_VALUE));
+        assertEquals(WorldBounds.MIN_CHUNK, WorldBounds.addChunkOffset(Int128.MIN, Long.MIN_VALUE));
     }
 
     @Test
@@ -301,20 +301,19 @@ class WorldBoundsTest {
         assertEquals(Int128.MAX.subtract(Int128.ONE), WorldBounds.regionToChunk(Int128.MAX, -1L));
         assertEquals(Int128.MIN.add(Int128.ONE), WorldBounds.regionToChunk(Int128.MIN, 1L));
         assertEquals(Int128.fromLong(-1L), WorldBounds.regionToChunk(Int128.fromLong(-1L), 31L));
-        assertEquals(WorldBounds.MIN_CHUNK_128,
-                WorldBounds.regionToChunk(WorldBounds.MIN_CHUNK_128.shiftRight(5), 0L));
-        assertEquals(WorldBounds.MAX_CHUNK_128,
-                WorldBounds.regionToChunk(WorldBounds.MAX_CHUNK_128.shiftRight(5), 31L));
+        assertEquals(WorldBounds.MIN_CHUNK,
+                WorldBounds.regionToChunk(WorldBounds.MIN_CHUNK.shiftRight(5), 0L));
+        assertEquals(WorldBounds.MAX_CHUNK,
+                WorldBounds.regionToChunk(WorldBounds.MAX_CHUNK.shiftRight(5), 31L));
     }
 
     @Test
-    void chunkDomainIsTheDomainOfChunksContainingLongBlocks() {
-        assertEquals(Long.MIN_VALUE >> 4, WorldBounds.MIN_CHUNK);
-        assertEquals(Long.MAX_VALUE >> 4, WorldBounds.MAX_CHUNK);
-        assertEquals(WorldBounds.MIN_CHUNK, new ChunkPos(WorldBounds.MIN_CHUNK, 0L).x);
-        assertEquals(WorldBounds.MAX_CHUNK, new ChunkPos(WorldBounds.MAX_CHUNK, 0L).x);
-        assertEquals(WorldBounds.MIN_CHUNK, new ChunkPos(WorldBounds.MIN_CHUNK - 1L, 0L).x);
-        assertEquals(WorldBounds.MAX_CHUNK, new ChunkPos(WorldBounds.MAX_CHUNK + 1L, 0L).x);
+    void chunkConstructorsClampToTheFullBlockDomain() {
+        assertEquals(WorldBounds.MIN_CHUNK, new ChunkPos(WorldBounds.MIN_CHUNK, Int128.ZERO).x());
+        assertEquals(WorldBounds.MAX_CHUNK, new ChunkPos(WorldBounds.MAX_CHUNK, Int128.ZERO).x());
+        assertEquals(WorldBounds.MIN_CHUNK, new ChunkPos(WorldBounds.MIN_CHUNK.subtract(Int128.ONE), Int128.ZERO).x());
+        assertEquals(WorldBounds.MAX_CHUNK, new ChunkPos(WorldBounds.MAX_CHUNK.add(Int128.ONE), Int128.ZERO).x());
+        assertEquals(Int128.fromLong(Long.MAX_VALUE), new ChunkPos(Long.MAX_VALUE, 0L).x());
     }
 
     @Test
@@ -325,7 +324,7 @@ class WorldBoundsTest {
         assertNull(WorldBounds.tryAddChunkOffset(WorldBounds.MIN_CHUNK, -1L));
         assertEquals(WorldBounds.MAX_CHUNK, WorldBounds.addChunkOffset(WorldBounds.MAX_CHUNK, Long.MAX_VALUE));
         assertEquals(WorldBounds.MIN_CHUNK, WorldBounds.addChunkOffset(WorldBounds.MIN_CHUNK, Long.MIN_VALUE));
-        assertEquals(1L, new ChunkPos(WorldBounds.MAX_CHUNK, WorldBounds.MAX_CHUNK).getChessboardDistance(new ChunkPos(WorldBounds.MAX_CHUNK, WorldBounds.MAX_CHUNK - 1L)));
+        assertEquals(1L, new ChunkPos(WorldBounds.MAX_CHUNK, WorldBounds.MAX_CHUNK).getChessboardDistance(new ChunkPos(WorldBounds.MAX_CHUNK, WorldBounds.MAX_CHUNK.subtract(Int128.ONE))));
     }
 
     @Test
@@ -376,19 +375,23 @@ class WorldBoundsTest {
         assertEquals(-1.0D, WorldBounds.clampNoise(Double.NEGATIVE_INFINITY));
         assertEquals(0.0D, WorldBounds.clampNoise(Double.NaN));
         assertEquals(1.0D, WorldBounds.clampNoise(Double.POSITIVE_INFINITY));
-        assertEquals(WorldBounds.MAX_BLOCK - 15L, WorldBounds.chunkToBlock(WorldBounds.MAX_CHUNK));
+        assertEquals(WorldBounds.MAX_BLOCK.subtract(Int128.fromLong(15)), WorldBounds.chunkToBlock(WorldBounds.MAX_CHUNK));
         assertEquals(WorldBounds.MIN_BLOCK, WorldBounds.chunkToBlock(WorldBounds.MIN_CHUNK));
     }
 
     @Test
     void sectionNotificationsAtWorldEdgesNeverWrapToTheOppositeSide() {
         List<SectionPos> atMaximum = new ArrayList<>();
-        SectionPos.aroundAndAtBlockPos(Long.MAX_VALUE, 64, Long.MAX_VALUE, atMaximum::add);
-        assertTrue(atMaximum.stream().allMatch(section -> section.x() >= WorldBounds.MAX_CHUNK - 1L && section.x() <= WorldBounds.MAX_CHUNK && section.z() >= WorldBounds.MAX_CHUNK - 1L && section.z() <= WorldBounds.MAX_CHUNK));
+        SectionPos.aroundAndAtBlockPos(Int128.MAX, 64, Int128.MAX, atMaximum::add);
+        assertFalse(atMaximum.isEmpty());
+        assertTrue(atMaximum.stream().allMatch(section -> WorldBounds.isWithinBlockRange(section.x(), WorldBounds.MAX_CHUNK.subtract(Int128.ONE), WorldBounds.MAX_CHUNK)
+                && WorldBounds.isWithinBlockRange(section.z(), WorldBounds.MAX_CHUNK.subtract(Int128.ONE), WorldBounds.MAX_CHUNK)));
 
         List<SectionPos> atMinimum = new ArrayList<>();
-        SectionPos.aroundAndAtBlockPos(Long.MIN_VALUE, 64, Long.MIN_VALUE, atMinimum::add);
-        assertTrue(atMinimum.stream().allMatch(section -> section.x() >= WorldBounds.MIN_CHUNK && section.x() <= WorldBounds.MIN_CHUNK + 1L && section.z() >= WorldBounds.MIN_CHUNK && section.z() <= WorldBounds.MIN_CHUNK + 1L));
+        SectionPos.aroundAndAtBlockPos(Int128.MIN, 64, Int128.MIN, atMinimum::add);
+        assertFalse(atMinimum.isEmpty());
+        assertTrue(atMinimum.stream().allMatch(section -> WorldBounds.isWithinBlockRange(section.x(), WorldBounds.MIN_CHUNK, WorldBounds.MIN_CHUNK.add(Int128.ONE))
+                && WorldBounds.isWithinBlockRange(section.z(), WorldBounds.MIN_CHUNK, WorldBounds.MIN_CHUNK.add(Int128.ONE))));
     }
 
     @Test
@@ -400,11 +403,11 @@ class WorldBoundsTest {
     }
 
     @Test
-    void finalChunkMembershipDoesNotWrapItsUpperBound() {
-        long firstBlock = WorldBounds.chunkToBlock(WorldBounds.MAX_CHUNK);
+    void projectedLongChunkMembershipDoesNotWrapItsUpperBound() {
+        long firstBlock = WorldBounds.chunkToBlock(WorldBounds.MAX_CHUNK_LONG);
         assertTrue(WorldBounds.isWithinChunk(firstBlock, firstBlock));
-        assertTrue(WorldBounds.isWithinChunk(WorldBounds.MAX_BLOCK, firstBlock));
-        assertFalse(WorldBounds.isWithinChunk(WorldBounds.MIN_BLOCK, firstBlock));
+        assertTrue(WorldBounds.isWithinChunk(Long.MAX_VALUE, firstBlock));
+        assertFalse(WorldBounds.isWithinChunk(Long.MIN_VALUE, firstBlock));
     }
 
     @Test
@@ -424,25 +427,28 @@ class WorldBoundsTest {
 
     @Test
     void boundingBoxSpansAndCentersRemainValidAtWorldEdges() {
-        BoundingBox fullWorld = new BoundingBox(Long.MIN_VALUE, 0, Long.MIN_VALUE, Long.MAX_VALUE, 0, Long.MAX_VALUE);
-        assertEquals(Long.MAX_VALUE, fullWorld.getXSpan());
-        assertEquals(Long.MAX_VALUE, fullWorld.getZSpan());
-        assertEquals(0L, fullWorld.getCenter().getX());
-        assertEquals(0L, fullWorld.getCenter().getZ());
+        BoundingBox fullWorld = new BoundingBox(Int128.MIN, 0, Int128.MIN, Int128.MAX, 0, Int128.MAX);
+        assertEquals(Int128.MAX, fullWorld.getXSpan());
+        assertEquals(Int128.MAX, fullWorld.getZSpan());
+        assertEquals(Int128.ZERO, fullWorld.getCenter().getX());
+        assertEquals(Int128.ZERO, fullWorld.getCenter().getZ());
     }
 
     @Test
     void boundingBoxesStayOrderedWhenExpandedAtWorldEdges() {
-        BoundingBox positiveEdge = new BoundingBox(Long.MAX_VALUE - 2L, 0, Long.MAX_VALUE - 2L, Long.MAX_VALUE, 6, Long.MAX_VALUE);
+        Int128 nearEdge = Int128.MAX.subtract(Int128.fromLong(2));
+        BoundingBox positiveEdge = new BoundingBox(nearEdge, 0, nearEdge, Int128.MAX, 6, Int128.MAX);
         BoundingBox expanded = positiveEdge.inflatedBy(3);
-        assertEquals(Long.MAX_VALUE - 5L, expanded.minX());
-        assertEquals(Long.MAX_VALUE, expanded.maxX());
-        assertEquals(6L, expanded.getXSpan());
-        assertEquals(Long.MAX_VALUE - 5L, expanded.minZ());
-        assertEquals(Long.MAX_VALUE, expanded.maxZ());
-        assertEquals(6L, expanded.getZSpan());
-        assertTrue(expanded.isInside(new BlockPos(Long.MAX_VALUE, 3, Long.MAX_VALUE)));
-        assertFalse(expanded.intersects(Long.MAX_VALUE, Long.MAX_VALUE, Long.MIN_VALUE, Long.MIN_VALUE));
+        assertEquals(Int128.MAX.subtract(Int128.fromLong(5)), expanded.minX());
+        assertEquals(Int128.MAX, expanded.maxX());
+        assertEquals(Int128.fromLong(6), expanded.getXSpan());
+        assertEquals(Int128.MAX.subtract(Int128.fromLong(5)), expanded.minZ());
+        assertEquals(Int128.MAX, expanded.maxZ());
+        assertEquals(Int128.fromLong(6), expanded.getZSpan());
+        assertTrue(expanded.isInside(new BlockPos(Int128.MAX, 3, Int128.MAX)));
+        // Intersection normalizes reversed endpoints; the full-domain rectangle overlaps.
+        assertTrue(expanded.intersects(Int128.MAX, Int128.MAX, Int128.MIN, Int128.MIN));
+        assertFalse(expanded.intersects(Int128.MIN, Int128.MIN, Int128.ZERO, Int128.ZERO));
     }
 
     @Test
@@ -464,21 +470,21 @@ class WorldBoundsTest {
     void cursorTraversesOverflowingRangesLazily() {
         Cursor3D cursor = new Cursor3D(Long.MIN_VALUE, 0, 0L, Long.MAX_VALUE, 0, 0L);
         assertTrue(cursor.advance());
-        assertEquals(Long.MIN_VALUE, cursor.nextX());
+        assertEquals(Int128.fromLong(Long.MIN_VALUE), cursor.nextX());
         assertTrue(cursor.advance());
-        assertEquals(Long.MIN_VALUE + 1L, cursor.nextX());
+        assertEquals(Int128.fromLong(Long.MIN_VALUE + 1L), cursor.nextX());
     }
 
     @Test
     void cursorVisitsEdgeBlocksInOrderAndStops() {
-        for (long origin : new long[] {Long.MIN_VALUE, Long.MAX_VALUE - 1L}) {
-            Cursor3D cursor = new Cursor3D(origin, 4, origin, origin + 1L, 4, origin + 1L);
+        for (Int128 origin : new Int128[] {Int128.MIN, Int128.MAX.subtract(Int128.ONE)}) {
+            Cursor3D cursor = new Cursor3D(origin, 4, origin, origin.add(Int128.ONE), 4, origin.add(Int128.ONE));
             for (int z = 0; z < 2; ++z) {
                 for (int x = 0; x < 2; ++x) {
                     assertTrue(cursor.advance());
-                    assertEquals(origin + x, cursor.nextX());
+                    assertEquals(origin.add(Int128.fromLong(x)), cursor.nextX());
                     assertEquals(4, cursor.nextY());
-                    assertEquals(origin + z, cursor.nextZ());
+                    assertEquals(origin.add(Int128.fromLong(z)), cursor.nextZ());
                     assertEquals(Cursor3D.TYPE_CORNER, cursor.getNextType());
                 }
             }
@@ -493,14 +499,14 @@ class WorldBoundsTest {
         SectionPos minimum = SectionPos.of(WorldBounds.MIN_CHUNK, 4, WorldBounds.MIN_CHUNK);
         assertEquals(WorldBounds.MAX_CHUNK, maximum.offset(1L, 0, 1L).x());
         assertEquals(WorldBounds.MIN_CHUNK, minimum.offset(-1L, 0, -1L).z());
-        assertEquals(Long.MAX_VALUE, maximum.maxBlockX());
-        assertEquals(Long.MIN_VALUE, minimum.minBlockZ());
-        assertEquals(Long.MAX_VALUE, SectionPos.sectionToBlockCoord(WorldBounds.MAX_CHUNK, 16L));
-        assertEquals(Long.MIN_VALUE, SectionPos.sectionToBlockCoord(WorldBounds.MIN_CHUNK, -1L));
-        assertEquals(1L << 40, SectionPos.posToSectionCoord((double) (1L << 44)));
-        assertEquals(4L, SectionPos.betweenClosedStream(WorldBounds.MAX_CHUNK - 1L, 0, WorldBounds.MAX_CHUNK - 1L,
+        assertEquals(Int128.MAX, maximum.maxBlockX());
+        assertEquals(Int128.MIN, minimum.minBlockZ());
+        assertEquals(Int128.MAX, SectionPos.sectionToBlockCoord(WorldBounds.MAX_CHUNK, 16L));
+        assertEquals(Int128.MIN, SectionPos.sectionToBlockCoord(WorldBounds.MIN_CHUNK, -1L));
+        assertEquals(Int128.fromLong(1L << 40), SectionPos.posToSectionCoord((double) (1L << 44)));
+        assertEquals(4L, SectionPos.betweenClosedStream(WorldBounds.MAX_CHUNK.subtract(Int128.ONE), 0, WorldBounds.MAX_CHUNK.subtract(Int128.ONE),
                 WorldBounds.MAX_CHUNK, 0, WorldBounds.MAX_CHUNK).count());
-        List<SectionPos> sections = SectionPos.betweenClosedStream(WorldBounds.MAX_CHUNK - 1L, 0, WorldBounds.MAX_CHUNK - 1L,
+        List<SectionPos> sections = SectionPos.betweenClosedStream(WorldBounds.MAX_CHUNK.subtract(Int128.ONE), 0, WorldBounds.MAX_CHUNK.subtract(Int128.ONE),
                 WorldBounds.MAX_CHUNK, 0, WorldBounds.MAX_CHUNK).toList();
         assertEquals(4, sections.size());
         assertEquals(maximum.offset(0L, -4, 0L), sections.get(3));

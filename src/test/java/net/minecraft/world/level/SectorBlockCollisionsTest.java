@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +33,87 @@ class SectorBlockCollisionsTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
+    }
+
+    @Test
+    void scopedIteratorReusesStateAfterEarlyExitAndKeepsNestedQueriesIndependent() {
+        Int128 x = Int128.of(7L, -1L);
+        SingleBlockCollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x, 64, x));
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x, 64, x);
+        SectorAABB box = SectorAABB.around(SectorVec3.fromBlockAndFraction(x, 0.5D, 64, x, 0.5D), 0.6D, 1.8D);
+        AABB local = box.toLocalAABB(origin);
+        SectorBlockCollisions first;
+        try (var outer = SectorBlockCollisions.acquire(level, null, box, local, origin, false)) {
+            first = outer;
+            assertTrue(outer.hasNext()); // Leave the prefetched shape unconsumed.
+            try (var inner = SectorBlockCollisions.acquire(level, null, box, local, origin, false)) {
+                assertNotSame(outer, inner);
+                assertTrue(inner.hasNext());
+                inner.next();
+                assertFalse(inner.hasNext());
+            }
+            assertEquals(new AABB(0, 0, 0, 1, 1, 1), outer.next().bounds());
+        }
+        level.unloaded = true;
+        try (var reused = SectorBlockCollisions.acquire(level, null, box, local, origin, true)) {
+            assertSame(first, reused);
+            assertFalse(reused.hasNext(), "Reset must discard prefetched shapes and chunk hits");
+        }
+        level.unloaded = false;
+        try (var reused = SectorBlockCollisions.acquire(level, null, box, local, origin, false)) {
+            assertTrue(reused.hasNext(), "Unloaded entries must not survive a new query");
+        }
+    }
+
+    @Test
+    void cachesFourBoundaryChunksIncludingUnloadedEntries() {
+        for (boolean unloaded : new boolean[] {false, true}) {
+            // Both axes cross a low-word carry as well as a chunk boundary.
+            Int128 x = Int128.of(9L, 0L);
+            SingleBlockCollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x, 64, x));
+            level.unloaded = unloaded;
+            SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x, 64, x);
+            SectorAABB box = SectorAABB.around(SectorVec3.fromBlockAndFraction(x, 0.0D, 64, x, 0.0D), 0.6D, 1.8D);
+            try (var collisions = SectorBlockCollisions.acquire(level, null, box, box.toLocalAABB(origin), origin, false)) {
+                while (collisions.hasNext()) collisions.next();
+            }
+            assertEquals(4, level.chunkLookups);
+        }
+    }
+
+    @Test
+    void cacheEvictionDoesNotLoseCollisionsAcrossMoreThanFourChunks() {
+        Int128 x = Int128.of(-11L, 0L);
+        SingleBlockCollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x.add(Int128.fromLong(47)), 64, x));
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x, 64, x);
+        SectorAABB box = new SectorAABB(x, 0.25, 64, x, 0.25,
+                x.add(Int128.fromLong(48)), 0.75, 65.8, x.add(Int128.fromLong(16)), 0.75);
+        int shapes = 0;
+        try (var collisions = SectorBlockCollisions.acquire(level, null, box, box.toLocalAABB(origin), origin, false)) {
+            while (collisions.hasNext()) {
+                assertEquals(47.0D, collisions.next().bounds().minX);
+                ++shapes;
+            }
+        }
+        assertEquals(1, shapes);
+        assertTrue(level.chunkLookups > 4);
+    }
+
+    @Test
+    void iterableIteratorsRemainIndependentAndRepeatable() {
+        CollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(0L, 64, 0L));
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(0L, 64, 0L);
+        SectorAABB box = SectorAABB.around(SectorVec3.fromBlockAndFraction(0L, 0.5D, 64, 0L, 0.5D), 0.6D, 1.8D);
+        var iterable = level.getSectorBlockCollisions(null, box, box.toLocalAABB(origin), origin);
+        var first = iterable.iterator();
+        var second = iterable.iterator();
+        assertNotSame(first, second);
+        assertTrue(first.hasNext());
+        assertTrue(second.hasNext());
+        assertEquals(first.next().bounds(), second.next().bounds());
+        assertFalse(first.hasNext());
+        assertThrows(java.util.NoSuchElementException.class, first::next);
+        assertTrue(iterable.iterator().hasNext());
     }
 
     @Test
@@ -132,6 +215,7 @@ class SectorBlockCollisionsTest {
         private final BlockPos solid;
         private int chunkLookups;
         private int blockLookups;
+        private boolean unloaded;
 
         private SingleBlockCollisionGetter(BlockPos solid) {
             this.solid = solid;
@@ -152,7 +236,7 @@ class SectorBlockCollisionsTest {
         @Nullable
         public BlockGetter getChunkForCollisions(Int128 chunkX, Int128 chunkZ) {
             ++this.chunkLookups;
-            return this;
+            return this.unloaded ? null : this;
         }
 
         @Override

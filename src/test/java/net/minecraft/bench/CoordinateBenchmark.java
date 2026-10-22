@@ -20,6 +20,7 @@ import net.minecraft.server.Bootstrap;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.CollisionGetter;
+import net.minecraft.world.level.SectorBlockCollisions;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.border.WorldBorder;
@@ -180,9 +181,12 @@ class CoordinateBenchmark {
         long checksum = 1L;
         long shapes = 0L;
         for (int sweep = 0; sweep < 2000; ++sweep) {
-            for (VoxelShape shape : level.getSectorBlockCollisions(null, exactBox, localBox, origin)) {
-                checksum += Double.doubleToRawLongBits(shape.min(net.minecraft.core.Direction.Axis.X));
-                ++shapes;
+            try (var collisions = SectorBlockCollisions.acquire(level, null, exactBox, localBox, origin, false)) {
+                while (collisions.hasNext()) {
+                    VoxelShape shape = collisions.next();
+                    checksum += Double.doubleToRawLongBits(shape.min(net.minecraft.core.Direction.Axis.X));
+                    ++shapes;
+                }
             }
         }
         if (shapes == 0L) {
@@ -288,8 +292,8 @@ class CoordinateBenchmark {
                 FAR + 2 + span, 0.75, 65 + span, FAR + 2 + span, 0.75);
         AABB local = box.toLocalAABB(origin);
         for (int sweep = 0; sweep < 2000; ++sweep) {
-            for (VoxelShape ignored : level.getSectorBlockCollisions(null, box, local, origin)) {
-                throw new AssertionError("air fixture emitted a collision");
+            try (var collisions = SectorBlockCollisions.acquire(level, null, box, local, origin, false)) {
+                if (collisions.hasNext()) throw new AssertionError("air fixture emitted a collision");
             }
         }
         return new Result(2000, 1);

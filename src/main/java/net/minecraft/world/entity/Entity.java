@@ -732,9 +732,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
     /** Exact/local replacement for level.noCollision; callers must not pass localBox to legacy APIs. */
     protected final boolean sectorNoCollision(SectorAABB exactBox, AABB localBox, SectorPhysicsOrigin origin) {
-        for (VoxelShape shape : this.level.getSectorBlockCollisions(this, exactBox, localBox, origin)) {
-            if (!shape.isEmpty())
-                return false;
+        try (var collisions = net.minecraft.world.level.SectorBlockCollisions.acquire(
+                this.level, this, exactBox, localBox, origin, false)) {
+            while (collisions.hasNext()) {
+                if (!collisions.next().isEmpty()) return false;
+            }
         }
         return this.level.getSectorEntityCollisions(this, exactBox, localBox, origin).isEmpty();
     }
@@ -773,9 +775,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
     protected final boolean sectorCollidesWithSuffocatingBlock(SectorAABB box) {
         SectorPhysicsOrigin origin = this.sectorPhysicsOrigin();
-        return new net.minecraft.world.level.SectorBlockCollisions(this.level, this, box, box.toLocalAABB(origin),
-                                                    origin, true)
-                .hasNext();
+        try (var collisions = net.minecraft.world.level.SectorBlockCollisions.acquire(
+                this.level, this, box, box.toLocalAABB(origin), origin, true)) {
+            return collisions.hasNext();
+        }
     }
 
     public void setOnGround(boolean pOnGround) {
@@ -1056,8 +1059,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         if (!entityShapes.isEmpty()) {
             builder.addAll(entityShapes);
         }
-        builder.addAll(level.getSectorBlockCollisions(entity, exactBox.expandTowards(movement.x, movement.y, movement.z),
-                localBox.expandTowards(movement), origin));
+        try (var collisions = net.minecraft.world.level.SectorBlockCollisions.acquire(level, entity,
+                exactBox.expandTowards(movement.x, movement.y, movement.z),
+                localBox.expandTowards(movement), origin, false)) {
+            builder.addAll(collisions);
+        }
         return collideWithShapes(movement, localBox, builder.build(), true);
     }
 
@@ -1977,9 +1983,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             SectorAABB exactEyeBox = SectorAABB.around(eye, (double) width, 1.0E-6D);
             SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(eye);
             AABB localEyeBox = exactEyeBox.toLocalAABB(origin);
-            return new net.minecraft.world.level.SectorBlockCollisions(this.level, this, exactEyeBox,
-                                                        localEyeBox, origin, true)
-                    .hasNext();
+            try (var collisions = net.minecraft.world.level.SectorBlockCollisions.acquire(
+                    this.level, this, exactEyeBox, localEyeBox, origin, true)) {
+                return collisions.hasNext();
+            }
         }
     }
 

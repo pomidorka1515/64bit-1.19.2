@@ -5,12 +5,12 @@ public class Cursor3D {
     public static final int TYPE_FACE = 1;
     public static final int TYPE_EDGE = 2;
     public static final int TYPE_CORNER = 3;
-    private final Int128 originX;
-    private final int originY;
-    private final Int128 originZ;
-    private final Int128 endX;
-    private final int endY;
-    private final Int128 endZ;
+    private Int128 originX;
+    private int originY;
+    private Int128 originZ;
+    private Int128 endX;
+    private int endY;
+    private Int128 endZ;
     private long xHi;
     private long xLo;
     private int y;
@@ -25,6 +25,10 @@ public class Cursor3D {
     }
 
     public Cursor3D(Int128 pOriginX, int pOriginY, Int128 pOriginZ, Int128 pEndX, int pEndY, Int128 pEndZ) {
+        this.reset(pOriginX, pOriginY, pOriginZ, pEndX, pEndY, pEndZ);
+    }
+
+    public void reset(Int128 pOriginX, int pOriginY, Int128 pOriginZ, Int128 pEndX, int pEndY, Int128 pEndZ) {
         this.originX = pOriginX;
         this.xHi = pOriginX.hi();
         this.xLo = pOriginX.lo();
@@ -35,6 +39,7 @@ public class Cursor3D {
         this.endX = pEndX;
         this.endY = pEndY;
         this.endZ = pEndZ;
+        this.started = false;
         this.done = pEndX.compareTo(pOriginX) < 0 || pEndY < pOriginY || pEndZ.compareTo(pOriginZ) < 0;
     }
 

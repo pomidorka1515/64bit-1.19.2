@@ -1,8 +1,8 @@
 package net.minecraft.world.level;
 
-import com.google.common.collect.AbstractIterator;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Cursor3D;
@@ -29,23 +29,35 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * {@link WorldBounds#MAX_SAFE_LOCAL_SPAN}; its precision hard ceiling is
  * {@code (1L << 52) - 1}. Unsafe ranges yield one conservative collision.</p>
  */
-public final class SectorBlockCollisions extends AbstractIterator<VoxelShape> {
-    private final AABB localBox;
-    private final CollisionContext context;
-    private final Cursor3D cursor;
+public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCloseable {
+    private static final ThreadLocal<SectorBlockCollisions> IDLE = new ThreadLocal<>();
+    private AABB localBox;
+    private CollisionContext context;
+    private final Cursor3D cursor = new Cursor3D(0L, 0, 0L, -1L, -1, -1L);
     private final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-    private final VoxelShape localEntityShape;
-    private final CollisionGetter collisionGetter;
-    private final SectorPhysicsOrigin origin;
-    private final boolean onlySuffocatingBlocks;
-    private final boolean invalidRange;
+    private VoxelShape localEntityShape;
+    private CollisionGetter collisionGetter;
+    private SectorPhysicsOrigin origin;
+    private boolean onlySuffocatingBlocks;
+    private boolean invalidRange;
     private boolean invalidRangeReported;
+    private VoxelShape next;
+    private boolean done;
+    private boolean computing;
+    private boolean leased;
+    private SectorAABB rangeBox;
+    private Int128 minX, maxX, minZ, maxZ;
+    private int minY, maxY;
     /*
     * Collision sweeps usually touch only a few chunks, but a boundary sweep
-    * can revisit them thousands of times.  Cache misses as well as hits; a
-    * null entry means "known unloaded", not "look it up again".
+     * can revisit them thousands of times. Four open-addressed slots cache
+     * hits and misses; occupancy distinguishes unloaded chunks from empty slots.
+     * Larger sweeps evict a home slot and remain exact (with more lookups).
     */
-    private final Map<ChunkPos, BlockGetter> chunkCache = new HashMap<>();
+    private final long[] chunkKeys = new long[16];
+    private final Int128[] chunkCoordinates = new Int128[8];
+    private final BlockGetter[] chunks = new BlockGetter[4];
+    private int occupied;
     private long cachedXHi, cachedXLo, cachedZHi, cachedZLo;
     private boolean hasCachedChunk;
     @Nullable
@@ -60,28 +72,80 @@ public final class SectorBlockCollisions extends AbstractIterator<VoxelShape> {
     public SectorBlockCollisions(CollisionGetter collisionGetter, @Nullable Entity entity,
             SectorAABB exactBox, AABB localBox,
             SectorPhysicsOrigin origin, boolean onlySuffocatingBlocks) {
+        this.reset(collisionGetter, entity, exactBox, localBox, origin, onlySuffocatingBlocks);
+    }
+
+    private SectorBlockCollisions() {
+    }
+
+    /** Scoped, thread-confined scratch iterator. Do not use after close.
+     * Always close, including after an early return or exception.
+     * Nested queries get independent scratch state; ordinary Iterable queries remain independent.
+     */
+    public static SectorBlockCollisions acquire(CollisionGetter getter, @Nullable Entity entity,
+            SectorAABB exactBox, AABB localBox, SectorPhysicsOrigin origin, boolean onlySuffocatingBlocks) {
+        SectorBlockCollisions collisions = IDLE.get();
+        IDLE.set(null);
+        if (collisions == null) collisions = new SectorBlockCollisions();
+        collisions.reset(getter, entity, exactBox, localBox, origin, onlySuffocatingBlocks);
+        collisions.leased = true;
+        return collisions;
+    }
+
+    @Override
+    public void close() {
+        if (!this.leased) return;
+        if (this.computing) throw new IllegalStateException("Collision query is active");
+        this.leased = false;
+        this.done = true;
+        this.next = null;
+        this.collisionGetter = null;
+        this.context = null;
+        this.localBox = null;
+        this.localEntityShape = null;
+        this.origin = null;
+        this.cachedChunk = null;
+        Arrays.fill(this.chunks, null);
+        IDLE.set(this);
+    }
+
+    private void reset(CollisionGetter collisionGetter, @Nullable Entity entity,
+            SectorAABB exactBox, AABB localBox, SectorPhysicsOrigin origin, boolean onlySuffocatingBlocks) {
         this.collisionGetter = collisionGetter;
         this.origin = origin;
         this.localBox = localBox;
-        this.localEntityShape = Shapes.create(localBox);
+        this.localEntityShape = null; // Air and full cubes do not need a voxelized query box.
         this.context = entity == null ? CollisionContext.empty() : CollisionContext.of(entity);
         this.onlySuffocatingBlocks = onlySuffocatingBlocks;
+        this.invalidRangeReported = false;
+        this.next = null;
+        this.done = false;
+        this.computing = false;
+        this.occupied = 0;
+        this.hasCachedChunk = false;
+        this.cachedChunk = null;
+        Arrays.fill(this.chunks, null);
 
-        Int128 minX = exactBox.minBlockXForCollision();
-        Int128 maxX = exactBox.maxBlockXForCollision();
-        int minY = exactBox.minBlockYForCollision();
-        int maxY = exactBox.maxBlockYForCollision();
-        Int128 minZ = exactBox.minBlockZForCollision();
-        Int128 maxZ = exactBox.maxBlockZForCollision();
+        // Immutable bounds can be reused by repeated probes. This retains only
+        // geometry, never a level/entity or a chunk lookup across operations.
+        if (this.rangeBox != exactBox) {
+            this.minX = exactBox.minBlockXForCollision();
+            this.maxX = exactBox.maxBlockXForCollision();
+            this.minY = exactBox.minBlockYForCollision();
+            this.maxY = exactBox.maxBlockYForCollision();
+            this.minZ = exactBox.minBlockZForCollision();
+            this.maxZ = exactBox.maxBlockZForCollision();
+            this.rangeBox = exactBox;
+        }
+        Int128 minX = this.minX, maxX = this.maxX, minZ = this.minZ, maxZ = this.maxZ;
+        int minY = this.minY, maxY = this.maxY;
         // Validate both the traversal span and its distance from the one local
         // origin. A small box at a distant address is not a safe local sweep.
         this.invalidRange = !origin.isSafe(minX, minZ) || !origin.isSafe(maxX, maxZ)
                 || !isSafeCursorRange(minX, maxX, minY, maxY, minZ, maxZ);
         // Keep hostile ranges out of the cursor even though it now advances
         // by endpoints rather than by an overflowing linear index.
-        this.cursor = this.invalidRange
-                ? new Cursor3D(0L, 0, 0L, -1L, -1, -1L)
-                : new Cursor3D(minX, minY, minZ, maxX, maxY, maxZ);
+        if (!this.invalidRange) this.cursor.reset(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
     private static boolean isSafeCursorRange(Int128 minX, Int128 maxX, int minY, int maxY,
@@ -117,13 +181,30 @@ public final class SectorBlockCollisions extends AbstractIterator<VoxelShape> {
         this.cachedXLo = chunkXLo;
         this.cachedZHi = chunkZHi;
         this.cachedZLo = chunkZLo;
-        Int128 chunkX = Int128.of(chunkXHi, chunkXLo);
-        Int128 chunkZ = Int128.of(chunkZHi, chunkZLo);
-        ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
-        if (this.chunkCache.containsKey(chunkPos)) {
-            return this.cachedChunk = this.chunkCache.get(chunkPos);
+        int slot = (int) (chunkXHi ^ chunkXLo ^ chunkZHi ^ (chunkZLo * 3L)) & 3;
+        int insertion = slot;
+        for (int probe = 0; probe < 4; ++probe) {
+            int key = slot << 2;
+            if ((this.occupied & (1 << slot)) == 0) {
+                insertion = slot;
+                break;
+            }
+            if (this.chunkKeys[key] == chunkXHi && this.chunkKeys[key + 1] == chunkXLo
+                    && this.chunkKeys[key + 2] == chunkZHi && this.chunkKeys[key + 3] == chunkZLo) {
+                return this.cachedChunk = this.chunks[slot];
+            }
+            slot = (slot + 1) & 3;
         }
 
+        int coordinate = insertion << 1;
+        Int128 chunkX = this.chunkCoordinates[coordinate];
+        if (chunkX == null || chunkX.hi() != chunkXHi || chunkX.lo() != chunkXLo) {
+            this.chunkCoordinates[coordinate] = chunkX = Int128.of(chunkXHi, chunkXLo);
+        }
+        Int128 chunkZ = this.chunkCoordinates[coordinate + 1];
+        if (chunkZ == null || chunkZ.hi() != chunkZHi || chunkZ.lo() != chunkZLo) {
+            this.chunkCoordinates[coordinate + 1] = chunkZ = Int128.of(chunkZHi, chunkZLo);
+        }
         BlockGetter getter;
         if (this.collisionGetter instanceof ServerLevel serverLevel) {
             // This method is intentionally non-blocking.  In particular, never
@@ -133,12 +214,47 @@ public final class SectorBlockCollisions extends AbstractIterator<VoxelShape> {
         } else {
             getter = this.collisionGetter.getChunkForCollisions(chunkX, chunkZ);
         }
-        this.chunkCache.put(chunkPos, getter);
+        int key = insertion << 2;
+        this.chunkKeys[key] = chunkXHi;
+        this.chunkKeys[key + 1] = chunkXLo;
+        this.chunkKeys[key + 2] = chunkZHi;
+        this.chunkKeys[key + 3] = chunkZLo;
+        this.chunks[insertion] = getter;
+        this.occupied |= 1 << insertion;
         return this.cachedChunk = getter;
     }
 
     @Override
-    protected VoxelShape computeNext() {
+    public boolean hasNext() {
+        if (this.computing) throw new IllegalStateException("Recursive iterator access");
+        if (this.next != null) return true;
+        if (this.done) return false;
+        this.computing = true;
+        this.done = true; // Fail closed if block shape computation throws.
+        try {
+            this.next = this.computeNext();
+            this.done = this.next == null;
+            return !this.done;
+        } finally {
+            this.computing = false;
+        }
+    }
+
+    @Override
+    public VoxelShape next() {
+        if (!this.hasNext()) throw new NoSuchElementException();
+        VoxelShape shape = this.next;
+        this.next = null;
+        return shape;
+    }
+
+    private VoxelShape queryShape() {
+        if (this.localEntityShape == null) this.localEntityShape = Shapes.create(this.localBox);
+        return this.localEntityShape;
+    }
+
+    @Nullable
+    private VoxelShape computeNext() {
         if (this.invalidRange) {
             // A sweep that cannot be represented by Cursor3D is conservative:
             // report an overlap in the current local frame once.  Returning no
@@ -148,7 +264,7 @@ public final class SectorBlockCollisions extends AbstractIterator<VoxelShape> {
                 this.invalidRangeReported = true;
                 return Shapes.block().move(this.localBox.minX, this.localBox.minY, this.localBox.minZ);
             }
-            return this.endOfData();
+            return null;
         }
 
         while (this.cursor.advance()) {
@@ -191,7 +307,7 @@ public final class SectorBlockCollisions extends AbstractIterator<VoxelShape> {
                 VoxelShape localShape = Shapes.block().move(localX, localY, localZ);
                 if (this.localBox.intersects(localX, localY, localZ,
                             localX + 1.0D, localY + 1.0D, localZ + 1.0D)
-                        && Shapes.joinIsNotEmpty(localShape, this.localEntityShape, BooleanOp.AND)) {
+                        && Shapes.joinIsNotEmpty(localShape, this.queryShape(), BooleanOp.AND)) {
                     return localShape;
                 }
                 continue;
@@ -221,13 +337,13 @@ public final class SectorBlockCollisions extends AbstractIterator<VoxelShape> {
                 continue;
             }
             VoxelShape localShape = shape.move(localX, localY, localZ);
-            if (!Shapes.joinIsNotEmpty(localShape, this.localEntityShape, BooleanOp.AND)) {
+            if (!Shapes.joinIsNotEmpty(localShape, this.queryShape(), BooleanOp.AND)) {
                 continue;
             }
             return localShape;
         }
 
-        return this.endOfData();
+        return null;
     }
 
     // Constructor validation bounds every visited coordinate relative to origin.

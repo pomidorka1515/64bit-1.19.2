@@ -6,6 +6,7 @@ import net.minecraft.world.level.ChunkPos;
 
 /** Canonical, fixed-width two's-complement names for region and external chunk files. */
 public final class RegionFileNames {
+    private static final String HEX = "0123456789abcdef";
     private RegionFileNames() {
     }
 
@@ -34,7 +35,7 @@ public final class RegionFileNames {
     private static void writeHex(char[] target, int offset, long value) {
         for (int i = 15; i >= 0; --i) {
             int digit = (int) (value & 15);
-            target[offset + i] = (char) (digit < 10 ? '0' + digit : 'a' + digit - 10);
+            target[offset + i] = HEX.charAt(digit);
             value >>>= 4;
         }
     }

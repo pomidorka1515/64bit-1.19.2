@@ -2,11 +2,26 @@ package net.minecraft.core;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.world.level.ChunkPos;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class PrimitiveTraversalTest {
+    @Test
+    void chunkHashesUseEveryLimbAndRemainConsistent() {
+        ChunkPos base = new ChunkPos(123, -456);
+        assertEquals(base.hashCode(), ChunkPos.hash(123, -456));
+        assertEquals(base.hashCode(), ChunkPos.hash(base.x(), base.z()));
+        assertNotEquals(base.hashCode(), new ChunkPos(Int128.of(1, 123), base.z()).hashCode());
+        assertNotEquals(base.hashCode(), new ChunkPos(base.x(), Int128.of(-2, -456)).hashCode());
+        java.util.Set<Integer> hashes = new java.util.HashSet<>();
+        for (int x = -16; x <= 16; ++x) {
+            for (int z = -16; z <= 16; ++z) hashes.add(new ChunkPos(x, z).hashCode());
+        }
+        assertTrue(hashes.size() > 1000);
+    }
+
     @Test
     void traversalMatchesExactOrderAcrossCarriesAndEndpoints() {
         for (Int128 start : List.of(Int128.MIN, Int128.of(-4, -1), Int128.of(7, -1),

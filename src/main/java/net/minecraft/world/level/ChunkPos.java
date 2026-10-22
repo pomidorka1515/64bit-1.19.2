@@ -105,7 +105,14 @@ public class ChunkPos {
     }
 
     private static int hash(long xHi, long xLo, long zHi, long zLo) {
-        return Long.hashCode(31L * Int128.hash(xHi, xLo) + Int128.hash(zHi, zLo));
+        // Fold every limb, not just the low 32 bits used by the old world key.
+        // Independent odd multipliers keep adjacent X/Z windows well distributed.
+        int x = 1664525 * (int) xLo + 1013904223
+                + Integer.rotateLeft((int) (xLo >>> 32), 7);
+        int z = 1664525 * ((int) zLo ^ -559038737) + 1013904223
+                + Integer.rotateLeft((int) (zLo >>> 32), 7);
+        return x ^ Integer.rotateLeft(z, 16) ^ Integer.rotateLeft(Long.hashCode(xHi) * 0x9e3779b9, 11)
+                ^ Integer.rotateLeft(Long.hashCode(zHi) * 0x85ebca6b, 23);
     }
 
     public boolean equals(Object pOther) {

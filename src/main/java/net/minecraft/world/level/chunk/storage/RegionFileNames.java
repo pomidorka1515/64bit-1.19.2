@@ -10,11 +10,33 @@ public final class RegionFileNames {
     }
 
     public static String regionFileName(Int128 regionX, Int128 regionZ) {
-        return String.join(".", "r", regionX.toHex(), regionZ.toHex(), "mca");
+        return fileName('r', regionX, regionZ, 'a');
     }
 
     public static String externalChunkFileName(Int128 chunkX, Int128 chunkZ) {
-        return String.join(".", "c", chunkX.toHex(), chunkZ.toHex(), "mcc");
+        return fileName('c', chunkX, chunkZ, 'c');
+    }
+
+    private static String fileName(char prefix, Int128 x, Int128 z, char suffix) {
+        char[] name = new char[71];
+        name[0] = prefix;
+        name[1] = name[34] = name[67] = '.';
+        writeHex(name, 2, x.hi());
+        writeHex(name, 18, x.lo());
+        writeHex(name, 35, z.hi());
+        writeHex(name, 51, z.lo());
+        name[68] = 'm';
+        name[69] = 'c';
+        name[70] = suffix;
+        return new String(name);
+    }
+
+    private static void writeHex(char[] target, int offset, long value) {
+        for (int i = 15; i >= 0; --i) {
+            int digit = (int) (value & 15);
+            target[offset + i] = (char) (digit < 10 ? '0' + digit : 'a' + digit - 10);
+            value >>>= 4;
+        }
     }
 
     public static Optional<RegionPos> parseRegionFileName(String fileName) {

@@ -36,7 +36,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CoordinateBenchmark {
-    private static final int WARMUP = 5;
+    private static final int WARMUP = Integer.parseInt(
+            System.getenv().getOrDefault("COORDINATE_BENCH_WARMUP", "5"));
     private static final int SAMPLES = 9;
     /** Far enough that a double cannot name the block, matching the current exact-position paths. */
     private static final long FAR = 1L << 53;
@@ -85,6 +86,8 @@ class CoordinateBenchmark {
         report.append(allocations("chunk-key-lookup", this::lookupChunkKeys));
         report.append(allocations("region-name-formatting", this::formatRegionNames));
         report.append(allocations("sector-vec3-relative-math", this::relativeMath));
+        report.append(allocations("air-collision-small", () -> this.airCollisions(1)));
+        report.append(allocations("air-collision-large", () -> this.airCollisions(8)));
         report.append("block-iteration: BlockPos.betweenClosed 16x16x16 at ")
                 .append(FAR).append(" plus Cursor3D.advance over the same span, 32 reps\n");
         report.append("collision-iteration: SectorBlockCollisions player box 0.6x1.8 at ")
@@ -239,6 +242,22 @@ class CoordinateBenchmark {
             ++ops;
         }
         return new Result(ops, checksum);
+    }
+
+    // Both spans stay inside one chunk. Increasing visited block count must not
+    // introduce coordinate/key allocations; no actual collision shapes are emitted.
+    private Result airCollisions(int span) {
+        CollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(FAR + 100, 64, FAR + 100));
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(FAR, 64, FAR);
+        SectorAABB box = new SectorAABB(FAR + 2, 0.25, 64, FAR + 2, 0.25,
+                FAR + 2 + span, 0.75, 65 + span, FAR + 2 + span, 0.75);
+        AABB local = box.toLocalAABB(origin);
+        for (int sweep = 0; sweep < 2000; ++sweep) {
+            for (VoxelShape ignored : level.getSectorBlockCollisions(null, box, local, origin)) {
+                throw new AssertionError("air fixture emitted a collision");
+            }
+        }
+        return new Result(2000, 1);
     }
 
     private interface Work {

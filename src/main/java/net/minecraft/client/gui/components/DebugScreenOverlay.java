@@ -21,7 +21,6 @@ import it.unimi.dsi.fastutil.objects.ObjectSets;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -71,7 +70,6 @@ import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.storage.RegionFileNames;
 import net.minecraft.world.level.levelgen.EndRingsMode;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.synth.BlendedNoise;
 import net.minecraft.world.level.levelgen.synth.FarlandsMode;
@@ -90,14 +88,6 @@ public class DebugScreenOverlay extends GuiComponent {
     private static final int MARGIN_RIGHT = 2;
     private static final int MARGIN_LEFT = 2;
     private static final int MARGIN_TOP = 2;
-    private static final Map<Heightmap.Types, String> HEIGHTMAP_NAMES = Util.make(new EnumMap<>(Heightmap.Types.class), (p_94070_) -> {
-        p_94070_.put(Heightmap.Types.WORLD_SURFACE_WG, "SW");
-        p_94070_.put(Heightmap.Types.WORLD_SURFACE, "S");
-        p_94070_.put(Heightmap.Types.OCEAN_FLOOR_WG, "OW");
-        p_94070_.put(Heightmap.Types.OCEAN_FLOOR, "O");
-        p_94070_.put(Heightmap.Types.MOTION_BLOCKING, "M");
-        p_94070_.put(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, "ML");
-    });
     private final Minecraft minecraft;
     private final DebugScreenOverlay.AllocationRateCalculator allocationRateCalculator;
     private final Font font;
@@ -180,13 +170,6 @@ public class DebugScreenOverlay extends GuiComponent {
         }
     }
 
-    private char getColorCodeFromPrecision(double precision) {
-        if (precision <= 0.03125D /* 1/32 */)
-            return 'a';
-        else
-            return precision > 0.25 /* 1/2 */ ? 'c' : 'e';
-    }
-
     protected List<String> getGameInformation() {
         IntegratedServer integratedserver = this.minecraft.getSingleplayerServer();
         Connection connection = this.minecraft.getConnection().getConnection();
@@ -243,19 +226,24 @@ public class DebugScreenOverlay extends GuiComponent {
             list.add("");
             SectorVec3 exact = entity.exactPosition();
             if (exact != null) {
-                list.add(String.format(Locale.ROOT, "XYZ: %s / %.5f / %s", exact.formatX(3), exact.y(), exact.formatZ(3)));
+                addExactPositionLines(list, exact);
             } else {
-                list.add(String.format(Locale.ROOT, "XYZ: %.3f / %.5f / %.3f", entity.getX(), entity.getY(), entity.getZ()));
+                list.add(String.format(Locale.ROOT, "X: %.3f", entity.getX()));
+                list.add(String.format(Locale.ROOT, "Y: %.5f", entity.getY()));
+                list.add(String.format(Locale.ROOT, "Z: %.3f", entity.getZ()));
             }
-            list.add(String.format(Locale.ROOT, "Block: %s %d %s [%d %d %d]", blockpos.getX(), blockpos.getY(), blockpos.getZ(), blockpos.getXLo() & 15, blockpos.getY() & 15, blockpos.getZLo() & 15));
-            list.add(String.format(Locale.ROOT, "Chunk: %s %d %s", chunkpos.x(), SectionPos.blockToSectionCoord(blockpos.getY()), chunkpos.z()));
+            list.add(formatCoordinateHalves("x", exact != null ? exact.blockX() : blockpos.getX()));
+            list.add(formatCoordinateHalves("z", exact != null ? exact.blockZ() : blockpos.getZ()));
+            list.add(String.format(Locale.ROOT, "Block: [%d %d %d]", blockpos.getXLo() & 15, blockpos.getY() & 15, blockpos.getZLo() & 15));
+            list.add("Chunk X: " + chunkpos.x());
+            list.add("Chunk Z: " + chunkpos.z());
             this.regionDisplay.update(new ChunkPos(this.minecraft.gameRenderer.getMainCamera().getBlockPosition()));
             list.add(this.regionDisplay.firstLine);
             list.add(this.regionDisplay.secondLine);
+            list.add(this.regionDisplay.thirdLine);
 
             if (exact != null) {
-                list.add(String.format(Locale.ROOT, "Sector: [X: %s, Y: %d, Z: %s]", exact.blockX(), exact.sectorY(), exact.blockZ()));
-                list.add(String.format(Locale.ROOT, "SubPos: [X: %+.5f, Y: %+.5f, Z: %+.5f]", exact.subX(), exact.subY(), exact.subZ()));
+                list.add(formatSubPosition(exact));
             }
             list.add(String.format(Locale.ROOT, "Facing: %s (%s) (%.1f / %.1f)", direction, s1, Mth.wrapDegrees(entity.getYRot()), Mth.wrapDegrees(entity.getXRot())));
             int maxBit = Math.max(magnitudeBits(blockpos.getX()), magnitudeBits(blockpos.getZ()));
@@ -264,7 +252,7 @@ public class DebugScreenOverlay extends GuiComponent {
             double doublePrecision = Math.pow(2, (maxBit - 53)),
                    floatPrecision = Math.pow(2, (maxBit - 24));
 
-            list.add("Current precision: \247" + this.getColorCodeFromPrecision(doublePrecision) + doublePrecision + "\247r (float: \247" + this.getColorCodeFromPrecision(floatPrecision) + floatPrecision + "\247r)");
+            list.add(formatPrecision(doublePrecision, floatPrecision));
 
             LevelChunk levelchunk = this.getClientChunk();
             if (levelchunk.isEmpty()) {
@@ -275,30 +263,6 @@ public class DebugScreenOverlay extends GuiComponent {
                 int k = this.minecraft.level.getBrightness(LightLayer.BLOCK, blockpos);
                 list.add("Client Light: " + i + " (" + j + " sky, " + k + " block)");
                 LevelChunk levelchunk1 = this.getServerChunk();
-                StringBuilder stringbuilder = new StringBuilder("CH");
-
-                for (Heightmap.Types heightmap$types : Heightmap.Types.values()) {
-                    if (heightmap$types.sendToClient()) {
-                        stringbuilder.append(" ").append(HEIGHTMAP_NAMES.get(heightmap$types)).append(": ").append(levelchunk.getHeight(heightmap$types, blockpos.getXLo() & 15, blockpos.getZLo() & 15));
-                    }
-                }
-
-                list.add(stringbuilder.toString());
-                stringbuilder.setLength(0);
-                stringbuilder.append("SH");
-
-                for (Heightmap.Types heightmap$types1 : Heightmap.Types.values()) {
-                    if (heightmap$types1.keepAfterWorldgen()) {
-                        stringbuilder.append(" ").append(HEIGHTMAP_NAMES.get(heightmap$types1)).append(": ");
-                        if (levelchunk1 != null) {
-                            stringbuilder.append(levelchunk1.getHeight(heightmap$types1, blockpos.getXLo() & 15, blockpos.getZLo() & 15));
-                        } else {
-                            stringbuilder.append("??");
-                        }
-                    }
-                }
-
-                list.add(stringbuilder.toString());
                 if (blockpos.getY() >= this.minecraft.level.getMinBuildHeight() && blockpos.getY() < this.minecraft.level.getMaxBuildHeight()) {
                     list.add("Biome: " + printBiome(this.minecraft.level.getBiome(blockpos)));
                     long l = 0L;
@@ -357,6 +321,25 @@ public class DebugScreenOverlay extends GuiComponent {
         return pBiomeHolder.unwrap().map((p_205377_) -> { return p_205377_.location().toString(); }, (p_205367_) -> { return "[unregistered " + p_205367_ + "]"; });
     }
 
+    static String formatPrecision(double doublePrecision, double floatPrecision) {
+        return String.format(Locale.ROOT, "Precision double: %.10e float: %.6e", doublePrecision, floatPrecision)
+                .replace("e+", "e").replaceAll("e(-?)0+(\\d+)", "e$1$2");
+    }
+
+    static void addExactPositionLines(List<String> list, SectorVec3 exact) {
+        list.add("X: " + exact.formatX(3));
+        list.add(String.format(Locale.ROOT, "Y: %.5f", exact.y()));
+        list.add("Z: " + exact.formatZ(3));
+    }
+
+    static String formatCoordinateHalves(String axis, Int128 coordinate) {
+        return axis + "Lo: " + Long.toHexString(coordinate.lo()) + " / " + axis + "Hi: " + Long.toHexString(coordinate.hi());
+    }
+
+    static String formatSubPosition(SectorVec3 exact) {
+        return String.format(Locale.ROOT, "SubPos: [X: %+.7f, Y: %+.7f, Z: %+.7f]", exact.subX(), exact.subY(), exact.subZ());
+    }
+
     private static int magnitudeBits(Int128 value) {
         // Unsigned magnitude also preserves the extra bit of Int128.MIN.
         long lo = value.hi() < 0 ? -value.lo() : value.lo();
@@ -369,6 +352,7 @@ public class DebugScreenOverlay extends GuiComponent {
         private Int128 regionZ;
         String firstLine;
         String secondLine;
+        String thirdLine;
 
         void update(ChunkPos chunk) {
             Int128 x = chunk.getRegionX();
@@ -378,8 +362,9 @@ public class DebugScreenOverlay extends GuiComponent {
                 this.regionZ = z;
                 String decimalX = x.toDecimalString();
                 String decimalZ = z.toDecimalString();
-                this.firstLine = "Region: " + decimalX + " " + decimalZ + " in " + RegionFileNames.regionFileName(x, z);
-                this.secondLine = " (r." + decimalX + "." + decimalZ + ".mca)";
+                this.firstLine = "Region X: " + decimalX;
+                this.secondLine = "Region Z: " + decimalZ;
+                this.thirdLine = " in " + RegionFileNames.regionFileName(x, z);
             }
         }
     }
@@ -458,18 +443,20 @@ public class DebugScreenOverlay extends GuiComponent {
             if (this.liquid.getType() == HitResult.Type.BLOCK) {
                 BlockPos blockpos1 = ((BlockHitResult) this.liquid).getBlockPos();
                 FluidState fluidstate = this.minecraft.level.getFluidState(blockpos1);
-                list.add("");
-                list.add(ChatFormatting.UNDERLINE + "Targeted Fluid: " + blockpos1.getX() + ", " + blockpos1.getY() + ", " + blockpos1.getZ());
-                list.add(String.valueOf((Object) Registry.FLUID.getKey(fluidstate.getType())));
+                if (!fluidstate.isEmpty()) {
+                    list.add("");
+                    list.add(ChatFormatting.UNDERLINE + "Targeted Fluid: " + blockpos1.getX() + ", " + blockpos1.getY() + ", " + blockpos1.getZ());
+                    list.add(String.valueOf((Object) Registry.FLUID.getKey(fluidstate.getType())));
 
-                for (Map.Entry<Property<?>, Comparable<?>> entry1 : fluidstate.getValues().entrySet()) {
-                    list.add(this.getPropertyValueString(entry1));
+                    for (Map.Entry<Property<?>, Comparable<?>> entry1 : fluidstate.getValues().entrySet()) {
+                        list.add(this.getPropertyValueString(entry1));
+                    }
+
+                    fluidstate.getTags().map((p_205365_) -> {
+                                            return "#" + p_205365_.location();
+                                        })
+                            .forEach(list::add);
                 }
-
-                fluidstate.getTags().map((p_205365_) -> {
-                                        return "#" + p_205365_.location();
-                                    })
-                        .forEach(list::add);
             }
 
             Entity entity = this.minecraft.crosshairPickEntity;

@@ -10,8 +10,9 @@ class RegionDisplayInt128Test {
     void exactFormatAndNegativeFloor() {
         DebugScreenOverlay.RegionDisplayCache cache = new DebugScreenOverlay.RegionDisplayCache();
         cache.update(new ChunkPos(-1L, 32L));
-        assertEquals("Region: -1 1 in r.ffffffffffffffffffffffffffffffff.00000000000000000000000000000001.mca", cache.firstLine);
-        assertEquals(" (r.-1.1.mca)", cache.secondLine);
+        assertEquals("Region X: -1", cache.firstLine);
+        assertEquals("Region Z: 1", cache.secondLine);
+        assertEquals(" in r.ffffffffffffffffffffffffffffffff.00000000000000000000000000000001.mca", cache.thirdLine);
     }
 
     @Test
@@ -20,12 +21,16 @@ class RegionDisplayInt128Test {
         cache.update(new ChunkPos(0L, 0L));
         String first = cache.firstLine;
         String second = cache.secondLine;
+        String third = cache.thirdLine;
         cache.update(new ChunkPos(31L, 31L));
         assertSame(first, cache.firstLine);
         assertSame(second, cache.secondLine);
+        assertSame(third, cache.thirdLine);
         cache.update(new ChunkPos(Int128.of(1L, 0L), Int128.ZERO));
         assertNotEquals(first, cache.firstLine);
-        assertEquals(" (r.576460752303423488.0.mca)", cache.secondLine);
+        assertEquals("Region X: 576460752303423488", cache.firstLine);
+        assertEquals("Region Z: 0", cache.secondLine);
+        assertEquals(" in r.00000000000000000800000000000000.00000000000000000000000000000000.mca", cache.thirdLine);
         cache.update(new ChunkPos(Int128.of(1L, 31L), Int128.ZERO));
         String high = cache.firstLine;
         cache.update(new ChunkPos(Int128.of(1L, 30L), Int128.ZERO));
@@ -36,7 +41,8 @@ class RegionDisplayInt128Test {
     void fullBlockDomainRegionEndpoints() {
         DebugScreenOverlay.RegionDisplayCache cache = new DebugScreenOverlay.RegionDisplayCache();
         cache.update(new ChunkPos(Int128.MIN.shiftRight(4), Int128.MAX.shiftRight(4)));
-        assertEquals(" (r.-332306998946228968225951765070086144.332306998946228968225951765070086143.mca)", cache.secondLine);
-        assertEquals("Region: -332306998946228968225951765070086144 332306998946228968225951765070086143 in r.ffc00000000000000000000000000000.003fffffffffffffffffffffffffffff.mca", cache.firstLine);
+        assertEquals("Region X: -332306998946228968225951765070086144", cache.firstLine);
+        assertEquals("Region Z: 332306998946228968225951765070086143", cache.secondLine);
+        assertEquals(" in r.ffc00000000000000000000000000000.003fffffffffffffffffffffffffffff.mca", cache.thirdLine);
     }
 }

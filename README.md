@@ -121,6 +121,20 @@ in game, `/farlands help` lists the generator modes. mode changes are saved with
 
 ## source
 
+### termux
+use native OpenJDK 17 (no root or proot needed, doesnt require glibc):
+```sh
+pkg update && pkg install openjdk-17
+ln -s "$PREFIX/lib/jvm/java-17-openjdk" "$HOME/jdk17"
+./gradlew compileJava test
+```
+
+the wrapper automatically uses `~/jdk17` when `JAVA_HOME` is unset.
+it also disables gradle's incompatible linux native services and file watching,
+and limits gradle to two workers and a 1536 MiB heap.
+an explicit `JAVA_HOME` still takes precedence. 
+compilation and tests do not require client assets or the `setup` / `runclient` tasks.
+
 ### building the client and dedicated server
 
 with java 17 installed:

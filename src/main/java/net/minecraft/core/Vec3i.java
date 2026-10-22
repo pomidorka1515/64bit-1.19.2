@@ -22,7 +22,7 @@ public class Vec3i implements Comparable<Vec3i> {
         if (coordinates[2] < Integer.MIN_VALUE || coordinates[2] > Integer.MAX_VALUE) {
             return DataResult.error("Vec3i y coordinate must fit in an int");
         }
-        return DataResult.success(new Vec3i(Int128.of(coordinates[0], coordinates[1]), (int) coordinates[2], Int128.of(coordinates[3], coordinates[4])));
+        return DataResult.success(new Vec3i(coordinates[0], coordinates[1], (int) coordinates[2], coordinates[3], coordinates[4]));
     }, value -> LongStream.of(value.getXHi(), value.getXLo(), value.getY(), value.getZHi(), value.getZLo()));
     public static final Vec3i ZERO = new Vec3i(0, 0, 0);
     private long xHi;
@@ -61,7 +61,8 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public Vec3i(double pX, double pY, double pZ) {
-        this(Int128.fromDoubleFloorSaturated(pX), Mth.floor(pY), Int128.fromDoubleFloorSaturated(pZ));
+        this(Int128Math.doubleFloorHi(pX), Int128Math.doubleFloorLo(pX), Mth.floor(pY),
+                Int128Math.doubleFloorHi(pZ), Int128Math.doubleFloorLo(pZ));
     }
 
     public boolean equals(Object pOther) {
@@ -93,6 +94,7 @@ public class Vec3i implements Comparable<Vec3i> {
         return result == 0 ? Int128Math.compare(this.zHi(), this.zLo(), pOther.zHi(), pOther.zLo()) : result;
     }
 
+    /** Value-object API boundary; internal arithmetic should use the raw limb accessors. */
     public Int128 getX() {
         return Int128.of(this.xHi, this.xLo);
     }
@@ -101,6 +103,7 @@ public class Vec3i implements Comparable<Vec3i> {
         return this.y;
     }
 
+    /** Value-object API boundary; internal arithmetic should use the raw limb accessors. */
     public Int128 getZ() {
         return Int128.of(this.zHi, this.zLo);
     }
@@ -157,23 +160,38 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public Vec3i offset(double pDx, double pDy, double pDz) {
-        return pDx == 0.0D && pDy == 0.0D && pDz == 0.0D ? this : new Vec3i(WorldBounds.addDoubleBlockOffset(this.getX(), pDx), Mth.floor((double) this.getY() + pDy), WorldBounds.addDoubleBlockOffset(this.getZ(), pDz));
+        return pDx == 0.0D && pDy == 0.0D && pDz == 0.0D ? this : new Vec3i(
+                Int128Math.addFlooredBlockOffsetHi(this.xHi(), this.xLo(), pDx),
+                Int128Math.addFlooredBlockOffsetLo(this.xHi(), this.xLo(), pDx), Mth.floor((double) this.getY() + pDy),
+                Int128Math.addFlooredBlockOffsetHi(this.zHi(), this.zLo(), pDz),
+                Int128Math.addFlooredBlockOffsetLo(this.zHi(), this.zLo(), pDz));
     }
 
     public Vec3i offset(long pDx, int pDy, long pDz) {
-        return pDx == 0 && pDy == 0 && pDz == 0 ? this : new Vec3i(WorldBounds.addBlockOffset(this.getX(), pDx), this.getY() + pDy, WorldBounds.addBlockOffset(this.getZ(), pDz));
+        return this.offset(pDx >> 63, pDx, pDy, pDz >> 63, pDz);
     }
 
     public Vec3i offset(Vec3i pVector) {
-        return this.offset(pVector.getX(), pVector.getY(), pVector.getZ());
+        return this.offset(pVector.xHi(), pVector.xLo(), pVector.getY(), pVector.zHi(), pVector.zLo());
     }
 
     public Vec3i offset(Int128 pDx, int pDy, Int128 pDz) {
-        return pDx.equals(Int128.ZERO) && pDy == 0 && pDz.equals(Int128.ZERO) ? this : new Vec3i(this.getX().addSaturated(pDx), this.getY() + pDy, this.getZ().addSaturated(pDz));
+        return this.offset(pDx.hi(), pDx.lo(), pDy, pDz.hi(), pDz.lo());
+    }
+
+    private Vec3i offset(long dxHi, long dxLo, int dy, long dzHi, long dzLo) {
+        return dxHi == 0L && dxLo == 0L && dy == 0 && dzHi == 0L && dzLo == 0L ? this
+                : new Vec3i(Int128Math.addSaturatedHi(this.xHi(), this.xLo(), dxHi, dxLo),
+                        Int128Math.addSaturatedLo(this.xHi(), this.xLo(), dxHi, dxLo), this.getY() + dy,
+                        Int128Math.addSaturatedHi(this.zHi(), this.zLo(), dzHi, dzLo),
+                        Int128Math.addSaturatedLo(this.zHi(), this.zLo(), dzHi, dzLo));
     }
 
     public Vec3i subtract(Vec3i pVector) {
-        return new Vec3i(this.getX().subtractSaturated(pVector.getX()), this.getY() - pVector.getY(), this.getZ().subtractSaturated(pVector.getZ()));
+        return new Vec3i(Int128Math.subtractSaturatedHi(this.xHi(), this.xLo(), pVector.xHi(), pVector.xLo()),
+                Int128Math.subtractSaturatedLo(this.xHi(), this.xLo(), pVector.xHi(), pVector.xLo()), this.getY() - pVector.getY(),
+                Int128Math.subtractSaturatedHi(this.zHi(), this.zLo(), pVector.zHi(), pVector.zLo()),
+                Int128Math.subtractSaturatedLo(this.zHi(), this.zLo(), pVector.zHi(), pVector.zLo()));
     }
 
     public Vec3i multiply(int pScalar) {
@@ -237,7 +255,8 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public Vec3i relative(Direction pDirection, int pDistance) {
-        return pDistance == 0 ? this : new Vec3i(WorldBounds.addBlockOffset(this.getX(), (long) pDirection.getStepX() * pDistance), this.getY() + pDirection.getStepY() * pDistance, WorldBounds.addBlockOffset(this.getZ(), (long) pDirection.getStepZ() * pDistance));
+        return this.offset((long) pDirection.getStepX() * pDistance, pDirection.getStepY() * pDistance,
+                (long) pDirection.getStepZ() * pDistance);
     }
 
     public Vec3i relative(Direction.Axis pAxis, int pAmount) {
@@ -247,7 +266,7 @@ public class Vec3i implements Comparable<Vec3i> {
             int i = pAxis == Direction.Axis.X ? pAmount : 0;
             int j = pAxis == Direction.Axis.Y ? pAmount : 0;
             int k = pAxis == Direction.Axis.Z ? pAmount : 0;
-            return new Vec3i(WorldBounds.addBlockOffset(this.getX(), i), this.getY() + j, WorldBounds.addBlockOffset(this.getZ(), k));
+            return this.offset((long) i, j, (long) k);
         }
     }
 

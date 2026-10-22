@@ -36,6 +36,30 @@ public final class Int128Math {
         return ((aHi ^ high) & (bHi ^ high)) < 0L ? (aHi < 0L ? 0L : -1L) : low;
     }
 
+    /** High limb of a signed, saturating difference; use the original operands for both halves. */
+    public static long subtractSaturatedHi(long aHi, long aLo, long bHi, long bLo) {
+        long high = aHi - bHi - subtractBorrow(aLo, bLo);
+        return ((aHi ^ bHi) & (aHi ^ high)) < 0L
+                ? (aHi < 0L ? Long.MIN_VALUE : Long.MAX_VALUE) : high;
+    }
+
+    /** Low limb paired with {@link #subtractSaturatedHi}. */
+    public static long subtractSaturatedLo(long aHi, long aLo, long bHi, long bLo) {
+        long high = aHi - bHi - subtractBorrow(aLo, bLo);
+        return ((aHi ^ bHi) & (aHi ^ high)) < 0L ? (aHi < 0L ? 0L : -1L) : aLo - bLo;
+    }
+
+    /** Primitive equivalent of WorldBounds.addDoubleBlockOffset, including non-finite no-ops. */
+    public static long addFlooredBlockOffsetHi(long hi, long lo, double offset) {
+        return !Double.isFinite(offset) || offset == 0.0D ? hi
+                : addSaturatedHi(hi, lo, doubleFloorHi(offset), doubleFloorLo(offset));
+    }
+
+    public static long addFlooredBlockOffsetLo(long hi, long lo, double offset) {
+        return !Double.isFinite(offset) || offset == 0.0D ? lo
+                : addSaturatedLo(hi, lo, doubleFloorHi(offset), doubleFloorLo(offset));
+    }
+
     /** resultHi already includes carry, which must be zero or one. */
     public static boolean addOverflowed(long aHi, long bHi, long carry, long resultHi) {
         return ((aHi ^ resultHi) & (bHi ^ resultHi)) < 0L;

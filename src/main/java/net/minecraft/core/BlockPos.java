@@ -54,7 +54,11 @@ public class BlockPos extends Vec3i {
     }
 
     public BlockPos offset(double pDx, double pDy, double pDz) {
-        return pDx == 0.0D && pDy == 0.0D && pDz == 0.0D ? this : new BlockPos(WorldBounds.addDoubleBlockOffset(this.getX(), pDx), Mth.floor((double) this.getY() + pDy), WorldBounds.addDoubleBlockOffset(this.getZ(), pDz));
+        return pDx == 0.0D && pDy == 0.0D && pDz == 0.0D ? this : new BlockPos(
+                Int128Math.addFlooredBlockOffsetHi(this.xHi(), this.xLo(), pDx),
+                Int128Math.addFlooredBlockOffsetLo(this.xHi(), this.xLo(), pDx), Mth.floor((double) this.getY() + pDy),
+                Int128Math.addFlooredBlockOffsetHi(this.zHi(), this.zLo(), pDz),
+                Int128Math.addFlooredBlockOffsetLo(this.zHi(), this.zLo(), pDz));
     }
 
     public BlockPos offset(long pDx, int pDy, long pDz) {
@@ -78,7 +82,10 @@ public class BlockPos extends Vec3i {
     }
 
     public BlockPos subtract(Vec3i pVector) {
-        return new BlockPos(this.getX().subtractSaturated(pVector.getX()), this.getY() - pVector.getY(), this.getZ().subtractSaturated(pVector.getZ()));
+        return new BlockPos(Int128Math.subtractSaturatedHi(this.xHi(), this.xLo(), pVector.xHi(), pVector.xLo()),
+                Int128Math.subtractSaturatedLo(this.xHi(), this.xLo(), pVector.xHi(), pVector.xLo()), this.getY() - pVector.getY(),
+                Int128Math.subtractSaturatedHi(this.zHi(), this.zLo(), pVector.zHi(), pVector.zLo()),
+                Int128Math.subtractSaturatedLo(this.zHi(), this.zLo(), pVector.zHi(), pVector.zLo()));
     }
 
     public BlockPos multiply(int pScalar) {
@@ -453,7 +460,7 @@ public class BlockPos extends Vec3i {
         }
 
         public MutableBlockPos(double pX, double pY, double pZ) {
-            this(Int128.fromDoubleFloorSaturated(pX), Mth.floor(pY), Int128.fromDoubleFloorSaturated(pZ));
+            super(pX, pY, pZ);
         }
 
         public BlockPos offset(double pDx, double pDy, double pDz) {
@@ -496,7 +503,8 @@ public class BlockPos extends Vec3i {
         }
 
         public BlockPos.MutableBlockPos set(double pX, double pY, double pZ) {
-            return this.set(Int128.fromDoubleFloorSaturated(pX), Mth.floor(pY), Int128.fromDoubleFloorSaturated(pZ));
+            return this.set(Int128Math.doubleFloorHi(pX), Int128Math.doubleFloorLo(pX), Mth.floor(pY),
+                    Int128Math.doubleFloorHi(pZ), Int128Math.doubleFloorLo(pZ));
         }
 
         public BlockPos.MutableBlockPos set(Int128 pX, int pY, Int128 pZ) {

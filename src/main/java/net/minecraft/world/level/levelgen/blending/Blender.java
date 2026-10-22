@@ -2,7 +2,6 @@ package net.minecraft.world.level.levelgen.blending;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.List;

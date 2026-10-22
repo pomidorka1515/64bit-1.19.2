@@ -3,7 +3,6 @@ package net.minecraft.world.level.chunk;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.mojang.logging.LogUtils;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;

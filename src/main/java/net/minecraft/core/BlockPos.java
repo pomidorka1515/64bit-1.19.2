@@ -24,15 +24,6 @@ public class BlockPos extends Vec3i {
     public static final Codec<BlockPos> CODEC = Vec3i.CODEC.xmap(BlockPos::new, value -> value).stable();
     private static final Logger LOGGER = LogUtils.getLogger();
     public static final BlockPos ZERO = new BlockPos(0, 0, 0);
-    private static final int PACKED_X_LENGTH = 1 + Mth.log2(Mth.smallestEncompassingPowerOfTwo(30000000));
-    private static final int PACKED_Z_LENGTH = PACKED_X_LENGTH;
-    public static final int PACKED_Y_LENGTH = 64 - PACKED_X_LENGTH - PACKED_Z_LENGTH;
-    private static final long PACKED_X_MASK = (1L << PACKED_X_LENGTH) - 1L;
-    private static final long PACKED_Y_MASK = (1L << PACKED_Y_LENGTH) - 1L;
-    private static final long PACKED_Z_MASK = (1L << PACKED_Z_LENGTH) - 1L;
-    private static final int Y_OFFSET = 0;
-    private static final int Z_OFFSET = PACKED_Y_LENGTH;
-    private static final int X_OFFSET = PACKED_Y_LENGTH + PACKED_Z_LENGTH;
 
     public BlockPos(long pX, int pY, long pZ) {
         super(pX, pY, pZ);

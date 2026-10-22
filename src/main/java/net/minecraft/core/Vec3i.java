@@ -66,12 +66,12 @@ public class Vec3i implements Comparable<Vec3i> {
             return false;
         } else {
             Vec3i vec3i = (Vec3i) pOther;
-            if (!this.getX().equals(vec3i.getX())) {
+            if (this.getXHi() != vec3i.getXHi() || this.getXLo() != vec3i.getXLo()) {
                 return false;
             } else if (this.getY() != vec3i.getY()) {
                 return false;
             } else {
-                return this.getZ().equals(vec3i.getZ());
+                return this.getZHi() == vec3i.getZHi() && this.getZLo() == vec3i.getZLo();
             }
         }
     }

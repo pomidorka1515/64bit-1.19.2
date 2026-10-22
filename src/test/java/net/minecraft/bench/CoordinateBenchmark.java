@@ -19,6 +19,7 @@ import net.minecraft.core.Cursor3D;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.ChunkPosMap;
 import net.minecraft.world.level.CollisionGetter;
 import net.minecraft.world.level.SectorBlockCollisions;
 import net.minecraft.world.level.block.Blocks;
@@ -79,6 +80,7 @@ class CoordinateBenchmark {
         report.append(measure("block-iteration", this::iterateBlocks));
         report.append(measure("collision-iteration", this::iterateCollisions));
         report.append(measure("chunk-key-lookup", this::lookupChunkKeys));
+        report.append(measure("chunk-key-raw-lookup", this::lookupRawChunkKeys));
         report.append(measure("chunk-coordinate-access", this::accessChunkCoordinates));
         report.append(measure("block-position-hot-ops", this::blockPositionHotOps));
         report.append(measure("region-name-formatting", this::formatRegionNames));
@@ -87,6 +89,7 @@ class CoordinateBenchmark {
         report.append(allocations("block-iteration", this::iterateBlocks));
         report.append(allocations("collision-iteration", this::iterateCollisions));
         report.append(allocations("chunk-key-lookup", this::lookupChunkKeys));
+        report.append(allocations("chunk-key-raw-lookup", this::lookupRawChunkKeys));
         report.append(allocations("chunk-coordinate-access", this::accessChunkCoordinates));
         report.append(allocations("block-position-hot-ops", this::blockPositionHotOps));
         report.append(allocations("region-name-formatting", this::formatRegionNames));
@@ -98,7 +101,8 @@ class CoordinateBenchmark {
         report.append("collision-iteration: SectorBlockCollisions player box 0.6x1.8 at ")
                 .append(FAR).append(", ns/sweep over 2000 sweeps\n");
         report.append("chunk-key-lookup: Object2ObjectOpenHashMap<ChunkPos,Integer>.get(new ChunkPos) ")
-                .append("over a 33x33 window, 20 reps\n");
+                .append("over a 33x33 window, 20 reps; setup excluded\n");
+        report.append("chunk-key-raw-lookup: ChunkPosMap.get(xHi,xLo,zHi,zLo), same window/checksum; setup excluded\n");
         report.append("region-name-formatting: canonical 32-hex X/Z .mca names, 4000 reps of 8 names\n");
         report.append("sector-vec3-relative-math: relativeX/Y/Z at ").append(FAR).append(", 20000 calls\n");
 
@@ -199,12 +203,7 @@ class CoordinateBenchmark {
     private Result lookupChunkKeys() {
         long originX = FAR >> 4;
         long originZ = -FAR >> 4;
-        Object2ObjectOpenHashMap<ChunkPos, Integer> keys = new Object2ObjectOpenHashMap<>(1089);
-        for (int dx = -16; dx <= 16; ++dx) {
-            for (int dz = -16; dz <= 16; ++dz) {
-                keys.put(new ChunkPos(originX + dx, originZ + dz), dx * 33 + dz);
-            }
-        }
+        Object2ObjectOpenHashMap<ChunkPos, Integer> keys = this.objectChunkKeys;
         long checksum = 1L;
         long ops = 0L;
         for (int rep = 0; rep < 20; ++rep) {
@@ -214,6 +213,41 @@ class CoordinateBenchmark {
                     if (found == null) {
                         throw new IllegalStateException("missing chunk key");
                     }
+                    checksum += found.intValue() + 1L;
+                    ++ops;
+                }
+            }
+        }
+        return new Result(ops, checksum);
+    }
+
+    // Retained fixtures exclude insertion/key/boxing costs from both probe measurements.
+    private final ChunkPosMap<Integer> rawChunkKeys = createRawChunkKeys();
+    private final Object2ObjectOpenHashMap<ChunkPos, Integer> objectChunkKeys =
+            new Object2ObjectOpenHashMap<>(this.rawChunkKeys);
+
+    private static ChunkPosMap<Integer> createRawChunkKeys() {
+        ChunkPosMap<Integer> keys = new ChunkPosMap<>(1089);
+        for (int dx = -16; dx <= 16; ++dx) {
+            for (int dz = -16; dz <= 16; ++dz) {
+                keys.put(new ChunkPos((FAR >> 4) + dx, (-FAR >> 4) + dz), dx * 33 + dz);
+            }
+        }
+        return keys;
+    }
+
+    private Result lookupRawChunkKeys() {
+        long originX = FAR >> 4;
+        long originZ = -FAR >> 4;
+        long checksum = 1L;
+        long ops = 0L;
+        for (int rep = 0; rep < 20; ++rep) {
+            for (int dx = -16; dx <= 16; ++dx) {
+                for (int dz = -16; dz <= 16; ++dz) {
+                    long x = originX + dx;
+                    long z = originZ + dz;
+                    Integer found = this.rawChunkKeys.get(x >> 63, x, z >> 63, z);
+                    if (found == null) throw new IllegalStateException("missing raw chunk key");
                     checksum += found.intValue() + 1L;
                     ++ops;
                 }

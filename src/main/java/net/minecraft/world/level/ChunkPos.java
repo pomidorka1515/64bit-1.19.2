@@ -115,7 +115,7 @@ public class ChunkPos {
         return hash(pX.hi(), pX.lo(), pZ.hi(), pZ.lo());
     }
 
-    private static int hash(long xHi, long xLo, long zHi, long zLo) {
+    public static int hash(long xHi, long xLo, long zHi, long zLo) {
         // Fold every limb, not just the low 32 bits used by the old world key.
         // Independent odd multipliers keep adjacent X/Z windows well distributed.
         int x = 1664525 * (int) xLo + 1013904223
@@ -133,9 +133,13 @@ public class ChunkPos {
             return false;
         } else {
             ChunkPos chunkpos = (ChunkPos) pOther;
-            return this.xHi == chunkpos.xHi && this.xLo == chunkpos.xLo
-                    && this.zHi == chunkpos.zHi && this.zLo == chunkpos.zLo;
+            return this.equals(chunkpos.xHi, chunkpos.xLo, chunkpos.zHi, chunkpos.zLo);
         }
+    }
+
+    /** Compares a raw coordinate without materializing Int128 or ChunkPos values. */
+    public boolean equals(long xHi, long xLo, long zHi, long zLo) {
+        return this.xHi == xHi && this.xLo == xLo && this.zHi == zHi && this.zLo == zLo;
     }
 
     public Int128 getMiddleBlockX() {

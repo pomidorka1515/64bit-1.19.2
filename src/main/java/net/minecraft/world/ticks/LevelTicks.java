@@ -4,8 +4,6 @@ import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMap.Entry;
 import it.unimi.dsi.fastutil.objects.Object2LongMaps;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import java.util.ArrayDeque;
@@ -28,6 +26,7 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.ChunkPosMap;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
@@ -37,7 +36,7 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
     };
     private final Predicate<ChunkPos> tickCheck;
     private final Supplier<ProfilerFiller> profiler;
-    private final Object2ObjectMap<ChunkPos, LevelChunkTicks<T>> allContainers = new Object2ObjectOpenHashMap<>();
+    private final ChunkPosMap<LevelChunkTicks<T>> allContainers = new ChunkPosMap<>();
     private final Object2LongMap<ChunkPos> nextTickForContainer = Util.make(new Object2LongOpenHashMap<>(), (p_193262_) -> {
         p_193262_.defaultReturnValue(Long.MAX_VALUE);
     });
@@ -76,7 +75,7 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
 
     public void schedule(ScheduledTick<T> pTick) {
         BlockPos i = pTick.pos();
-        LevelChunkTicks<T> levelchunkticks = this.allContainers.get(new ChunkPos(i));
+        LevelChunkTicks<T> levelchunkticks = this.allContainers.getContaining(i);
         if (levelchunkticks == null) {
             Util.pauseInIde(new IllegalStateException("Trying to schedule tick in not loaded position " + pTick.pos()));
         } else {
@@ -201,7 +200,7 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
     }
 
     public boolean hasScheduledTick(BlockPos p_193254_, T p_193255_) {
-        LevelChunkTicks<T> levelchunkticks = this.allContainers.get(new ChunkPos(p_193254_));
+        LevelChunkTicks<T> levelchunkticks = this.allContainers.getContaining(p_193254_);
         return levelchunkticks != null && levelchunkticks.hasScheduledTick(p_193254_, p_193255_);
     }
 

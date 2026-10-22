@@ -21,6 +21,21 @@ public final class Int128Math {
         return Long.compareUnsigned(aLo, bLo) < 0 ? 1L : 0L;
     }
 
+    /** High limb of a signed, saturating 128-bit sum. Pair with {@link #addSaturatedLo}. */
+    public static long addSaturatedHi(long aHi, long aLo, long bHi, long bLo) {
+        long low = aLo + bLo;
+        long high = aHi + bHi + addCarry(aLo, bLo, low);
+        return ((aHi ^ high) & (bHi ^ high)) < 0L
+                ? (aHi < 0L ? Long.MIN_VALUE : Long.MAX_VALUE) : high;
+    }
+
+    /** Low limb of the same sum; both helpers must receive the original operands. */
+    public static long addSaturatedLo(long aHi, long aLo, long bHi, long bLo) {
+        long low = aLo + bLo;
+        long high = aHi + bHi + addCarry(aLo, bLo, low);
+        return ((aHi ^ high) & (bHi ^ high)) < 0L ? (aHi < 0L ? 0L : -1L) : low;
+    }
+
     /** resultHi already includes carry, which must be zero or one. */
     public static boolean addOverflowed(long aHi, long bHi, long carry, long resultHi) {
         return ((aHi ^ resultHi) & (bHi ^ resultHi)) < 0L;

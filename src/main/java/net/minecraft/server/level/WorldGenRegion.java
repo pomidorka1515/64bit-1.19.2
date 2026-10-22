@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Int128;
+import net.minecraft.core.Int128Math;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -131,29 +132,39 @@ public class WorldGenRegion implements WorldGenLevel {
     }
 
     static int getChunkIndex(ChunkPos center, int size, long chunkX, long chunkZ) {
-        return getChunkIndex(center, size, net.minecraft.core.Int128.fromLong(chunkX), net.minecraft.core.Int128.fromLong(chunkZ));
+        return getChunkIndex(center, size, chunkX >> 63, chunkX, chunkZ >> 63, chunkZ);
     }
 
     static int getChunkIndex(ChunkPos center, int size, net.minecraft.core.Int128 chunkX, net.minecraft.core.Int128 chunkZ) {
+        return getChunkIndex(center, size, chunkX.hi(), chunkX.lo(), chunkZ.hi(), chunkZ.lo());
+    }
+
+    static int getChunkIndex(ChunkPos center, int size, long xHi, long xLo, long zHi, long zLo) {
         // ChunkMap retains a full square of slots even when offsets clamp at
         // the world edge. Index from the center, not the clamped first chunk:
         // duplicate edge slots must resolve to the one nearest the center,
         // which has the strongest scheduled generation-status dependency.
-        long x = net.minecraft.core.Int128Math.signedDifferenceAsLong(chunkX.hi(), chunkX.lo(), center.xHi(), center.xLo()) + size / 2;
-        long z = net.minecraft.core.Int128Math.signedDifferenceAsLong(chunkZ.hi(), chunkZ.lo(), center.zHi(), center.zLo()) + size / 2;
+        long x = Int128Math.signedDifferenceAsLong(xHi, xLo, center.xHi(), center.xLo()) + size / 2;
+        long z = Int128Math.signedDifferenceAsLong(zHi, zLo, center.zHi(), center.zLo()) + size / 2;
         return (int) (x + z * size);
     }
 
     @Nullable
     public ChunkAccess getChunk(long pX, long pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
-        return this.getChunk(net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ), pRequiredStatus, pNonnull);
+        return this.getChunk(pX >> 63, pX, pZ >> 63, pZ, pRequiredStatus, pNonnull);
     }
 
     @Nullable
     public ChunkAccess getChunk(net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
+        return this.getChunk(pX.hi(), pX.lo(), pZ.hi(), pZ.lo(), pRequiredStatus, pNonnull);
+    }
+
+    @Nullable
+    private ChunkAccess getChunk(long xHi, long xLo, long zHi, long zLo, ChunkStatus pRequiredStatus, boolean pNonnull) {
         ChunkAccess chunkaccess;
-        if (this.hasChunk(pX, pZ)) {
-            chunkaccess = this.cache.get(getChunkIndex(this.center.getPos(), this.size, pX, pZ));
+        boolean inRegion = this.hasChunk(xHi, xLo, zHi, zLo);
+        if (inRegion) {
+            chunkaccess = this.cache.get(getChunkIndex(this.center.getPos(), this.size, xHi, xLo, zHi, zLo));
             if (chunkaccess.getStatus().isOrAfter(pRequiredStatus)) {
                 return chunkaccess;
             }
@@ -163,7 +174,13 @@ public class WorldGenRegion implements WorldGenLevel {
 
         if (!pNonnull) {
             return null;
-        } else if (!this.hasChunk(pX, pZ) || !WorldBounds.isValidChunk(pX, pZ)) {
+        }
+
+        // Only misses and diagnostics need coordinate objects. Cached per-block
+        // reads above retain all 128 bits without materializing Int128 values.
+        Int128 pX = Int128.of(xHi, xLo);
+        Int128 pZ = Int128.of(zHi, zLo);
+        if (!inRegion || !WorldBounds.isValidChunk(pX, pZ)) {
             return new EmptyLevelChunk(this.level, new ChunkPos(WorldBounds.clampChunk(pX), WorldBounds.clampChunk(pZ)), this.level.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getHolderOrThrow(Biomes.PLAINS));
         } else {
             LOGGER.error("Requested chunk : {} {}", pX, pZ);
@@ -177,26 +194,44 @@ public class WorldGenRegion implements WorldGenLevel {
     }
 
     public boolean hasChunk(long pChunkX, long pChunkZ) {
-        return this.hasChunk(net.minecraft.core.Int128.fromLong(pChunkX), net.minecraft.core.Int128.fromLong(pChunkZ));
+        return this.hasChunk(pChunkX >> 63, pChunkX, pChunkZ >> 63, pChunkZ);
     }
 
     public boolean hasChunk(net.minecraft.core.Int128 pChunkX, net.minecraft.core.Int128 pChunkZ) {
-        return net.minecraft.core.Int128Math.compare(pChunkX.hi(), pChunkX.lo(), this.firstPos.xHi(), this.firstPos.xLo()) >= 0
-                && net.minecraft.core.Int128Math.compare(pChunkX.hi(), pChunkX.lo(), this.lastPos.xHi(), this.lastPos.xLo()) <= 0
-                && net.minecraft.core.Int128Math.compare(pChunkZ.hi(), pChunkZ.lo(), this.firstPos.zHi(), this.firstPos.zLo()) >= 0
-                && net.minecraft.core.Int128Math.compare(pChunkZ.hi(), pChunkZ.lo(), this.lastPos.zHi(), this.lastPos.zLo()) <= 0;
+        return this.hasChunk(pChunkX.hi(), pChunkX.lo(), pChunkZ.hi(), pChunkZ.lo());
+    }
+
+    private boolean hasChunk(long xHi, long xLo, long zHi, long zLo) {
+        return Int128Math.compare(xHi, xLo, this.firstPos.xHi(), this.firstPos.xLo()) >= 0
+                && Int128Math.compare(xHi, xLo, this.lastPos.xHi(), this.lastPos.xLo()) <= 0
+                && Int128Math.compare(zHi, zLo, this.firstPos.zHi(), this.firstPos.zLo()) >= 0
+                && Int128Math.compare(zHi, zLo, this.lastPos.zHi(), this.lastPos.zLo()) <= 0;
+    }
+
+    @Override
+    public ChunkAccess getChunk(BlockPos pos) {
+        return this.getChunk(pos.xHi() >> 4, Int128Math.rightShiftLo(pos.xHi(), pos.xLo(), 4),
+                pos.zHi() >> 4, Int128Math.rightShiftLo(pos.zHi(), pos.zLo(), 4), ChunkStatus.EMPTY, true);
     }
 
     public BlockState getBlockState(BlockPos pPos) {
-        Int128 i = SectionPos.blockToSectionCoord(pPos.getX());
-        Int128 j = SectionPos.blockToSectionCoord(pPos.getZ());
-        return this.hasChunk(i, j) ? this.getChunk(i, j).getBlockState(pPos) : Blocks.VOID_AIR.defaultBlockState();
+        long xHi = pPos.xHi() >> 4;
+        long xLo = Int128Math.rightShiftLo(pPos.xHi(), pPos.xLo(), 4);
+        long zHi = pPos.zHi() >> 4;
+        long zLo = Int128Math.rightShiftLo(pPos.zHi(), pPos.zLo(), 4);
+        return this.hasChunk(xHi, xLo, zHi, zLo)
+                ? this.getChunk(xHi, xLo, zHi, zLo, ChunkStatus.EMPTY, true).getBlockState(pPos)
+                : Blocks.VOID_AIR.defaultBlockState();
     }
 
     public FluidState getFluidState(BlockPos pPos) {
-        Int128 i = SectionPos.blockToSectionCoord(pPos.getX());
-        Int128 j = SectionPos.blockToSectionCoord(pPos.getZ());
-        return this.hasChunk(i, j) ? this.getChunk(i, j).getFluidState(pPos) : Fluids.EMPTY.defaultFluidState();
+        long xHi = pPos.xHi() >> 4;
+        long xLo = Int128Math.rightShiftLo(pPos.xHi(), pPos.xLo(), 4);
+        long zHi = pPos.zHi() >> 4;
+        long zLo = Int128Math.rightShiftLo(pPos.zHi(), pPos.zLo(), 4);
+        return this.hasChunk(xHi, xLo, zHi, zLo)
+                ? this.getChunk(xHi, xLo, zHi, zLo, ChunkStatus.EMPTY, true).getFluidState(pPos)
+                : Fluids.EMPTY.defaultFluidState();
     }
 
     @Nullable
@@ -273,11 +308,11 @@ public class WorldGenRegion implements WorldGenLevel {
     }
 
     public boolean ensureCanWrite(BlockPos pPos) {
-        Int128 i = SectionPos.blockToSectionCoord(pPos.getX());
-        Int128 j = SectionPos.blockToSectionCoord(pPos.getZ());
         ChunkPos chunkpos = this.getCenter();
-        double k = WorldBounds.distance(chunkpos.x(), i);
-        double l = WorldBounds.distance(chunkpos.z(), j);
+        long k = Int128Math.distance(chunkpos.xHi(), chunkpos.xLo(),
+                pPos.xHi() >> 4, Int128Math.rightShiftLo(pPos.xHi(), pPos.xLo(), 4));
+        long l = Int128Math.distance(chunkpos.zHi(), chunkpos.zLo(),
+                pPos.zHi() >> 4, Int128Math.rightShiftLo(pPos.zHi(), pPos.zLo(), 4));
         if (k <= this.writeRadiusCutoff && l <= this.writeRadiusCutoff) {
             if (this.center.isUpgrading()) {
                 LevelHeightAccessor levelheightaccessor = this.center.getHeightAccessorForGeneration();
@@ -288,7 +323,6 @@ public class WorldGenRegion implements WorldGenLevel {
 
             return true;
         } else {
-            // Util.logAndPauseIfInIde("Detected setBlock in a far chunk [" + i + ", " + j + "], pos: " + p_181031_ + ", status: " + this.generatingStatus + (this.currentlyGenerating == null ? "" : ", currently generating: " + (String)this.currentlyGenerating.get()));
             return false;
         }
     }

@@ -50,7 +50,8 @@ public class ChunkPos {
     }
 
     public ChunkPos(BlockPos pPos) {
-        this(pPos.getX().shiftRight(4), pPos.getZ().shiftRight(4));
+        this(pPos.xHi() >> 4, Int128Math.rightShiftLo(pPos.xHi(), pPos.xLo(), 4),
+                pPos.zHi() >> 4, Int128Math.rightShiftLo(pPos.zHi(), pPos.zLo(), 4));
     }
 
     // Internal callers have already proved that both coordinates are in the chunk domain.
@@ -206,7 +207,8 @@ public class ChunkPos {
     }
 
     public BlockPos getWorldPosition() {
-        return new BlockPos(this.getMinBlockX(), 0, this.getMinBlockZ());
+        return new BlockPos(Int128Math.leftShiftHi(this.xHi, this.xLo, 4), this.xLo << 4, 0,
+                Int128Math.leftShiftHi(this.zHi, this.zLo, 4), this.zLo << 4);
     }
 
     public long getChessboardDistance(ChunkPos pChunkPos) {

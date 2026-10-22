@@ -55,6 +55,8 @@ class WorldGenRegionTest {
                 "the center must use its own slot with the required generation status");
         for (ChunkPos requested : cache) {
             int index = WorldGenRegion.getChunkIndex(center, size, requested.x(), requested.z());
+            assertEquals(index, WorldGenRegion.getChunkIndex(center, size,
+                    requested.xHi(), requested.xLo(), requested.zHi(), requested.zLo()));
             assertTrue(index >= 0 && index < cache.size());
             assertEquals(requested, cache.get(index), "wrong chunk in window centered at " + center);
             // Edge duplicates must select the slot nearest the center: that

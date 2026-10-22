@@ -44,15 +44,20 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public Vec3i(long pX, int pY, long pZ) {
-        this(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+        this(pX >> 63, pX, pY, pZ >> 63, pZ);
     }
 
     public Vec3i(Int128 pX, int pY, Int128 pZ) {
-        this.xHi = pX.hi();
-        this.xLo = pX.lo();
+        this(pX.hi(), pX.lo(), pY, pZ.hi(), pZ.lo());
+    }
+
+    /** Full-width primitive constructor; no temporary coordinate objects. */
+    public Vec3i(long xHi, long xLo, int pY, long zHi, long zLo) {
+        this.xHi = xHi;
+        this.xLo = xLo;
         this.y = pY;
-        this.zHi = pZ.hi();
-        this.zLo = pZ.lo();
+        this.zHi = zHi;
+        this.zLo = zLo;
     }
 
     public Vec3i(double pX, double pY, double pZ) {
@@ -77,13 +82,15 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public int hashCode() {
-        return (this.getY() + this.getZ().hashCode() * 31) * 31 + this.getX().hashCode();
+        int xHash = 31 * Long.hashCode(this.xHi()) + Long.hashCode(this.xLo());
+        int zHash = 31 * Long.hashCode(this.zHi()) + Long.hashCode(this.zLo());
+        return (this.getY() + zHash * 31) * 31 + xHash;
     }
 
     public int compareTo(Vec3i pOther) {
-        int result = this.getX().compareTo(pOther.getX());
+        int result = Int128Math.compare(this.xHi(), this.xLo(), pOther.xHi(), pOther.xLo());
         if (result == 0) result = Integer.compare(this.getY(), pOther.getY());
-        return result == 0 ? this.getZ().compareTo(pOther.getZ()) : result;
+        return result == 0 ? Int128Math.compare(this.zHi(), this.zLo(), pOther.zHi(), pOther.zLo()) : result;
     }
 
     public Int128 getX() {
@@ -111,7 +118,7 @@ public class Vec3i implements Comparable<Vec3i> {
     public long zLo() { return this.getZLo(); }
 
     protected Vec3i setX(long pX) {
-        return this.setX(Int128.fromLong(pX));
+        return this.setX(pX >> 63, pX);
     }
 
     protected Vec3i setX(Int128 pX) {
@@ -133,7 +140,7 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     protected Vec3i setZ(long pZ) {
-        return this.setZ(Int128.fromLong(pZ));
+        return this.setZ(pZ >> 63, pZ);
     }
 
     protected Vec3i setZ(Int128 pZ) {

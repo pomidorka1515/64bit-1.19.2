@@ -33,6 +33,10 @@ public class BlockPos extends Vec3i {
         super(pX, pY, pZ);
     }
 
+    public BlockPos(long xHi, long xLo, int y, long zHi, long zLo) {
+        super(xHi, xLo, y, zHi, zLo);
+    }
+
     public BlockPos(double pX, double pY, double pZ) {
         super(pX, pY, pZ);
     }
@@ -46,7 +50,7 @@ public class BlockPos extends Vec3i {
     }
 
     public BlockPos(Vec3i pVector) {
-        this(pVector.getX(), pVector.getY(), pVector.getZ());
+        this(pVector.xHi(), pVector.xLo(), pVector.getY(), pVector.zHi(), pVector.zLo());
     }
 
     public BlockPos offset(double pDx, double pDy, double pDz) {
@@ -54,16 +58,23 @@ public class BlockPos extends Vec3i {
     }
 
     public BlockPos offset(long pDx, int pDy, long pDz) {
-        return pDx == 0 && pDy == 0 && pDz == 0 ? this : new BlockPos(WorldBounds.addBlockOffset(this.getX(), pDx), this.getY() + pDy, WorldBounds.addBlockOffset(this.getZ(), pDz));
+        return this.offset(pDx >> 63, pDx, pDy, pDz >> 63, pDz);
     }
 
     public BlockPos offset(Vec3i pVector) {
-        return this.offset(pVector.getX(), pVector.getY(), pVector.getZ());
+        return this.offset(pVector.xHi(), pVector.xLo(), pVector.getY(), pVector.zHi(), pVector.zLo());
     }
 
     public BlockPos offset(Int128 pDx, int pDy, Int128 pDz) {
-        return pDx.equals(Int128.ZERO) && pDy == 0 && pDz.equals(Int128.ZERO) ? this
-                : new BlockPos(this.getX().addSaturated(pDx), this.getY() + pDy, this.getZ().addSaturated(pDz));
+        return this.offset(pDx.hi(), pDx.lo(), pDy, pDz.hi(), pDz.lo());
+    }
+
+    private BlockPos offset(long dxHi, long dxLo, int dy, long dzHi, long dzLo) {
+        return dxHi == 0L && dxLo == 0L && dy == 0 && dzHi == 0L && dzLo == 0L ? this
+                : new BlockPos(Int128Math.addSaturatedHi(this.xHi(), this.xLo(), dxHi, dxLo),
+                        Int128Math.addSaturatedLo(this.xHi(), this.xLo(), dxHi, dxLo), this.getY() + dy,
+                        Int128Math.addSaturatedHi(this.zHi(), this.zLo(), dzHi, dzLo),
+                        Int128Math.addSaturatedLo(this.zHi(), this.zLo(), dzHi, dzLo));
     }
 
     public BlockPos subtract(Vec3i pVector) {
@@ -127,12 +138,12 @@ public class BlockPos extends Vec3i {
     }
 
     public BlockPos relative(Direction pDirection) {
-        return new BlockPos(WorldBounds.addBlockOffset(this.getX(), pDirection.getStepX()),
-                this.getY() + pDirection.getStepY(), WorldBounds.addBlockOffset(this.getZ(), pDirection.getStepZ()));
+        return this.relative(pDirection, 1);
     }
 
     public BlockPos relative(Direction pDirection, int pDistance) {
-        return pDistance == 0 ? this : new BlockPos(WorldBounds.addBlockOffset(this.getX(), (long) pDirection.getStepX() * pDistance), this.getY() + pDirection.getStepY() * pDistance, WorldBounds.addBlockOffset(this.getZ(), (long) pDirection.getStepZ() * pDistance));
+        return pDistance == 0 ? this : this.offset((long) pDirection.getStepX() * pDistance,
+                pDirection.getStepY() * pDistance, (long) pDirection.getStepZ() * pDistance);
     }
 
     public BlockPos relative(Direction.Axis pAxis, int pAmount) {
@@ -142,8 +153,7 @@ public class BlockPos extends Vec3i {
             int i = pAxis == Direction.Axis.X ? pAmount : 0;
             int j = pAxis == Direction.Axis.Y ? pAmount : 0;
             int k = pAxis == Direction.Axis.Z ? pAmount : 0;
-            return new BlockPos(WorldBounds.addBlockOffset(this.getX(), i), this.getY() + j,
-                    WorldBounds.addBlockOffset(this.getZ(), k));
+            return this.offset((long) i, j, (long) k);
         }
     }
 
@@ -166,7 +176,7 @@ public class BlockPos extends Vec3i {
     }
 
     public BlockPos atY(int pY) {
-        return new BlockPos(this.getX(), pY, this.getZ());
+        return new BlockPos(this.xHi(), this.xLo(), pY, this.zHi(), this.zLo());
     }
 
     public BlockPos immutable() {
@@ -174,7 +184,7 @@ public class BlockPos extends Vec3i {
     }
 
     public BlockPos.MutableBlockPos mutable() {
-        return new BlockPos.MutableBlockPos(this.getX(), this.getY(), this.getZ());
+        return new BlockPos.MutableBlockPos(this.xHi(), this.xLo(), this.getY(), this.zHi(), this.zLo());
     }
 
     public static Iterable<BlockPos> randomInCube(RandomSource pRandom, int pAmount, BlockPos pCenter, int pRadius) {
@@ -438,6 +448,10 @@ public class BlockPos extends Vec3i {
             super(pX, pY, pZ);
         }
 
+        public MutableBlockPos(long xHi, long xLo, int y, long zHi, long zLo) {
+            super(xHi, xLo, y, zHi, zLo);
+        }
+
         public MutableBlockPos(double pX, double pY, double pZ) {
             this(Int128.fromDoubleFloorSaturated(pX), Mth.floor(pY), Int128.fromDoubleFloorSaturated(pZ));
         }
@@ -526,8 +540,12 @@ public class BlockPos extends Vec3i {
         }
 
         public BlockPos.MutableBlockPos setWithOffset(Vec3i pPos, Vec3i pOffset) {
-            return this.set(WorldBounds.addBlockOffset(pPos.getX(), pOffset.getX()),
-                    pPos.getY() + pOffset.getY(), WorldBounds.addBlockOffset(pPos.getZ(), pOffset.getZ()));
+            // Evaluate every limb before mutating: either operand can be this cursor.
+            return this.set(Int128Math.addSaturatedHi(pPos.xHi(), pPos.xLo(), pOffset.xHi(), pOffset.xLo()),
+                    Int128Math.addSaturatedLo(pPos.xHi(), pPos.xLo(), pOffset.xHi(), pOffset.xLo()),
+                    pPos.getY() + pOffset.getY(),
+                    Int128Math.addSaturatedHi(pPos.zHi(), pPos.zLo(), pOffset.zHi(), pOffset.zLo()),
+                    Int128Math.addSaturatedLo(pPos.zHi(), pPos.zLo(), pOffset.zHi(), pOffset.zLo()));
         }
 
         public BlockPos.MutableBlockPos move(Direction pDirection) {
@@ -574,8 +592,7 @@ public class BlockPos extends Vec3i {
         }
 
         public BlockPos.MutableBlockPos move(Vec3i pOffset) {
-            return this.set(WorldBounds.addBlockOffset(this.getX(), pOffset.getX()),
-                    this.getY() + pOffset.getY(), WorldBounds.addBlockOffset(this.getZ(), pOffset.getZ()));
+            return this.setWithOffset(this, pOffset);
         }
 
         public BlockPos.MutableBlockPos clamp(Direction.Axis pAxis, int pMin, int pMax) {
@@ -583,7 +600,7 @@ public class BlockPos extends Vec3i {
                 case X:
                     return this.set(max(Int128.fromLong(pMin), min(this.getX(), Int128.fromLong(pMax))), this.getY(), this.getZ());
                 case Y:
-                    return this.set(this.getX(), Mth.clamp(this.getY(), pMin, pMax), this.getZ());
+                    return this.setY(Mth.clamp(this.getY(), pMin, pMax));
                 case Z:
                     return this.set(this.getX(), this.getY(), max(Int128.fromLong(pMin), min(this.getZ(), Int128.fromLong(pMax))));
                 default:

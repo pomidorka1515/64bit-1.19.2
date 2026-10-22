@@ -79,6 +79,7 @@ class CoordinateBenchmark {
         report.append(measure("collision-iteration", this::iterateCollisions));
         report.append(measure("chunk-key-lookup", this::lookupChunkKeys));
         report.append(measure("chunk-coordinate-access", this::accessChunkCoordinates));
+        report.append(measure("block-position-hot-ops", this::blockPositionHotOps));
         report.append(measure("region-name-formatting", this::formatRegionNames));
         report.append(measure("sector-vec3-relative-math", this::relativeMath));
         report.append("allocation metric,ops,median_bytes,median_bytes_per_op\n");
@@ -86,6 +87,7 @@ class CoordinateBenchmark {
         report.append(allocations("collision-iteration", this::iterateCollisions));
         report.append(allocations("chunk-key-lookup", this::lookupChunkKeys));
         report.append(allocations("chunk-coordinate-access", this::accessChunkCoordinates));
+        report.append(allocations("block-position-hot-ops", this::blockPositionHotOps));
         report.append(allocations("region-name-formatting", this::formatRegionNames));
         report.append(allocations("sector-vec3-relative-math", this::relativeMath));
         report.append(allocations("air-collision-small", () -> this.airCollisions(1)));
@@ -229,6 +231,23 @@ class CoordinateBenchmark {
             }
         }
         return new Result(ops, checksum);
+    }
+
+    // Escaping results model positions retained by rendering/chunk work, rather than
+    // relying on scalar replacement of an entirely synthetic coordinate pipeline.
+    private static final BlockPos[] BLOCK_RESULTS = new BlockPos[4096];
+    private static final ChunkPos[] CHUNK_RESULTS = new ChunkPos[4096];
+
+    private Result blockPositionHotOps() {
+        BlockPos origin = new BlockPos(Int128.of(17L, -16L), 64, Int128.of(-18L, 16L));
+        long checksum = 1L;
+        for (int i = 0; i < BLOCK_RESULTS.length; ++i) {
+            BlockPos pos = origin.offset(i & 15, (i >>> 4) & 15, (i >>> 8) & 15);
+            BLOCK_RESULTS[i] = pos;
+            CHUNK_RESULTS[i] = new ChunkPos(pos);
+            checksum += pos.hashCode() + pos.compareTo(origin) + CHUNK_RESULTS[i].hashCode();
+        }
+        return new Result(BLOCK_RESULTS.length, checksum);
     }
 
     private Result accessChunkCoordinates() {

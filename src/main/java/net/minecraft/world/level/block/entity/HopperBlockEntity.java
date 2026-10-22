@@ -361,16 +361,13 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
         }
     }
 
-    public double getLevelX() {
-        return this.getExactHopperPosition().toApproximateVec3().x;
+    public net.minecraft.world.phys.SectorVec3 getExactHopperPosition() {
+        return net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(this.worldPosition.getX(), 0.5D,
+                this.getLevelY(), this.worldPosition.getZ(), 0.5D);
     }
 
     public double getLevelY() {
         return (double) this.worldPosition.getY() + 0.5D;
-    }
-
-    public double getLevelZ() {
-        return this.getExactHopperPosition().toApproximateVec3().z;
     }
 
     private void setCooldown(int pCooldownTime) {

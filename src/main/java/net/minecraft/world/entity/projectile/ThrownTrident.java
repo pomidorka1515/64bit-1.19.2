@@ -67,7 +67,7 @@ public class ThrownTrident extends AbstractArrow {
                 Vec3 vec3 = entity.exactEyePosition().relativeTo(this.sectorPosition());
                 this.applyExactPosition(this.sectorPosition().add(0.0D, vec3.y * 0.015D * (double) i, 0.0D));
                 if (this.level.isClientSide) {
-                    this.yOld = this.getY();
+                    this.setOldExactPosition(this.oldExactPosition().withY(this.getY()));
                 }
 
                 double d0 = 0.05D * (double) i;

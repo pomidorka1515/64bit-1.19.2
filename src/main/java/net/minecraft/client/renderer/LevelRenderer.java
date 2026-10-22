@@ -2598,20 +2598,6 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         }
     }
 
-    /** Legacy double entry point; exact callers use the SectorVec3 overload. */
-    private <T extends ParticleOptions> void addParticle(T options, double x, double y, double z, double xd, double yd, double zd) {
-        this.addParticle(options, SectorVec3.fromApproximate(x, y, z), xd, yd, zd);
-    }
-
-    public void addParticle(ParticleOptions options, boolean force, double x, double y, double z, double xd, double yd, double zd) {
-        this.addParticle(options, force, false, SectorVec3.fromApproximate(x, y, z), xd, yd, zd);
-    }
-
-    public void addParticle(ParticleOptions options, boolean force, boolean alwaysVisible,
-            double x, double y, double z, double xd, double yd, double zd) {
-        this.addParticle(options, force, alwaysVisible, SectorVec3.fromApproximate(x, y, z), xd, yd, zd);
-    }
-
     /** Adds a particle without flattening its horizontal world origin to doubles. */
     public void addParticle(ParticleOptions options, boolean force, SectorVec3 position, double xd, double yd, double zd) {
         this.addParticle(options, force, false, position, xd, yd, zd);

@@ -114,7 +114,7 @@ public class ExecuteCommand {
                             List<CommandSourceStack> list = Lists.newArrayList();
 
                             for (Entity entity : EntityArgument.getOptionalEntities(p_137297_, "targets")) {
-                                list.add(p_137297_.getSource().withLevel((ServerLevel) entity.level).withExactPosition(entity.exactPosition() != null ? entity.exactPosition() : SectorVec3.fromApproximate(entity.getX(), entity.getY(), entity.getZ())).withRotation(entity.getRotationVector()));
+                                list.add(p_137297_.getSource().withLevel((ServerLevel) entity.level).withExactPosition(entity.exactPosition()).withRotation(entity.getRotationVector()));
                             }
 
                             return list;
@@ -126,7 +126,7 @@ public class ExecuteCommand {
                             List<CommandSourceStack> list = Lists.newArrayList();
 
                             for (Entity entity : EntityArgument.getOptionalEntities(p_137293_, "targets")) {
-                                list.add(p_137293_.getSource().withExactPosition(entity.exactPosition() != null ? entity.exactPosition() : SectorVec3.fromApproximate(entity.getX(), entity.getY(), entity.getZ())));
+                                list.add(p_137293_.getSource().withExactPosition(entity.exactPosition()));
                             }
 
                             return list;

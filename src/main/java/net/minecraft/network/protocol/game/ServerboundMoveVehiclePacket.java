@@ -6,20 +6,12 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.SectorVec3;
 
 public class ServerboundMoveVehiclePacket implements Packet<ServerGamePacketListener> {
-    /** Lossy compatibility mirrors; exactPosition is authoritative. */
-    private final double x;
-    private final double y;
-    private final double z;
     private final SectorVec3 exactPosition;
     private final float yRot;
     private final float xRot;
 
     public ServerboundMoveVehiclePacket(Entity pVehicle) {
         this.exactPosition = pVehicle.sectorPosition();
-        net.minecraft.world.phys.Vec3 approximate = this.exactPosition.toApproximateVec3();
-        this.x = approximate.x;
-        this.y = approximate.y;
-        this.z = approximate.z;
         this.yRot = pVehicle.getYRot();
         this.xRot = pVehicle.getXRot();
     }
@@ -27,10 +19,6 @@ public class ServerboundMoveVehiclePacket implements Packet<ServerGamePacketList
     public ServerboundMoveVehiclePacket(FriendlyByteBuf pBuffer) {
         this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readInt128(), pBuffer.readDouble(),
                 pBuffer.readDouble(), pBuffer.readInt128(), pBuffer.readDouble());
-        net.minecraft.world.phys.Vec3 approximate = this.exactPosition.toApproximateVec3();
-        this.x = approximate.x;
-        this.y = approximate.y;
-        this.z = approximate.z;
         this.yRot = pBuffer.readFloat();
         this.xRot = pBuffer.readFloat();
     }
@@ -53,16 +41,8 @@ public class ServerboundMoveVehiclePacket implements Packet<ServerGamePacketList
         return this.exactPosition;
     }
 
-    public double getX() {
-        return this.x;
-    }
-
     public double getY() {
-        return this.y;
-    }
-
-    public double getZ() {
-        return this.z;
+        return this.exactPosition.y();
     }
 
     public float getYRot() {

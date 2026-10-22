@@ -54,7 +54,7 @@ public class PathfindToRaidGoal<T extends Raider> extends Goal {
     private void recruitNearby(Raid pRaid) {
         if (pRaid.isActive()) {
             Set<Raider> set = Sets.newHashSet();
-            List<Raider> list = this.mob.level.getEntitiesOfClass(Raider.class, this.mob.getBoundingBox().inflate(16.0D), (p_25712_) -> {
+            List<Raider> list = this.mob.level.getEntitiesOfClass(Raider.class, this.mob.exactBoundingBox().inflate(16.0D), (p_25712_) -> {
                 return !p_25712_.hasActiveRaid() && Raids.canJoinRaid(p_25712_, pRaid);
             });
             set.addAll(list);

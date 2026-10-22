@@ -67,7 +67,7 @@ public class CarvedPumpkinBlock extends HorizontalDirectionalBlock implements We
             snowgolem.moveTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos1.getX(), 0.5D, blockpos1.getY() + 0.05D, blockpos1.getZ(), 0.5D), 0.0F, 0.0F);
             pLevel.addFreshEntity(snowgolem);
 
-            for (ServerPlayer serverplayer : pLevel.getEntitiesOfClass(ServerPlayer.class, snowgolem.getBoundingBox().inflate(5.0D))) {
+            for (ServerPlayer serverplayer : pLevel.getEntitiesOfClass(ServerPlayer.class, snowgolem.exactBoundingBox().inflate(5.0D))) {
                 CriteriaTriggers.SUMMONED_ENTITY.trigger(serverplayer, snowgolem);
             }
 
@@ -92,7 +92,7 @@ public class CarvedPumpkinBlock extends HorizontalDirectionalBlock implements We
                 irongolem.moveTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, blockpos.getY() + 0.05D, blockpos.getZ(), 0.5D), 0.0F, 0.0F);
                 pLevel.addFreshEntity(irongolem);
 
-                for (ServerPlayer serverplayer1 : pLevel.getEntitiesOfClass(ServerPlayer.class, irongolem.getBoundingBox().inflate(5.0D))) {
+                for (ServerPlayer serverplayer1 : pLevel.getEntitiesOfClass(ServerPlayer.class, irongolem.exactBoundingBox().inflate(5.0D))) {
                     CriteriaTriggers.SUMMONED_ENTITY.trigger(serverplayer1, irongolem);
                 }
 

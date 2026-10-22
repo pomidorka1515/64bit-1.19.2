@@ -36,7 +36,7 @@ public class Vec3Argument implements ArgumentType<Coordinates> {
     }
 
     public static Vec3 getVec3(CommandContext<CommandSourceStack> context, String name) {
-        return context.getArgument(name, Coordinates.class).getPosition(context.getSource());
+        return getExactVec3(context, name).toExactVec3();
     }
 
     public static net.minecraft.world.phys.SectorVec3 getExactVec3(CommandContext<CommandSourceStack> context, String name) {

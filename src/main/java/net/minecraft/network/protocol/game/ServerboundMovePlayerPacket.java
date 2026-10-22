@@ -7,10 +7,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.phys.SectorVec3;
 
 public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePacketListener> {
-    /** Lossy compatibility mirrors; split coordinates are authoritative. */
-    protected final double x;
     protected final double y;
-    protected final double z;
     protected final float yRot;
     protected final float xRot;
     protected final boolean onGround;
@@ -32,9 +29,7 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
         if (hasPos && exactPosition == null) {
             exactPosition = SectorVec3.fromApproximate(x, y, z);
         }
-        this.x = exactPosition == null ? x : exactPosition.toApproximateVec3().x;
         this.y = exactPosition == null ? y : exactPosition.y();
-        this.z = exactPosition == null ? z : exactPosition.toApproximateVec3().z;
         this.yRot = yRot;
         this.xRot = xRot;
         this.onGround = onGround;
@@ -62,16 +57,8 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
         pHandler.handleMovePlayer(this);
     }
 
-    public double getX(double pDefaultValue) {
-        return this.hasPos ? this.x : pDefaultValue;
-    }
-
     public double getY(double pDefaultValue) {
         return this.hasPos ? this.y : pDefaultValue;
-    }
-
-    public double getZ(double pDefaultValue) {
-        return this.hasPos ? this.z : pDefaultValue;
     }
 
     public boolean hasExactPosition() {
@@ -117,7 +104,7 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
         }
 
         public Pos(SectorVec3 position, boolean onGround) {
-            super(position.toApproximateVec3().x, position.y(), position.toApproximateVec3().z,
+            super(0.0D, position.y(), 0.0D,
                     0.0F, 0.0F, onGround, true, false, position);
         }
 
@@ -148,7 +135,7 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
         }
 
         public PosRot(SectorVec3 position, float yRot, float xRot, boolean onGround) {
-            super(position.toApproximateVec3().x, position.y(), position.toApproximateVec3().z,
+            super(0.0D, position.y(), 0.0D,
                     yRot, xRot, onGround, true, true, position);
         }
 

@@ -39,9 +39,6 @@ class DebugCoordinatesInt128Test {
     void listenerLifetimeUsesExactDistanceAndMissingSourcesExpire() {
         SectorVec3 camera = SectorVec3.fromBlockAndFraction(Int128.of(100L, 0L), 0, 80, Int128.ZERO, 0);
         PositionSource source = new PositionSource() {
-            public Optional<Vec3> getPosition(Level level) {
-                throw new AssertionError("must not use compatibility mirror");
-            }
             public Optional<SectorVec3> exactPosition(Level level) {
                 return Optional.of(camera.add(32, 0, 0));
             }
@@ -52,7 +49,7 @@ class DebugCoordinatesInt128Test {
         assertTrue(listener.isExpired(null, camera.add(-1, 0, 0)));
         assertTrue(listener.isExpired(null, SectorVec3.fromBlockAndFraction(Int128.ZERO, 0, 80, Int128.ZERO, 0)));
         PositionSource missing = new PositionSource() {
-            public Optional<Vec3> getPosition(Level level) { return Optional.empty(); }
+            public Optional<SectorVec3> exactPosition(Level level) { return Optional.empty(); }
             public PositionSourceType<?> getType() { return null; }
         };
         assertTrue(new GameEventListenerRenderer.TrackedListener(missing, 16).isExpired(null, camera));

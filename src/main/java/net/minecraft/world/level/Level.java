@@ -123,12 +123,13 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         this.isClientSide = pIsClientSide;
         if (dimensiontype.coordinateScale() != 1.0D) {
             this.worldBorder = new WorldBorder() {
-                public double getCenterX() {
-                    return super.getCenterX() / dimensiontype.coordinateScale();
-                }
-
-                public double getCenterZ() {
-                    return super.getCenterZ() / dimensiontype.coordinateScale();
+                public SectorVec3 getExactCenter() {
+                    SectorVec3 center = super.getExactCenter();
+                    java.math.BigDecimal scale = java.math.BigDecimal.valueOf(dimensiontype.coordinateScale());
+                    java.math.BigDecimal x = new java.math.BigDecimal(center.blockX().toString()).add(java.math.BigDecimal.valueOf(center.subX()));
+                    java.math.BigDecimal z = new java.math.BigDecimal(center.blockZ().toString()).add(java.math.BigDecimal.valueOf(center.subZ()));
+                    return SectorVec3.fromDecimal(x.divide(scale, 340, java.math.RoundingMode.HALF_EVEN).toPlainString(),
+                            0.0D, z.divide(scale, 340, java.math.RoundingMode.HALF_EVEN).toPlainString());
                 }
             };
         } else {
@@ -380,16 +381,10 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
                 this.threadSafeRandom.nextLong());
     }
 
-    public abstract void playSeededSound(@Nullable Player pPlayer, double pX, double pY, double pZ, SoundEvent pSoundEvent, SoundSource pSoundSource, float pVolume, float pPitch, long pSeed);
-
     public abstract void playSeededSound(@Nullable Player player, SectorVec3 position, SoundEvent sound, SoundSource source,
             float volume, float pitch, long seed);
 
     public abstract void playSeededSound(@Nullable Player pPlayer, Entity pEntity, SoundEvent pSoundEvent, SoundSource pSoundSource, float pVolume, float pPitch, long pSeed);
-
-    public void playSound(@Nullable Player pPlayer, double pX, double pY, double pZ, SoundEvent pSound, SoundSource pCategory, float pVolume, float pPitch) {
-        this.playSeededSound(pPlayer, pX, pY, pZ, pSound, pCategory, pVolume, pPitch, this.threadSafeRandom.nextLong());
-    }
 
     public void playSound(@Nullable Player pPlayer, Entity pEntity, SoundEvent pEvent, SoundSource pCategory, float pVolume, float pPitch) {
         this.playSeededSound(pPlayer, pEntity, pEvent, pCategory, pVolume, pPitch, this.threadSafeRandom.nextLong());
@@ -399,17 +394,10 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         this.playSeededSound(player, position, sound, source, volume, pitch, this.threadSafeRandom.nextLong());
     }
 
-    public void playLocalSound(double pX, double pY, double pZ, SoundEvent pSound, SoundSource pCategory, float pVolume, float pPitch, boolean pDistanceDelay) {
-    }
-
     /** Exact local-sound entry point for long-coordinate callers. */
     public void playLocalSound(SectorVec3 position, SoundEvent sound, SoundSource source, float volume, float pitch,
             boolean distanceDelay) {
         // Server levels do not play local sounds. ClientLevel implements the exact path.
-    }
-
-    /** Legacy double particle entry point. Exact callers use the SectorVec3 overload. */
-    public void addParticle(ParticleOptions pParticleData, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
     }
 
     /** Adds a particle at an exact X/Z world coordinate. */
@@ -417,14 +405,8 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     public void addParticle(ParticleOptions options, SectorVec3 position, double xd, double yd, double zd) {
     }
 
-    public void addParticle(ParticleOptions pParticleData, boolean pForceAlwaysRender, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
-    }
-
     /** Adds a limiter-controlled particle at an exact X/Z world coordinate. */
     public void addParticle(ParticleOptions options, boolean force, SectorVec3 position, double xd, double yd, double zd) {
-    }
-
-    public void addAlwaysVisibleParticle(ParticleOptions pParticleData, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
     }
 
     /** Adds an always-visible particle at an exact X/Z world coordinate. */
@@ -434,9 +416,6 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     /** Adds a force-controlled always-visible particle at an exact X/Z world coordinate. */
     public void addAlwaysVisibleParticle(ParticleOptions options, boolean force, SectorVec3 position,
             double xd, double yd, double zd) {
-    }
-
-    public void addAlwaysVisibleParticle(ParticleOptions pParticleData, boolean pIgnoreRange, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
     }
 
     public float getSunAngle(float pPartialTicks) {
@@ -495,15 +474,6 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return this.shouldTickBlocksAt(new ChunkPos(p_220394_));
     }
 
-    public Explosion explode(@Nullable Entity pEntity, double pX, double pY, double pZ, float pExplosionRadius, Explosion.BlockInteraction pMode) {
-        return this.explode(pEntity, (DamageSource) null, (ExplosionDamageCalculator) null, pX, pY, pZ, pExplosionRadius, false, pMode);
-    }
-
-    public Explosion explode(@Nullable Entity pEntity, double pX, double pY, double pZ, float pExplosionRadius, boolean pCausesFire, Explosion.BlockInteraction pMode) {
-        return this.explode(pEntity, (DamageSource) null, (ExplosionDamageCalculator) null,
-                SectorVec3.fromApproximate(pX, pY, pZ), pExplosionRadius, pCausesFire, pMode);
-    }
-
     public Explosion explode(@Nullable Entity source, SectorVec3 position, float radius,
             Explosion.BlockInteraction blockInteraction) {
         return this.explode(source, (DamageSource) null, (ExplosionDamageCalculator) null, position, radius, false, blockInteraction);
@@ -521,11 +491,6 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         explosion.explode();
         explosion.finalizeExplosion(true);
         return explosion;
-    }
-
-    /** Legacy absolute-double explosion entry point. Exact callers use the SectorVec3 overload. */
-    public Explosion explode(@Nullable Entity pExploder, @Nullable DamageSource pDamageSource, @Nullable ExplosionDamageCalculator pContext, double pX, double pY, double pZ, float pSize, boolean pCausesFire, Explosion.BlockInteraction pMode) {
-        return this.explode(pExploder, pDamageSource, pContext, SectorVec3.fromApproximate(pX, pY, pZ), pSize, pCausesFire, pMode);
     }
 
     public abstract String gatherChunkSourceStats();

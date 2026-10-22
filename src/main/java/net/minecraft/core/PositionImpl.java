@@ -14,15 +14,8 @@ public class PositionImpl implements Position {
         this.z = pZ;
     }
 
-    public double x() {
-        return this.x;
-    }
-
     public double y() {
         return this.y;
     }
 
-    public double z() {
-        return this.z;
-    }
 }

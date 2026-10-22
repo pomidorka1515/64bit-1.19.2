@@ -146,12 +146,6 @@ public abstract class Player extends LivingEntity {
     public float oBob;
     public float bob;
     public int takeXpDelay;
-    public double xCloakO;
-    public double yCloakO;
-    public double zCloakO;
-    public double xCloak;
-    public double yCloak;
-    public double zCloak;
     private int sleepCounter;
     protected boolean wasUnderwater;
     private final Abilities abilities = new Abilities();
@@ -319,14 +313,6 @@ public abstract class Player extends LivingEntity {
 
     private void moveCloak() {
         this.moveExactCloak();
-        Vec3 old = this.exactCloakOld.toApproximateVec3();
-        Vec3 current = this.exactCloak.toApproximateVec3();
-        this.xCloakO = old.x;
-        this.yCloakO = old.y;
-        this.zCloakO = old.z;
-        this.xCloak = current.x;
-        this.yCloak = current.y;
-        this.zCloak = current.z;
     }
 
     private net.minecraft.world.phys.SectorVec3 exactCloak;
@@ -506,9 +492,9 @@ public abstract class Player extends LivingEntity {
         if (this.getHealth() > 0.0F && !this.isSpectator()) {
             AABB aabb;
             if (this.isPassenger() && !this.getVehicle().isRemoved()) {
-                aabb = this.getBoundingBox().minmax(this.getVehicle().getBoundingBox()).inflate(1.0D, 0.0D, 1.0D);
+                aabb = this.exactBoundingBox().minmax(this.getVehicle().exactBoundingBox()).inflate(1.0D, 0.0D, 1.0D);
             } else {
-                aabb = this.getBoundingBox().inflate(1.0D, 0.5D, 1.0D);
+                aabb = this.exactBoundingBox().inflate(1.0D, 0.5D, 1.0D);
             }
 
             List<Entity> list = this.level.getEntities(this, aabb);
@@ -1131,7 +1117,7 @@ public abstract class Player extends LivingEntity {
                         if (flag3) {
                             float f3 = 1.0F + EnchantmentHelper.getSweepingDamageRatio(this) * f;
 
-                            for (LivingEntity livingentity : this.level.getEntitiesOfClass(LivingEntity.class, pTarget.getBoundingBox().inflate(1.0D, 0.25D, 1.0D))) {
+                            for (LivingEntity livingentity : this.level.getEntitiesOfClass(LivingEntity.class, pTarget.exactBoundingBox().inflate(1.0D, 0.25D, 1.0D))) {
                                 if (livingentity != this && livingentity != pTarget && !this.isAlliedTo(livingentity) && (!(livingentity instanceof ArmorStand) || !((ArmorStand) livingentity).isMarker()) && this.distanceToSqr(livingentity) < 9.0D) {
                                     livingentity.knockback((double) 0.4F, (double) Mth.sin(this.getYRot() * ((float) Math.PI / 180F)), (double) (-Mth.cos(this.getYRot() * ((float) Math.PI / 180F))));
                                     livingentity.hurt(DamageSource.playerAttack(this), f3);
@@ -1405,7 +1391,7 @@ public abstract class Player extends LivingEntity {
         }
 
         Vec3 exactDelta = this.sectorPosition().relativeTo(exactBefore);
-        this.checkMovementStatistics(exactDelta.x, exactDelta.y, exactDelta.z);
+        this.checkMovementStatistics(exactDelta);
     }
 
     public void updateSwimming() {
@@ -1425,10 +1411,9 @@ public abstract class Player extends LivingEntity {
     }
 
     public void checkMovementStatistics(Vec3 displacement) {
-        this.checkMovementStatistics(displacement.x, displacement.y, displacement.z);
-    }
-
-    public void checkMovementStatistics(double pDistanceX, double pDistanceY, double pDistanceZ) {
+        double pDistanceX = displacement.x;
+        double pDistanceY = displacement.y;
+        double pDistanceZ = displacement.z;
         if (!this.isPassenger()) {
             if (this.isSwimming()) {
                 int i = Math.round((float) Math.sqrt(pDistanceX * pDistanceX + pDistanceY * pDistanceY + pDistanceZ * pDistanceZ) * 100.0F);
@@ -1957,7 +1942,7 @@ public abstract class Player extends LivingEntity {
             if (this.isVisuallySwimming()) {
                 return this.getPosition(pPartialTicks).add((new Vec3(d0, 0.2D, -0.15D)).xRot(-f).yRot(-f1));
             } else {
-                double d5 = this.getBoundingBox().getYsize() - 1.0D;
+                double d5 = this.exactBoundingBox().getYsize() - 1.0D;
                 double d6 = this.isCrouching() ? -0.2D : 0.07D;
                 return this.getPosition(pPartialTicks).add((new Vec3(d0, d5, d6)).yRot(-f1));
             }

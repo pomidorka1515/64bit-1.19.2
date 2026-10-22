@@ -39,7 +39,7 @@ public class FollowMobGoal extends Goal {
     }
 
     public boolean canUse() {
-        List<Mob> list = this.mob.level.getEntitiesOfClass(Mob.class, this.mob.getBoundingBox().inflate((double) this.areaSize), this.followPredicate);
+        List<Mob> list = this.mob.level.getEntitiesOfClass(Mob.class, this.mob.exactBoundingBox().inflate((double) this.areaSize), this.followPredicate);
         if (!list.isEmpty()) {
             for (Mob mob : list) {
                 if (!mob.isInvisible()) {

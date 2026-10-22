@@ -455,7 +455,7 @@ public class WorldGenRegion implements WorldGenLevel {
     public void playSound(@Nullable Player pPlayer, BlockPos pPos, SoundEvent pSound, SoundSource pCategory, float pVolume, float pPitch) {
     }
 
-    public void addParticle(ParticleOptions pParticleData, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+    public void addParticle(ParticleOptions pParticleData, net.minecraft.world.phys.SectorVec3 position, double pXSpeed, double pYSpeed, double pZSpeed) {
     }
 
     public void levelEvent(@Nullable Player pPlayer, int pType, BlockPos pPos, int pData) {

@@ -5,11 +5,8 @@ public final class ExactVec3 extends Vec3 {
     private final SectorVec3 exact;
 
     public ExactVec3(SectorVec3 exact) {
-        this(exact, exact.toApproximateVec3());
-    }
-
-    private ExactVec3(SectorVec3 exact, Vec3 approximate) {
-        super(approximate.x, exact.y(), approximate.z);
+        super(net.minecraft.world.level.WorldBounds.clampAbsoluteDouble(exact.blockX().toDoubleSaturated() + exact.subX()),
+                exact.y(), net.minecraft.world.level.WorldBounds.clampAbsoluteDouble(exact.blockZ().toDoubleSaturated() + exact.subZ()));
         this.exact = exact;
     }
 

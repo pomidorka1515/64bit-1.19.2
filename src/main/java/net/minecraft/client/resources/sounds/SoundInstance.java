@@ -31,16 +31,12 @@ public interface SoundInstance {
 
     float getPitch();
 
-    double getX();
-
     double getY();
-
-    double getZ();
 
     /**
     * Exact world position when this is a positional sound.  {@code null}
-    * denotes a legacy/local source. Relative sources supply local getX/Y/Z
-    * offsets; legacy world doubles are split before listener subtraction.
+     * denotes a missing or malformed source. Relative sources use positions
+     * relative to the zero origin, rather than the world listener.
     */
     @Nullable
     default SectorVec3 getExactPosition() {

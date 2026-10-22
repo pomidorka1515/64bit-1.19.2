@@ -19,10 +19,7 @@ public class ClientboundAddEntityPacket implements Packet<ClientGamePacketListen
     private final int id;
     private final UUID uuid;
     private final EntityType<?> type;
-    /** Lossy compatibility mirrors; exactPosition is authoritative. */
-    private final double x;
     private final double y;
-    private final double z;
     private final SectorVec3 exactPosition;
     private final int xa;
     private final int ya;
@@ -66,10 +63,7 @@ public class ClientboundAddEntityPacket implements Packet<ClientGamePacketListen
         this.uuid = uuid;
         this.type = type;
         this.exactPosition = position;
-        Vec3 approximate = position.toApproximateVec3();
-        this.x = approximate.x;
-        this.y = approximate.y;
-        this.z = approximate.z;
+        this.y = position.y();
         this.xRot = (byte) Mth.floor(xRot * 256.0F / 360.0F);
         this.yRot = (byte) Mth.floor(yRot * 256.0F / 360.0F);
         this.yHeadRot = (byte) Mth.floor(yHeadRot * 256.0D / 360.0D);
@@ -89,9 +83,6 @@ public class ClientboundAddEntityPacket implements Packet<ClientGamePacketListen
         Int128 blockZ = pBuffer.readInt128();
         double subZ = pBuffer.readDouble();
         this.exactPosition = SectorVec3.fromBlockAndFraction(blockX, subX, this.y, blockZ, subZ);
-        Vec3 approximate = this.exactPosition.toApproximateVec3();
-        this.x = approximate.x;
-        this.z = approximate.z;
         this.xRot = pBuffer.readByte();
         this.yRot = pBuffer.readByte();
         this.yHeadRot = pBuffer.readByte();
@@ -140,16 +131,8 @@ public class ClientboundAddEntityPacket implements Packet<ClientGamePacketListen
         return this.exactPosition;
     }
 
-    public double getX() {
-        return this.x;
-    }
-
     public double getY() {
         return this.y;
-    }
-
-    public double getZ() {
-        return this.z;
     }
 
     public double getXa() {

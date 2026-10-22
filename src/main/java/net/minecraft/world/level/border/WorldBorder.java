@@ -25,9 +25,6 @@ public class WorldBorder {
     private int warningTime = 15;
     private int warningBlocks = 5;
     private SectorVec3 exactCenter = SectorVec3.fromApproximate(0.0D, 0.0D, 0.0D);
-    // Lossy mirrors for legacy display callers; gameplay border checks are disabled.
-    private double centerX;
-    private double centerZ;
     int absoluteMaxSize = 29999984;
     private WorldBorder.BorderExtent extent = new WorldBorder.StaticBorderExtent(5.9999968E7D);
     public static final WorldBorder.Settings DEFAULT_SETTINGS = new WorldBorder.Settings(0.0D, 0.0D, 0.2D, 5.0D, 5, 15, 5.9999968E7D, 0L, 0.0D);
@@ -87,36 +84,6 @@ public class WorldBorder {
         return this.extent.getStatus();
     }
 
-    public double getMinX() {
-        return this.extent.getMinX();
-    }
-
-    public double getMinZ() {
-        return this.extent.getMinZ();
-    }
-
-    public double getMaxX() {
-        return this.extent.getMaxX();
-    }
-
-    public double getMaxZ() {
-        return this.extent.getMaxZ();
-    }
-
-    /** Lossy horizontal mirror; use getExactCenter for authoritative coordinates. */
-    public double getCenterX() {
-        return this.centerX;
-    }
-
-    /** Lossy horizontal mirror; use getExactCenter for authoritative coordinates. */
-    public double getCenterZ() {
-        return this.centerZ;
-    }
-
-    public void setCenter(double pX, double pZ) {
-        this.setCenter(SectorVec3.fromApproximate(pX, 0.0D, pZ));
-    }
-
     public SectorVec3 getExactCenter() {
         return this.exactCenter;
     }
@@ -124,12 +91,10 @@ public class WorldBorder {
     public void setCenter(SectorVec3 center) {
         this.exactCenter = SectorVec3.fromBlockAndFraction(center.blockX(), center.subX(), 0.0D,
                 center.blockZ(), center.subZ());
-        this.centerX = this.exactCenter.toApproximateVec3().x;
-        this.centerZ = this.exactCenter.toApproximateVec3().z;
         this.extent.onCenterChange();
 
         for (BorderChangeListener borderchangelistener : this.getListeners()) {
-            borderchangelistener.onBorderCenterSet(this, this.centerX, this.centerZ);
+            borderchangelistener.onBorderCenterSet(this, this.getExactCenter());
         }
     }
 
@@ -256,14 +221,6 @@ public class WorldBorder {
     }
 
     interface BorderExtent {
-        double getMinX();
-
-        double getMaxX();
-
-        double getMinZ();
-
-        double getMaxZ();
-
         double getSize();
 
         double getLerpSpeed();
@@ -296,22 +253,6 @@ public class WorldBorder {
             this.lerpDuration = (double) p_61981_;
             this.lerpBegin = Util.getMillis();
             this.lerpEnd = this.lerpBegin + p_61981_;
-        }
-
-        public double getMinX() {
-            return Mth.clamp(WorldBorder.this.getCenterX() - this.getSize() / 2.0D, (double) (-WorldBorder.this.absoluteMaxSize), (double) WorldBorder.this.absoluteMaxSize);
-        }
-
-        public double getMinZ() {
-            return Mth.clamp(WorldBorder.this.getCenterZ() - this.getSize() / 2.0D, (double) (-WorldBorder.this.absoluteMaxSize), (double) WorldBorder.this.absoluteMaxSize);
-        }
-
-        public double getMaxX() {
-            return Mth.clamp(WorldBorder.this.getCenterX() + this.getSize() / 2.0D, (double) (-WorldBorder.this.absoluteMaxSize), (double) WorldBorder.this.absoluteMaxSize);
-        }
-
-        public double getMaxZ() {
-            return Mth.clamp(WorldBorder.this.getCenterZ() + this.getSize() / 2.0D, (double) (-WorldBorder.this.absoluteMaxSize), (double) WorldBorder.this.absoluteMaxSize);
         }
 
         public double getSize() {
@@ -352,8 +293,6 @@ public class WorldBorder {
 
     public static class Settings {
         private final SectorVec3 exactCenter;
-        private final double centerX;
-        private final double centerZ;
         private final double damagePerBlock;
         private final double safeZone;
         private final int warningBlocks;
@@ -368,10 +307,6 @@ public class WorldBorder {
 
         Settings(SectorVec3 center, double pDamagePerBlock, double pSafeZone, int pWarningBlocks, int pWarningTime, double pSize, long pSizeLerpTime, double pSizeLerpTarget) {
             this.exactCenter = SectorVec3.fromBlockAndFraction(center.blockX(), center.subX(), 0.0D, center.blockZ(), center.subZ());
-            double pCenterX = this.exactCenter.toApproximateVec3().x;
-            double pCenterZ = this.exactCenter.toApproximateVec3().z;
-            this.centerX = pCenterX;
-            this.centerZ = pCenterZ;
             this.damagePerBlock = pDamagePerBlock;
             this.safeZone = pSafeZone;
             this.warningBlocks = pWarningBlocks;
@@ -383,8 +318,6 @@ public class WorldBorder {
 
         Settings(WorldBorder pBorder) {
             this.exactCenter = pBorder.getExactCenter();
-            this.centerX = pBorder.getCenterX();
-            this.centerZ = pBorder.getCenterZ();
             this.damagePerBlock = pBorder.getDamagePerBlock();
             this.safeZone = pBorder.getDamageSafeZone();
             this.warningBlocks = pBorder.getWarningBlocks();
@@ -396,14 +329,6 @@ public class WorldBorder {
 
         public SectorVec3 getExactCenter() {
             return this.exactCenter;
-        }
-
-        public double getCenterX() {
-            return this.centerX;
-        }
-
-        public double getCenterZ() {
-            return this.centerZ;
         }
 
         public double getDamagePerBlock() {
@@ -475,31 +400,9 @@ public class WorldBorder {
 
     class StaticBorderExtent implements WorldBorder.BorderExtent {
         private final double size;
-        private double minX;
-        private double minZ;
-        private double maxX;
-        private double maxZ;
-        private VoxelShape shape;
 
         public StaticBorderExtent(double p_62059_) {
             this.size = p_62059_;
-            this.updateBox();
-        }
-
-        public double getMinX() {
-            return this.minX;
-        }
-
-        public double getMaxX() {
-            return this.maxX;
-        }
-
-        public double getMinZ() {
-            return this.minZ;
-        }
-
-        public double getMaxZ() {
-            return this.maxZ;
         }
 
         public double getSize() {
@@ -522,20 +425,10 @@ public class WorldBorder {
             return this.size;
         }
 
-        private void updateBox() {
-            this.minX = Mth.clamp(WorldBorder.this.getCenterX() - this.size / 2.0D, (double) (-WorldBorder.this.absoluteMaxSize), (double) WorldBorder.this.absoluteMaxSize);
-            this.minZ = Mth.clamp(WorldBorder.this.getCenterZ() - this.size / 2.0D, (double) (-WorldBorder.this.absoluteMaxSize), (double) WorldBorder.this.absoluteMaxSize);
-            this.maxX = Mth.clamp(WorldBorder.this.getCenterX() + this.size / 2.0D, (double) (-WorldBorder.this.absoluteMaxSize), (double) WorldBorder.this.absoluteMaxSize);
-            this.maxZ = Mth.clamp(WorldBorder.this.getCenterZ() + this.size / 2.0D, (double) (-WorldBorder.this.absoluteMaxSize), (double) WorldBorder.this.absoluteMaxSize);
-            this.shape = Shapes.empty();
-        }
-
         public void onAbsoluteMaxSizeChange() {
-            this.updateBox();
         }
 
         public void onCenterChange() {
-            this.updateBox();
         }
 
         public WorldBorder.BorderExtent update() {
@@ -543,7 +436,7 @@ public class WorldBorder {
         }
 
         public VoxelShape getCollisionShape() {
-            return this.shape;
+            return Shapes.empty();
         }
     }
 }

@@ -193,9 +193,7 @@ public class Explosion {
         if (entity == this.source || entity.ignoreExplosion())
             return;
         SectorVec3 entityPosition = entity.exactPosition();
-        if (entityPosition == null) {
-            entityPosition = SectorVec3.fromApproximate(entity.getX(), entity instanceof PrimedTnt ? entity.getY() : entity.getEyeY(), entity.getZ());
-        } else if (!(entity instanceof PrimedTnt)) {
+        if (!(entity instanceof PrimedTnt)) {
             entityPosition = entityPosition.withY(entity.getEyeY());
         }
 

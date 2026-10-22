@@ -41,6 +41,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 
 public class ArmorStand extends LivingEntity {
     public static final int WOBBLE_TIME = 5;
@@ -92,7 +93,7 @@ public class ArmorStand extends LivingEntity {
 
     public ArmorStand(Level pLevel, double pX, double pY, double pZ) {
         this(EntityType.ARMOR_STAND, pLevel);
-        this.setPos(pX, pY, pZ);
+        this.applyExactPosition(SectorVec3.fromApproximate(pX, pY, pZ));
     }
 
     public void refreshDimensions() {
@@ -275,7 +276,7 @@ public class ArmorStand extends LivingEntity {
     }
 
     protected void pushEntities() {
-        List<Entity> list = this.level.getEntities(this, this.getBoundingBox(), RIDABLE_MINECARTS);
+        List<Entity> list = this.level.getEntities(this, this.exactBoundingBox(), RIDABLE_MINECARTS);
 
         for (int i = 0; i < list.size(); ++i) {
             Entity entity = list.get(i);
@@ -442,7 +443,7 @@ public class ArmorStand extends LivingEntity {
     }
 
     public boolean shouldRenderAtSqrDistance(double pDistance) {
-        double d0 = this.getBoundingBox().getSize() * 4.0D;
+        double d0 = this.exactBoundingBox().getSize() * 4.0D;
         if (Double.isNaN(d0) || d0 == 0.0D) {
             d0 = 4.0D;
         }

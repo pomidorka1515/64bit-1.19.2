@@ -13,8 +13,8 @@ import net.minecraft.world.level.WorldBounds;
  *
  * <p>{@link Vec3} remains the ordinary (and deliberately inexact at very large
  * coordinates) vector type.  This type must be used whenever a player's exact
- * world X/Z coordinates participate in physics.  {@link #toApproximateVec3()}
- * is explicitly a lossy compatibility conversion.</p>
+ * world X/Z coordinates participate in physics. {@link #toExactVec3()}
+ * retains the split position when crossing a Vec3 API boundary.</p>
  */
 public final class SectorVec3 {
     public static final com.mojang.serialization.Codec<SectorVec3> CODEC = com.mojang.serialization.codecs.RecordCodecBuilder.create(instance -> instance.group(
@@ -451,20 +451,9 @@ public final class SectorVec3 {
                 this.y - (double) originBlockY, signedDifference(this.blockZ, originBlockZ) + this.subZ);
     }
 
-    /** Lossy conversion for legacy/render/network compatibility only; never use this for exact physics. */
-    public Vec3 toApproximateVec3() {
-        // Keep the lossy mirror below 2^127 even when MAX rounds upward.
-        return new Vec3(approximateCoordinate(this.blockX, this.subX), this.y,
-                approximateCoordinate(this.blockZ, this.subZ));
-    }
-
     /** Compatibility carrier that retains the authoritative split position. */
     public Vec3 toExactVec3() {
         return new ExactVec3(this);
-    }
-
-    private static double approximateCoordinate(Int128 block, double fraction) {
-        return WorldBounds.clampAbsoluteDouble(block.toDoubleSaturated() + fraction);
     }
 
     private static double signedDifference(Int128 value, Int128 origin) {

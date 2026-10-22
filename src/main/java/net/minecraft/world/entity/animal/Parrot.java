@@ -214,7 +214,7 @@ public class Parrot extends ShoulderRidingEntity implements FlyingAnimal {
 
     public static boolean imitateNearbyMobs(Level pLevel, Entity pParrot) {
         if (pParrot.isAlive() && !pParrot.isSilent() && pLevel.random.nextInt(2) == 0) {
-            List<Mob> list = pLevel.getEntitiesOfClass(Mob.class, pParrot.getBoundingBox().inflate(20.0D), NOT_PARROT_PREDICATE);
+            List<Mob> list = pLevel.getEntitiesOfClass(Mob.class, pParrot.exactBoundingBox().inflate(20.0D), NOT_PARROT_PREDICATE);
             if (!list.isEmpty()) {
                 Mob mob = list.get(pLevel.random.nextInt(list.size()));
                 if (!mob.isSilent()) {

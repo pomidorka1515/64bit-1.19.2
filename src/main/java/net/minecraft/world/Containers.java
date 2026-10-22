@@ -15,16 +15,7 @@ public class Containers {
     }
 
     public static void dropContents(Level pLevel, Entity pEntityAt, Container pInventory) {
-        SectorVec3 position = pEntityAt.exactPosition();
-        if (position != null) {
-            dropContents(pLevel, position, pInventory);
-        } else {
-            dropContents(pLevel, pEntityAt.getX(), pEntityAt.getY(), pEntityAt.getZ(), pInventory);
-        }
-    }
-
-    private static void dropContents(Level level, double x, double y, double z, Container container) {
-        dropContents(level, SectorVec3.fromApproximate(x, y, z), container);
+        dropContents(pLevel, pEntityAt.exactPosition(), pInventory);
     }
 
     private static void dropContents(Level pLevel, SectorVec3 pX, Container pInventory) {

@@ -185,11 +185,7 @@ public abstract class PlayerList {
         }
 
         this.broadcastSystemMessage(mutablecomponent.withStyle(ChatFormatting.YELLOW), false);
-        if (pPlayer.hasSectorPosition()) {
-            servergamepacketlistenerimpl.teleportExact(pPlayer.sectorPosition(), pPlayer.getYRot(), pPlayer.getXRot());
-        } else {
-            servergamepacketlistenerimpl.teleport(pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), pPlayer.getYRot(), pPlayer.getXRot());
-        }
+        servergamepacketlistenerimpl.teleportExact(pPlayer.sectorPosition(), pPlayer.getYRot(), pPlayer.getXRot());
         this.players.add(pPlayer);
         this.playersByUUID.put(pPlayer.getUUID(), pPlayer);
         this.broadcastAll(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, pPlayer));
@@ -277,7 +273,7 @@ public abstract class PlayerList {
                 PlayerList.this.broadcastAll(new ClientboundSetBorderLerpSizePacket(p_11328_));
             }
 
-            public void onBorderCenterSet(WorldBorder p_11324_, double p_11325_, double p_11326_) {
+            public void onBorderCenterSet(WorldBorder p_11324_, net.minecraft.world.phys.SectorVec3 center) {
                 PlayerList.this.broadcastAll(new ClientboundSetBorderCenterPacket(p_11324_));
             }
 
@@ -455,11 +451,7 @@ public abstract class PlayerList {
 
         LevelData leveldata = serverplayer.level.getLevelData();
         serverplayer.connection.send(new ClientboundRespawnPacket(serverplayer.level.dimensionTypeId(), serverplayer.level.dimension(), BiomeManager.obfuscateSeed(serverplayer.getLevel().getSeed()), serverplayer.gameMode.getGameModeForPlayer(), serverplayer.gameMode.getPreviousGameModeForPlayer(), serverplayer.getLevel().isDebug(), serverplayer.getLevel().isFlat(), pKeepEverything, serverplayer.getLastDeathLocation()));
-        if (serverplayer.hasSectorPosition()) {
-            serverplayer.connection.teleportExact(serverplayer.sectorPosition(), serverplayer.getYRot(), serverplayer.getXRot());
-        } else {
-            serverplayer.connection.teleport(serverplayer.getX(), serverplayer.getY(), serverplayer.getZ(), serverplayer.getYRot(), serverplayer.getXRot());
-        }
+        serverplayer.connection.teleportExact(serverplayer.sectorPosition(), serverplayer.getYRot(), serverplayer.getXRot());
         serverplayer.connection.send(new ClientboundSetDefaultSpawnPositionPacket(serverlevel1.getSharedSpawnPos(), serverlevel1.getSharedSpawnAngle()));
         serverplayer.connection.send(new ClientboundChangeDifficultyPacket(leveldata.getDifficulty(), leveldata.isDifficultyLocked()));
         serverplayer.connection.send(new ClientboundSetExperiencePacket(serverplayer.experienceProgress, serverplayer.totalExperience, serverplayer.experienceLevel));

@@ -101,7 +101,7 @@ public class ThrownPotion extends ThrowableItemProjectile implements ItemSupplie
     }
 
     private void applyWater() {
-        AABB aabb = this.getBoundingBox().inflate(4.0D, 2.0D, 4.0D);
+        AABB aabb = this.exactBoundingBox().inflate(4.0D, 2.0D, 4.0D);
         List<LivingEntity> list = this.level.getEntitiesOfClass(LivingEntity.class, aabb, WATER_SENSITIVE);
         if (!list.isEmpty()) {
             for (LivingEntity livingentity : list) {
@@ -118,7 +118,7 @@ public class ThrownPotion extends ThrowableItemProjectile implements ItemSupplie
     }
 
     private void applySplash(List<MobEffectInstance> pEffectInstances, @Nullable Entity pTarget) {
-        AABB aabb = this.getBoundingBox().inflate(4.0D, 2.0D, 4.0D);
+        AABB aabb = this.exactBoundingBox().inflate(4.0D, 2.0D, 4.0D);
         List<LivingEntity> list = this.level.getEntitiesOfClass(LivingEntity.class, aabb);
         if (!list.isEmpty()) {
             Entity entity = this.getEffectSource();
@@ -150,8 +150,7 @@ public class ThrownPotion extends ThrowableItemProjectile implements ItemSupplie
     }
 
     private void makeAreaOfEffectCloud(ItemStack pStack, Potion pPotion) {
-        AreaEffectCloud areaeffectcloud = new AreaEffectCloud(this.level, this.getX(), this.getY(), this.getZ());
-        areaeffectcloud.applyExactPosition(this.sectorPosition());
+        AreaEffectCloud areaeffectcloud = new AreaEffectCloud(this.level, this.sectorPosition());
         Entity entity = this.getOwner();
         if (entity instanceof LivingEntity) {
             areaeffectcloud.setOwner((LivingEntity) entity);

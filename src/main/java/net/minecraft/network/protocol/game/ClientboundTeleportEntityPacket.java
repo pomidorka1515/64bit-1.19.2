@@ -8,10 +8,6 @@ import net.minecraft.world.phys.Vec3;
 
 public class ClientboundTeleportEntityPacket implements Packet<ClientGamePacketListener> {
     private final int id;
-    /** Lossy compatibility mirrors; exactPosition is authoritative. */
-    private final double x;
-    private final double y;
-    private final double z;
     private final SectorVec3 exactPosition;
     private final byte yRot;
     private final byte xRot;
@@ -20,10 +16,6 @@ public class ClientboundTeleportEntityPacket implements Packet<ClientGamePacketL
     public ClientboundTeleportEntityPacket(Entity pEntity) {
         this.id = pEntity.getId();
         this.exactPosition = pEntity.sectorPosition();
-        Vec3 vec3 = this.exactPosition.toApproximateVec3();
-        this.x = vec3.x;
-        this.y = vec3.y;
-        this.z = vec3.z;
         this.yRot = (byte) ((int) (pEntity.getYRot() * 256.0F / 360.0F));
         this.xRot = (byte) ((int) (pEntity.getXRot() * 256.0F / 360.0F));
         this.onGround = pEntity.isOnGround();
@@ -33,10 +25,6 @@ public class ClientboundTeleportEntityPacket implements Packet<ClientGamePacketL
         this.id = pBuffer.readVarInt();
         this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readInt128(), pBuffer.readDouble(),
                 pBuffer.readDouble(), pBuffer.readInt128(), pBuffer.readDouble());
-        Vec3 approximate = this.exactPosition.toApproximateVec3();
-        this.x = approximate.x;
-        this.y = approximate.y;
-        this.z = approximate.z;
         this.yRot = pBuffer.readByte();
         this.xRot = pBuffer.readByte();
         this.onGround = pBuffer.readBoolean();
@@ -67,16 +55,8 @@ public class ClientboundTeleportEntityPacket implements Packet<ClientGamePacketL
         return this.exactPosition;
     }
 
-    public double getX() {
-        return this.x;
-    }
-
     public double getY() {
-        return this.y;
-    }
-
-    public double getZ() {
-        return this.z;
+        return this.exactPosition.y();
     }
 
     public byte getyRot() {

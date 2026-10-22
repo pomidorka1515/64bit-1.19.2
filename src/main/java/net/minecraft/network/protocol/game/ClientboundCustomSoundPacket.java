@@ -69,18 +69,12 @@ public class ClientboundCustomSoundPacket implements Packet<ClientGamePacketList
     }
 
     /** Lossy compatibility mirror; exact consumers must use {@link #getExactPosition()}. */
-    public double getX() {
-        return this.position.toApproximateVec3().x;
-    }
 
     public double getY() {
         return this.position.y();
     }
 
     /** Lossy compatibility mirror; exact consumers must use {@link #getExactPosition()}. */
-    public double getZ() {
-        return this.position.toApproximateVec3().z;
-    }
 
     public float getVolume() {
         return this.volume;

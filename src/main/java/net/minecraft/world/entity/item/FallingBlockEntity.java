@@ -41,6 +41,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 import org.slf4j.Logger;
 
 public class FallingBlockEntity extends Entity {
@@ -64,7 +65,7 @@ public class FallingBlockEntity extends Entity {
         this(EntityType.FALLING_BLOCK, pLevel);
         this.blockState = pState;
         this.blocksBuilding = true;
-        this.setPos(pX, pY, pZ);
+        this.applyExactPosition(SectorVec3.fromApproximate(pX, pY, pZ));
         this.setDeltaMovement(Vec3.ZERO);
         this.setOldPosAndRot();
         this.setStartPos(this.blockPosition());

@@ -280,16 +280,6 @@ public class ParticleEngine implements PreparableReloadListener {
         this.trackingEmitters.add(Particle.createAt(exactPosition, () -> new TrackingEmitter(this.level, pEntity, pData, pLifetime)));
     }
 
-    /**
-    * Legacy double entry point retained for third-party callers.  New particle
-    * paths must supply the exact split coordinate overload below.
-    */
-    @Nullable
-    public Particle createParticle(ParticleOptions pParticleData, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
-        return this.createParticle(pParticleData, SectorVec3.fromApproximate(pX, pY, pZ),
-                pXSpeed, pYSpeed, pZSpeed);
-    }
-
     /** Creates a particle whose world origin remains split-coordinate exact. */
     @Nullable
     public Particle createParticle(ParticleOptions options, SectorVec3 position, double xd, double yd, double zd) {

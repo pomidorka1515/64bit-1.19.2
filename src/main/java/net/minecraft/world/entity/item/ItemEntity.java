@@ -57,7 +57,7 @@ public class ItemEntity extends Entity {
 
     public ItemEntity(Level pLevel, double pPosX, double pPosY, double pPosZ, ItemStack pItemStack, double pDeltaX, double pDeltaY, double pDeltaZ) {
         this(EntityType.ITEM, pLevel);
-        this.setPos(pPosX, pPosY, pPosZ);
+        this.applyExactPosition(SectorVec3.fromApproximate(pPosX, pPosY, pPosZ));
         this.setDeltaMovement(pDeltaX, pDeltaY, pDeltaZ);
         this.setItem(pItemStack);
     }
@@ -136,7 +136,7 @@ public class ItemEntity extends Entity {
             } else {
                 this.noPhysics = !this.hasExactNoCollision();
                 if (this.noPhysics) {
-                    this.moveTowardsClosestSpace(this.sectorPosition().withY((this.getBoundingBox().minY + this.getBoundingBox().maxY) / 2.0D));
+                    this.moveTowardsClosestSpace(this.sectorPosition().withY((this.exactBoundingBox().minY + this.exactBoundingBox().maxY) / 2.0D));
                 }
             }
 

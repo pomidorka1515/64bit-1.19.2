@@ -813,11 +813,6 @@ public class ServerLevel extends Level implements WorldGenLevel {
         }
     }
 
-    public void playSeededSound(@Nullable Player pPlayer, double pX, double pY, double pZ, SoundEvent pSoundEvent, SoundSource pSoundSource, float pVolume, float pPitch, long pSeed) {
-        this.playSeededSound(pPlayer, SectorVec3.fromApproximate(pX, pY, pZ), pSoundEvent,
-                pSoundSource, pVolume, pPitch, pSeed);
-    }
-
     @Override
     public void playSeededSound(@Nullable Player player, SectorVec3 position, SoundEvent sound, SoundSource source,
             float volume, float pitch, long seed) {
@@ -976,13 +971,6 @@ public class ServerLevel extends Level implements WorldGenLevel {
         return explosion;
     }
 
-    /** Legacy absolute-double explosion entry point. Exact callers use the SectorVec3 overload. */
-    @Override
-    public Explosion explode(@Nullable Entity pExploder, @Nullable DamageSource pDamageSource, @Nullable ExplosionDamageCalculator pContext, double pX, double pY, double pZ, float pSize, boolean pCausesFire, Explosion.BlockInteraction pMode) {
-        return this.explode(pExploder, pDamageSource, pContext, SectorVec3.fromApproximate(pX, pY, pZ),
-                pSize, pCausesFire, pMode);
-    }
-
     public void blockEvent(BlockPos pPos, Block pBlock, int pEventID, int pEventParam) {
         this.blockEvents.add(new BlockEventData(pPos, pBlock, pEventID, pEventParam));
     }
@@ -1030,12 +1018,6 @@ public class ServerLevel extends Level implements WorldGenLevel {
         return this.server.getStructureManager();
     }
 
-    /** Legacy double entry point; exact particle producers use the SectorVec3 overload. */
-    public <T extends ParticleOptions> int sendParticles(T options, double x, double y, double z, int count,
-            double xDist, double yDist, double zDist, double maxSpeed) {
-        return this.sendParticles(options, SectorVec3.fromApproximate(x, y, z), count, xDist, yDist, zDist, maxSpeed);
-    }
-
     public <T extends ParticleOptions> int sendParticles(T options, SectorVec3 position, int count,
             double xDist, double yDist, double zDist, double maxSpeed) {
         ClientboundLevelParticlesPacket packet = new ClientboundLevelParticlesPacket(options, false, position,
@@ -1047,14 +1029,6 @@ public class ServerLevel extends Level implements WorldGenLevel {
             }
         }
         return sent;
-    }
-
-    /** Legacy double entry point; exact particle producers use the SectorVec3 overload. */
-    public <T extends ParticleOptions> boolean sendParticles(ServerPlayer player, T options, boolean force,
-            double x, double y, double z, int count,
-            double xDist, double yDist, double zDist, double maxSpeed) {
-        return this.sendParticles(player, options, force, SectorVec3.fromApproximate(x, y, z), count,
-                xDist, yDist, zDist, maxSpeed);
     }
 
     public <T extends ParticleOptions> boolean sendParticles(ServerPlayer player, T options, boolean force,
@@ -1069,9 +1043,6 @@ public class ServerLevel extends Level implements WorldGenLevel {
         if (player.getLevel() != this)
             return false;
         SectorVec3 playerPosition = player.exactPosition();
-        if (playerPosition == null) {
-            playerPosition = SectorVec3.fromApproximate(player.getX(), player.getY(), player.getZ());
-        }
         if (playerPosition.relativeTo(position).lengthSqr() <= Mth.square(force ? 512.0D : 32.0D)) {
             player.connection.send(packet);
             return true;
@@ -1397,7 +1368,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
         for (Entity entity : pEntities) {
             Component component = entity.getCustomName();
             Component component1 = entity.getDisplayName();
-            csvoutput.writeRow(entity.getX(), entity.getY(), entity.getZ(), entity.getUUID(), Registry.ENTITY_TYPE.getKey(entity.getType()), entity.isAlive(), component1.getString(), component != null ? component.getString() : null);
+            csvoutput.writeRow(entity.exactPosition().formatX(6), entity.getY(), entity.exactPosition().formatZ(6), entity.getUUID(), Registry.ENTITY_TYPE.getKey(entity.getType()), entity.isAlive(), component1.getString(), component != null ? component.getString() : null);
         }
     }
 

@@ -197,8 +197,8 @@ public class Strider extends Animal implements ItemSteerable, Saddleable {
     public Vec3 getDismountLocationForPassenger(LivingEntity pLivingEntity) {
         Vec3[] avec3 = new Vec3[] {getCollisionHorizontalEscapeVector((double) this.getBbWidth(), (double) pLivingEntity.getBbWidth(), pLivingEntity.getYRot()), getCollisionHorizontalEscapeVector((double) this.getBbWidth(), (double) pLivingEntity.getBbWidth(), pLivingEntity.getYRot() - 22.5F), getCollisionHorizontalEscapeVector((double) this.getBbWidth(), (double) pLivingEntity.getBbWidth(), pLivingEntity.getYRot() + 22.5F), getCollisionHorizontalEscapeVector((double) this.getBbWidth(), (double) pLivingEntity.getBbWidth(), pLivingEntity.getYRot() - 45.0F), getCollisionHorizontalEscapeVector((double) this.getBbWidth(), (double) pLivingEntity.getBbWidth(), pLivingEntity.getYRot() + 45.0F)};
         Set<BlockPos> set = Sets.newLinkedHashSet();
-        double d0 = this.getBoundingBox().maxY;
-        double d1 = this.getBoundingBox().minY - 0.5D;
+        double d0 = this.exactBoundingBox().maxY;
+        double d1 = this.exactBoundingBox().minY - 0.5D;
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
         for (Vec3 vec3 : avec3) {
@@ -227,7 +227,7 @@ public class Strider extends Animal implements ItemSteerable, Saddleable {
             }
         }
 
-        return this.sectorPosition().withY(this.getBoundingBox().maxY).toExactVec3();
+        return this.sectorPosition().withY(this.exactBoundingBox().maxY).toExactVec3();
     }
 
     /** Exact split-coordinate strider dismount target from long block offsets only. */
@@ -235,8 +235,8 @@ public class Strider extends Animal implements ItemSteerable, Saddleable {
     public SectorVec3 getExactDismountLocationForPassenger(LivingEntity passenger) {
         Vec3[] avec3 = new Vec3[] {getCollisionHorizontalEscapeVector((double) this.getBbWidth(), (double) passenger.getBbWidth(), passenger.getYRot()), getCollisionHorizontalEscapeVector((double) this.getBbWidth(), (double) passenger.getBbWidth(), passenger.getYRot() - 22.5F), getCollisionHorizontalEscapeVector((double) this.getBbWidth(), (double) passenger.getBbWidth(), passenger.getYRot() + 22.5F), getCollisionHorizontalEscapeVector((double) this.getBbWidth(), (double) passenger.getBbWidth(), passenger.getYRot() - 45.0F), getCollisionHorizontalEscapeVector((double) this.getBbWidth(), (double) passenger.getBbWidth(), passenger.getYRot() + 45.0F)};
         Set<BlockPos> set = Sets.newLinkedHashSet();
-        double d0 = this.getBoundingBox().maxY;
-        double d1 = this.getBoundingBox().minY - 0.5D;
+        double d0 = this.exactBoundingBox().maxY;
+        double d1 = this.exactBoundingBox().minY - 0.5D;
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
         for (Vec3 vec3 : avec3) {

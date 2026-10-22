@@ -15,6 +15,36 @@ import org.junit.jupiter.api.Test;
 
 class SectorEntityCoordinatesTest {
     @Test
+    void entityQueryBridgeKeepsFullWidthBoundsAndLocalDimensions() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+        Entity entity = new TestEntity();
+        for (Int128 coordinate : new Int128[] {Int128.of(1234L, 7L), Int128.of(-1234L, 7L)}) {
+            SectorVec3 position = SectorVec3.fromBlockAndFraction(coordinate, 0.25D, 10.0D,
+                    coordinate, 0.75D);
+            entity.applyExactPosition(position);
+            AABB bridge = entity.exactBoundingBox();
+            assertEquals(entity.getSectorBoundingBox(), bridge.getSectorBounds());
+            assertEquals(entity.getBbWidth(), bridge.getXsize(), 1.0E-6D);
+            assertEquals(entity.getBbHeight(), bridge.getYsize(), 1.0E-6D);
+            assertTrue(bridge.inflate(0.5D).contains(position.toExactVec3()));
+            assertFalse(bridge.intersects(AABB.fromSectorBounds(
+                    entity.getSectorBoundingBox().move(10.0D, 0.0D, 0.0D))));
+        }
+    }
+
+    @Test
+    void auditedLossyEntityEntryPointsAreRemoved() {
+        assertThrows(NoSuchMethodException.class, () -> Entity.class.getMethod("getX"));
+        assertThrows(NoSuchMethodException.class, () -> Entity.class.getMethod("getZ"));
+        assertThrows(NoSuchMethodException.class, () -> Entity.class.getMethod("position"));
+        assertThrows(NoSuchMethodException.class, () -> Entity.class.getMethod("getBoundingBox"));
+        assertThrows(NoSuchMethodException.class, () -> Entity.class.getMethod("getEyePosition"));
+        assertThrows(NoSuchMethodException.class, () -> Entity.class.getMethod("setPosRaw", double.class, double.class, double.class));
+        assertThrows(NoSuchMethodException.class, () -> SectorVec3.class.getMethod("toApproximateVec3"));
+    }
+
+    @Test
     void lookTargetPacketAndRotationRetainSubBlockOffsetsAtFullRangeEdges() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
@@ -61,6 +91,32 @@ class SectorEntityCoordinatesTest {
         net.minecraft.world.level.portal.PortalInfo portal = new net.minecraft.world.level.portal.PortalInfo(destination, Vec3.ZERO, 90.0F, 0.0F);
         assertEquals(destination, portal.exactPos);
         assertEquals(new BlockPos(x, 64, z), portal.exactPos.blockPosition());
+        assertEquals(destination, ExactVec3.position(portal.pos));
+        assertEquals(destination, new net.minecraft.world.level.portal.PortalInfo(portal.pos,
+                Vec3.ZERO, 0.0F, 0.0F).exactPos);
+    }
+
+    @Test
+    void eyeInterpolationAndHitDistancesRetainFullWidthFractions() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+        Entity entity = new TestEntity();
+        for (Int128 coordinate : new Int128[] {Int128.of(1234L, 7L), Int128.of(-1234L, 7L)}) {
+            SectorVec3 start = SectorVec3.fromBlockAndFraction(coordinate, 0.25D, 10.0D,
+                    coordinate, 0.75D);
+            entity.applyExactPosition(start.add(0.5D, 2.0D, -0.5D));
+            entity.setOldExactPosition(start);
+            assertEquals(start.add(0.25D, 1.0D + entity.getEyeHeight(), -0.25D),
+                    entity.exactEyePosition(0.5F));
+            EntityHitResult hit = new EntityHitResult(entity);
+            assertEquals(entity.exactPosition(), ExactVec3.position(hit.getLocation()));
+            assertEquals(0.0D, hit.distanceTo(entity));
+            assertEquals(0.0625D, new EntityHitResult(entity,
+                    entity.exactPosition().add(0.25D, 0.0D, 0.0D)).distanceTo(entity));
+            assertEquals(entity.exactPosition().add(0.0D, 0.5D, 0.0D),
+                    new net.minecraft.world.level.gameevent.EntityPositionSource(entity, 0.5F)
+                            .exactPosition(null).orElseThrow());
+        }
     }
 
     @Test
@@ -80,7 +136,7 @@ class SectorEntityCoordinatesTest {
         assertEquals(0.375D, entity.sectorPosition().subX());
         assertEquals(0.625D, entity.sectorPosition().subZ());
         assertEquals(new Vec3(0.125D, 0.5D, -0.125D), entity.sectorPositionDelta());
-        assertNotNull(entity.getBoundingBox().getSectorBounds());
+        assertNotNull(entity.exactBoundingBox().getSectorBounds());
         assertEquals(0.3125D, entity.interpolatedExactPosition(0.5F).subX());
     }
 

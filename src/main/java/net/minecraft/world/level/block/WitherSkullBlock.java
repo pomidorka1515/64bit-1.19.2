@@ -64,7 +64,7 @@ public class WitherSkullBlock extends SkullBlock {
                     witherboss.yBodyRot = blockpattern$blockpatternmatch.getForwards().getAxis() == Direction.Axis.X ? 0.0F : 90.0F;
                     witherboss.makeInvulnerable();
 
-                    for (ServerPlayer serverplayer : pLevel.getEntitiesOfClass(ServerPlayer.class, witherboss.getBoundingBox().inflate(50.0D))) {
+                    for (ServerPlayer serverplayer : pLevel.getEntitiesOfClass(ServerPlayer.class, witherboss.exactBoundingBox().inflate(50.0D))) {
                         CriteriaTriggers.SUMMONED_ENTITY.trigger(serverplayer, witherboss);
                     }
 

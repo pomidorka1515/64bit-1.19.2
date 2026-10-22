@@ -78,16 +78,8 @@ public abstract class AbstractSoundInstance implements SoundInstance {
         return this.pitch * this.sound.getPitch().sample(this.random);
     }
 
-    public double getX() {
-        return this.x;
-    }
-
     public double getY() {
         return this.y;
-    }
-
-    public double getZ() {
-        return this.z;
     }
 
     @Override
@@ -99,20 +91,12 @@ public abstract class AbstractSoundInstance implements SoundInstance {
         return SectorVec3.fromApproximate(this.x, this.y, this.z);
     }
 
-    /**
-    * Updates both the exact source position and its lossy compatibility mirror.
-    * Audio/render code must consume {@link #getExactPosition()}; the doubles
-    * remain for vanilla extensions that have not yet adopted SectorVec3.
-    */
+    /** Updates the authoritative world-space sound source. */
     protected final void setExactPosition(SectorVec3 position) {
         if (position == null)
             throw new NullPointerException("position");
         this.exactPosition = position;
-        // Explicitly lossy extension mirrors, never inputs to positional audio.
-        net.minecraft.world.phys.Vec3 mirror = position.toApproximateVec3();
-        this.x = mirror.x;
-        this.y = mirror.y;
-        this.z = mirror.z;
+        this.y = position.y();
     }
 
     protected final void setPosition(double x, double y, double z) {

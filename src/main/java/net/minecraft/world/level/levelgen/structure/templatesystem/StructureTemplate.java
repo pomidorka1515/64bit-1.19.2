@@ -396,12 +396,7 @@ public class StructureTemplate {
                 Vec3 vec3 = transform(structuretemplate$structureentityinfo.pos, p_74526_, p_74527_, p_74528_);
                 SectorVec3 entityPosition = SectorVec3.fromBlockAndFraction(p_74525_.getX(), vec3.x,
                         (double) p_74525_.getY() + vec3.y, p_74525_.getZ(), vec3.z);
-                Vec3 vec31 = entityPosition.toApproximateVec3();
-                ListTag listtag = new ListTag();
-                listtag.add(DoubleTag.valueOf(vec31.x));
-                listtag.add(DoubleTag.valueOf(vec31.y));
-                listtag.add(DoubleTag.valueOf(vec31.z));
-                compoundtag.put("Pos", listtag);
+                compoundtag.remove("Pos");
                 setEntityPosition(compoundtag, entityPosition);
                 compoundtag.remove("UUID");
                 createEntityIgnoreException(p_74524_, compoundtag).ifPresent((p_205061_) -> {

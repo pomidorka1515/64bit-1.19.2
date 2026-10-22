@@ -39,10 +39,6 @@ public class LocalCoordinates implements Coordinates {
         return anchor.add(d0, d1, d2);
     }
 
-    public Vec3 getPosition(CommandSourceStack source) {
-        return this.getExactPosition(source).toExactVec3();
-    }
-
     public Vec2 getRotation(CommandSourceStack pSource) {
         return Vec2.ZERO;
     }

@@ -501,7 +501,7 @@ public abstract class Mob extends LivingEntity {
         if (!this.level.isClientSide && this.canPickUpLoot() && this.isAlive() && !this.dead && this.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
             Vec3i vec3i = this.getPickupReach();
 
-            for (ItemEntity itementity : this.level.getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(WorldBounds.signedDifference(vec3i.getX(), Int128.ZERO), (double) vec3i.getY(), WorldBounds.signedDifference(vec3i.getZ(), Int128.ZERO)))) {
+            for (ItemEntity itementity : this.level.getEntitiesOfClass(ItemEntity.class, this.exactBoundingBox().inflate(WorldBounds.signedDifference(vec3i.getX(), Int128.ZERO), (double) vec3i.getY(), WorldBounds.signedDifference(vec3i.getZ(), Int128.ZERO)))) {
                 if (!itementity.isRemoved() && !itementity.getItem().isEmpty() && !itementity.hasPickUpDelay() && this.wantsToPickUp(itementity.getItem())) {
                     this.pickUpItem(itementity);
                 }
@@ -743,7 +743,7 @@ public abstract class Mob extends LivingEntity {
         if (pEntity instanceof LivingEntity livingentity) {
             d1 = livingentity.getEyeY() - this.getEyeY();
         } else {
-            d1 = (pEntity.getBoundingBox().minY + pEntity.getBoundingBox().maxY) / 2.0D - this.getEyeY();
+            d1 = (pEntity.exactBoundingBox().minY + pEntity.exactBoundingBox().maxY) / 2.0D - this.getEyeY();
         }
 
         double d3 = Math.sqrt(d0 * d0 + d2 * d2);
@@ -776,7 +776,7 @@ public abstract class Mob extends LivingEntity {
     }
 
     public boolean checkSpawnObstruction(LevelReader pLevel) {
-        return !pLevel.containsAnyLiquid(this.getBoundingBox()) && pLevel.isUnobstructed(this);
+        return !pLevel.containsAnyLiquid(this.exactBoundingBox()) && pLevel.isUnobstructed(this);
     }
 
     public int getMaxSpawnClusterSize() {

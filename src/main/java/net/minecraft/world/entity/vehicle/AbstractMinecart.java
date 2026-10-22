@@ -196,7 +196,7 @@ public abstract class AbstractMinecart extends Entity {
                 }
             }
 
-            double d1 = this.getBoundingBox().maxY;
+            double d1 = this.exactBoundingBox().maxY;
             blockpos$mutableblockpos.set(blockpos.getX(), Mth.floor(d1), blockpos.getZ());
 
             for (Pose pose1 : immutablelist) {
@@ -332,15 +332,7 @@ public abstract class AbstractMinecart extends Entity {
         this.handleNetherPortal();
         if (this.level.isClientSide) {
             if (this.lSteps > 0) {
-                SectorVec3 nextPosition;
-                if (this.exactLerpTarget != null) {
-                    nextPosition = this.sectorPosition().lerpTo(this.exactLerpTarget, 1.0D / (double) this.lSteps);
-                } else {
-                    nextPosition = SectorVec3.fromApproximate(
-                            this.getX() + (this.lx - this.getX()) / (double) this.lSteps,
-                            this.getY() + (this.ly - this.getY()) / (double) this.lSteps,
-                            this.getZ() + (this.lz - this.getZ()) / (double) this.lSteps);
-                }
+                SectorVec3 nextPosition = this.sectorPosition().lerpTo(this.exactLerpTarget, 1.0D / (double) this.lSteps);
                 double d2 = Mth.wrapDegrees(this.lyr - (double) this.getYRot());
                 this.setYRot(this.getYRot() + (float) d2 / (float) this.lSteps);
                 this.setXRot(this.getXRot() + (float) (this.lxr - (double) this.getXRot()) / (float) this.lSteps);
@@ -399,7 +391,7 @@ public abstract class AbstractMinecart extends Entity {
 
             this.setRot(this.getYRot(), this.getXRot());
             if (this.getMinecartType() == AbstractMinecart.Type.RIDEABLE && this.getDeltaMovement().horizontalDistanceSqr() > 0.01D) {
-                List<Entity> list = this.level.getEntities(this, this.getBoundingBox().inflate((double) 0.2F, 0.0D, (double) 0.2F), EntitySelector.pushableBy(this));
+                List<Entity> list = this.level.getEntities(this, this.exactBoundingBox().inflate((double) 0.2F, 0.0D, (double) 0.2F), EntitySelector.pushableBy(this));
                 if (!list.isEmpty()) {
                     for (int l = 0; l < list.size(); ++l) {
                         Entity entity1 = list.get(l);
@@ -411,7 +403,7 @@ public abstract class AbstractMinecart extends Entity {
                     }
                 }
             } else {
-                for (Entity entity : this.level.getEntities(this, this.getBoundingBox().inflate((double) 0.2F, 0.0D, (double) 0.2F))) {
+                for (Entity entity : this.level.getEntities(this, this.exactBoundingBox().inflate((double) 0.2F, 0.0D, (double) 0.2F))) {
                     if (!this.hasPassenger(entity) && entity.isPushable() && entity instanceof AbstractMinecart) {
                         entity.push(this);
                     }
@@ -729,11 +721,6 @@ public abstract class AbstractMinecart extends Entity {
         return SectorVec3.fromBlockAndFraction(blockX, snappedX, snappedY, blockZ, snappedZ);
     }
 
-    public AABB getBoundingBoxForCulling() {
-        AABB aabb = this.getBoundingBox();
-        return this.hasCustomDisplay() ? aabb.inflate((double) Math.abs(this.getDisplayOffset()) / 16.0D) : aabb;
-    }
-
     /**
     * The display block can extend beyond the physical cart. Preserve the exact
     * X/Z metadata when the entity index performs a sector query.
@@ -823,14 +810,7 @@ public abstract class AbstractMinecart extends Entity {
     }
 
     public void lerpTo(double pX, double pY, double pZ, float pYaw, float pPitch, int pPosRotationIncrements, boolean pTeleport) {
-        this.exactLerpTarget = null;
-        this.lx = pX;
-        this.ly = pY;
-        this.lz = pZ;
-        this.lyr = (double) pYaw;
-        this.lxr = (double) pPitch;
-        this.lSteps = pPosRotationIncrements + 2;
-        this.setDeltaMovement(this.lxd, this.lyd, this.lzd);
+        this.lerpTo(SectorVec3.fromApproximate(pX, pY, pZ), pYaw, pPitch, pPosRotationIncrements, pTeleport);
     }
 
     @Override

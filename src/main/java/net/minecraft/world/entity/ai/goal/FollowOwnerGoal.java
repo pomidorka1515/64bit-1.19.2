@@ -138,7 +138,7 @@ public class FollowOwnerGoal extends Goal {
                 return false;
             } else {
                 BlockPos blockpos = pPos.subtract(this.tamable.blockPosition());
-                return this.level.noCollision(this.tamable, this.tamable.getBoundingBox().move(blockpos));
+                return this.level.noCollision(this.tamable, this.tamable.exactBoundingBox().move(blockpos));
             }
         }
     }

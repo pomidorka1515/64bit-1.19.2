@@ -34,7 +34,7 @@ public class MagmaCube extends Slime {
     }
 
     public boolean checkSpawnObstruction(LevelReader pLevel) {
-        return pLevel.isUnobstructed(this) && !pLevel.containsAnyLiquid(this.getBoundingBox());
+        return pLevel.isUnobstructed(this) && !pLevel.containsAnyLiquid(this.exactBoundingBox());
     }
 
     public void setSize(int pSize, boolean pResetHealth) {

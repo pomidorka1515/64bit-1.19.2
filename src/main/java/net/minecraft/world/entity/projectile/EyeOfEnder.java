@@ -34,7 +34,12 @@ public class EyeOfEnder extends Entity implements ItemSupplier {
 
     public EyeOfEnder(Level pLevel, double pX, double pY, double pZ) {
         this(EntityType.EYE_OF_ENDER, pLevel);
-        this.setPos(pX, pY, pZ);
+        this.applyExactPosition(SectorVec3.fromApproximate(pX, pY, pZ));
+    }
+
+    public EyeOfEnder(Level level, SectorVec3 position) {
+        this(EntityType.EYE_OF_ENDER, level);
+        this.applyExactPosition(position);
     }
 
     public void setItem(ItemStack pStack) {
@@ -59,7 +64,7 @@ public class EyeOfEnder extends Entity implements ItemSupplier {
     }
 
     public boolean shouldRenderAtSqrDistance(double pDistance) {
-        double d0 = this.getBoundingBox().getSize() * 4.0D;
+        double d0 = this.exactBoundingBox().getSize() * 4.0D;
         if (Double.isNaN(d0)) {
             d0 = 4.0D;
         }

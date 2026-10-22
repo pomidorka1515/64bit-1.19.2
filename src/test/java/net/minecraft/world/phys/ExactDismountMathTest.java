@@ -45,7 +45,7 @@ class ExactDismountMathTest {
     @Test
     void approximateMirrorAtEdgeStaysInsideWorldBounds() {
         SectorVec3 edge = SectorVec3.fromBlockAndFraction(Int128.MAX, 0.5D, 0.0D, Int128.MIN, 0.5D);
-        Vec3 approximate = edge.toApproximateVec3();
+        Vec3 approximate = edge.toExactVec3();
         assertTrue(approximate.x < 0x1.0p127);
         assertEquals(-0x1.0p127, approximate.z);
     }

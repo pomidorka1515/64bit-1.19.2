@@ -9,10 +9,6 @@ import net.minecraft.world.phys.SectorVec3;
 public class ClientboundAddPlayerPacket implements Packet<ClientGamePacketListener> {
     private final int entityId;
     private final UUID playerId;
-    /** Lossy compatibility mirrors; exactPosition is authoritative. */
-    private final double x;
-    private final double y;
-    private final double z;
     private final SectorVec3 exactPosition;
     private final byte yRot;
     private final byte xRot;
@@ -21,10 +17,6 @@ public class ClientboundAddPlayerPacket implements Packet<ClientGamePacketListen
         this.entityId = pPlayer.getId();
         this.playerId = pPlayer.getGameProfile().getId();
         this.exactPosition = pPlayer.sectorPosition();
-        net.minecraft.world.phys.Vec3 approximate = this.exactPosition.toApproximateVec3();
-        this.x = approximate.x;
-        this.y = approximate.y;
-        this.z = approximate.z;
         this.yRot = (byte) ((int) (pPlayer.getYRot() * 256.0F / 360.0F));
         this.xRot = (byte) ((int) (pPlayer.getXRot() * 256.0F / 360.0F));
     }
@@ -34,10 +26,6 @@ public class ClientboundAddPlayerPacket implements Packet<ClientGamePacketListen
         this.playerId = pBuffer.readUUID();
         this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readInt128(), pBuffer.readDouble(),
                 pBuffer.readDouble(), pBuffer.readInt128(), pBuffer.readDouble());
-        net.minecraft.world.phys.Vec3 approximate = this.exactPosition.toApproximateVec3();
-        this.x = approximate.x;
-        this.y = approximate.y;
-        this.z = approximate.z;
         this.yRot = pBuffer.readByte();
         this.xRot = pBuffer.readByte();
     }
@@ -70,16 +58,8 @@ public class ClientboundAddPlayerPacket implements Packet<ClientGamePacketListen
         return this.exactPosition;
     }
 
-    public double getX() {
-        return this.x;
-    }
-
     public double getY() {
-        return this.y;
-    }
-
-    public double getZ() {
-        return this.z;
+        return this.exactPosition.y();
     }
 
     public byte getyRot() {

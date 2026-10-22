@@ -97,7 +97,9 @@ public class SpikeFeature extends Feature<SpikeConfiguration> {
         EndCrystal endcrystal = EntityType.END_CRYSTAL.create(pLevel.getLevel());
         endcrystal.setBeamTarget(pConfig.getCrystalBeamTarget());
         endcrystal.setInvulnerable(pConfig.isCrystalInvulnerable());
-        endcrystal.moveTo((double) pSpike.getCenterX() + 0.5D, (double) (pSpike.getHeight() + 1), (double) pSpike.getCenterZ() + 0.5D, pRandom.nextFloat() * 360.0F, 0.0F);
+        endcrystal.moveTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(
+                net.minecraft.core.Int128.fromLong(pSpike.getCenterX()), 0.5D, (double) (pSpike.getHeight() + 1),
+                net.minecraft.core.Int128.fromLong(pSpike.getCenterZ()), 0.5D), pRandom.nextFloat() * 360.0F, 0.0F);
         pLevel.addFreshEntity(endcrystal);
         this.setBlock(pLevel, new BlockPos(pSpike.getCenterX(), pSpike.getHeight(), pSpike.getCenterZ()), Blocks.BEDROCK.defaultBlockState());
     }

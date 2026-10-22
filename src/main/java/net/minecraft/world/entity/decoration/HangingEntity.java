@@ -129,7 +129,7 @@ public abstract class HangingEntity extends Entity {
                 }
             }
 
-            return this.level.getEntities(this, this.getBoundingBox(), HANGING_ENTITY).isEmpty();
+            return this.level.getEntities(this, this.exactBoundingBox(), HANGING_ENTITY).isEmpty();
         }
     }
 

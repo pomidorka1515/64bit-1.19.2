@@ -32,13 +32,4 @@ public class ClientboundSetBorderCenterPacket implements Packet<ClientGamePacket
         return this.exactCenter;
     }
 
-    /** Lossy mirror for legacy display callers. */
-    public double getNewCenterZ() {
-        return this.exactCenter.toApproximateVec3().z;
-    }
-
-    /** Lossy mirror for legacy display callers. */
-    public double getNewCenterX() {
-        return this.exactCenter.toApproximateVec3().x;
-    }
 }

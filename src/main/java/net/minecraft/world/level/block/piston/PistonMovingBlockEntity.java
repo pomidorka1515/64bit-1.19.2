@@ -148,7 +148,7 @@ public class PistonMovingBlockEntity extends BlockEntity {
 
                     for (AABB aabb2 : list1) {
                         AABB aabb1 = PistonMath.getMovementArea(moveByPositionAndProgress(p_155912_, aabb2, p_155914_), direction, d0);
-                        AABB aabb3 = entity.getBoundingBox();
+                        AABB aabb3 = entity.exactBoundingBox();
                         if (aabb1.intersects(aabb3)) {
                             d4 = Math.max(d4, getMovement(aabb1, direction, aabb3));
                             if (d4 >= d0) {
@@ -235,7 +235,7 @@ public class PistonMovingBlockEntity extends BlockEntity {
     }
 
     private static void fixEntityWithinPistonBase(BlockPos pPos, Entity pEntity, Direction pDir, double pProgress) {
-        AABB aabb = pEntity.getBoundingBox();
+        AABB aabb = pEntity.exactBoundingBox();
         AABB aabb1 = Shapes.block().bounds().move(pPos);
         if (aabb.intersects(aabb1)) {
             Direction direction = pDir.getOpposite();

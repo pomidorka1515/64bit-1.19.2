@@ -60,7 +60,7 @@ public class AABB {
                 maximum ? bounds.maxSubX() : bounds.minSubX(),
                 maximum ? bounds.maxY() : bounds.minY(),
                 maximum ? bounds.maxBlockZ() : bounds.minBlockZ(),
-                maximum ? bounds.maxSubZ() : bounds.minSubZ()).toApproximateVec3();
+                maximum ? bounds.maxSubZ() : bounds.minSubZ()).toExactVec3();
     }
 
     /** Exact metadata carried by entity-centered compatibility boxes. */

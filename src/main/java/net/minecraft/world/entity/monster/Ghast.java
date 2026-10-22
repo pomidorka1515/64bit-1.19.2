@@ -198,7 +198,7 @@ public class Ghast extends FlyingMob implements Enemy {
         }
 
         private boolean canReach(Vec3 pPos, int pLength) {
-            AABB aabb = this.ghast.getBoundingBox();
+            AABB aabb = this.ghast.exactBoundingBox();
 
             for (int i = 1; i < pLength; ++i) {
                 aabb = aabb.move(pPos);

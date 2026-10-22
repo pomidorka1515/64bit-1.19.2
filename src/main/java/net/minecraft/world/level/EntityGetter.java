@@ -84,7 +84,7 @@ public interface EntityGetter {
             return true;
         } else {
             for (Entity entity : this.getEntities(pEntity, pShape.bounds())) {
-                if (!entity.isRemoved() && entity.blocksBuilding && (pEntity == null || !entity.isPassengerOfSameVehicle(pEntity)) && Shapes.joinIsNotEmpty(pShape, Shapes.create(entity.getBoundingBox()), BooleanOp.AND)) {
+                if (!entity.isRemoved() && entity.blocksBuilding && (pEntity == null || !entity.isPassengerOfSameVehicle(pEntity)) && Shapes.joinIsNotEmpty(pShape, Shapes.create(entity.exactBoundingBox()), BooleanOp.AND)) {
                     return false;
                 }
             }
@@ -109,7 +109,7 @@ public interface EntityGetter {
                 ImmutableList.Builder<VoxelShape> builder = ImmutableList.builderWithExpectedSize(list.size());
 
                 for (Entity entity : list) {
-                    builder.add(Shapes.create(entity.getBoundingBox()));
+                    builder.add(Shapes.create(entity.exactBoundingBox()));
                 }
 
                 return builder.build();
@@ -387,9 +387,8 @@ public interface EntityGetter {
 
         for (Player player : this.players()) {
             SectorAABB exactBox = pArea.getSectorBounds();
-            SectorPhysicsOrigin origin = exactBox == null ? null : SectorPhysicsOrigin.from(player.sectorPosition());
-            boolean contains = exactBox == null ? pArea.contains(player.getX(), player.getY(), player.getZ())
-                    : exactBox.toLocalAABB(origin).contains(origin.toLocal(player.sectorPosition()));
+            boolean contains = exactBox == null ? pArea.contains(player.exactPositionVector())
+                    : exactBox.contains(player.sectorPosition());
             if (contains && pPredicate.test(pTarget, player)) {
                 list.add(player);
             }

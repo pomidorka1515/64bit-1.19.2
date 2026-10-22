@@ -40,7 +40,7 @@ public class PlaySoundCommand {
 
     private static LiteralArgumentBuilder<CommandSourceStack> source(SoundSource pCategory) {
         return Commands.literal(pCategory.getName()).then(Commands.argument("targets", EntityArgument.players()).executes((p_138180_) -> {
-                                                                                                                    return playSound(p_138180_.getSource(), EntityArgument.getPlayers(p_138180_, "targets"), ResourceLocationArgument.getId(p_138180_, "sound"), pCategory, p_138180_.getSource().getExactPosition(), p_138180_.getSource().getPosition(), 1.0F, 1.0F, 0.0F);
+                                                                                                                    return playSound(p_138180_.getSource(), EntityArgument.getPlayers(p_138180_, "targets"), ResourceLocationArgument.getId(p_138180_, "sound"), pCategory, p_138180_.getSource().getExactPosition(), p_138180_.getSource().getExactPosition().toExactVec3(), 1.0F, 1.0F, 0.0F);
                                                                                                                 })
                         .then(Commands.argument("pos", Vec3Argument.vec3()).executes((p_138177_) -> {
                                                                                return playSound(p_138177_.getSource(), EntityArgument.getPlayers(p_138177_, "targets"), ResourceLocationArgument.getId(p_138177_, "sound"), pCategory, Vec3Argument.getExactVec3(p_138177_, "pos"), Vec3Argument.getVec3(p_138177_, "pos"), 1.0F, 1.0F, 0.0F);
@@ -82,9 +82,7 @@ public class PlaySoundCommand {
                 }
 
                 serverplayer = (ServerPlayer) iterator.next();
-                Vec3 delta = serverplayer.exactPosition() != null
-                        ? exactSoundPosition.relativeTo(serverplayer.exactPosition())
-                        : new Vec3(pPos.x - serverplayer.getX(), pPos.y - serverplayer.getY(), pPos.z - serverplayer.getZ());
+                Vec3 delta = exactSoundPosition.relativeTo(serverplayer.exactPosition());
                 double d1 = delta.x;
                 double d2 = delta.y;
                 double d3 = delta.z;
@@ -97,12 +95,7 @@ public class PlaySoundCommand {
 
                 if (!(pMinVolume <= 0.0F)) {
                     double d5 = Math.sqrt(d4);
-                    if (serverplayer.exactPosition() != null) {
-                        packetPosition = exactSoundPosition.add(-d1 / d5 * 2.0D, -d2 / d5 * 2.0D, -d3 / d5 * 2.0D);
-                    } else {
-                        packetPosition = SectorVec3.fromApproximate(serverplayer.getX() + d1 / d5 * 2.0D,
-                                serverplayer.getY() + d2 / d5 * 2.0D, serverplayer.getZ() + d3 / d5 * 2.0D);
-                    }
+                    packetPosition = serverplayer.exactPosition().add(d1 / d5 * 2.0D, d2 / d5 * 2.0D, d3 / d5 * 2.0D);
                     f = pMinVolume;
                     break;
                 }

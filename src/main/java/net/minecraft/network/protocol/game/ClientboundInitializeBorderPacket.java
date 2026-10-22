@@ -57,14 +57,8 @@ public class ClientboundInitializeBorderPacket implements Packet<ClientGamePacke
     }
 
     /** Lossy mirror for legacy display callers. */
-    public double getNewCenterX() {
-        return this.exactCenter.toApproximateVec3().x;
-    }
 
     /** Lossy mirror for legacy display callers. */
-    public double getNewCenterZ() {
-        return this.exactCenter.toApproximateVec3().z;
-    }
 
     public double getNewSize() {
         return this.newSize;

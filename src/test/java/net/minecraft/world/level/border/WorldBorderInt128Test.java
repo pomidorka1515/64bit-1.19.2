@@ -13,6 +13,24 @@ import org.junit.jupiter.api.Test;
 
 class WorldBorderInt128Test {
     @Test
+    void delegatedCenterChangesRetainFractionsAndDisabledCollision() {
+        WorldBorder source = new WorldBorder();
+        WorldBorder target = new WorldBorder();
+        source.addListener(new BorderChangeListener.DelegateBorderChangeListener(target));
+        SectorVec3 center = SectorVec3.fromBlockAndFraction(Int128.of(123456L, -3L), 0.125D,
+                0.0D, Int128.of(-123456L, 9L), 0.875D);
+        source.setCenter(center);
+        assertEquals(center, target.getExactCenter());
+        source.setSize(16.0D);
+        assertEquals(16.0D, target.getSize());
+        source.lerpSizeBetween(16.0D, 8.0D, 1000L);
+        assertEquals(8.0D, target.getLerpTarget());
+        assertTrue(source.getCollisionShape().isEmpty());
+        assertTrue(target.getCollisionShape().isEmpty());
+        assertTrue(target.isWithinBounds(new BlockPos(Int128.MAX, 64, Int128.MIN)));
+    }
+
+    @Test
     void settingsPreserveHighHalvesAndFractions() {
         WorldBorder border = new WorldBorder();
         SectorVec3 center = SectorVec3.fromBlockAndFraction(Int128.of(42, -7), 0.75D, 0.0D,

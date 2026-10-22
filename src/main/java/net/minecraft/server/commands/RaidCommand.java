@@ -87,12 +87,7 @@ public class RaidCommand {
         raider.setPatrolLeader(true);
         raider.setItemSlot(EquipmentSlot.HEAD, Raid.getLeaderBannerInstance());
         net.minecraft.world.phys.SectorVec3 exact = pSource.getExactPosition();
-        if (raider.hasSectorPosition())
-            raider.applyExactPosition(exact);
-        else {
-            net.minecraft.world.phys.Vec3 approximate = exact.toApproximateVec3();
-            raider.setPos(approximate.x, approximate.y, approximate.z);
-        }
+        raider.applyExactPosition(exact);
         raider.finalizeSpawn(pSource.getLevel(), pSource.getLevel().getCurrentDifficultyAt(exact.blockPosition()), MobSpawnType.COMMAND, (SpawnGroupData) null, (CompoundTag) null);
         pSource.getLevel().addFreshEntityWithPassengers(raider);
         return 1;

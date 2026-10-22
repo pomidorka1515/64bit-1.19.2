@@ -68,7 +68,7 @@ public class ExperienceOrb extends Entity {
         }
 
         if (!this.hasExactNoCollision()) {
-            this.moveTowardsClosestSpace(this.sectorPosition().withY((this.getBoundingBox().minY + this.getBoundingBox().maxY) / 2.0D));
+            this.moveTowardsClosestSpace(this.sectorPosition().withY((this.exactBoundingBox().minY + this.exactBoundingBox().maxY) / 2.0D));
         }
 
         if (this.tickCount % 20 == 1) {
@@ -113,7 +113,7 @@ public class ExperienceOrb extends Entity {
         }
 
         if (this.level instanceof ServerLevel) {
-            for (ExperienceOrb experienceorb : this.level.getEntities(EntityTypeTest.forClass(ExperienceOrb.class), this.getBoundingBox().inflate(0.5D), this::canMerge)) {
+            for (ExperienceOrb experienceorb : this.level.getEntities(EntityTypeTest.forClass(ExperienceOrb.class), this.exactBoundingBox().inflate(0.5D), this::canMerge)) {
                 this.merge(experienceorb);
             }
         }

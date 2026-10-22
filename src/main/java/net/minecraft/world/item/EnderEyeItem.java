@@ -75,8 +75,7 @@ public class EnderEyeItem extends Item {
                 ServerLevel serverlevel = (ServerLevel) pLevel;
                 BlockPos blockpos = serverlevel.findNearestMapStructure(StructureTags.EYE_OF_ENDER_LOCATED, pPlayer.blockPosition(), 100, false);
                 if (blockpos != null) {
-                    EyeOfEnder eyeofender = new EyeOfEnder(pLevel, pPlayer.getX(), pPlayer.getY(0.5D), pPlayer.getZ());
-                    eyeofender.applyExactPosition(pPlayer.sectorPosition().withY(pPlayer.getY(0.5D)));
+                    EyeOfEnder eyeofender = new EyeOfEnder(pLevel, pPlayer.sectorPosition().withY(pPlayer.getY(0.5D)));
                     eyeofender.setItem(itemstack);
                     eyeofender.signalTo(blockpos);
                     pLevel.gameEvent(GameEvent.PROJECTILE_SHOOT, eyeofender.sectorPosition(), GameEvent.Context.of(pPlayer));

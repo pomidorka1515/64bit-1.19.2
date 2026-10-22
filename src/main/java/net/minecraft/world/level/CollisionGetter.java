@@ -84,7 +84,7 @@ public interface CollisionGetter extends BlockGetter {
                     candidate -> !candidate.isRemoved() && candidate.blocksBuilding
                             && !candidate.isPassengerOfSameVehicle(pEntity)).isEmpty();
         }
-        return this.isUnobstructed(pEntity, Shapes.create(pEntity.getBoundingBox()));
+        return this.isUnobstructed(pEntity, Shapes.create(pEntity.exactBoundingBox()));
     }
 
     default boolean noCollision(AABB pCollisionBox) {
@@ -92,7 +92,7 @@ public interface CollisionGetter extends BlockGetter {
     }
 
     default boolean noCollision(Entity pEntity) {
-        return this.noCollision(pEntity, pEntity.getBoundingBox());
+        return this.noCollision(pEntity, pEntity.exactBoundingBox());
     }
 
     default boolean noCollision(@Nullable Entity pEntity, AABB pCollisionBox) {

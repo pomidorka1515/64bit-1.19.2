@@ -188,7 +188,7 @@ public abstract class PatrollingMonster extends Monster {
         }
 
         private List<PatrollingMonster> findPatrolCompanions() {
-            return this.mob.level.getEntitiesOfClass(PatrollingMonster.class, this.mob.getBoundingBox().inflate(16.0D), (p_33089_) -> {
+            return this.mob.level.getEntitiesOfClass(PatrollingMonster.class, this.mob.exactBoundingBox().inflate(16.0D), (p_33089_) -> {
                 return p_33089_.canJoinPatrol() && !p_33089_.is(this.mob);
             });
         }

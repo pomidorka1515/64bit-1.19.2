@@ -157,19 +157,6 @@ public class DebugRenderer {
         renderFloatingText(pText, SectorVec3.fromBlockAndFraction(pX, 0.5D, pY + 0.5D, pZ, 0.5D), pColor, 0.02F, true, 0.0F, false);
     }
 
-    public static void renderFloatingText(String pText, double pX, double pY, double pZ, int pColor) {
-        renderFloatingText(pText, SectorVec3.fromApproximate(pX, pY, pZ), pColor, 0.02F, true, 0.0F, false);
-    }
-
-    public static void renderFloatingText(String pText, double pX, double pY, double pZ, int pColor, float pScale) {
-        renderFloatingText(pText, SectorVec3.fromApproximate(pX, pY, pZ), pColor, pScale, true, 0.0F, false);
-    }
-
-    public static void renderFloatingText(String pText, double pX, double pY, double pZ, int pColor, float pScale, boolean pCenter, float pXOffset, boolean pTransparent) {
-        // Explicit legacy input boundary; exact debug positions use the overload below.
-        renderFloatingText(pText, SectorVec3.fromApproximate(pX, pY, pZ), pColor, pScale, pCenter, pXOffset, pTransparent);
-    }
-
     public static CameraRelativePosition cameraPosition() {
         return CameraRelativePosition.of(Minecraft.getInstance().gameRenderer.getMainCamera().getExactPosition());
     }

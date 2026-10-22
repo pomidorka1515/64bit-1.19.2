@@ -9,10 +9,6 @@ import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class ClientboundPlayerPositionPacket implements Packet<ClientGamePacketListener> {
-    /** Lossy compatibility mirrors; exactPosition is authoritative. */
-    private final double x;
-    private final double y;
-    private final double z;
     private final float yRot;
     private final float xRot;
     private final Set<ClientboundPlayerPositionPacket.RelativeArgument> relativeArguments;
@@ -30,10 +26,6 @@ public class ClientboundPlayerPositionPacket implements Packet<ClientGamePacketL
     public ClientboundPlayerPositionPacket(SectorVec3 position, float yRot, float xRot,
             Set<ClientboundPlayerPositionPacket.RelativeArgument> relativeArguments,
             int id, boolean dismountVehicle) {
-        Vec3 approximate = position.toApproximateVec3();
-        this.x = approximate.x;
-        this.y = position.y();
-        this.z = approximate.z;
         this.yRot = yRot;
         this.xRot = xRot;
         this.relativeArguments = relativeArguments;
@@ -49,10 +41,6 @@ public class ClientboundPlayerPositionPacket implements Packet<ClientGamePacketL
         Int128 blockZ = buf.readInt128();
         double subZ = buf.readDouble();
         this.exactPosition = SectorVec3.fromBlockAndFraction(blockX, subX, y, blockZ, subZ);
-        Vec3 approximate = this.exactPosition.toApproximateVec3();
-        this.x = approximate.x;
-        this.y = this.exactPosition.y();
-        this.z = approximate.z;
         this.yRot = buf.readFloat();
         this.xRot = buf.readFloat();
         this.relativeArguments = ClientboundPlayerPositionPacket.RelativeArgument.unpack(buf.readUnsignedByte());
@@ -82,16 +70,8 @@ public class ClientboundPlayerPositionPacket implements Packet<ClientGamePacketL
         pHandler.handleMovePlayer(this);
     }
 
-    public double getX() {
-        return this.x;
-    }
-
     public double getY() {
-        return this.y;
-    }
-
-    public double getZ() {
-        return this.z;
+        return this.exactPosition.y();
     }
 
     public float getYRot() {

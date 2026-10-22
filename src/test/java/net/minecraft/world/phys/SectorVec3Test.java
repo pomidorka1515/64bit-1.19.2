@@ -181,7 +181,7 @@ class SectorVec3Test {
         assertEquals(Int128.MIN, min.blockZ());
         assertEquals(0.0D, min.subX());
         assertEquals(0.0D, min.subZ());
-        assertEquals(Double.isFinite(max.toApproximateVec3().x), true);
+        assertEquals(Double.isFinite(max.toExactVec3().x), true);
     }
 
     @Test

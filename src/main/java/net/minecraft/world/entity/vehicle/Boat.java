@@ -100,7 +100,7 @@ public class Boat extends Entity {
 
     public Boat(Level pLevel, double pX, double pY, double pZ) {
         this(EntityType.BOAT, pLevel);
-        this.setPos(pX, pY, pZ);
+        this.applyExactPosition(SectorVec3.fromApproximate(pX, pY, pZ));
         this.setOldPosAndRot();
     }
 
@@ -199,10 +199,10 @@ public class Boat extends Entity {
 
     public void push(Entity pEntity) {
         if (pEntity instanceof Boat) {
-            if (pEntity.getBoundingBox().minY < this.getBoundingBox().maxY) {
+            if (pEntity.exactBoundingBox().minY < this.exactBoundingBox().maxY) {
                 super.push(pEntity);
             }
-        } else if (pEntity.getBoundingBox().minY <= this.getBoundingBox().minY) {
+        } else if (pEntity.exactBoundingBox().minY <= this.exactBoundingBox().minY) {
             super.push(pEntity);
         }
     }
@@ -430,7 +430,7 @@ public class Boat extends Entity {
     private Boat.Status getStatus() {
         Boat.Status boat$status = this.isUnderwater();
         if (boat$status != null) {
-            this.waterLevel = this.getBoundingBox().maxY;
+            this.waterLevel = this.exactBoundingBox().maxY;
             return boat$status;
         } else if (this.checkInWater()) {
             return Boat.Status.IN_WATER;
@@ -697,7 +697,7 @@ public class Boat extends Entity {
     public SectorVec3 getExactDismountLocationForPassenger(LivingEntity passenger) {
         SectorVec3 base = this.sectorPosition();
         Vec3 escape = getCollisionHorizontalEscapeVector((double) (this.getBbWidth() * Mth.SQRT_OF_TWO), (double) passenger.getBbWidth(), passenger.getYRot());
-        double maxY = this.getBoundingBox().maxY;
+        double maxY = this.exactBoundingBox().maxY;
         SectorVec3 escaped = base.add(escape.x, 0.0D, escape.z);
         var blockX = escaped.blockX();
         var blockZ = escaped.blockZ();

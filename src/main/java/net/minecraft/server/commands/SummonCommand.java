@@ -45,7 +45,6 @@ public class SummonCommand {
 
     private static int spawnEntity(CommandSourceStack pSource, ResourceLocation pType, SectorVec3 exactPosition, CompoundTag pNbt, boolean pRandomizeProperties) throws CommandSyntaxException {
         BlockPos blockpos = exactPosition.blockPosition();
-        Vec3 pPos = exactPosition.toApproximateVec3();
         if (!Level.isInSpawnableBounds(blockpos)) {
             throw INVALID_POSITION.create();
         } else {
@@ -53,10 +52,7 @@ public class SummonCommand {
             compoundtag.putString("id", pType.toString());
             ServerLevel serverlevel = pSource.getLevel();
             Entity entity = EntityType.loadEntityRecursive(compoundtag, serverlevel, (p_138828_) -> {
-                if (p_138828_.hasSectorPosition())
-                    p_138828_.absMoveTo(exactPosition, p_138828_.getYRot(), p_138828_.getXRot());
-                else
-                    p_138828_.moveTo(pPos.x, pPos.y, pPos.z, p_138828_.getYRot(), p_138828_.getXRot());
+                p_138828_.moveTo(exactPosition, p_138828_.getYRot(), p_138828_.getXRot());
                 return p_138828_;
             });
             if (entity == null) {

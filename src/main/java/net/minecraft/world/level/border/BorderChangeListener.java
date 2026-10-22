@@ -5,7 +5,7 @@ public interface BorderChangeListener {
 
     void onBorderSizeLerping(WorldBorder pBorder, double pOldSize, double pNewSize, long pTime);
 
-    void onBorderCenterSet(WorldBorder pBorder, double pX, double pZ);
+    void onBorderCenterSet(WorldBorder pBorder, net.minecraft.world.phys.SectorVec3 center);
 
     void onBorderSetWarningTime(WorldBorder pBorder, int pWarningTime);
 
@@ -30,8 +30,8 @@ public interface BorderChangeListener {
             this.worldBorder.lerpSizeBetween(pOldSize, pNewSize, pTime);
         }
 
-        public void onBorderCenterSet(WorldBorder pBorder, double pX, double pZ) {
-            this.worldBorder.setCenter(pBorder.getExactCenter());
+        public void onBorderCenterSet(WorldBorder pBorder, net.minecraft.world.phys.SectorVec3 center) {
+            this.worldBorder.setCenter(center);
         }
 
         public void onBorderSetWarningTime(WorldBorder pBorder, int pNewTime) {

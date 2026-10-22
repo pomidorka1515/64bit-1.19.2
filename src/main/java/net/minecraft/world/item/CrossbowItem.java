@@ -193,8 +193,8 @@ public class CrossbowItem extends ProjectileWeaponItem implements Vanishable {
             boolean flag = pAmmoStack.is(Items.FIREWORK_ROCKET);
             Projectile projectile;
             if (flag) {
-                projectile = new FireworkRocketEntity(pLevel, pAmmoStack, pShooter, pShooter.getX(), pShooter.getEyeY() - (double) 0.15F, pShooter.getZ(), true);
-                projectile.applyExactPosition(pShooter.sectorPosition().withY(pShooter.getEyeY() - (double) 0.15F));
+                projectile = new FireworkRocketEntity(pLevel, pAmmoStack, pShooter,
+                        pShooter.sectorPosition().withY(pShooter.getEyeY() - (double) 0.15F), true);
             } else {
                 projectile = getArrow(pLevel, pShooter, pCrossbowStack, pAmmoStack);
                 if (pIsCreativeMode || pProjectileAngle != 0.0F) {

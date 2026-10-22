@@ -205,10 +205,6 @@ public class CommandSourceStack implements SharedSuggestionProvider {
         return this.permissionLevel >= pLevel;
     }
 
-    public Vec3 getPosition() {
-        return this.worldPosition;
-    }
-
     public SectorVec3 getExactPosition() {
         return this.exactPosition;
     }

@@ -112,7 +112,7 @@ class EntitySectionStorageTest {
             return this.position;
         }
         @Override
-        public AABB getBoundingBox() {
+        public AABB exactBoundingBox() {
             return new AABB(this.position);
         }
         @Override

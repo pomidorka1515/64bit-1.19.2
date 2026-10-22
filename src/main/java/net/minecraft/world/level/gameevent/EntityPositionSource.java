@@ -35,26 +35,12 @@ public class EntityPositionSource implements PositionSource {
         this.yOffset = pYOffset;
     }
 
-    public Optional<Vec3> getPosition(Level pLevel) {
-        if (this.entityOrUuidOrId.left().isEmpty()) {
-            this.resolveEntity(pLevel);
-        }
-
-        return this.entityOrUuidOrId.left().map((p_223676_) -> {
-            return p_223676_.exactPositionVector().add(0.0D, (double) this.yOffset, 0.0D);
-        });
-    }
-
     @Override
     public Optional<SectorVec3> exactPosition(Level level) {
         if (this.entityOrUuidOrId.left().isEmpty()) {
             this.resolveEntity(level);
         }
-        return this.entityOrUuidOrId.left().map(entity -> {
-            SectorVec3 position = entity.exactPosition();
-            return position != null ? position.add(0.0D, (double) this.yOffset, 0.0D)
-                                    : SectorVec3.fromApproximate(entity.getX(), entity.getY() + (double) this.yOffset, entity.getZ());
-        });
+        return this.entityOrUuidOrId.left().map(entity -> entity.exactPosition().add(0.0D, (double) this.yOffset, 0.0D));
     }
 
     private void resolveEntity(Level pLevel) {

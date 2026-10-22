@@ -460,12 +460,6 @@ public class ClientLevel extends Level {
         return crashreportcategory;
     }
 
-    public void playSeededSound(@Nullable Player pPlayer, double pX, double pY, double pZ, SoundEvent pSoundEvent, SoundSource pSoundSource, float pVolume, float pPitch, long pSeed) {
-        if (pPlayer == this.minecraft.player) {
-            this.playSound(SectorVec3.fromApproximate(pX, pY, pZ), pSoundEvent, pSoundSource, pVolume, pPitch, false, pSeed);
-        }
-    }
-
     @Override
     public void playSeededSound(@Nullable Player player, SectorVec3 position, SoundEvent sound, SoundSource source,
             float volume, float pitch, long seed) {
@@ -486,19 +480,10 @@ public class ClientLevel extends Level {
                 pSound, pCategory, pVolume, pPitch, pDistanceDelay, this.random.nextLong());
     }
 
-    public void playLocalSound(double pX, double pY, double pZ, SoundEvent pSound, SoundSource pCategory, float pVolume, float pPitch, boolean pDistanceDelay) {
-        this.playSound(pX, pY, pZ, pSound, pCategory, pVolume, pPitch, pDistanceDelay, this.random.nextLong());
-    }
-
     @Override
     public void playLocalSound(SectorVec3 position, SoundEvent sound, SoundSource source, float volume, float pitch,
             boolean distanceDelay) {
         this.playSound(position, sound, source, volume, pitch, distanceDelay, this.random.nextLong());
-    }
-
-    private void playSound(double pX, double pY, double pZ, SoundEvent pSoundEvent, SoundSource pSource, float pVolume, float pPitch, boolean pDistanceDelay, long pSeed) {
-        this.playSound(SectorVec3.fromApproximate(pX, pY, pZ), pSoundEvent, pSource,
-                pVolume, pPitch, pDistanceDelay, pSeed);
     }
 
     private void playSound(SectorVec3 position, SoundEvent sound, SoundSource source, float volume, float pitch,
@@ -617,17 +602,9 @@ public class ClientLevel extends Level {
         }
     }
 
-    public void addParticle(ParticleOptions pParticleData, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
-        this.addParticle(pParticleData, SectorVec3.fromApproximate(pX, pY, pZ), pXSpeed, pYSpeed, pZSpeed);
-    }
-
     @Override
     public void addParticle(ParticleOptions options, SectorVec3 position, double xd, double yd, double zd) {
         this.levelRenderer.addParticle(options, options.getType().getOverrideLimiter(), position, xd, yd, zd);
-    }
-
-    public void addParticle(ParticleOptions pParticleData, boolean pForceAlwaysRender, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
-        this.addParticle(pParticleData, pForceAlwaysRender, SectorVec3.fromApproximate(pX, pY, pZ), pXSpeed, pYSpeed, pZSpeed);
     }
 
     @Override
@@ -635,17 +612,9 @@ public class ClientLevel extends Level {
         this.levelRenderer.addParticle(options, options.getType().getOverrideLimiter() || force, position, xd, yd, zd);
     }
 
-    public void addAlwaysVisibleParticle(ParticleOptions pParticleData, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
-        this.addAlwaysVisibleParticle(pParticleData, SectorVec3.fromApproximate(pX, pY, pZ), pXSpeed, pYSpeed, pZSpeed);
-    }
-
     @Override
     public void addAlwaysVisibleParticle(ParticleOptions options, SectorVec3 position, double xd, double yd, double zd) {
         this.levelRenderer.addParticle(options, false, true, position, xd, yd, zd);
-    }
-
-    public void addAlwaysVisibleParticle(ParticleOptions pParticleData, boolean pIgnoreRange, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
-        this.levelRenderer.addParticle(pParticleData, pIgnoreRange, SectorVec3.fromApproximate(pX, pY, pZ), pXSpeed, pYSpeed, pZSpeed);
     }
 
     @Override

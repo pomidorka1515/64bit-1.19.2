@@ -115,6 +115,7 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorAABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
@@ -331,7 +332,7 @@ public abstract class LivingEntity extends Entity {
             boolean flag = this instanceof Player;
             if (this.isInWall()) {
                 this.hurt(DamageSource.IN_WALL, 1.0F);
-            } else if (flag && !this.level.getWorldBorder().isWithinBounds(this.getBoundingBox())) {
+            } else if (flag && !this.level.getWorldBorder().isWithinBounds(this.exactBoundingBox())) {
                 double d0 = this.level.getWorldBorder().getDistanceToBorder(this) + this.level.getWorldBorder().getDamageSafeZone();
                 if (d0 < 0.0D) {
                     double d1 = this.level.getWorldBorder().getDamagePerBlock();
@@ -341,9 +342,7 @@ public abstract class LivingEntity extends Entity {
                 }
             }
 
-            BlockPos eyeBlockPos = this.hasSectorPosition()
-                    ? new BlockPos(this.sectorPosition().blockX(), Mth.floor(this.getEyeY()), this.sectorPosition().blockZ())
-                    : new BlockPos(this.getX(), this.getEyeY(), this.getZ());
+            BlockPos eyeBlockPos = this.exactEyePosition().blockPosition();
             if (this.isEyeInFluid(FluidTags.WATER) && !this.level.getBlockState(eyeBlockPos).is(Blocks.BUBBLE_COLUMN)) {
                 boolean flag1 = !this.canBreatheUnderwater() && !MobEffectUtil.hasWaterBreathing(this) && (!flag || !((Player) this).getAbilities().invulnerable);
                 if (flag1) {
@@ -1730,9 +1729,7 @@ public abstract class LivingEntity extends Entity {
                     float f2 = (this.random.nextFloat() - 0.5F) * 0.2F;
                     SectorVec3 current = this.exactPosition();
                     SectorVec3 old = this.oldExactPosition();
-                    SectorVec3 interpolated = current != null && old != null ? old.lerpTo(current, d0)
-                                                                             : SectorVec3.fromApproximate(Mth.lerp(d0, this.xo, this.getX()), Mth.lerp(d0, this.yo, this.getY()),
-                                                                                       Mth.lerp(d0, this.zo, this.getZ()));
+                    SectorVec3 interpolated = old.lerpTo(current, d0);
                     this.level.addParticle(ParticleTypes.PORTAL, interpolated.add((this.random.nextDouble() - 0.5D) * (double) this.getBbWidth() * 2.0D, this.random.nextDouble() * (double) this.getBbHeight(), (this.random.nextDouble() - 0.5D) * (double) this.getBbWidth() * 2.0D), (double) f, (double) f1, (double) f2);
                 }
                 break;
@@ -1936,21 +1933,7 @@ public abstract class LivingEntity extends Entity {
     }
 
     private void dismountVehicle(Entity pVehicle) {
-        Vec3 vec3;
-        if (this.isRemoved()) {
-            vec3 = this.position();
-        } else if (!pVehicle.isRemoved() && !this.level.getBlockState(pVehicle.blockPosition()).is(BlockTags.PORTALS)) {
-            vec3 = pVehicle.getDismountLocationForPassenger(this);
-        } else {
-            double d0 = Math.max(this.getY(), pVehicle.getY());
-            vec3 = new Vec3(this.getX(), d0, this.getZ());
-        }
-
-        if (this.usesSectorPhysics()) {
-            this.dismountToExact(exactDismountVehicle(pVehicle));
-        } else {
-            this.dismountTo(vec3.x, vec3.y, vec3.z);
-        }
+        this.dismountToExact(exactDismountVehicle(pVehicle));
     }
 
     public boolean shouldShowName() {
@@ -2133,10 +2116,10 @@ public abstract class LivingEntity extends Entity {
 
     public void calculateEntityAnimation(LivingEntity pLivingEntity, boolean pIsFlying) {
         pLivingEntity.animationSpeedOld = pLivingEntity.animationSpeed;
-        Vec3 exactDelta = pLivingEntity.hasSectorPosition() ? pLivingEntity.sectorPositionDelta() : null;
-        double d0 = exactDelta != null ? exactDelta.x : pLivingEntity.getX() - pLivingEntity.xo;
-        double d1 = pIsFlying ? (exactDelta != null ? exactDelta.y : pLivingEntity.getY() - pLivingEntity.yo) : 0.0D;
-        double d2 = exactDelta != null ? exactDelta.z : pLivingEntity.getZ() - pLivingEntity.zo;
+        Vec3 exactDelta = pLivingEntity.sectorPositionDelta();
+        double d0 = exactDelta.x;
+        double d1 = pIsFlying ? exactDelta.y : 0.0D;
+        double d2 = exactDelta.z;
         float f = (float) Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2) * 4.0F;
         if (f > 1.0F) {
             f = 1.0F;
@@ -2250,9 +2233,9 @@ public abstract class LivingEntity extends Entity {
             this.aiStep();
         }
 
-        Vec3 exactDelta = this.hasSectorPosition() ? this.sectorPositionDelta() : null;
-        double d1 = exactDelta != null ? exactDelta.x : this.getX() - this.xo;
-        double d0 = exactDelta != null ? exactDelta.z : this.getZ() - this.zo;
+        Vec3 exactDelta = this.sectorPositionDelta();
+        double d1 = exactDelta.x;
+        double d0 = exactDelta.z;
         float f = (float) (d1 * d1 + d0 * d0);
         float f1 = this.yBodyRot;
         float f2 = 0.0F;
@@ -2459,16 +2442,9 @@ public abstract class LivingEntity extends Entity {
             double d6 = Mth.wrapDegrees(this.lerpYRot - (double) this.getYRot());
             this.setYRot(this.getYRot() + (float) d6 / (float) this.lerpSteps);
             this.setXRot(this.getXRot() + (float) (this.lerpXRot - (double) this.getXRot()) / (float) this.lerpSteps);
-            if (this.exactLerpTarget != null) {
-                Vec3 delta = this.exactLerpTarget.relativeTo(this.sectorPosition());
-                this.applyExactPosition(this.sectorPosition().add(delta.x / (double) this.lerpSteps,
-                        delta.y / (double) this.lerpSteps, delta.z / (double) this.lerpSteps));
-            } else {
-                double d0 = this.getX() + (this.lerpX - this.getX()) / (double) this.lerpSteps;
-                double d2 = this.getY() + (this.lerpY - this.getY()) / (double) this.lerpSteps;
-                double d4 = this.getZ() + (this.lerpZ - this.getZ()) / (double) this.lerpSteps;
-                this.setPos(d0, d2, d4);
-            }
+            Vec3 delta = this.exactLerpTarget.relativeTo(this.sectorPosition());
+            this.applyExactPosition(this.sectorPosition().add(delta.x / (double) this.lerpSteps,
+                    delta.y / (double) this.lerpSteps, delta.z / (double) this.lerpSteps));
             --this.lerpSteps;
             if (this.lerpSteps == 0)
                 this.exactLerpTarget = null;
@@ -2543,7 +2519,7 @@ public abstract class LivingEntity extends Entity {
         this.xxa *= 0.98F;
         this.zza *= 0.98F;
         this.updateFallFlying();
-        AABB aabb = this.getBoundingBox();
+        AABB aabb = this.exactBoundingBox();
         this.travel(new Vec3((double) this.xxa, (double) this.yya, (double) this.zza));
         this.level.getProfiler().pop();
         this.level.getProfiler().push("freezing");
@@ -2568,7 +2544,7 @@ public abstract class LivingEntity extends Entity {
         this.level.getProfiler().push("push");
         if (this.autoSpinAttackTicks > 0) {
             --this.autoSpinAttackTicks;
-            this.checkAutoSpinAttack(aabb, this.getBoundingBox());
+            this.checkAutoSpinAttack(aabb, this.exactBoundingBox());
         }
 
         this.pushEntities();
@@ -2615,7 +2591,7 @@ public abstract class LivingEntity extends Entity {
     }
 
     protected void pushEntities() {
-        List<Entity> list = this.level.getEntities(this, this.getBoundingBox(), EntitySelector.pushableBy(this));
+        List<Entity> list = this.level.getEntities(this, this.exactBoundingBox(), EntitySelector.pushableBy(this));
         if (!list.isEmpty()) {
             int i = this.level.getGameRules().getInt(GameRules.RULE_MAX_ENTITY_CRAMMING);
             if (i > 0 && list.size() > i - 1 && this.random.nextInt(4) == 0) {
@@ -2688,13 +2664,7 @@ public abstract class LivingEntity extends Entity {
     }
 
     public void lerpTo(double pX, double pY, double pZ, float pYaw, float pPitch, int pPosRotationIncrements, boolean pTeleport) {
-        this.exactLerpTarget = null;
-        this.lerpX = pX;
-        this.lerpY = pY;
-        this.lerpZ = pZ;
-        this.lerpYRot = (double) pYaw;
-        this.lerpXRot = (double) pPitch;
-        this.lerpSteps = pPosRotationIncrements;
+        this.lerpTo(SectorVec3.fromApproximate(pX, pY, pZ), pYaw, pPitch, pPosRotationIncrements, pTeleport);
     }
 
     @Override
@@ -3047,7 +3017,7 @@ public abstract class LivingEntity extends Entity {
                 if (this.hasSectorPosition()
                                 ? this.sectorNoCollision(this.getSectorBoundingBox(), this.getLocalBoundingBox(this.sectorPhysicsOrigin()), this.sectorPhysicsOrigin())
                                         && !this.sectorContainsAnyLiquid(this.getSectorBoundingBox())
-                                : level.noCollision(this) && !level.containsAnyLiquid(this.getBoundingBox())) {
+                                : level.noCollision(this) && !level.containsAnyLiquid(this.exactBoundingBox())) {
                     flag = true;
                 }
             }
@@ -3152,31 +3122,19 @@ public abstract class LivingEntity extends Entity {
                 this.level.setBlock(p_147228_, blockstate.setValue(BedBlock.OCCUPIED, Boolean.valueOf(false)), 3);
                 SectorVec3 standUp = BedBlock.findExactStandUpPosition(this.getType(), this.level, p_147228_, this.getYRot())
                                              .orElseGet(() -> SectorVec3.fromBlockAndFraction(p_147228_.above().getX(), 0.5D, (double) p_147228_.above().getY() + 0.1D, p_147228_.above().getZ(), 0.5D));
-                Vec3 vec31 = standUp.toApproximateVec3();
                 Vec3 vec32 = SectorVec3.fromBlockAndFraction(p_147228_.getX(), 0.5D, (double) p_147228_.getY(),
                                                p_147228_.getZ(), 0.5D)
                                      .relativeTo(standUp)
                                      .normalize();
                 float f = (float) Mth.wrapDegrees(Mth.atan2(vec32.z, vec32.x) * (double) (180F / (float) Math.PI) - 90.0D);
-                if (this.usesSectorPhysics()) {
-                    this.applyExactPosition(standUp);
-                } else {
-                    this.setPos(vec31.x, vec31.y, vec31.z);
-                }
+                this.applyExactPosition(standUp);
                 this.setYRot(f);
                 this.setXRot(0.0F);
             }
         });
-        SectorVec3 exact = this.hasSectorPosition() ? this.sectorPosition() : null;
+        SectorVec3 exact = this.sectorPosition();
         this.setPose(Pose.STANDING);
-        if (exact != null) {
-            // Keep the pose-change reapplication in split coordinates; the legacy
-            // Vec3 mirror would snap near-2^63 sleep positions onto the double grid.
-            this.applyExactPosition(exact);
-        } else {
-            Vec3 vec3 = this.position();
-            this.setPos(vec3.x, vec3.y, vec3.z);
-        }
+        this.applyExactPosition(exact);
         this.clearSleepingPos();
     }
 
@@ -3254,12 +3212,12 @@ public abstract class LivingEntity extends Entity {
         this.broadcastBreakEvent(pHand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
     }
 
-    public AABB getBoundingBoxForCulling() {
+    public SectorAABB getSectorBoundingBoxForCulling() {
         if (this.getItemBySlot(EquipmentSlot.HEAD).is(Items.DRAGON_HEAD)) {
             float f = 0.5F;
-            return this.getBoundingBox().inflate(0.5D, 0.5D, 0.5D);
+            return this.getSectorBoundingBox().inflate(0.5D, 0.5D, 0.5D);
         } else {
-            return super.getBoundingBoxForCulling();
+            return super.getSectorBoundingBoxForCulling();
         }
     }
 

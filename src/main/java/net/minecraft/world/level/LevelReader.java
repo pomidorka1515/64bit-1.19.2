@@ -62,9 +62,8 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
 
     default int getBlockTint(BlockPos pBlockPos, ColorResolver pColorResolver) {
         // ColorResolver's legacy double arguments are visual sampling hints only.
-        net.minecraft.world.phys.Vec3 approximate = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(
-                pBlockPos.getX(), 0.0D, pBlockPos.getY(), pBlockPos.getZ(), 0.0D).toApproximateVec3();
-        return pColorResolver.getColor(this.getBiome(pBlockPos).value(), approximate.x, approximate.z);
+        return pColorResolver.getColor(this.getBiome(pBlockPos).value(),
+                pBlockPos.getX().toDoubleSaturated(), pBlockPos.getZ().toDoubleSaturated());
     }
 
     default Holder<Biome> getNoiseBiome(long pX, int pY, long pZ) {

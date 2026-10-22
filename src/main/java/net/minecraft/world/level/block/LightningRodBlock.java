@@ -114,7 +114,7 @@ public class LightningRodBlock extends RodBlock implements SimpleWaterloggedBloc
             BlockPos blockpos = pHit.getBlockPos();
             if (pLevel.canSeeSky(blockpos)) {
                 LightningBolt lightningbolt = EntityType.LIGHTNING_BOLT.create(pLevel);
-                lightningbolt.moveTo(Vec3.atBottomCenterOf(blockpos.above()));
+                lightningbolt.moveTo(net.minecraft.world.phys.ExactVec3.position(Vec3.atBottomCenterOf(blockpos.above())), lightningbolt.getYRot(), lightningbolt.getXRot());
                 Entity entity = pProjectile.getOwner();
                 lightningbolt.setCause(entity instanceof ServerPlayer ? (ServerPlayer) entity : null);
                 pLevel.addFreshEntity(lightningbolt);

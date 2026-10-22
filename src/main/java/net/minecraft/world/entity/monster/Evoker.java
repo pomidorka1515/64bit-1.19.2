@@ -223,7 +223,7 @@ public class Evoker extends SpellcasterIllager {
             if (!super.canUse()) {
                 return false;
             } else {
-                int i = Evoker.this.level.getNearbyEntities(Vex.class, this.vexCountTargeting, Evoker.this, Evoker.this.getBoundingBox().inflate(16.0D)).size();
+                int i = Evoker.this.level.getNearbyEntities(Vex.class, this.vexCountTargeting, Evoker.this, Evoker.this.exactBoundingBox().inflate(16.0D)).size();
                 return Evoker.this.random.nextInt(8) + 1 > i;
             }
         }
@@ -275,7 +275,7 @@ public class Evoker extends SpellcasterIllager {
             } else if (!Evoker.this.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
                 return false;
             } else {
-                List<Sheep> list = Evoker.this.level.getNearbyEntities(Sheep.class, this.wololoTargeting, Evoker.this, Evoker.this.getBoundingBox().inflate(16.0D, 4.0D, 16.0D));
+                List<Sheep> list = Evoker.this.level.getNearbyEntities(Sheep.class, this.wololoTargeting, Evoker.this, Evoker.this.exactBoundingBox().inflate(16.0D, 4.0D, 16.0D));
                 if (list.isEmpty()) {
                     return false;
                 } else {

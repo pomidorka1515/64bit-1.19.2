@@ -49,7 +49,7 @@ public class NearestAttackableTargetGoal<T extends LivingEntity> extends TargetG
     }
 
     protected AABB getTargetSearchArea(double pTargetDistance) {
-        return this.mob.getBoundingBox().inflate(pTargetDistance, 4.0D, pTargetDistance);
+        return this.mob.exactBoundingBox().inflate(pTargetDistance, 4.0D, pTargetDistance);
     }
 
     protected void findTarget() {

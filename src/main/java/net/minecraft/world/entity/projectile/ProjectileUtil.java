@@ -115,7 +115,7 @@ public final class ProjectileUtil {
         Vec3 vec3 = null;
 
         for (Entity entity1 : level.getEntities(pShooter, pBoundingBox, pFilter)) {
-            AABB aabb = entity1.getBoundingBox().inflate((double) entity1.getPickRadius());
+            AABB aabb = entity1.exactBoundingBox().inflate((double) entity1.getPickRadius());
             Optional<Vec3> optional = aabb.clip(pStartVec, pEndVec);
             if (aabb.contains(pStartVec)) {
                 if (d0 >= 0.0D) {
@@ -155,7 +155,7 @@ public final class ProjectileUtil {
         Entity entity = null;
 
         for (Entity entity1 : pLevel.getEntities(pProjectile, pBoundingBox, pFilter)) {
-            AABB aabb = entity1.getBoundingBox().inflate((double) pInflationAmount);
+            AABB aabb = entity1.exactBoundingBox().inflate((double) pInflationAmount);
             Optional<Vec3> optional = aabb.clip(pStartVec, pEndVec);
             if (optional.isPresent()) {
                 double d1 = pStartVec.distanceToSqr(optional.get());

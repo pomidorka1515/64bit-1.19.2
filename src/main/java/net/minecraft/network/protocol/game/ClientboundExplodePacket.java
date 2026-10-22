@@ -100,9 +100,6 @@ public class ClientboundExplodePacket implements Packet<ClientGamePacketListener
     }
 
     /** Lossy compatibility mirror; exact consumers must use {@link #getExactPosition()}. */
-    public double getX() {
-        return this.position.toApproximateVec3().x;
-    }
 
     /** Legacy approximate coordinate accessor. */
     public double getY() {
@@ -110,9 +107,6 @@ public class ClientboundExplodePacket implements Packet<ClientGamePacketListener
     }
 
     /** Lossy compatibility mirror; exact consumers must use {@link #getExactPosition()}. */
-    public double getZ() {
-        return this.position.toApproximateVec3().z;
-    }
 
     public float getPower() {
         return this.power;

@@ -34,7 +34,7 @@ public class EndCrystal extends Entity {
 
     public EndCrystal(Level pLevel, double pX, double pY, double pZ) {
         this(EntityType.END_CRYSTAL, pLevel);
-        this.setPos(pX, pY, pZ);
+        this.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromApproximate(pX, pY, pZ));
     }
 
     protected Entity.MovementEmission getMovementEmission() {

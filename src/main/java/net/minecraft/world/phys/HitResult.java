@@ -18,13 +18,8 @@ public abstract class HitResult {
 
     public double distanceTo(Entity pEntity) {
         SectorVec3 exact = this.getExactLocation();
-        if (exact != null && pEntity.hasSectorPosition()) {
-            return exact.relativeTo(pEntity.sectorPosition()).lengthSqr();
-        }
-        double d0 = this.location.x - pEntity.getX();
-        double d1 = this.location.y - pEntity.getY();
-        double d2 = this.location.z - pEntity.getZ();
-        return d0 * d0 + d1 * d1 + d2 * d2;
+        return (exact != null ? exact : ExactVec3.position(this.location))
+                .relativeTo(pEntity.sectorPosition()).lengthSqr();
     }
 
     public abstract HitResult.Type getType();

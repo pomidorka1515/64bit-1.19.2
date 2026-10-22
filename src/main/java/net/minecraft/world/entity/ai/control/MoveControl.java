@@ -19,9 +19,7 @@ public class MoveControl implements Control {
     public static final float MIN_SPEED_SQR = 2.5000003E-7F;
     protected static final int MAX_TURN = 90;
     protected final Mob mob;
-    protected double wantedX;
     protected double wantedY;
-    protected double wantedZ;
     protected SectorVec3 exactWantedPosition;
     protected double speedModifier;
     protected float strafeForwards;
@@ -42,9 +40,7 @@ public class MoveControl implements Control {
 
     public void setWantedPosition(double pX, double pY, double pZ, double pSpeed) {
         this.exactWantedPosition = SectorVec3.fromApproximate(pX, pY, pZ);
-        this.wantedX = pX;
         this.wantedY = pY;
-        this.wantedZ = pZ;
         this.speedModifier = pSpeed;
         if (this.operation != MoveControl.Operation.JUMPING) {
             this.operation = MoveControl.Operation.MOVE_TO;
@@ -53,10 +49,7 @@ public class MoveControl implements Control {
 
     public void setWantedPosition(SectorVec3 position, double speedModifier) {
         this.exactWantedPosition = position;
-        Vec3 approximate = position.toApproximateVec3();
-        this.wantedX = approximate.x;
         this.wantedY = position.y();
-        this.wantedZ = approximate.z;
         this.speedModifier = speedModifier;
         if (this.operation != MoveControl.Operation.JUMPING)
             this.operation = MoveControl.Operation.MOVE_TO;
@@ -67,8 +60,7 @@ public class MoveControl implements Control {
     }
 
     public final SectorVec3 getExactWantedPosition() {
-        return this.exactWantedPosition != null ? this.exactWantedPosition
-                                                : SectorVec3.fromApproximate(this.wantedX, this.wantedY, this.wantedZ);
+        return this.exactWantedPosition != null ? this.exactWantedPosition : this.mob.sectorPosition();
     }
 
     public void strafe(float pForward, float pStrafe) {
@@ -170,16 +162,8 @@ public class MoveControl implements Control {
         return f1;
     }
 
-    public double getWantedX() {
-        return this.wantedX;
-    }
-
     public double getWantedY() {
         return this.wantedY;
-    }
-
-    public double getWantedZ() {
-        return this.wantedZ;
     }
 
     protected static enum Operation {

@@ -12,11 +12,7 @@ public interface BlockSource extends Position {
                 this.y(), pos.getZ(), 0.5D);
     }
 
-    double x();
-
     double y();
-
-    double z();
 
     BlockPos getPos();
 

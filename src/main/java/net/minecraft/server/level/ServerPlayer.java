@@ -872,11 +872,7 @@ public class ServerPlayer extends Player {
 
         super.stopSleepInBed(pWakeImmediately, pUpdateLevelForSleepingPlayers);
         if (this.connection != null) {
-            if (this.hasSectorPosition()) {
-                this.connection.teleportExact(this.sectorPosition(), this.getYRot(), this.getXRot());
-            } else {
-                this.connection.teleport(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
-            }
+            this.connection.teleportExact(this.sectorPosition(), this.getYRot(), this.getXRot());
         }
     }
 
@@ -887,11 +883,7 @@ public class ServerPlayer extends Player {
         } else {
             Entity entity1 = this.getVehicle();
             if (entity1 != entity && this.connection != null) {
-                if (this.hasSectorPosition()) {
-                    this.connection.teleportExact(this.sectorPosition(), this.getYRot(), this.getXRot());
-                } else {
-                    this.connection.teleport(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
-                }
+                this.connection.teleportExact(this.sectorPosition(), this.getYRot(), this.getXRot());
             }
 
             return true;
@@ -903,12 +895,8 @@ public class ServerPlayer extends Player {
         super.stopRiding();
         Entity entity1 = this.getVehicle();
         if (entity1 != entity && this.connection != null) {
-            if (this.hasSectorPosition()) {
-                this.connection.teleportExact(this.sectorPosition(), this.getYRot(), this.getXRot(),
-                        java.util.Collections.emptySet(), true);
-            } else {
-                this.connection.dismount(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
-            }
+            this.connection.teleportExact(this.sectorPosition(), this.getYRot(), this.getXRot(),
+                    java.util.Collections.emptySet(), true);
         }
     }
 
@@ -1342,11 +1330,7 @@ public class ServerPlayer extends Player {
         this.camera = (Entity) (pEntityToSpectate == null ? this : pEntityToSpectate);
         if (entity != this.camera) {
             this.connection.send(new ClientboundSetCameraPacket(this.camera));
-            if (this.camera.hasSectorPosition()) {
-                this.teleportTo(this.camera.sectorPosition());
-            } else {
-                this.teleportTo(this.camera.getX(), this.camera.getY(), this.camera.getZ());
-            }
+            this.teleportTo(this.camera.sectorPosition());
         }
     }
 
@@ -1445,7 +1429,7 @@ public class ServerPlayer extends Player {
             this.server.getPlayerList().sendPlayerPermissionLevel(this);
             oldLevel.removePlayerImmediately(this, Entity.RemovalReason.CHANGED_DIMENSION);
             this.unsetRemoved();
-            this.moveTo(x, y, z, yRot, xRot);
+            this.moveTo(SectorVec3.fromApproximate(x, y, z), yRot, xRot);
             this.setLevel(level);
             level.addDuringCommandTeleport(this);
             this.triggerDimensionChangeTriggers(oldLevel);

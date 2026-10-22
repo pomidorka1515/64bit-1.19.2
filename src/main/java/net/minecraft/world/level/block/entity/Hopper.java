@@ -14,20 +14,7 @@ public interface Hopper extends Container {
         return SUCK;
     }
 
-    double getLevelX();
-
     double getLevelY();
 
-    double getLevelZ();
-
-    default net.minecraft.world.phys.SectorVec3 getExactHopperPosition() {
-        if (this instanceof net.minecraft.world.entity.Entity entity) {
-            return entity.sectorPosition().add(0.0D, 0.5D, 0.0D);
-        }
-        if (this instanceof BlockEntity blockEntity) {
-            net.minecraft.core.BlockPos pos = blockEntity.getBlockPos();
-            return net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pos.getX(), 0.5D, pos.getY() + 0.5D, pos.getZ(), 0.5D);
-        }
-        return net.minecraft.world.phys.SectorVec3.fromApproximate(this.getLevelX(), this.getLevelY(), this.getLevelZ());
-    }
+    net.minecraft.world.phys.SectorVec3 getExactHopperPosition();
 }

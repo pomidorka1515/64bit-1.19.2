@@ -31,8 +31,6 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
 
 public interface ContainerEntity extends Container, MenuProvider {
-    Vec3 position();
-
     net.minecraft.world.phys.SectorVec3 sectorPosition();
 
     @Nullable

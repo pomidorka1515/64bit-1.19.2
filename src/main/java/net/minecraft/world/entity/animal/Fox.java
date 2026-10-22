@@ -618,7 +618,7 @@ public class Fox extends Animal {
             return SoundEvents.FOX_SLEEP;
         } else {
             if (!this.level.isDay() && this.random.nextFloat() < 0.1F) {
-                List<Player> list = this.level.getEntitiesOfClass(Player.class, this.getBoundingBox().inflate(16.0D, 16.0D, 16.0D), EntitySelector.NO_SPECTATORS);
+                List<Player> list = this.level.getEntitiesOfClass(Player.class, this.exactBoundingBox().inflate(16.0D, 16.0D, 16.0D), EntitySelector.NO_SPECTATORS);
                 if (list.isEmpty()) {
                     return SoundEvents.FOX_SCREECH;
                 }
@@ -779,12 +779,12 @@ public class Fox extends Animal {
         private final TargetingConditions alertableTargeting = TargetingConditions.forCombat().range(12.0D).ignoreLineOfSight().selector(Fox.this.new FoxAlertableEntitiesSelector());
 
         protected boolean hasShelter() {
-            BlockPos blockpos = Fox.this.sectorPosition().withY(Fox.this.getBoundingBox().maxY).blockPosition();
+            BlockPos blockpos = Fox.this.sectorPosition().withY(Fox.this.exactBoundingBox().maxY).blockPosition();
             return !Fox.this.level.canSeeSky(blockpos) && Fox.this.getWalkTargetValue(blockpos) >= 0.0F;
         }
 
         protected boolean alertable() {
-            return !Fox.this.level.getNearbyEntities(LivingEntity.class, this.alertableTargeting, Fox.this, Fox.this.getBoundingBox().inflate(12.0D, 6.0D, 12.0D)).isEmpty();
+            return !Fox.this.level.getNearbyEntities(LivingEntity.class, this.alertableTargeting, Fox.this, Fox.this.exactBoundingBox().inflate(12.0D, 6.0D, 12.0D)).isEmpty();
         }
     }
 
@@ -1139,7 +1139,7 @@ public class Fox extends Animal {
                 } else if (Fox.this.getRandom().nextInt(reducedTickDelay(10)) != 0) {
                     return false;
                 } else {
-                    List<ItemEntity> list = Fox.this.level.getEntitiesOfClass(ItemEntity.class, Fox.this.getBoundingBox().inflate(8.0D, 8.0D, 8.0D), Fox.ALLOWED_ITEMS);
+                    List<ItemEntity> list = Fox.this.level.getEntitiesOfClass(ItemEntity.class, Fox.this.exactBoundingBox().inflate(8.0D, 8.0D, 8.0D), Fox.ALLOWED_ITEMS);
                     return !list.isEmpty() && Fox.this.getItemBySlot(EquipmentSlot.MAINHAND).isEmpty();
                 }
             } else {
@@ -1148,7 +1148,7 @@ public class Fox extends Animal {
         }
 
         public void tick() {
-            List<ItemEntity> list = Fox.this.level.getEntitiesOfClass(ItemEntity.class, Fox.this.getBoundingBox().inflate(8.0D, 8.0D, 8.0D), Fox.ALLOWED_ITEMS);
+            List<ItemEntity> list = Fox.this.level.getEntitiesOfClass(ItemEntity.class, Fox.this.exactBoundingBox().inflate(8.0D, 8.0D, 8.0D), Fox.ALLOWED_ITEMS);
             ItemStack itemstack = Fox.this.getItemBySlot(EquipmentSlot.MAINHAND);
             if (itemstack.isEmpty() && !list.isEmpty()) {
                 Fox.this.getNavigation().moveTo(list.get(0), (double) 1.2F);
@@ -1156,7 +1156,7 @@ public class Fox extends Animal {
         }
 
         public void start() {
-            List<ItemEntity> list = Fox.this.level.getEntitiesOfClass(ItemEntity.class, Fox.this.getBoundingBox().inflate(8.0D, 8.0D, 8.0D), Fox.ALLOWED_ITEMS);
+            List<ItemEntity> list = Fox.this.level.getEntitiesOfClass(ItemEntity.class, Fox.this.exactBoundingBox().inflate(8.0D, 8.0D, 8.0D), Fox.ALLOWED_ITEMS);
             if (!list.isEmpty()) {
                 Fox.this.getNavigation().moveTo(list.get(0), (double) 1.2F);
             }

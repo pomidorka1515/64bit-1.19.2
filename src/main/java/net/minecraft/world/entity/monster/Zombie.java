@@ -284,7 +284,7 @@ public class Zombie extends Monster {
                     SpawnPlacements.Type spawnplacements$type = SpawnPlacements.getPlacementType(entitytype);
                     if (NaturalSpawner.isSpawnPositionOk(spawnplacements$type, this.level, blockpos, entitytype) && SpawnPlacements.checkSpawnRules(entitytype, serverlevel, MobSpawnType.REINFORCEMENT, blockpos, this.level.random)) {
                         zombie.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(i1, 0.0D, (double) j1, k1, 0.0D));
-                        if (!this.level.hasNearbyAlivePlayer(zombie.sectorPosition(), 7.0D) && this.level.isUnobstructed(zombie) && this.level.noCollision(zombie) && !this.level.containsAnyLiquid(zombie.getBoundingBox())) {
+                        if (!this.level.hasNearbyAlivePlayer(zombie.sectorPosition(), 7.0D) && this.level.isUnobstructed(zombie) && this.level.noCollision(zombie) && !this.level.containsAnyLiquid(zombie.exactBoundingBox())) {
                             zombie.setTarget(livingentity);
                             zombie.finalizeSpawn(serverlevel, this.level.getCurrentDifficultyAt(zombie.blockPosition()), MobSpawnType.REINFORCEMENT, (SpawnGroupData) null, (CompoundTag) null);
                             serverlevel.addFreshEntityWithPassengers(zombie);
@@ -417,7 +417,7 @@ public class Zombie extends Monster {
                 this.setBaby(true);
                 if (zombie$zombiegroupdata.canSpawnJockey) {
                     if ((double) randomsource.nextFloat() < 0.05D) {
-                        List<Chicken> list = pLevel.getEntitiesOfClass(Chicken.class, this.getBoundingBox().inflate(5.0D, 3.0D, 5.0D), EntitySelector.ENTITY_NOT_BEING_RIDDEN);
+                        List<Chicken> list = pLevel.getEntitiesOfClass(Chicken.class, this.exactBoundingBox().inflate(5.0D, 3.0D, 5.0D), EntitySelector.ENTITY_NOT_BEING_RIDDEN);
                         if (!list.isEmpty()) {
                             Chicken chicken = list.get(0);
                             chicken.setChickenJockey(true);

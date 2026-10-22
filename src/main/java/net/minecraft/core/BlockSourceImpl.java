@@ -22,16 +22,8 @@ public class BlockSourceImpl implements BlockSource {
         return SectorVec3.fromBlockAndFraction(this.pos.getX(), 0.5D, this.y(), this.pos.getZ(), 0.5D);
     }
 
-    public double x() {
-        return SectorVec3.fromBlockAndFraction(this.pos.getX(), 0.5D, this.y(), this.pos.getZ(), 0.5D).toApproximateVec3().x;
-    }
-
     public double y() {
         return (double) this.pos.getY() + 0.5D;
-    }
-
-    public double z() {
-        return SectorVec3.fromBlockAndFraction(this.pos.getX(), 0.5D, this.y(), this.pos.getZ(), 0.5D).toApproximateVec3().z;
     }
 
     public BlockPos getPos() {

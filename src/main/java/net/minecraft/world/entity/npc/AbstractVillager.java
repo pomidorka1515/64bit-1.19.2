@@ -223,7 +223,7 @@ public abstract class AbstractVillager extends AgeableMob implements InventoryCa
 
     public Vec3 getRopeHoldPosition(float pPartialTicks) {
         float f = Mth.lerp(pPartialTicks, this.yBodyRotO, this.yBodyRot) * ((float) Math.PI / 180F);
-        Vec3 vec3 = new Vec3(0.0D, this.getBoundingBox().getYsize() - 1.0D, 0.2D);
+        Vec3 vec3 = new Vec3(0.0D, this.exactBoundingBox().getYsize() - 1.0D, 0.2D);
         return this.getPosition(pPartialTicks).add(vec3.yRot(-f));
     }
 

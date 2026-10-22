@@ -178,10 +178,7 @@ public class SpreadPlayersCommand {
 
             BlockPos column = center.add(spreadplayerscommand$position.x, 0.0D, spreadplayerscommand$position.z).blockPosition();
             SectorVec3 target = SectorVec3.fromBlockAndFraction(column.getX(), 0.5D, spreadplayerscommand$position.getSpawnY(pLevel, pMaxHeight, center), column.getZ(), 0.5D);
-            if (entity.hasSectorPosition())
-                entity.absMoveTo(target, entity.getYRot(), entity.getXRot());
-            else
-                entity.teleportToWithTicket(target.toApproximateVec3().x, target.y(), target.toApproximateVec3().z);
+            entity.teleportToWithTicket(target);
             double d2 = Double.MAX_VALUE;
 
             for (SpreadPlayersCommand.Position spreadplayerscommand$position1 : pPositions) {

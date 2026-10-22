@@ -25,7 +25,7 @@ public class BottleItem extends Item {
     }
 
     public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
-        List<AreaEffectCloud> list = pLevel.getEntitiesOfClass(AreaEffectCloud.class, pPlayer.getBoundingBox().inflate(2.0D), (p_40650_) -> {
+        List<AreaEffectCloud> list = pLevel.getEntitiesOfClass(AreaEffectCloud.class, pPlayer.exactBoundingBox().inflate(2.0D), (p_40650_) -> {
             return p_40650_ != null && p_40650_.isAlive() && p_40650_.getOwner() instanceof EnderDragon;
         });
         ItemStack itemstack = pPlayer.getItemInHand(pHand);

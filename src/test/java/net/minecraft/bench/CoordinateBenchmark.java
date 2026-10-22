@@ -6,6 +6,7 @@ import net.minecraft.core.Int128;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -44,6 +45,16 @@ class CoordinateBenchmark {
     };
 
     private static final long[] SINK = new long[1];
+    private static final com.sun.management.ThreadMXBean ALLOCATIONS = allocationCounter();
+
+    private static com.sun.management.ThreadMXBean allocationCounter() {
+        if (ManagementFactory.getThreadMXBean() instanceof com.sun.management.ThreadMXBean bean
+                && bean.isThreadAllocatedMemorySupported()) {
+            bean.setThreadAllocatedMemoryEnabled(true);
+            return bean;
+        }
+        throw new IllegalStateException("benchmark requires thread allocation measurement");
+    }
 
     @BeforeAll
     static void bootstrapMinecraft() {
@@ -68,13 +79,19 @@ class CoordinateBenchmark {
         report.append(measure("chunk-key-lookup", this::lookupChunkKeys));
         report.append(measure("region-name-formatting", this::formatRegionNames));
         report.append(measure("sector-vec3-relative-math", this::relativeMath));
+        report.append("allocation metric,ops,median_bytes,median_bytes_per_op\n");
+        report.append(allocations("block-iteration", this::iterateBlocks));
+        report.append(allocations("collision-iteration", this::iterateCollisions));
+        report.append(allocations("chunk-key-lookup", this::lookupChunkKeys));
+        report.append(allocations("region-name-formatting", this::formatRegionNames));
+        report.append(allocations("sector-vec3-relative-math", this::relativeMath));
         report.append("block-iteration: BlockPos.betweenClosed 16x16x16 at ")
                 .append(FAR).append(" plus Cursor3D.advance over the same span, 32 reps\n");
         report.append("collision-iteration: SectorBlockCollisions player box 0.6x1.8 at ")
                 .append(FAR).append(", ns/sweep over 2000 sweeps\n");
         report.append("chunk-key-lookup: Object2ObjectOpenHashMap<ChunkPos,Integer>.get(new ChunkPos) ")
                 .append("over a 33x33 window, 20 reps\n");
-        report.append("region-name-formatting: \"r.\" + regionX + \".\" + regionZ + \".mca\", 4000 reps of 8 names\n");
+        report.append("region-name-formatting: canonical 32-hex X/Z .mca names, 4000 reps of 8 names\n");
         report.append("sector-vec3-relative-math: relativeX/Y/Z at ").append(FAR).append(", 20000 calls\n");
 
         String text = report.toString();
@@ -83,6 +100,22 @@ class CoordinateBenchmark {
         Files.createDirectories(benchmarks);
         Files.writeString(benchmarks.resolve("current-coordinate-benchmark.txt"), text);
         SINK[0] = text.length();
+    }
+
+    private static String allocations(String name, Work work) {
+        long thread = Thread.currentThread().getId();
+        long[] bytes = new long[SAMPLES];
+        long ops = 0;
+        for (int i = 0; i < SAMPLES; ++i) {
+            long before = ALLOCATIONS.getThreadAllocatedBytes(thread);
+            Result result = work.timed();
+            bytes[i] = ALLOCATIONS.getThreadAllocatedBytes(thread) - before;
+            ops = result.ops;
+            SINK[0] ^= result.checksum;
+        }
+        Arrays.sort(bytes);
+        return String.format(Locale.ROOT, "allocation %s,%d,%d,%.3f%n",
+                name, ops, bytes[SAMPLES / 2], (double) bytes[SAMPLES / 2] / ops);
     }
 
     private static String measure(String name, Work work) {

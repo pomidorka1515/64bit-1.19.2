@@ -9,7 +9,6 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
-import com.mojang.serialization.Dynamic;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.Collections;
@@ -22,7 +21,6 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
@@ -513,11 +511,11 @@ public final class NbtUtils {
     }
 
     public static CompoundTag update(DataFixer pDataFixer, DataFixTypes pType, CompoundTag pCompoundTag, int pVersion) {
-        return update(pDataFixer, pType, pCompoundTag, pVersion, SharedConstants.getCurrentVersion().getWorldVersion());
+        return pCompoundTag;
     }
 
     public static CompoundTag update(DataFixer pDataFixer, DataFixTypes pType, CompoundTag pCompoundTag, int pVersion, int pNewVersion) {
-        return (CompoundTag) pDataFixer.update(pType.getType(), new Dynamic<>(NbtOps.INSTANCE, pCompoundTag), pVersion, pNewVersion).getValue();
+        return pCompoundTag;
     }
 
     public static Component toPrettyComponent(Tag pTag) {

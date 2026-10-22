@@ -122,7 +122,8 @@ public class SharedConstants {
     public static final boolean DEBUG_STORE_CHUNK_STACKTRACES = false;
     public static final boolean DEBUG_FEATURE_COUNT = false;
     public static final long MAXIMUM_TICK_TIME_NANOS = Duration.ofMillis(300L).toNanos();
-    public static boolean CHECK_DATA_FIXER_SCHEMA = true;
+    // Custom-format saves do not use DFU schemas, including during registration.
+    public static boolean CHECK_DATA_FIXER_SCHEMA = false;
     // Development-only pause/log paths are prohibitively expensive in a normal
     // run-client session, especially when terrain postprocessing triggers a
     // recoverable diagnostic such as a recursive navigation update.

@@ -13,18 +13,44 @@ import org.junit.jupiter.api.Test;
 
 class LevelTicksWorldBoundsTest {
     @Test
+    void tickingReadinessAndRemovalUseFullWidthChunkKeys() {
+        BlockPos first = new BlockPos(Int128.of(16L, 0L), 64, Int128.of(32L, 0L));
+        BlockPos otherX = new BlockPos(Int128.of(48L, 0L), 64, Int128.of(32L, 0L));
+        BlockPos otherZ = new BlockPos(Int128.of(16L, 0L), 64, Int128.of(64L, 0L));
+        java.util.Set<ChunkPos> ready = new java.util.HashSet<>();
+        LevelTicks<Object> ticks = new LevelTicks<>(ready::contains, () -> InactiveProfiler.INSTANCE);
+        Object type = new Object();
+        for (BlockPos pos : java.util.List.of(first, otherX, otherZ)) {
+            ticks.addContainer(new ChunkPos(pos), new LevelChunkTicks<>());
+            ticks.schedule(new ScheduledTick<>(type, pos, 10L, 0L));
+        }
+        ready.add(new ChunkPos(otherX));
+        java.util.List<BlockPos> ran = new java.util.ArrayList<>();
+        ticks.tick(10L, 10, (pos, value) -> ran.add(pos));
+        assertEquals(java.util.List.of(otherX), ran);
+        assertTrue(ticks.hasScheduledTick(first, type));
+        assertTrue(ticks.hasScheduledTick(otherZ, type));
+        ticks.removeContainer(new ChunkPos(first));
+        ready.add(new ChunkPos(first));
+        ready.add(new ChunkPos(otherZ));
+        ticks.tick(11L, 10, (pos, value) -> ran.add(pos));
+        assertEquals(java.util.List.of(otherX, otherZ), ran);
+        assertEquals(0, ticks.count());
+    }
+
+    @Test
     void fullWidthAreaClearsDistinctHighHalfContainersWithoutScanningTheWorld() {
         LevelTicks<Object> ticks = new LevelTicks<>(chunk -> true, () -> InactiveProfiler.INSTANCE);
         Object type = new Object();
-        for (Int128 x : new Int128[] {Int128.MIN_VALUE, Int128.of(1L, 0L), Int128.MAX_VALUE}) {
+        for (Int128 x : new Int128[] {Int128.MIN, Int128.of(1L, 0L), Int128.MAX}) {
             BlockPos pos = new BlockPos(x, 64, x);
             ticks.addContainer(new ChunkPos(pos), new LevelChunkTicks<>());
             ticks.schedule(new ScheduledTick<>(type, pos, 10L, 0L));
             assertTrue(ticks.hasScheduledTick(pos, type));
         }
         assertEquals(3, ticks.count());
-        ticks.clearArea(new BoundingBox(Int128.MIN_VALUE, 64, Int128.MIN_VALUE,
-                Int128.MAX_VALUE, 64, Int128.MAX_VALUE));
+        ticks.clearArea(new BoundingBox(Int128.MIN, 64, Int128.MIN,
+                Int128.MAX, 64, Int128.MAX));
         assertEquals(0, ticks.count());
     }
 
@@ -43,7 +69,7 @@ class LevelTicksWorldBoundsTest {
 
     @Test
     void clearAreaUsesExactChunkCoordinatesAtBothWorldEdges() {
-        for (long x : new long[] {Long.MIN_VALUE, Long.MAX_VALUE}) {
+        for (Int128 x : new Int128[] {Int128.MIN, Int128.MAX}) {
             LevelTicks<Object> ticks = new LevelTicks<>(chunk -> true, () -> InactiveProfiler.INSTANCE);
             BlockPos pos = new BlockPos(x, 64, x);
             LevelChunkTicks<Object> container = new LevelChunkTicks<>();
@@ -58,8 +84,8 @@ class LevelTicksWorldBoundsTest {
     @Test
     void copyAreaAcrossOppositeEdgesPreservesLocalOffsetsAndTickData() {
         for (boolean reverse : new boolean[] {false, true}) {
-            long sourceX = reverse ? Long.MAX_VALUE - 1L : Long.MIN_VALUE;
-            long targetX = reverse ? Long.MIN_VALUE : Long.MAX_VALUE - 1L;
+            Int128 sourceX = reverse ? Int128.MAX.subtract(Int128.ONE) : Int128.MIN;
+            Int128 targetX = reverse ? Int128.MIN : Int128.MAX.subtract(Int128.ONE);
             BlockPos source = new BlockPos(sourceX, 64, sourceX);
             BlockPos target = new BlockPos(targetX, 70, targetX);
             LevelTicks<Object> ticks = new LevelTicks<>(chunk -> true, () -> InactiveProfiler.INSTANCE);

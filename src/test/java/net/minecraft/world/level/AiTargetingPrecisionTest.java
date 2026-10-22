@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 import java.util.function.Predicate;
 import net.minecraft.SharedConstants;
+import net.minecraft.core.Int128;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -27,7 +28,9 @@ class AiTargetingPrecisionTest {
 
     @Test
     void nearestTargetUsesExactExplicitOriginAndNotSourceFeet() {
-        for (long coordinate : new long[] {1L << 60, -(1L << 60), Long.MIN_VALUE + 8L, Long.MAX_VALUE - 8L}) {
+        for (Int128 coordinate : new Int128[] {Int128.fromLong(1L << 60), Int128.fromLong(-(1L << 60)),
+                Int128.of(123L, -1L), Int128.of(-123L, 0L), Int128.MIN,
+                Int128.MAX.subtract(Int128.fromLong(8L))}) {
             SectorVec3 origin = SectorVec3.fromBlockAndFraction(coordinate, 0.5D, 64.0D, coordinate, 0.5D);
             LivingEntity source = new TestLivingEntity();
             LivingEntity far = new TestLivingEntity();
@@ -45,8 +48,8 @@ class AiTargetingPrecisionTest {
 
     @Test
     void spawnObstructionUsesExactEntityBoxesAndIgnoresSelf() {
-        long huge = 1L << 60;
-        SectorVec3 position = SectorVec3.fromBlockAndFraction(huge, 0.5D, 64.0D, -huge, 0.5D);
+        Int128 huge = Int128.of(123L, -1L);
+        SectorVec3 position = SectorVec3.fromBlockAndFraction(huge, 0.5D, 64.0D, huge.negate(), 0.5D);
         LivingEntity spawning = new TestLivingEntity();
         LivingEntity blocking = new TestLivingEntity();
         spawning.applyExactPosition(position);
@@ -70,7 +73,7 @@ class AiTargetingPrecisionTest {
 
     @Test
     void walkMemoryRetainsExactPositionAndFraction() {
-        SectorVec3 position = SectorVec3.fromBlockAndFraction(1L << 60, 0.375D, 64.0D, -(1L << 60), 0.625D);
+        SectorVec3 position = SectorVec3.fromBlockAndFraction(Int128.MIN, 0.375D, 64.0D, Int128.MAX, 0.625D);
         WalkTarget target = new WalkTarget(position, 1.0F, 0);
         assertSame(position, target.getTarget().currentExactPosition());
         assertEquals(position.blockPosition(), target.getTarget().currentBlockPosition());

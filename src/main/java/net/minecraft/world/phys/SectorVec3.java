@@ -158,16 +158,26 @@ public final class SectorVec3 {
             return upper ? delta.compareTo(Int128.ZERO) > 0 && block.compareTo(Int128.MAX.subtract(delta)) > 0
                     : delta.compareTo(Int128.ZERO) < 0 && block.compareTo(Int128.MIN.subtract(delta)) < 0;
         }
-        // Cold path: a carry outside Int128 can still cancel a large opposite block.
-        BigDecimal sum = new BigDecimal(block.toString()).add(new BigDecimal(carry));
-        return upper ? sum.compareTo(new BigDecimal(Int128.MAX.toString())) > 0
-                : sum.compareTo(new BigDecimal(Int128.MIN.toString())) < 0;
+        // Outside the signed domain a carry can still cancel the opposite block.
+        // Detect overflow in an unsigned 128-bit magnitude; never allocate decimal arithmetic.
+        if (carry >= 0x1.0p128) return upper;
+        if (carry <= -0x1.0p128) return !upper;
+        if (carry >= 0x1.0p127) {
+            if (!upper) return false;
+            if (block.hi() >= 0L) return true;
+            Int128 shifted = Int128.of(block.hi() ^ Long.MIN_VALUE, block.lo());
+            Int128 remainder = Int128.fromDoubleFloorSaturated(carry - 0x1.0p127);
+            return shifted.compareTo(Int128.MAX.subtract(remainder)) > 0;
+        }
+        if (upper) return false;
+        if (block.hi() < 0L) return true;
+        Int128 shifted = Int128.of(block.hi() ^ Long.MIN_VALUE, block.lo());
+        Int128 remainder = Int128.fromDoubleFloorSaturated(carry + 0x1.0p127);
+        return shifted.compareTo(Int128.MIN.subtract(remainder)) < 0;
     }
 
     private static Int128 addCarry(Int128 block, double carry) {
-        if (carry >= -0x1.0p127 && carry < 0x1.0p127)
-            return block.addSaturated(Int128.fromDoubleFloorSaturated(carry));
-        return Int128.parseDecimal(new BigDecimal(block.toString()).add(new BigDecimal(carry)).toPlainString());
+        return Int128Math.addDoubleBlockOffset(block.hi(), block.lo(), carry);
     }
 
     /** Keeps round-off at a voxel boundary from escaping the split-coordinate invariant. */

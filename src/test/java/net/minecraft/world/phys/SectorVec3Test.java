@@ -11,6 +11,33 @@ import org.junit.jupiter.api.Test;
 
 class SectorVec3Test {
     @Test
+    void hostileCarriesMatchExactDecimalOracleWithoutHotDecimalArithmetic() {
+        java.util.Random random = new java.util.Random(1008);
+        for (int i = 0; i < 500; ++i) {
+            Int128 block = i == 0 ? Int128.MIN : i == 1 ? Int128.MAX
+                    : Int128.of(random.nextLong(), random.nextLong());
+            double carry = switch (i % 6) {
+                case 0 -> 0x1.0p127;
+                case 1 -> -0x1.0p127;
+                case 2 -> Math.nextUp(0x1.0p127);
+                case 3 -> Math.nextDown(-0x1.0p127);
+                case 4 -> 0x1.0p128;
+                default -> -0x1.0p128;
+            };
+            java.math.BigInteger sum = new java.math.BigInteger(block.toString())
+                    .add(new java.math.BigDecimal(carry).toBigIntegerExact());
+            java.math.BigInteger min = new java.math.BigInteger(Int128.MIN.toString());
+            java.math.BigInteger max = new java.math.BigInteger(Int128.MAX.toString());
+            SectorVec3 result = SectorVec3.fromBlockAndFraction(block, carry, 0, block, carry);
+            Int128 expected = Int128.parseDecimal(sum.max(min).min(max).toString());
+            assertEquals(expected, result.blockX());
+            assertEquals(expected, result.blockZ());
+            assertEquals(sum.compareTo(max) > 0 ? Math.nextDown(1.0D) : 0.0D, result.subX());
+            assertEquals(result.subX(), result.subZ());
+        }
+    }
+
+    @Test
     void carriesAndBorrowsAcrossUnsignedLowWordSeam() {
         Int128 before = Int128.of(5L, -1L);
         Int128 after = Int128.of(6L, 0L);

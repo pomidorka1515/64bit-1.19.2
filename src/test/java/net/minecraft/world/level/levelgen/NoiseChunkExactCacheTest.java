@@ -46,6 +46,38 @@ class NoiseChunkExactCacheTest {
     }
 
     @Test
+    void exactCacheHitsDoNotAllocateCoordinateKeys() {
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_64_PRECISE);
+        NoiseChunk.Cache2D cache = new NoiseChunk.Cache2D(new ColumnDensity());
+        DensityFunction.FunctionContext context = new DensityFunction.SinglePointContext(Long.MIN_VALUE, 80, Long.MAX_VALUE);
+        com.sun.management.ThreadMXBean bean = (com.sun.management.ThreadMXBean) java.lang.management.ManagementFactory.getThreadMXBean();
+        org.junit.jupiter.api.Assumptions.assumeTrue(bean.isThreadAllocatedMemorySupported());
+        bean.setThreadAllocatedMemoryEnabled(true);
+        for (int i = 0; i < 100_000; ++i) cache.compute(context);
+        long thread = Thread.currentThread().getId();
+        long before = bean.getThreadAllocatedBytes(thread);
+        for (int i = 0; i < 10_000; ++i) cache.compute(context);
+        long allocated = bean.getThreadAllocatedBytes(thread) - before;
+        org.junit.jupiter.api.Assertions.assertTrue(allocated < 1024L, "cache hits allocated " + allocated + " bytes");
+    }
+
+    @Test
+    void exactAndLegacyCachesStayIndependentAcrossModeSwitches() {
+        ColumnDensity density = new ColumnDensity();
+        NoiseChunk.Cache2D cache = new NoiseChunk.Cache2D(density);
+        DensityFunction.FunctionContext context = new DensityFunction.SinglePointContext(0L, 80, 0L);
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_64_PRECISE);
+        cache.compute(context);
+        assertEquals(1, density.calls.get(), "zero must not be mistaken for an initialized key");
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_32);
+        cache.compute(context);
+        assertEquals(2, density.calls.get());
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_64_PRECISE);
+        cache.compute(context);
+        assertEquals(2, density.calls.get());
+    }
+
+    @Test
     void exact2DCacheRetainsEachColumnAndStillReusesTheSameColumn() {
         FarlandsMode.setMode(FarlandsMode.Mode.BIT_64_PRECISE);
         for (long origin : new long[] {Long.MAX_VALUE - 255L, Long.MIN_VALUE + 256L}) {

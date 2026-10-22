@@ -474,8 +474,9 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
 
     static class Cache2D implements DensityFunctions.MarkerOrMarked, NoiseChunk.NoiseChunkDensityFunction {
         private final DensityFunction function;
-        private ChunkPos lastPos2D = ChunkPos.INVALID_CHUNK_POS;
-        private ColumnPos lastExactPos2D;
+        private long lastX, lastZ;
+        private long lastExactX, lastExactZ;
+        private boolean hasLastPos2D, hasLastExactPos2D;
         private double lastExactValue;
         private double lastValue;
 
@@ -487,18 +488,22 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
             long i = pContext.blockX();
             long j = pContext.blockZ();
             if (FarlandsMode.usesPreciseCoordinates()) {
-                ColumnPos column = new ColumnPos(i, j);
-                if (!column.equals(this.lastExactPos2D)) {
-                    this.lastExactPos2D = column;
+                if (!this.hasLastExactPos2D || i != this.lastExactX || j != this.lastExactZ) {
+                    this.hasLastExactPos2D = true;
+                    this.lastExactX = i;
+                    this.lastExactZ = j;
                     this.lastExactValue = this.function.compute(pContext);
                 }
                 return this.lastExactValue;
             }
-            ChunkPos k = legacyNoiseColumnKey(i, j);
-            if (k.equals(lastPos2D)) {
+            long x = Math.max(Long.MIN_VALUE >> 4, Math.min(Long.MAX_VALUE >> 4, i));
+            long z = Math.max(Long.MIN_VALUE >> 4, Math.min(Long.MAX_VALUE >> 4, j));
+            if (this.hasLastPos2D && x == this.lastX && z == this.lastZ) {
                 return this.lastValue;
             } else {
-                this.lastPos2D = k;
+                this.hasLastPos2D = true;
+                this.lastX = x;
+                this.lastZ = z;
                 double d0 = this.function.compute(pContext);
                 this.lastValue = d0;
                 return d0;

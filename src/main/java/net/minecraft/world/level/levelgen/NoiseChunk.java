@@ -173,12 +173,19 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
         long i = QuartPos.toBlock(QuartPos.fromBlock(pX));
         long j = QuartPos.toBlock(QuartPos.fromBlock(pZ));
         if (FarlandsMode.usesPreciseCoordinates()) {
-            // ChunkPos clamps to the chunk domain; these are block-column keys.
+            // Precise sampling uses unclamped block-column keys.
             return this.exactPreliminarySurfaceLevel.computeIfAbsent(new ColumnPos(i, j),
                     // The deferred worldgen noise algorithm intentionally consumes low 64 bits.
                     (ToIntFunction<ColumnPos>) column -> this.computePreliminarySurfaceLevel(column.x().lo(), column.z().lo()));
         }
-        return this.preliminarySurfaceLevel.computeIfAbsent(new ChunkPos(i, j), (ToIntFunction<ChunkPos>) this::computePreliminarySurfaceLevel);
+        return this.preliminarySurfaceLevel.computeIfAbsent(legacyNoiseColumnKey(i, j), (ToIntFunction<ChunkPos>) this::computePreliminarySurfaceLevel);
+    }
+
+    /** Preserve the pre-Int128 cache domain for legacy sampling, not world chunk identity. */
+    private static ChunkPos legacyNoiseColumnKey(long x, long z) {
+        long min = Long.MIN_VALUE >> 4;
+        long max = Long.MAX_VALUE >> 4;
+        return new ChunkPos(Math.max(min, Math.min(max, x)), Math.max(min, Math.min(max, z)));
     }
 
     private int computePreliminarySurfaceLevel(ChunkPos p_198250_) {
@@ -487,7 +494,7 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
                 }
                 return this.lastExactValue;
             }
-            ChunkPos k = new ChunkPos(i, j);
+            ChunkPos k = legacyNoiseColumnKey(i, j);
             if (k.equals(lastPos2D)) {
                 return this.lastValue;
             } else {

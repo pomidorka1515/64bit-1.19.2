@@ -343,8 +343,15 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     private static double differenceFromDouble(Int128 coordinate, double value) {
-        if (!Double.isFinite(value) || value < -0x1.0p127 || value >= 0x1.0p127) {
-            return coordinate.toDoubleSaturated() - value;
+        if (!Double.isFinite(value)) {
+            return -value;
+        }
+        if (value >= 0x1.0p127) {
+            // Subtract the exact edge first: MAX is one block below 2^127.
+            return WorldBounds.signedDifference(coordinate, Int128.MAX) - 1.0D - (value - 0x1.0p127);
+        }
+        if (value < -0x1.0p127) {
+            return WorldBounds.signedDifference(coordinate, Int128.MIN) + (-0x1.0p127 - value);
         }
         return WorldBounds.signedDifference(coordinate, Int128.fromDoubleFloorSaturated(value)) - (value - Math.floor(value));
     }

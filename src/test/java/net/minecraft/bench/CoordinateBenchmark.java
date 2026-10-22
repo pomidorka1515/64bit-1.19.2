@@ -2,6 +2,8 @@
 // asserts a timing. S10.09 compares the same named rows against this output.
 package net.minecraft.bench;
 
+import net.minecraft.core.Int128;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -181,7 +183,8 @@ class CoordinateBenchmark {
         long ops = 0L;
         for (int rep = 0; rep < 4000; ++rep) {
             for (long region : REGION_COORDS) {
-                String name = "r." + region + "." + (region ^ 0x5A5A5A5A5A5A5A5AL) + ".mca";
+                String name = net.minecraft.world.level.chunk.storage.RegionFileNames.regionFileName(
+                        Int128.fromLong(region), Int128.fromLong(region ^ 0x5A5A5A5A5A5A5A5AL));
                 checksum += name.length();
                 checksum += name.charAt(2);
                 ++ops;

@@ -1,5 +1,7 @@
 package net.minecraft.world.entity;
 
+import net.minecraft.world.level.WorldBounds;
+
 import net.minecraft.core.Int128;
 
 import net.minecraft.world.phys.SectorAABB;
@@ -499,7 +501,7 @@ public abstract class Mob extends LivingEntity {
         if (!this.level.isClientSide && this.canPickUpLoot() && this.isAlive() && !this.dead && this.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
             Vec3i vec3i = this.getPickupReach();
 
-            for (ItemEntity itementity : this.level.getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(vec3i.getX().toDoubleSaturated(), (double) vec3i.getY(), vec3i.getZ().toDoubleSaturated()))) {
+            for (ItemEntity itementity : this.level.getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(WorldBounds.signedDifference(vec3i.getX(), Int128.ZERO), (double) vec3i.getY(), WorldBounds.signedDifference(vec3i.getZ(), Int128.ZERO)))) {
                 if (!itementity.isRemoved() && !itementity.getItem().isEmpty() && !itementity.hasPickUpDelay() && this.wantsToPickUp(itementity.getItem())) {
                     this.pickUpItem(itementity);
                 }

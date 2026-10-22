@@ -10,7 +10,7 @@ public class VecDeltaCodec {
     public static final long MAX_RELATIVE_DELTA = 32767L;
     public static final long MIN_RELATIVE_DELTA = -32768L;
     /** Outside the relative wire range: ServerEntity must send an absolute teleport. */
-    public static final long ABSOLUTE_POSITION_REQUIRED = Long.MAX_VALUE;
+    public static final long ABSOLUTE_POSITION_REQUIRED = MAX_RELATIVE_DELTA + 1L;
 
     private SectorVec3 sectorBase = SectorVec3.fromApproximate(Vec3.ZERO);
     private Vec3 base = Vec3.ZERO;

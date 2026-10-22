@@ -249,18 +249,8 @@ public final class SectorVec3 {
         return this.blockX;
     }
 
-    /** Alias for the split-coordinate name used by debug and network displays. */
-    public long sectorX() {
-        return this.blockX.lo();
-    }
-
     public Int128 blockZ() {
         return this.blockZ;
-    }
-
-    /** Alias for the split-coordinate name used by debug and network displays. */
-    public long sectorZ() {
-        return this.blockZ.lo();
     }
 
     public long blockXHi() { return this.blockX.hi(); }

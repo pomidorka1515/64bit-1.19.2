@@ -17,8 +17,10 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ThreadFactory;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import net.minecraft.core.Int128;
+import net.minecraft.world.level.WorldBounds;
+import net.minecraft.world.level.chunk.storage.RegionFileNames;
+import net.minecraft.world.level.chunk.storage.RegionPos;
 import net.minecraft.ReportedException;
 import net.minecraft.SharedConstants;
 import net.minecraft.Util;
@@ -52,7 +54,6 @@ public class WorldUpgrader {
     private volatile int skipped;
     private final Object2FloatMap<ResourceKey<Level>> progressMap = Object2FloatMaps.synchronize(new Object2FloatOpenCustomHashMap<>(Util.identityStrategy()));
     private volatile Component status = Component.translatable("optimizeWorld.stage.counting");
-    private static final Pattern REGEX = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
     private final DimensionDataStorage overworldDataStorage;
 
     public WorldUpgrader(LevelStorageSource.LevelStorageAccess pLevelStorage, DataFixer pDataFixer, WorldGenSettings pWorldGenSettings, boolean pEraseCache) {
@@ -201,6 +202,10 @@ public class WorldUpgrader {
     private List<ChunkPos> getAllChunkPos(ResourceKey<Level> p_18831_) {
         File file1 = this.levelStorage.getDimensionPath(p_18831_).toFile();
         File file2 = new File(file1, "region");
+        return getAllChunkPos(file2);
+    }
+
+    static List<ChunkPos> getAllChunkPos(File file2) {
         File[] afile = file2.listFiles((p_18822_, p_18823_) -> {
             return p_18823_.endsWith(".mca");
         });
@@ -210,10 +215,10 @@ public class WorldUpgrader {
             List<ChunkPos> list = Lists.newArrayList();
 
             for (File file3 : afile) {
-                Matcher matcher = REGEX.matcher(file3.getName());
-                if (matcher.matches()) {
-                    int i = Integer.parseInt(matcher.group(1)) << 5;
-                    int j = Integer.parseInt(matcher.group(2)) << 5;
+                RegionPos region = RegionFileNames.parseRegionFileName(file3.getName()).orElse(null);
+                if (region != null && isRegionInBounds(region)) {
+                    Int128 i = region.x().shiftLeftSaturated(5);
+                    Int128 j = region.z().shiftLeftSaturated(5);
 
                     try {
                         RegionFile regionfile = new RegionFile(file3.toPath(), file2.toPath(), true);
@@ -221,7 +226,7 @@ public class WorldUpgrader {
                         try {
                             for (int k = 0; k < 32; ++k) {
                                 for (int l = 0; l < 32; ++l) {
-                                    ChunkPos chunkpos = new ChunkPos(k + i, l + j);
+                                    ChunkPos chunkpos = new ChunkPos(i.add(Int128.fromLong(k)), j.add(Int128.fromLong(l)));
                                     if (regionfile.doesChunkExist(chunkpos)) {
                                         list.add(chunkpos);
                                     }
@@ -245,6 +250,13 @@ public class WorldUpgrader {
 
             return list;
         }
+    }
+
+    private static boolean isRegionInBounds(RegionPos region) {
+        Int128 min = WorldBounds.MIN_CHUNK.shiftRight(5);
+        Int128 max = WorldBounds.MAX_CHUNK.shiftRight(5);
+        return region.x().compareTo(min) >= 0 && region.x().compareTo(max) <= 0
+                && region.z().compareTo(min) >= 0 && region.z().compareTo(max) <= 0;
     }
 
     public boolean isFinished() {

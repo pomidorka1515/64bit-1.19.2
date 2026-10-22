@@ -525,10 +525,11 @@ public abstract class AbstractMinecart extends Entity {
             }
         }
 
-        double d23 = 0.5D + vec3i.getX().toDoubleSaturated() * 0.5D;
-        double d10 = 0.5D + vec3i.getZ().toDoubleSaturated() * 0.5D;
-        double d12 = 0.5D + vec3i1.getX().toDoubleSaturated() * 0.5D;
-        double d13 = 0.5D + vec3i1.getZ().toDoubleSaturated() * 0.5D;
+        // Rail exits are local unit offsets, not world coordinates.
+        double d23 = 0.5D + vec3i.getXLo() * 0.5D;
+        double d10 = 0.5D + vec3i.getZLo() * 0.5D;
+        double d12 = 0.5D + vec3i1.getXLo() * 0.5D;
+        double d13 = 0.5D + vec3i1.getZLo() * 0.5D;
         d4 = d12 - d23;
         d5 = d13 - d10;
         double d14;
@@ -698,12 +699,12 @@ public abstract class AbstractMinecart extends Entity {
         Pair<Vec3i, Vec3i> pair = exits(railshape);
         Vec3i firstExit = pair.getFirst();
         Vec3i secondExit = pair.getSecond();
-        double startX = 0.5D + firstExit.getX().toDoubleSaturated() * 0.5D;
+        double startX = 0.5D + firstExit.getXLo() * 0.5D;
         double startY = (double) blockY + 0.0625D + (double) firstExit.getY() * 0.5D;
-        double startZ = 0.5D + firstExit.getZ().toDoubleSaturated() * 0.5D;
-        double endX = 0.5D + secondExit.getX().toDoubleSaturated() * 0.5D;
+        double startZ = 0.5D + firstExit.getZLo() * 0.5D;
+        double endX = 0.5D + secondExit.getXLo() * 0.5D;
         double endY = (double) blockY + 0.0625D + (double) secondExit.getY() * 0.5D;
-        double endZ = 0.5D + secondExit.getZ().toDoubleSaturated() * 0.5D;
+        double endZ = 0.5D + secondExit.getZLo() * 0.5D;
         double directionX = endX - startX;
         double directionY = (endY - startY) * 2.0D;
         double directionZ = endZ - startZ;

@@ -36,6 +36,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -132,7 +133,7 @@ public class KeyboardHandler {
                         }
 
                         this.debugFeedbackTranslated("debug.copy_location.message");
-                        this.setClipboard(String.format(Locale.ROOT, "/execute in %s run tp @s %.2f %.2f %.2f %.2f %.2f", this.minecraft.player.level.dimension().location(), this.minecraft.player.getX(), this.minecraft.player.getY(), this.minecraft.player.getZ(), this.minecraft.player.getYRot(), this.minecraft.player.getXRot()));
+                        this.setClipboard(formatDebugTeleportCommand(this.minecraft.player.level.dimension().location(), this.minecraft.player.sectorPosition(), this.minecraft.player.getYRot(), this.minecraft.player.getXRot()));
                         return true;
                     }
                 case 68:
@@ -426,6 +427,11 @@ public class KeyboardHandler {
                                                                                                                 }); }, (p_90935_, p_90936_, p_90937_) -> { this.minecraft.execute(() -> {
                                                                                                                                                                                                                                                                this.charTyped(p_90935_, p_90936_, p_90937_);
                                                                                                                                                                                                                                                            }); });
+    }
+
+    static String formatDebugTeleportCommand(ResourceLocation dimension, SectorVec3 position, float yaw, float pitch) {
+        return String.format(Locale.ROOT, "/execute in %s run tp @s %s %.2f %s %.2f %.2f",
+                dimension, position.formatX(2), position.y(), position.formatZ(2), yaw, pitch);
     }
 
     public String getClipboard() {

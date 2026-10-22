@@ -177,7 +177,7 @@ public class EntityRenderDispatcher implements ResourceManagerReloadListener {
         SectorVec3 exactPosition = pEntity.interpolatedExactPosition(pPartialTicks);
         // F3+B displays physical bounds, not the (occasionally enlarged) culling
         // bounds used by renderers such as the minecart renderer.
-        SectorAABB exactBounds = pEntity.getBoundingBox().getSectorBounds();
+        SectorAABB exactBounds = pEntity.getSectorBoundingBox();
         AABB aabb;
         if (exactBounds != null) {
             Vec3 interpolationDelta = exactPosition.relativeTo(pEntity.sectorPosition());

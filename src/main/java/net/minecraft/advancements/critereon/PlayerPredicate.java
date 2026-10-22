@@ -28,6 +28,7 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -105,12 +106,12 @@ public class PlayerPredicate implements EntitySubPredicate {
             }
 
             if (this.lookingAt != EntityPredicate.ANY) {
-                Vec3 vec3 = serverplayer.getEyePosition();
+                SectorVec3 eye = serverplayer.exactEyePosition();
                 Vec3 vec31 = serverplayer.getViewVector(1.0F);
-                Vec3 vec32 = vec3.add(vec31.x * 100.0D, vec31.y * 100.0D, vec31.z * 100.0D);
-                EntityHitResult entityhitresult = ProjectileUtil.getEntityHitResult(serverplayer.level, serverplayer, vec3, vec32, (new AABB(vec3, vec32)).inflate(1.0D), (p_156765_) -> {
+                SectorVec3 end = eye.add(vec31.x * 100.0D, vec31.y * 100.0D, vec31.z * 100.0D);
+                EntityHitResult entityhitresult = ProjectileUtil.getSectorEntityHitResult(serverplayer, eye, end, (p_156765_) -> {
                     return !p_156765_.isSpectator();
-                }, 0.0F);
+                }, 1.0D);
                 if (entityhitresult == null || entityhitresult.getType() != HitResult.Type.ENTITY) {
                     return false;
                 }

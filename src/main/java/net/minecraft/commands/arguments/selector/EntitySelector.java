@@ -135,8 +135,8 @@ public class EntitySelector {
 
             return Collections.emptyList();
         } else {
-            Vec3 vec3 = this.position.apply(pSource.getPosition());
             SectorVec3 exactOrigin = this.exactOrigin(pSource);
+            Vec3 vec3 = exactOrigin.toExactVec3();
             this.exactOriginForSorting = exactOrigin;
             Predicate<Entity> predicate = this.getPredicate(vec3, exactOrigin);
             if (this.currentEntity) {
@@ -183,8 +183,8 @@ public class EntitySelector {
             ServerPlayer serverplayer1 = pSource.getServer().getPlayerList().getPlayer(this.entityUUID);
             return (List<ServerPlayer>) (serverplayer1 == null ? Collections.emptyList() : Lists.newArrayList(serverplayer1));
         } else {
-            Vec3 vec3 = this.position.apply(pSource.getPosition());
             SectorVec3 exactOrigin = this.exactOrigin(pSource);
+            Vec3 vec3 = exactOrigin.toExactVec3();
             this.exactOriginForSorting = exactOrigin;
             Predicate<Entity> predicate = this.getPredicate(vec3, exactOrigin);
             if (this.currentEntity) {
@@ -229,8 +229,6 @@ public class EntitySelector {
         if (this.aabb != null) {
             SectorAABB aabb = this.exactBox(exactOrigin);
             predicate = predicate.and((entity) -> {
-                if (entity.exactPosition() == null)
-                    return AABB.fromSectorBounds(aabb).intersects(entity.getBoundingBox());
                 return entity.getSectorBoundingBox().intersects(aabb);
             });
         }
@@ -265,7 +263,7 @@ public class EntitySelector {
         SectorVec3 origin = this.exactOriginForSorting;
         if (origin == null)
             return Double.POSITIVE_INFINITY;
-        return entity.exactPosition() != null ? distanceSquared(entity.exactPosition(), origin) : entity.distanceToSqr(origin.toApproximateVec3());
+        return distanceSquared(entity.sectorPosition(), origin);
     }
 
     private SectorAABB exactBox(SectorVec3 origin) {

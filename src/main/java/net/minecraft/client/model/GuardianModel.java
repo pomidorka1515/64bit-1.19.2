@@ -91,9 +91,9 @@ public class GuardianModel extends HierarchicalModel<Guardian> {
         }
 
         if (entity != null) {
-            Vec3 vec3 = entity.getEyePosition(0.0F);
-            Vec3 vec31 = pEntity.getEyePosition(0.0F);
-            double d0 = vec3.y - vec31.y;
+            net.minecraft.world.phys.SectorVec3 vec3 = entity.interpolatedExactPosition(0.0F).add(0.0D, entity.getEyeHeight(), 0.0D);
+            net.minecraft.world.phys.SectorVec3 vec31 = pEntity.interpolatedExactPosition(0.0F).add(0.0D, pEntity.getEyeHeight(), 0.0D);
+            double d0 = vec3.y() - vec31.y();
             if (d0 > 0.0D) {
                 this.eye.y = 0.0F;
             } else {
@@ -102,7 +102,7 @@ public class GuardianModel extends HierarchicalModel<Guardian> {
 
             Vec3 vec32 = pEntity.getViewVector(0.0F);
             vec32 = new Vec3(vec32.x, 0.0D, vec32.z);
-            Vec3 difference = vec31.subtract(vec3);
+            Vec3 difference = vec31.relativeTo(vec3);
             Vec3 vec33 = (new Vec3(difference.x, 0.0D, difference.z)).normalize().yRot(((float) Math.PI / 2F));
             double d1 = vec32.dot(vec33);
             this.eye.x = Mth.sqrt((float) Math.abs(d1)) * 2.0F * (float) Math.signum(d1);

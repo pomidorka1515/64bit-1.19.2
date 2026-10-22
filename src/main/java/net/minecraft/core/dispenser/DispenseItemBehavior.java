@@ -296,7 +296,8 @@ public interface DispenseItemBehavior {
         DispenserBlock.registerBehavior(Items.FIREWORK_ROCKET, new DefaultDispenseItemBehavior() {
             public ItemStack execute(BlockSource p_123547_, ItemStack p_123548_) {
                 Direction direction = p_123547_.getBlockState().getValue(DispenserBlock.FACING);
-                FireworkRocketEntity fireworkrocketentity = new FireworkRocketEntity(p_123547_.getLevel(), p_123548_, p_123547_.x(), p_123547_.y(), p_123547_.x(), true);
+                FireworkRocketEntity fireworkrocketentity = new FireworkRocketEntity(p_123547_.getLevel(), p_123548_, 0.0D, p_123547_.y(), 0.0D, true);
+                fireworkrocketentity.applyExactPosition(p_123547_.exactPosition());
                 DispenseItemBehavior.setEntityPokingOutOfBlock(p_123547_, fireworkrocketentity, direction);
                 fireworkrocketentity.shoot((double) direction.getStepX(), (double) direction.getStepY(), (double) direction.getStepZ(), 0.5F, 1.0F);
                 p_123547_.getLevel().addFreshEntity(fireworkrocketentity);

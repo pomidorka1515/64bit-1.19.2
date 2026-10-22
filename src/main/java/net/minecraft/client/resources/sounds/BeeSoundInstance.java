@@ -52,7 +52,7 @@ public abstract class BeeSoundInstance extends AbstractTickableSoundInstance {
         if (this.bee.hasSectorPosition()) {
             this.setExactPosition(this.bee.sectorPosition());
         } else {
-            this.setPosition(this.bee.getX(), this.bee.getY(), this.bee.getZ());
+            this.setExactPosition(this.bee.sectorPosition());
         }
     }
 

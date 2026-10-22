@@ -166,7 +166,7 @@ public class GameEventListenerRenderer implements DebugRenderer.SimpleDebugRende
         }
 
         public Optional<Vec3> getPosition(Level pLevel) {
-            return this.listenerSource.getPosition(pLevel);
+            return this.listenerSource.exactPosition(pLevel).map(SectorVec3::toExactVec3);
         }
 
         public PositionSource getListenerSource() {

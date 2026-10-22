@@ -20,7 +20,7 @@ public class RemotePlayer extends AbstractClientPlayer {
     }
 
     public boolean shouldRenderAtSqrDistance(double pDistance) {
-        double d0 = this.getBoundingBox().getSize() * 10.0D;
+        double d0 = this.getSectorBoundingBox().getSize() * 10.0D;
         if (Double.isNaN(d0)) {
             d0 = 1.0D;
         }
@@ -46,11 +46,6 @@ public class RemotePlayer extends AbstractClientPlayer {
                 net.minecraft.world.phys.Vec3 delta = this.exactLerpTarget.relativeTo(this.sectorPosition());
                 this.applyExactPosition(this.sectorPosition().add(delta.x / (double) this.lerpSteps,
                         delta.y / (double) this.lerpSteps, delta.z / (double) this.lerpSteps));
-            } else {
-                double d0 = this.getX() + (this.lerpX - this.getX()) / (double) this.lerpSteps;
-                double d1 = this.getY() + (this.lerpY - this.getY()) / (double) this.lerpSteps;
-                double d2 = this.getZ() + (this.lerpZ - this.getZ()) / (double) this.lerpSteps;
-                this.setPos(d0, d1, d2);
             }
             --this.lerpSteps;
             if (this.lerpSteps == 0)

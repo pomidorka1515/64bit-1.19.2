@@ -368,7 +368,7 @@ public class BrainDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
 
         public BrainDump(UUID pUuid, int pId, String pName, String pProfession, int pXp, float pHealth, float pMaxHealth, Position pPos, String pInventory, @Nullable Path pPath, boolean pWantsGolem, int pAngerLevel) {
             this(pUuid, pId, pName, pProfession, pXp, pHealth, pMaxHealth,
-                    SectorVec3.fromApproximate(pPos.x(), pPos.y(), pPos.z()),
+                    pPos.exactPosition(),
                     pInventory, pPath, pWantsGolem, pAngerLevel);
         }
 

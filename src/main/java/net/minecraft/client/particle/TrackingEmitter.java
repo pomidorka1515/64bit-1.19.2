@@ -37,10 +37,7 @@ public class TrackingEmitter extends NoRenderParticle {
             double d1 = (double) (this.random.nextFloat() * 2.0F - 1.0F);
             double d2 = (double) (this.random.nextFloat() * 2.0F - 1.0F);
             if (!(d0 * d0 + d1 * d1 + d2 * d2 > 1.0D)) {
-                SectorVec3 position = this.entity.exactPosition();
-                if (position == null) {
-                    position = SectorVec3.fromApproximate(this.entity.getX(), this.entity.getY(), this.entity.getZ());
-                }
+                SectorVec3 position = this.entity.sectorPosition();
                 position = position.add(d0 / 4.0D, this.entity.getBbHeight() * (0.5D + d1 / 4.0D), d2 / 4.0D);
                 this.level.addParticle(this.particleType, false, position, d0, d1 + 0.2D, d2);
             }

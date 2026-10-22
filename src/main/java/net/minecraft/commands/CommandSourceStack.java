@@ -97,7 +97,7 @@ public class CommandSourceStack implements SharedSuggestionProvider {
 
     public CommandSourceStack withEntity(Entity entity) {
         SectorVec3 exact = entity.exactPosition();
-        Vec3 position = exact == null ? entity.position() : exact.toApproximateVec3();
+        Vec3 position = exact.toExactVec3();
         return this.entity == entity ? this : new CommandSourceStack(this.source, position, exact, this.rotation, this.level, this.permissionLevel, entity.getName().getString(), entity.getDisplayName(), this.server, entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
     }
 
@@ -106,7 +106,7 @@ public class CommandSourceStack implements SharedSuggestionProvider {
     }
 
     public CommandSourceStack withExactPosition(SectorVec3 position) {
-        return this.exactPosition.equals(position) ? this : new CommandSourceStack(this.source, position.toApproximateVec3(), position, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
+        return this.exactPosition.equals(position) ? this : new CommandSourceStack(this.source, position.toExactVec3(), position, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
     }
 
     public CommandSourceStack withRotation(Vec2 pRotation) {
@@ -146,7 +146,7 @@ public class CommandSourceStack implements SharedSuggestionProvider {
             double scale = DimensionType.getTeleportationScale(this.level.dimensionType(), level.dimensionType());
             exact = scaleExact(this.exactPosition, scale);
         }
-        return new CommandSourceStack(this.source, exact.toApproximateVec3(), exact, this.rotation, level, this.permissionLevel, this.textName,
+        return new CommandSourceStack(this.source, exact.toExactVec3(), exact, this.rotation, level, this.permissionLevel, this.textName,
                 this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
     }
 

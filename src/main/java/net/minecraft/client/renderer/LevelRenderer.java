@@ -1256,9 +1256,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                 if ((this.level.isOutsideBuildHeight(blockpos.getY()) || this.isChunkCompiled(blockpos)) && (entity != pCamera.getEntity() || pCamera.isDetached() || pCamera.getEntity() instanceof LivingEntity && ((LivingEntity) pCamera.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || pCamera.getEntity() == entity)) {
                     ++this.renderedEntities;
                     if (entity.tickCount == 0) {
-                        entity.xOld = entity.getX();
-                        entity.yOld = entity.getY();
-                        entity.zOld = entity.getZ();
+                        entity.setOldExactPosition(entity.sectorPosition());
                     }
 
                     MultiBufferSource multibuffersource;
@@ -1501,17 +1499,9 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
     private void renderEntity(Entity pEntity, double pCamX, double pCamY, double pCamZ, float pPartialTick, PoseStack pPoseStack, MultiBufferSource pBufferSource) {
         SectorVec3 exact = pEntity.interpolatedExactPosition(pPartialTick);
         SectorVec3 camera = this.exactRenderCameraPosition;
-        if (exact != null && camera != null) {
-            Vec3 local = exact.relativeTo(camera);
-            float f = Mth.lerp(pPartialTick, pEntity.yRotO, pEntity.getYRot());
-            this.entityRenderDispatcher.render(pEntity, local.x, local.y, local.z, f, pPartialTick, pPoseStack, pBufferSource, this.entityRenderDispatcher.getPackedLightCoords(pEntity, pPartialTick));
-            return;
-        }
-        double d0 = Mth.lerp((double) pPartialTick, pEntity.xOld, pEntity.getX());
-        double d1 = Mth.lerp((double) pPartialTick, pEntity.yOld, pEntity.getY());
-        double d2 = Mth.lerp((double) pPartialTick, pEntity.zOld, pEntity.getZ());
+        Vec3 local = exact.relativeTo(java.util.Objects.requireNonNull(camera, "exact render camera"));
         float f = Mth.lerp(pPartialTick, pEntity.yRotO, pEntity.getYRot());
-        this.entityRenderDispatcher.render(pEntity, d0 - pCamX, d1 - pCamY, d2 - pCamZ, f, pPartialTick, pPoseStack, pBufferSource, this.entityRenderDispatcher.getPackedLightCoords(pEntity, pPartialTick));
+        this.entityRenderDispatcher.render(pEntity, local.x, local.y, local.z, f, pPartialTick, pPoseStack, pBufferSource, this.entityRenderDispatcher.getPackedLightCoords(pEntity, pPartialTick));
     }
 
     private void renderChunkLayer(RenderType pRenderType, PoseStack pPoseStack, double pCamX, double pCamY, double pCamZ, Matrix4f pProjectionMatrix) {
@@ -2267,12 +2257,17 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
         WorldBorder worldborder = this.level.getWorldBorder();
         double d0 = (double) (this.minecraft.options.getEffectiveRenderDistance() * 16);
-        if (!(pCamera.getPosition().x < worldborder.getMaxX() - d0) || !(pCamera.getPosition().x > worldborder.getMinX() + d0) || !(pCamera.getPosition().z < worldborder.getMaxZ() - d0) || !(pCamera.getPosition().z > worldborder.getMinZ() + d0)) {
-            double d1 = 1.0D - worldborder.getDistanceToBorder(pCamera.getPosition().x, pCamera.getPosition().z) / d0;
+        Vec3 center = worldborder.getExactCenter().relativeTo(pCamera.exactPosition());
+        double minX = center.x - worldborder.getSize() / 2.0D;
+        double maxX = center.x + worldborder.getSize() / 2.0D;
+        double minZ = center.z - worldborder.getSize() / 2.0D;
+        double maxZ = center.z + worldborder.getSize() / 2.0D;
+        if (maxX <= d0 || minX >= -d0 || maxZ <= d0 || minZ >= -d0) {
+            double d1 = 1.0D - worldborder.getDistanceToBorder(pCamera.exactPosition()) / d0;
             d1 = Math.pow(d1, 4.0D);
             d1 = Mth.clamp(d1, 0.0D, 1.0D);
-            double d2 = pCamera.getPosition().x;
-            double d3 = pCamera.getPosition().z;
+            double d2 = 0.0D;
+            double d3 = 0.0D;
             double d4 = (double) this.minecraft.gameRenderer.getDepthFar();
             RenderSystem.enableBlend();
             RenderSystem.enableDepthTest();
@@ -2296,62 +2291,62 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             float f5 = 0.0F;
             float f6 = (float) (d4 - Mth.frac(pCamera.getPosition().y));
             bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-            double d5 = Math.max((double) Mth.floor(d3 - d0), worldborder.getMinZ());
-            double d6 = Math.min((double) Mth.ceil(d3 + d0), worldborder.getMaxZ());
-            if (d2 > worldborder.getMaxX() - d0) {
+            double d5 = Math.max(Math.floor(-d0 + pCamera.exactPosition().subZ()) - pCamera.exactPosition().subZ(), minZ);
+            double d6 = Math.min(Math.ceil(d0 + pCamera.exactPosition().subZ()) - pCamera.exactPosition().subZ(), maxZ);
+            if (d2 > maxX - d0) {
                 float f7 = 0.0F;
 
                 for (double d7 = d5; d7 < d6; f7 += 0.5F) {
                     double d8 = Math.min(1.0D, d6 - d7);
                     float f8 = (float) d8 * 0.5F;
-                    bufferbuilder.vertex(worldborder.getMaxX() - d2, -d4, d7 - d3).uv(f3 - f7, f3 + f6).endVertex();
-                    bufferbuilder.vertex(worldborder.getMaxX() - d2, -d4, d7 + d8 - d3).uv(f3 - (f8 + f7), f3 + f6).endVertex();
-                    bufferbuilder.vertex(worldborder.getMaxX() - d2, d4, d7 + d8 - d3).uv(f3 - (f8 + f7), f3 + 0.0F).endVertex();
-                    bufferbuilder.vertex(worldborder.getMaxX() - d2, d4, d7 - d3).uv(f3 - f7, f3 + 0.0F).endVertex();
+                    bufferbuilder.vertex(maxX, -d4, d7 - d3).uv(f3 - f7, f3 + f6).endVertex();
+                    bufferbuilder.vertex(maxX, -d4, d7 + d8 - d3).uv(f3 - (f8 + f7), f3 + f6).endVertex();
+                    bufferbuilder.vertex(maxX, d4, d7 + d8 - d3).uv(f3 - (f8 + f7), f3 + 0.0F).endVertex();
+                    bufferbuilder.vertex(maxX, d4, d7 - d3).uv(f3 - f7, f3 + 0.0F).endVertex();
                     ++d7;
                 }
             }
 
-            if (d2 < worldborder.getMinX() + d0) {
+            if (d2 < minX + d0) {
                 float f9 = 0.0F;
 
                 for (double d9 = d5; d9 < d6; f9 += 0.5F) {
                     double d12 = Math.min(1.0D, d6 - d9);
                     float f12 = (float) d12 * 0.5F;
-                    bufferbuilder.vertex(worldborder.getMinX() - d2, -d4, d9 - d3).uv(f3 + f9, f3 + f6).endVertex();
-                    bufferbuilder.vertex(worldborder.getMinX() - d2, -d4, d9 + d12 - d3).uv(f3 + f12 + f9, f3 + f6).endVertex();
-                    bufferbuilder.vertex(worldborder.getMinX() - d2, d4, d9 + d12 - d3).uv(f3 + f12 + f9, f3 + 0.0F).endVertex();
-                    bufferbuilder.vertex(worldborder.getMinX() - d2, d4, d9 - d3).uv(f3 + f9, f3 + 0.0F).endVertex();
+                    bufferbuilder.vertex(minX, -d4, d9 - d3).uv(f3 + f9, f3 + f6).endVertex();
+                    bufferbuilder.vertex(minX, -d4, d9 + d12 - d3).uv(f3 + f12 + f9, f3 + f6).endVertex();
+                    bufferbuilder.vertex(minX, d4, d9 + d12 - d3).uv(f3 + f12 + f9, f3 + 0.0F).endVertex();
+                    bufferbuilder.vertex(minX, d4, d9 - d3).uv(f3 + f9, f3 + 0.0F).endVertex();
                     ++d9;
                 }
             }
 
-            d5 = Math.max((double) Mth.floor(d2 - d0), worldborder.getMinX());
-            d6 = Math.min((double) Mth.ceil(d2 + d0), worldborder.getMaxX());
-            if (d3 > worldborder.getMaxZ() - d0) {
+            d5 = Math.max(Math.floor(-d0 + pCamera.exactPosition().subX()) - pCamera.exactPosition().subX(), minX);
+            d6 = Math.min(Math.ceil(d0 + pCamera.exactPosition().subX()) - pCamera.exactPosition().subX(), maxX);
+            if (d3 > maxZ - d0) {
                 float f10 = 0.0F;
 
                 for (double d10 = d5; d10 < d6; f10 += 0.5F) {
                     double d13 = Math.min(1.0D, d6 - d10);
                     float f13 = (float) d13 * 0.5F;
-                    bufferbuilder.vertex(d10 - d2, -d4, worldborder.getMaxZ() - d3).uv(f3 + f10, f3 + f6).endVertex();
-                    bufferbuilder.vertex(d10 + d13 - d2, -d4, worldborder.getMaxZ() - d3).uv(f3 + f13 + f10, f3 + f6).endVertex();
-                    bufferbuilder.vertex(d10 + d13 - d2, d4, worldborder.getMaxZ() - d3).uv(f3 + f13 + f10, f3 + 0.0F).endVertex();
-                    bufferbuilder.vertex(d10 - d2, d4, worldborder.getMaxZ() - d3).uv(f3 + f10, f3 + 0.0F).endVertex();
+                    bufferbuilder.vertex(d10 - d2, -d4, maxZ).uv(f3 + f10, f3 + f6).endVertex();
+                    bufferbuilder.vertex(d10 + d13 - d2, -d4, maxZ).uv(f3 + f13 + f10, f3 + f6).endVertex();
+                    bufferbuilder.vertex(d10 + d13 - d2, d4, maxZ).uv(f3 + f13 + f10, f3 + 0.0F).endVertex();
+                    bufferbuilder.vertex(d10 - d2, d4, maxZ).uv(f3 + f10, f3 + 0.0F).endVertex();
                     ++d10;
                 }
             }
 
-            if (d3 < worldborder.getMinZ() + d0) {
+            if (d3 < minZ + d0) {
                 float f11 = 0.0F;
 
                 for (double d11 = d5; d11 < d6; f11 += 0.5F) {
                     double d14 = Math.min(1.0D, d6 - d11);
                     float f14 = (float) d14 * 0.5F;
-                    bufferbuilder.vertex(d11 - d2, -d4, worldborder.getMinZ() - d3).uv(f3 - f11, f3 + f6).endVertex();
-                    bufferbuilder.vertex(d11 + d14 - d2, -d4, worldborder.getMinZ() - d3).uv(f3 - (f14 + f11), f3 + f6).endVertex();
-                    bufferbuilder.vertex(d11 + d14 - d2, d4, worldborder.getMinZ() - d3).uv(f3 - (f14 + f11), f3 + 0.0F).endVertex();
-                    bufferbuilder.vertex(d11 - d2, d4, worldborder.getMinZ() - d3).uv(f3 - f11, f3 + 0.0F).endVertex();
+                    bufferbuilder.vertex(d11 - d2, -d4, minZ).uv(f3 - f11, f3 + f6).endVertex();
+                    bufferbuilder.vertex(d11 + d14 - d2, -d4, minZ).uv(f3 - (f14 + f11), f3 + f6).endVertex();
+                    bufferbuilder.vertex(d11 + d14 - d2, d4, minZ).uv(f3 - (f14 + f11), f3 + 0.0F).endVertex();
+                    bufferbuilder.vertex(d11 - d2, d4, minZ).uv(f3 - f11, f3 + 0.0F).endVertex();
                     ++d11;
                 }
             }

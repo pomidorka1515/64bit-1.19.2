@@ -560,11 +560,10 @@ public class ClientPacketListener implements ClientGamePacketListener {
             player.removeVehicle();
         }
 
-        Vec3 vec3 = player.getDeltaMovement();
         SectorVec3 exactPacketPosition = pPacket.getExactPosition();
         // The custom sector wire format carries an absolute split-coordinate target.
         // Do not interpret its compatibility double mirrors as relative coordinates.
-        if (exactPacketPosition != null && player.hasSectorPosition()) {
+        {
             float yRot = pPacket.getYRot();
             float xRot = pPacket.getXRot();
             if (pPacket.getRelativeArguments().contains(ClientboundPlayerPositionPacket.RelativeArgument.X_ROT)) {
@@ -574,101 +573,14 @@ public class ClientPacketListener implements ClientGamePacketListener {
                 yRot += player.getYRot();
             }
             player.applyExactPosition(exactPacketPosition);
-            Vec3 approximate = exactPacketPosition.toApproximateVec3();
-            player.xo = approximate.x;
-            player.yo = approximate.y;
-            player.zo = approximate.z;
-            player.xOld = approximate.x;
-            player.yOld = approximate.y;
-            player.zOld = approximate.z;
+            player.setOldExactPosition(exactPacketPosition);
             player.setDeltaMovement(Vec3.ZERO);
             player.setYRot(yRot % 360.0F);
             player.setXRot(Mth.clamp(xRot, -90.0F, 90.0F) % 360.0F);
             player.yRotO = player.getYRot();
             player.xRotO = player.getXRot();
             this.connection.send(new ServerboundAcceptTeleportationPacket(pPacket.getId()));
-            return;
         }
-
-        boolean flag = pPacket.getRelativeArguments().contains(ClientboundPlayerPositionPacket.RelativeArgument.X);
-        boolean flag1 = pPacket.getRelativeArguments().contains(ClientboundPlayerPositionPacket.RelativeArgument.Y);
-        boolean flag2 = pPacket.getRelativeArguments().contains(ClientboundPlayerPositionPacket.RelativeArgument.Z);
-        double d0;
-        double d1;
-        if (flag) {
-            d0 = vec3.x();
-            d1 = player.getX() + pPacket.getX();
-            player.xOld += pPacket.getX();
-        } else {
-            d0 = 0.0D;
-            d1 = pPacket.getX();
-            player.xOld = d1;
-        }
-
-        double d2;
-        double d3;
-        if (flag1) {
-            d2 = vec3.y();
-            d3 = player.getY() + pPacket.getY();
-            player.yOld += pPacket.getY();
-        } else {
-            d2 = 0.0D;
-            d3 = pPacket.getY();
-            player.yOld = d3;
-        }
-
-        double d4;
-        double d5;
-        if (flag2) {
-            d4 = vec3.z();
-            d5 = player.getZ() + pPacket.getZ();
-            player.zOld += pPacket.getZ();
-        } else {
-            d4 = 0.0D;
-            d5 = pPacket.getZ();
-            player.zOld = d5;
-        }
-
-        if (exactPacketPosition != null && player.hasSectorPosition() && !flag && !flag2) {
-            player.applyExactPosition(exactPacketPosition);
-        } else if (exactPacketPosition != null && player.hasSectorPosition()) {
-            SectorVec3 target = exactPacketPosition;
-            if (flag)
-                target = player.sectorPosition().add(pPacket.getX(), 0.0D, 0.0D);
-            if (flag1)
-                target = target.withY(player.getY() + pPacket.getY());
-            if (flag2)
-                target = target.add(0.0D, 0.0D, pPacket.getZ());
-            player.applyExactPosition(target);
-        } else {
-            player.setPosRaw(d1, d3, d5);
-        }
-        player.xo = d1;
-        player.yo = d3;
-        player.zo = d5;
-        player.setDeltaMovement(d0, d2, d4);
-        float f = pPacket.getYRot();
-        float f1 = pPacket.getXRot();
-        if (pPacket.getRelativeArguments().contains(ClientboundPlayerPositionPacket.RelativeArgument.X_ROT)) {
-            f1 += player.getXRot();
-        }
-
-        if (pPacket.getRelativeArguments().contains(ClientboundPlayerPositionPacket.RelativeArgument.Y_ROT)) {
-            f += player.getYRot();
-        }
-
-        if (exactPacketPosition == null || !player.hasSectorPosition()) {
-            player.absMoveTo(d1, d3, d5, f, f1);
-        } else {
-            // absMoveTo() is an approximate-double ingress and would quantize the
-            // exact target we just installed. Only apply the packet rotations here.
-            player.setYRot(f % 360.0F);
-            player.setXRot(Mth.clamp(f1, -90.0F, 90.0F) % 360.0F);
-        }
-        this.connection.send(new ServerboundAcceptTeleportationPacket(pPacket.getId()));
-        this.connection.send(player.hasSectorPosition()
-                        ? new ServerboundMovePlayerPacket.PosRot(player.sectorPosition(), player.getYRot(), player.getXRot(), false)
-                        : new ServerboundMovePlayerPacket.PosRot(player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot(), false));
     }
 
     public void handleChatPreview(ClientboundChatPreviewPacket pPacket) {

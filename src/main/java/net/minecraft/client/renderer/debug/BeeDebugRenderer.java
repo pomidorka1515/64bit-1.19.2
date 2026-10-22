@@ -338,7 +338,7 @@ public class BeeDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
         public final Set<BlockPos> blacklistedHives = Sets.newHashSet();
 
         public BeeInfo(UUID pUuid, int pId, Position pPos, @Nullable Path pPath, @Nullable BlockPos pHivePos, @Nullable BlockPos pFlowerPos, int pTravelTicks) {
-            this(pUuid, pId, SectorVec3.fromApproximate(pPos.x(), pPos.y(), pPos.z()),
+            this(pUuid, pId, pPos.exactPosition(),
                     pPath, pHivePos, pFlowerPos, pTravelTicks);
         }
 

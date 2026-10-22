@@ -154,15 +154,15 @@ public class DebugRenderer {
     }
 
     public static void renderFloatingText(String pText, int pX, int pY, int pZ, int pColor) {
-        renderFloatingText(pText, (double) pX + 0.5D, (double) pY + 0.5D, (double) pZ + 0.5D, pColor);
+        renderFloatingText(pText, SectorVec3.fromBlockAndFraction(pX, 0.5D, pY + 0.5D, pZ, 0.5D), pColor, 0.02F, true, 0.0F, false);
     }
 
     public static void renderFloatingText(String pText, double pX, double pY, double pZ, int pColor) {
-        renderFloatingText(pText, pX, pY, pZ, pColor, 0.02F);
+        renderFloatingText(pText, SectorVec3.fromApproximate(pX, pY, pZ), pColor, 0.02F, true, 0.0F, false);
     }
 
     public static void renderFloatingText(String pText, double pX, double pY, double pZ, int pColor, float pScale) {
-        renderFloatingText(pText, pX, pY, pZ, pColor, pScale, true, 0.0F, false);
+        renderFloatingText(pText, SectorVec3.fromApproximate(pX, pY, pZ), pColor, pScale, true, 0.0F, false);
     }
 
     public static void renderFloatingText(String pText, double pX, double pY, double pZ, int pColor, float pScale, boolean pCenter, float pXOffset, boolean pTransparent) {

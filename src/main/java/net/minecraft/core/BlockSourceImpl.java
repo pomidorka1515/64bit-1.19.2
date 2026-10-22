@@ -18,6 +18,10 @@ public class BlockSourceImpl implements BlockSource {
         return this.level;
     }
 
+    public SectorVec3 exactPosition() {
+        return SectorVec3.fromBlockAndFraction(this.pos.getX(), 0.5D, this.y(), this.pos.getZ(), 0.5D);
+    }
+
     public double x() {
         return SectorVec3.fromBlockAndFraction(this.pos.getX(), 0.5D, this.y(), this.pos.getZ(), 0.5D).toApproximateVec3().x;
     }

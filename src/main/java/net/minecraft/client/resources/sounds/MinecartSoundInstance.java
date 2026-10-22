@@ -54,7 +54,7 @@ public class MinecartSoundInstance extends AbstractTickableSoundInstance {
         if (this.minecart.hasSectorPosition()) {
             this.setExactPosition(this.minecart.sectorPosition());
         } else {
-            this.setPosition(this.minecart.getX(), this.minecart.getY(), this.minecart.getZ());
+            this.setExactPosition(this.minecart.sectorPosition());
         }
     }
 }

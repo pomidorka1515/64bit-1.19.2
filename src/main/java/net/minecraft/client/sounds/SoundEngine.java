@@ -308,7 +308,10 @@ public class SoundEngine {
 
     static SoundEngine.SourcePosition sourcePosition(SoundInstance sound, SectorVec3 listenerPosition) {
         if (sound.isRelative()) {
-            return new SoundEngine.SourcePosition(sound.getX(), sound.getY(), sound.getZ());
+            if (sound.getExactPosition() == null)
+                return new SoundEngine.SourcePosition(0.0D, 0.0D, 0.0D);
+            Vec3 local = sound.getExactPosition().relativeTo(SectorVec3.fromApproximate(0.0D, 0.0D, 0.0D));
+            return new SoundEngine.SourcePosition(local.x, local.y, local.z);
         }
 
         SectorVec3 source = sound.getExactPosition();
@@ -321,23 +324,8 @@ public class SoundEngine {
                                                       source.relativeZ(listenerPosition));
         }
 
-        // Compatibility for third-party SoundInstance implementations. A legacy
-        // double cannot retain sub-block precision past 2^53, but converting it
-        // to a split coordinate before subtracting still guarantees that no
-        // absolute world position reaches OpenAL.
-        if (listenerPosition == null) {
-            return new SoundEngine.SourcePosition(0.0D, 0.0D, 0.0D);
-        }
-
-        try {
-            SectorVec3 legacySource = SectorVec3.fromApproximate(sound.getX(), sound.getY(), sound.getZ());
-            return new SoundEngine.SourcePosition(legacySource.relativeX(listenerPosition),
-                    legacySource.relativeY(listenerPosition), legacySource.relativeZ(listenerPosition));
-        } catch (IllegalArgumentException ignored) {
-            // A malformed extension sound must not inject NaN or infinity into a
-            // native OpenAL call. It is silently placed at the listener instead.
-            return new SoundEngine.SourcePosition(0.0D, 0.0D, 0.0D);
-        }
+        // Missing or malformed world positions must not reach native OpenAL.
+        return new SoundEngine.SourcePosition(0.0D, 0.0D, 0.0D);
     }
 
     static final class SourcePosition {

@@ -50,17 +50,7 @@ public class Camera {
         this.playerThirdPerson = pDetached && pEntity == Minecraft.getInstance().player;
         this.setRotation(pEntity.getViewYRot(pPartialTick), pEntity.getViewXRot(pPartialTick));
         SectorVec3 interpolated = pEntity.interpolatedExactPosition(pPartialTick);
-        if (interpolated != null) {
-            this.setPosition(interpolated.withY(interpolated.y() + (double) pEntity.getEyeHeight()));
-        } else {
-            // Legacy non-sector entities supply doubles; split those inputs before
-            // interpolation rather than reconstructing an absolute camera double.
-            SectorVec3 old = SectorVec3.fromApproximate(pEntity.xo, pEntity.yo, pEntity.zo);
-            SectorVec3 current = SectorVec3.fromApproximate(pEntity.getX(), pEntity.getY(), pEntity.getZ());
-            interpolated = old.lerpTo(current, (double) pPartialTick);
-            this.setPosition(interpolated.withY(interpolated.y()
-                    + (double) Mth.lerp(pPartialTick, this.eyeHeightOld, this.eyeHeight)));
-        }
+        this.setPosition(interpolated.withY(interpolated.y() + (double) pEntity.getEyeHeight()));
         if (pDetached) {
             if (pThirdPersonReverse) {
                 this.setRotation(this.yRot + 180.0F, -this.xRot);

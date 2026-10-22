@@ -92,7 +92,11 @@ public abstract class AbstractSoundInstance implements SoundInstance {
 
     @Override
     public SectorVec3 getExactPosition() {
-        return this.exactPosition;
+        if (this.exactPosition != null)
+            return this.exactPosition;
+        if (!Double.isFinite(this.x) || !Double.isFinite(this.y) || !Double.isFinite(this.z))
+            return null;
+        return SectorVec3.fromApproximate(this.x, this.y, this.z);
     }
 
     /**

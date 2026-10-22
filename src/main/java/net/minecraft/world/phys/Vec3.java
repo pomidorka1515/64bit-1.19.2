@@ -11,6 +11,10 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.util.Mth;
 
 public class Vec3 implements Position {
+    @Override
+    public SectorVec3 exactPosition() {
+        return SectorVec3.fromApproximate(this.x, this.y, this.z);
+    }
     public static final Codec<Vec3> CODEC = Codec.DOUBLE.listOf().comapFlatMap((p_231079_) -> { return Util.fixedSize(p_231079_, 3).map((p_231081_) -> {
                                                                                                     return new Vec3(p_231081_.get(0), p_231081_.get(1), p_231081_.get(2));
                                                                                                 }); }, (p_231083_) -> { return List.of(p_231083_.x(), p_231083_.y(), p_231083_.z()); });

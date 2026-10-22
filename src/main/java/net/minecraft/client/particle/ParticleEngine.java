@@ -271,18 +271,12 @@ public class ParticleEngine implements PreparableReloadListener {
     }
 
     public void createTrackingEmitter(Entity pEntity, ParticleOptions pParticleData) {
-        SectorVec3 position = pEntity.exactPosition();
-        if (position == null)
-            position = SectorVec3.fromApproximate(pEntity.getX(), pEntity.getY(), pEntity.getZ());
-        SectorVec3 exactPosition = position;
+        SectorVec3 exactPosition = pEntity.sectorPosition();
         this.trackingEmitters.add(Particle.createAt(exactPosition, () -> new TrackingEmitter(this.level, pEntity, pParticleData)));
     }
 
     public void createTrackingEmitter(Entity pEntity, ParticleOptions pData, int pLifetime) {
-        SectorVec3 position = pEntity.exactPosition();
-        if (position == null)
-            position = SectorVec3.fromApproximate(pEntity.getX(), pEntity.getY(), pEntity.getZ());
-        SectorVec3 exactPosition = position;
+        SectorVec3 exactPosition = pEntity.sectorPosition();
         this.trackingEmitters.add(Particle.createAt(exactPosition, () -> new TrackingEmitter(this.level, pEntity, pData, pLifetime)));
     }
 

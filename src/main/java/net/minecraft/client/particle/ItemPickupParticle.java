@@ -31,13 +31,11 @@ public class ItemPickupParticle extends Particle {
     }
 
     private static SectorVec3 exactPosition(Entity entity) {
-        SectorVec3 position = entity.exactPosition();
-        return position != null ? position : SectorVec3.fromApproximate(entity.getX(), entity.getY(), entity.getZ());
+        return entity.sectorPosition();
     }
 
     private static SectorVec3 oldExactPosition(Entity entity) {
-        SectorVec3 position = entity.oldExactPosition();
-        return position != null ? position : SectorVec3.fromApproximate(entity.xOld, entity.yOld, entity.zOld);
+        return entity.oldExactPosition();
     }
 
     private ItemPickupParticle(EntityRenderDispatcher pEntityRenderDispatcher, RenderBuffers pBuffers, ClientLevel pLevel, Entity pItemEntity, Entity pTarget, Vec3 pSpeedVector) {

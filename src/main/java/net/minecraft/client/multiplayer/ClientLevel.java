@@ -143,12 +143,7 @@ public class ClientLevel extends Level {
             this.setBlock(p_233648_, p_233649_, 19);
             Player player = this.minecraft.player;
             if (this == player.level && player.isColliding(p_233648_, p_233649_)) {
-                if (player.hasSectorPosition()) {
-                    player.applyExactPosition(p_233650_);
-                } else {
-                    Vec3 vec3 = p_233650_.toApproximateVec3();
-                    player.absMoveTo(vec3.x, vec3.y, vec3.z);
-                }
+                player.applyExactPosition(p_233650_);
             }
         }
     }

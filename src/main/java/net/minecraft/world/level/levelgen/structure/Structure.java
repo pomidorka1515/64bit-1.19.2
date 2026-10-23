@@ -24,6 +24,7 @@ import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSource;
@@ -96,14 +97,13 @@ public abstract class Structure {
         ChunkPos chunkpos = pContext.chunkPos();
         Int128 i = chunkpos.getMiddleBlockX();
         Int128 j = chunkpos.getMiddleBlockZ();
-        // Deferred worldgen seam: sample height using only low 64 bits.
-        int k = pContext.chunkGenerator().getFirstOccupiedHeight(i.lo(), j.lo(), pHeightmapTypes, pContext.heightAccessor(), pContext.randomState());
+        int k = pContext.chunkGenerator().getFirstOccupiedHeight(i, j, pHeightmapTypes, pContext.heightAccessor(), pContext.randomState());
         return Optional.of(new Structure.GenerationStub(new BlockPos(i, k, j), pGenerator));
     }
 
     private static boolean isValidBiome(Structure.GenerationStub p_226590_, ChunkGenerator p_226591_, RandomState p_226592_, Predicate<Holder<Biome>> p_226593_) {
         BlockPos blockpos = p_226590_.position();
-        return p_226593_.test(p_226591_.getBiomeSource().getNoiseBiome(QuartPos.fromBlock(blockpos.getXLo()), QuartPos.fromBlock(blockpos.getY()), QuartPos.fromBlock(blockpos.getZLo()), p_226592_.sampler()));
+        return p_226593_.test(p_226591_.getBiomeSource().getNoiseBiome(blockpos.getX().shiftRight(2), QuartPos.fromBlock(blockpos.getY()), blockpos.getZ().shiftRight(2), p_226592_.sampler()));
     }
 
     public void afterPlace(WorldGenLevel p_226560_, StructureManager p_226561_, ChunkGenerator p_226562_, RandomSource p_226563_, BoundingBox p_226564_, ChunkPos p_226565_, PiecesContainer p_226566_) {
@@ -114,6 +114,15 @@ public abstract class Structure {
         LevelHeightAccessor levelheightaccessor = p_226614_.heightAccessor();
         RandomState randomstate = p_226614_.randomState();
         return new int[] {chunkgenerator.getFirstOccupiedHeight(p_226615_, p_226617_, Heightmap.Types.WORLD_SURFACE_WG, levelheightaccessor, randomstate), chunkgenerator.getFirstOccupiedHeight(p_226615_, p_226617_ + p_226618_, Heightmap.Types.WORLD_SURFACE_WG, levelheightaccessor, randomstate), chunkgenerator.getFirstOccupiedHeight(p_226615_ + p_226616_, p_226617_, Heightmap.Types.WORLD_SURFACE_WG, levelheightaccessor, randomstate), chunkgenerator.getFirstOccupiedHeight(p_226615_ + p_226616_, p_226617_ + p_226618_, Heightmap.Types.WORLD_SURFACE_WG, levelheightaccessor, randomstate)};
+    }
+
+    private static int[] getCornerHeights(Structure.GenerationContext context, Int128 x, int width, Int128 z, int depth) {
+        ChunkGenerator chunkgenerator = context.chunkGenerator();
+        LevelHeightAccessor levelheightaccessor = context.heightAccessor();
+        RandomState randomstate = context.randomState();
+        Int128 maxX = WorldBounds.addBlockOffset(x, width);
+        Int128 maxZ = WorldBounds.addBlockOffset(z, depth);
+        return new int[] {chunkgenerator.getFirstOccupiedHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, levelheightaccessor, randomstate), chunkgenerator.getFirstOccupiedHeight(x, maxZ, Heightmap.Types.WORLD_SURFACE_WG, levelheightaccessor, randomstate), chunkgenerator.getFirstOccupiedHeight(maxX, z, Heightmap.Types.WORLD_SURFACE_WG, levelheightaccessor, randomstate), chunkgenerator.getFirstOccupiedHeight(maxX, maxZ, Heightmap.Types.WORLD_SURFACE_WG, levelheightaccessor, randomstate)};
     }
 
     protected static int getLowestY(Structure.GenerationContext p_226573_, int p_226574_, int p_226575_) {
@@ -129,8 +138,8 @@ public abstract class Structure {
     }
 
     protected static int getLowestY(Structure.GenerationContext context, Int128 x, Int128 z, int width, int depth) {
-        // Height generation is intentionally still a low-64 algorithm.
-        return getLowestY(context, x.lo(), z.lo(), width, depth);
+        int[] aint = getCornerHeights(context, x, width, z, depth);
+        return Math.min(Math.min(aint[0], aint[1]), Math.min(aint[2], aint[3]));
     }
 
     /** @deprecated */
@@ -164,7 +173,7 @@ public abstract class Structure {
 
         private static WorldgenRandom makeRandom(long pSeed, ChunkPos pChunkPos) {
             WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(0L));
-            worldgenrandom.setLargeFeatureSeed(pSeed, pChunkPos.xLo(), pChunkPos.zLo());
+            worldgenrandom.setLargeFeatureSeed(pSeed, pChunkPos.x(), pChunkPos.z());
             return worldgenrandom;
         }
     }

@@ -12,6 +12,10 @@ public final class PreciseNoiseCoordinate {
         return coordinate < -9007199254740992L || coordinate > 9007199254740992L;
     }
 
+    public static boolean needsPrecisePath(long hi, long lo) {
+        return !WorldgenCoordinate.fitsLong(hi, lo) || needsPrecisePath(lo);
+    }
+
     /** Splits coordinate * scale, retaining the lattice modulo 2^64 for noise permutation lookup. */
     public static long scaledLattice(long coordinate, double scale) {
         Split split = SCRATCH.get();

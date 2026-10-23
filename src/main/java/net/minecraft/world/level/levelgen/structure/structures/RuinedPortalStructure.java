@@ -101,12 +101,12 @@ public class RuinedPortalStructure extends Structure {
             BlockPos blockpos1 = p_229285_.chunkPos().getWorldPosition();
             BoundingBox boundingbox = structuretemplate.getBoundingBox(blockpos1, rotation, blockpos, mirror);
             BlockPos blockpos2 = boundingbox.getCenter();
-            int i = chunkgenerator.getBaseHeight(blockpos2.getXLo(), blockpos2.getZLo(), RuinedPortalPiece.getHeightMapType(ruinedportalstructure$setup3.placement()), levelheightaccessor, randomstate) - 1;
+            int i = chunkgenerator.getBaseHeight(blockpos2.getX(), blockpos2.getZ(), RuinedPortalPiece.getHeightMapType(ruinedportalstructure$setup3.placement()), levelheightaccessor, randomstate) - 1;
             int j = findSuitableY(worldgenrandom, chunkgenerator, ruinedportalstructure$setup3.placement(), ruinedportalpiece$properties.airPocket, i, boundingbox.getYSpan(), boundingbox, levelheightaccessor, randomstate);
             BlockPos blockpos3 = new BlockPos(blockpos1.getX(), j, blockpos1.getZ());
             return Optional.of(new Structure.GenerationStub(blockpos3, (p_229297_) -> {
                 if (ruinedportalstructure$setup3.canBeCold()) {
-                    ruinedportalpiece$properties.cold = isCold(blockpos3, p_229285_.chunkGenerator().getBiomeSource().getNoiseBiome(QuartPos.fromBlock(blockpos3.getXLo()), QuartPos.fromBlock(blockpos3.getY()), QuartPos.fromBlock(blockpos3.getZLo()), randomstate.sampler()));
+                    ruinedportalpiece$properties.cold = isCold(blockpos3, p_229285_.chunkGenerator().getBiomeSource().getNoiseBiome(blockpos3.getX().shiftRight(2), QuartPos.fromBlock(blockpos3.getY()), blockpos3.getZ().shiftRight(2), randomstate.sampler()));
                 }
 
                 p_229297_.addPiece(new RuinedPortalPiece(p_229285_.structureTemplateManager(), blockpos3, ruinedportalstructure$setup3.placement(), ruinedportalpiece$properties, resourcelocation, structuretemplate, rotation, mirror, blockpos));
@@ -153,7 +153,7 @@ public class RuinedPortalStructure extends Structure {
 
         List<BlockPos> list1 = ImmutableList.of(new BlockPos(p_229273_.minX(), 0, p_229273_.minZ()), new BlockPos(p_229273_.maxX(), 0, p_229273_.minZ()), new BlockPos(p_229273_.minX(), 0, p_229273_.maxZ()), new BlockPos(p_229273_.maxX(), 0, p_229273_.maxZ()));
         List<NoiseColumn> list = list1.stream().map((p_229280_) -> {
-                                                   return p_229268_.getBaseColumn(p_229280_.getXLo(), p_229280_.getZLo(), p_229274_, p_229275_);
+                                                   return p_229268_.getBaseColumn(p_229280_.getX(), p_229280_.getZ(), p_229274_, p_229275_);
                                                })
                                          .collect(Collectors.toList());
         Heightmap.Types heightmap$types = p_229269_ == RuinedPortalPiece.VerticalPlacement.ON_OCEAN_FLOOR ? Heightmap.Types.OCEAN_FLOOR_WG : Heightmap.Types.WORLD_SURFACE_WG;

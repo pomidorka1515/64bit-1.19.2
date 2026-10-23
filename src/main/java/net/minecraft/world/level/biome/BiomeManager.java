@@ -54,7 +54,9 @@ public class BiomeManager {
             double d5 = flag1 ? d1 : d1 - 1.0D;
             double d6 = flag2 ? d2 : d2 - 1.0D;
             // Only the legacy biome noise hash sees the low-64 projection.
-            double d7 = getFiddledDistance(this.biomeZoomSeed, i2.lo(), j2, k2.lo(), d4, d5, d6);
+            double d7 = getFiddledDistance(this.biomeZoomSeed,
+                    net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(i2.hi(), i2.lo()), j2,
+                    net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(k2.hi(), k2.lo()), d4, d5, d6);
             if (d3 > d7) {
                 k1 = l1;
                 d3 = d7;

@@ -2,15 +2,15 @@
 
 minecraft 1.19.2 with signed 128-bit horizontal coordinates (`Int128`), not `int`, `long`, or a lossy `double`. this branch is undergoing the 128-bit migration; main compilation is green, but test conversion and final acceptance are still pending.
 
-the world border is gone. block X/Z span `-2^127` through `2^127 - 1`; Y keeps the usual build height. exact positions, storage, networking and camera-relative math use the full coordinate. terrain generation still uses a 64-bit projection, not a 128-bit noise lattice.
+the world border is gone. block X/Z span `-2^127` through `2^127 - 1`; Y keeps the usual build height. exact positions, storage, networking, camera-relative math and terrain generation consume the full coordinate.
 
 ## save break and worldgen boundary
 
 - **new worlds only.** the save format is strictly incompatible with vanilla worlds and worlds from the old 64-bit fork. old or foreign saves are rejected, not migrated; there is no old-world support or fallback decoder. matching 128-bit client/server builds are required.
 - exact horizontal positions use an `Int128` block coordinate plus a normalized double fraction in `[0, 1)`. chunk/section keys, region files and persisted placement identity retain the full 128 bits.
-- only at the worldgen sampling boundary, coordinates are explicitly projected to their **low 64 bits**, interpreted as a signed `long`. there is no saturation, high-half substitution, warning or fallback. this does not truncate authoritative chunk or placement identity.
-- beyond the signed 64-bit coordinate range, terrain behavior is **undefined**: it may repeat, seam or crash. low-word aliasing is not a guarantee of identical complete generated chunks or safe generation.
-- a later worldgen iteration will extend the exact noise lattice to `Int128`. farlands behavior at 128-bit coordinates is fully deferred (plan §19, default 9): this conversion makes no new farlands decision and must not branch on a farlands mode for 128-bit values. the modes below describe the existing projected 64-bit generator only.
+- worldgen carries primitive high/low horizontal limbs through density sampling, biomes, surfaces, aquifers and positional seeds. the precise mode scales full-width integers before reducing noise lattice indices; other modes retain their floating-point and Far Lands behavior.
+- the five modes keep their existing signed-long sampling results. full-width sampling does not imply unique terrain at every address: noise permutations, finite seed spaces, deliberate clamps, floating-point precision loss and Far Lands arithmetic still apply.
+- full-width addresses do not wrap into their low-word aliases. address arithmetic saturates at the signed-128 endpoints. no old-save migration or new generator mode is introduced.
 
 the original unfinished mod was written by mckuhei, whose sites are dead now. code before the fork is commit `f1b40fcf28655ebf01aa5dd77bc8e0cdc9dc97af` (it barely works)
 
@@ -71,8 +71,8 @@ vanilla's `int` positions and `double` physics couldn't be patched in one spot. 
 ### terrain
 
 - the noise itself: improved, perlin, simplex, blended and normal noise, plus the noise router and density functions.
-- `PreciseNoiseCoordinate`: one 64-by-53-bit product, split into a lattice and a fraction, so the precise generator doesn't collapse onto a chunk grid past 2^53.
-- `FarlandsMode` retains the existing projected generator modes; legacy world saves are not supported.
+- `PreciseNoiseCoordinate` retains the established long path; `WorldgenCoordinate` supplies primitive 128-by-53-bit scaling, carries and full-width conversion for distant samples.
+- `FarlandsMode` retains all five existing arithmetic policies; legacy world saves are not supported.
 - surface rules and `SurfaceSystem`.
 - ores, ore veins, heightmaps.
 - structures and jigsaw placement, mineshafts among them. structure starts used to crash on the boundary with no log.

@@ -167,7 +167,8 @@ public abstract class BiomeSource implements BiomeResolver {
     public abstract Holder<Biome> getNoiseBiome(long pX, int pY, long pZ, Climate.Sampler pSampler);
 
     public Holder<Biome> getNoiseBiome(Int128 pX, int pY, Int128 pZ, Climate.Sampler pSampler) {
-        // Deferred generation providers consume low-64 quart coordinates only.
+        // Coordinate-independent providers use this adapter. Coordinate-dependent
+        // providers override it (multi-noise, End, and checkerboard).
         return this.getNoiseBiome(pX.lo(), pY, pZ.lo(), pSampler);
     }
 

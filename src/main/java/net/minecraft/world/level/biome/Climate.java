@@ -406,8 +406,12 @@ public class Climate {
 
     public static record Sampler(DensityFunction temperature, DensityFunction humidity, DensityFunction continentalness, DensityFunction erosion, DensityFunction depth, DensityFunction weirdness, List<Climate.ParameterPoint> spawnTarget) {
         public Climate.TargetPoint sample(Int128 pX, int pY, Int128 pZ) {
-            // Only density sampling sees the deferred low-64 projection; callers retain exact quart positions.
-            return this.sample(pX.lo(), pY, pZ.lo());
+            if (pX.hi() == (pX.lo() >> 63) && pZ.hi() == (pZ.lo() >> 63)
+                    && pX.lo() >= Long.MIN_VALUE / 4 && pX.lo() <= Long.MAX_VALUE / 4
+                    && pZ.lo() >= Long.MIN_VALUE / 4 && pZ.lo() <= Long.MAX_VALUE / 4)
+                return this.sample(pX.lo(), pY, pZ.lo());
+            DensityFunction.SinglePointContext context = new DensityFunction.SinglePointContext(pX.shiftLeftSaturated(2), QuartPos.toBlock(pY), pZ.shiftLeftSaturated(2));
+            return Climate.target((float) this.temperature.compute(context), (float) this.humidity.compute(context), (float) this.continentalness.compute(context), (float) this.erosion.compute(context), (float) this.depth.compute(context), (float) this.weirdness.compute(context));
         }
 
         public Climate.TargetPoint sample(long p_186975_, int p_186976_, long p_186977_) {

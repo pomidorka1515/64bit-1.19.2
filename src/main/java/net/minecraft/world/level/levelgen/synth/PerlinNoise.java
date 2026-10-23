@@ -200,6 +200,36 @@ public class PerlinNoise {
         return this.edgeValue(p_210644_ + 2.0D);
     }
 
+    /** Full-width inputs are scaled at each octave before reducing the lattice. */
+    public double getValueScaled(long xHi, long xLo, double scale, double shiftX,
+                                 long yHi, long yLo, double yScale, double shiftY,
+                                 long zHi, long zLo, double shiftZ) {
+        double value = 0.0D;
+        double valueFactor = this.lowestFreqValueFactor;
+        PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
+        for (int i = 0; i < this.noiseLevels.length; ++i) {
+            ImprovedNoise noise = this.noiseLevels[i];
+            int power = this.firstOctave + i;
+            if (noise != null) {
+                WorldgenCoordinate.scale(xHi, xLo, scale, power, scratch);
+                double sx = scratch.fraction + Math.scalb(shiftX, power);
+                long x = scratch.lattice + (long) Math.floor(sx);
+                double fx = PreciseNoiseCoordinate.normalize(sx);
+                WorldgenCoordinate.scale(yHi, yLo, yScale, power, scratch);
+                double sy = scratch.fraction + Math.scalb(shiftY, power);
+                long y = scratch.lattice + (long) Math.floor(sy);
+                double fy = PreciseNoiseCoordinate.normalize(sy);
+                WorldgenCoordinate.scale(zHi, zLo, scale, power, scratch);
+                double sz = scratch.fraction + Math.scalb(shiftZ, power);
+                long z = scratch.lattice + (long) Math.floor(sz);
+                double fz = PreciseNoiseCoordinate.normalize(sz);
+                value += this.amplitudes.getDouble(i) * noise.noise(x, fx, y, fy, z, fz) * valueFactor;
+            }
+            valueFactor /= 2.0D;
+        }
+        return value;
+    }
+
     private double edgeValue(double p_210650_) {
         double d0 = 0.0D;
         double d1 = this.lowestFreqValueFactor;

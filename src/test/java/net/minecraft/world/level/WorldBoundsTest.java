@@ -211,14 +211,17 @@ class WorldBoundsTest {
     }
 
     @Test
-    void fullWidthNoiseUsesOnlyTheLegacyLowWordProjection() {
+    void fullWidthNoiseClampsTheFullSignedMagnitude() {
         for (long high : new long[] {Long.MIN_VALUE, -1L, 0L, 1L, Long.MAX_VALUE}) {
             for (long low : new long[] {Long.MIN_VALUE, -1L, 0L, 1L, Long.MAX_VALUE}) {
                 Int128 coordinate = Int128.of(high, low);
-                double expected = Math.max(-0x1p63, Math.min(Math.nextDown(0x1p63), (double) low));
+                double magnitude = new java.math.BigInteger(coordinate.toString()).doubleValue();
+                double expected = Math.max(-0x1p63, Math.min(Math.nextDown(0x1p63), magnitude));
                 assertEquals(expected, WorldBounds.noiseCoordinate(coordinate));
                 for (double scale : new double[] {-Double.MAX_VALUE, -1.0D, 0.0D, 0.5D, Double.MAX_VALUE, Double.NaN, Double.POSITIVE_INFINITY}) {
-                    assertEquals(WorldBounds.scaledNoiseCoordinate(low, scale), WorldBounds.scaledNoiseCoordinate(coordinate, scale));
+                    double product = magnitude * scale;
+                    double scaled = Double.isNaN(product) ? 0.0D : Math.max(-0x1p63, Math.min(Math.nextDown(0x1p63), product));
+                    assertEquals(scaled, WorldBounds.scaledNoiseCoordinate(coordinate, scale));
                 }
             }
         }

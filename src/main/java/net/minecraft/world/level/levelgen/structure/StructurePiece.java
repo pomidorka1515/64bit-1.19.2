@@ -216,7 +216,7 @@ public abstract class StructurePiece {
             return false;
         } else {
             // Heightmap generation remains an explicit low-64 worldgen projection.
-            return blockpos.getY() < pLevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, blockpos.getXLo(), blockpos.getZLo());
+            return blockpos.getY() < pLevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, blockpos.getX(), blockpos.getZ());
         }
     }
 

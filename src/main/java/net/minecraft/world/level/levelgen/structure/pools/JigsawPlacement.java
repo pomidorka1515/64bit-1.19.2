@@ -80,8 +80,7 @@ public class JigsawPlacement {
             Int128 j = WorldBounds.middleBlockCoordinate(boundingbox.minZ(), boundingbox.maxZ());
             int k;
             if (p_227245_.isPresent()) {
-                // Deferred worldgen seam: only noise/height sampling sees low 64 bits.
-                k = p_227243_.getY() + chunkgenerator.getFirstFreeHeight(i.lo(), j.lo(), p_227245_.get(), levelheightaccessor, p_227239_.randomState());
+                k = p_227243_.getY() + chunkgenerator.getFirstFreeHeight(i, j, p_227245_.get(), levelheightaccessor, p_227239_.randomState());
             } else {
                 k = blockpos1.getY();
             }
@@ -278,7 +277,7 @@ public class JigsawPlacement {
                                             l1 = i + k1;
                                         } else {
                                             if (k == -1) {
-                                                k = this.chunkGenerator.getFirstFreeHeight(blockpos1.getXLo(), blockpos1.getZLo(), Heightmap.Types.WORLD_SURFACE_WG, p_227269_, p_227270_);
+                                                k = this.chunkGenerator.getFirstFreeHeight(blockpos1.getX(), blockpos1.getZ(), Heightmap.Types.WORLD_SURFACE_WG, p_227269_, p_227270_);
                                             }
 
                                             l1 = k - j1;
@@ -311,7 +310,7 @@ public class JigsawPlacement {
                                                 l2 = l1 + j1;
                                             } else {
                                                 if (k == -1) {
-                                                    k = this.chunkGenerator.getFirstFreeHeight(blockpos1.getXLo(), blockpos1.getZLo(), Heightmap.Types.WORLD_SURFACE_WG, p_227269_, p_227270_);
+                                                    k = this.chunkGenerator.getFirstFreeHeight(blockpos1.getX(), blockpos1.getZ(), Heightmap.Types.WORLD_SURFACE_WG, p_227269_, p_227270_);
                                                 }
 
                                                 l2 = k + k1 / 2;

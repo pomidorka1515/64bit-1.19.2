@@ -185,14 +185,17 @@ public final class WorldBounds {
         return first.addSaturated(second).subtractSaturated(subtrahend);
     }
 
-    /** Low-64 projection for the deferred world-generation seam. */
+    /** Full signed coordinate, rounded only at the floating-point sampling boundary. */
     public static double noiseCoordinate(Int128 coordinate) {
-        return noiseCoordinate(coordinate.lo());
+        if (coordinate.hi() == (coordinate.lo() >> 63)) return noiseCoordinate(coordinate.lo());
+        return clampProjectedNoiseCoordinate(net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(coordinate.hi(), coordinate.lo()));
     }
 
-    /** Low-64 projection before scaling; never clamp the full Int128 coordinate. */
+    /** Full-width scaling with the existing finite-coordinate safeguards. */
     public static double scaledNoiseCoordinate(Int128 coordinate, double scale) {
-        return scaledNoiseCoordinate(coordinate.lo(), scale);
+        if (coordinate.hi() == (coordinate.lo() >> 63)) return scaledNoiseCoordinate(coordinate.lo(), scale);
+        double result = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(coordinate.hi(), coordinate.lo()) * scale;
+        return Double.isNaN(result) ? 0.0D : clampProjectedNoiseCoordinate(result);
     }
 
     public static long clampChunk(long chunk) {

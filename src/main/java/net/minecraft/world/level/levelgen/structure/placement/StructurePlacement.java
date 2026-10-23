@@ -72,6 +72,27 @@ public abstract class StructurePlacement {
 
     protected abstract boolean isPlacementChunk(ChunkGenerator pGenerator, RandomState pRandomState, long pSeed, long pX, long pY);
 
+    public boolean isStructureChunk(ChunkGenerator generator, RandomState random, long seed, net.minecraft.core.Int128 x, net.minecraft.core.Int128 z) {
+        if (x.hi() == (x.lo() >> 63) && z.hi() == (z.lo() >> 63)) return isStructureChunk(generator, random, seed, x.lo(), z.lo());
+        if (!isPlacementChunk(generator, random, seed, x, z)) return false;
+        long sx = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(x.hi(), x.lo());
+        long sz = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(z.hi(), z.lo());
+        if (this.frequency < 1.0F && !this.frequencyReductionMethod.shouldGenerate(seed, this.salt, sx, sz, this.frequency)) return false;
+        if (this.exclusionZone.isPresent()) {
+            ExclusionZone zone = this.exclusionZone.get();
+            for (int dx = -zone.chunkCount(); dx <= zone.chunkCount(); ++dx)
+                for (int dz = -zone.chunkCount(); dz <= zone.chunkCount(); ++dz)
+                    if (zone.otherSet().value().placement().isStructureChunk(generator, random, seed,
+                            x.addSaturated(net.minecraft.core.Int128.fromLong(dx)), z.addSaturated(net.minecraft.core.Int128.fromLong(dz)))) return false;
+        }
+        return true;
+    }
+
+    protected boolean isPlacementChunk(ChunkGenerator generator, RandomState random, long seed, net.minecraft.core.Int128 x, net.minecraft.core.Int128 z) {
+        // Concentric rings are finite and remain centered at the original origin.
+        return false;
+    }
+
     public BlockPos getLocatePos(ChunkPos pChunkPos) {
         return (new BlockPos(pChunkPos.getMinBlockX(), 0, pChunkPos.getMinBlockZ())).offset(this.locateOffset());
     }

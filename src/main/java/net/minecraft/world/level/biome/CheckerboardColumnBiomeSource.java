@@ -33,4 +33,13 @@ public class CheckerboardColumnBiomeSource extends BiomeSource {
     public Holder<Biome> getNoiseBiome(long pX, int pY, long pZ, Climate.Sampler pSampler) {
         return this.allowedBiomes.get(Math.floorMod((pX >> this.bitShift) + (pZ >> this.bitShift), this.allowedBiomes.size()));
     }
+
+    public Holder<Biome> getNoiseBiome(net.minecraft.core.Int128 x, int y, net.minecraft.core.Int128 z, Climate.Sampler sampler) {
+        if (x.hi() == (x.lo() >> 63) && z.hi() == (z.lo() >> 63)) return getNoiseBiome(x.lo(), y, z.lo(), sampler);
+        net.minecraft.core.Int128 a = x.shiftRight(this.bitShift), b = z.shiftRight(this.bitShift);
+        int size = this.allowedBiomes.size();
+        int sum = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.remainder(a.hi(), a.lo(), size)
+                + net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.remainder(b.hi(), b.lo(), size);
+        return this.allowedBiomes.get(Math.floorMod(sum, size));
+    }
 }

@@ -96,7 +96,16 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
             return this.createNoiseChunk(p_224340_, pStructureManager, pBlender, pRandom);
         });
         BiomeResolver biomeresolver = BelowZeroRetrogen.getBiomeResolver(pBlender.getBiomeResolver(this.biomeSource), pChunk);
-        pChunk.fillBiomesFromNoise(biomeresolver, noisechunk.cachedClimateSampler(pRandom.router(), this.settings.value().spawnTarget()));
+        net.minecraft.world.level.biome.Climate.Sampler sampler = noisechunk.cachedClimateSampler(pRandom.router(), this.settings.value().spawnTarget());
+        if (pChunk.getPos().getMinBlockX().hi() != (pChunk.getPos().getMinBlockX().lo() >> 63)
+                || pChunk.getPos().getMinBlockZ().hi() != (pChunk.getPos().getMinBlockZ().lo() >> 63)) {
+            net.minecraft.core.Int128 qx = pChunk.getPos().getMinBlockX().shiftRight(2);
+            net.minecraft.core.Int128 qz = pChunk.getPos().getMinBlockZ().shiftRight(2);
+            // New-world generation has no old blending or below-zero retrogen data.
+            pChunk.fillBiomesFromNoise((bx, by, bz, s) -> this.biomeSource.getNoiseBiome(
+                    qx.add(net.minecraft.core.Int128.fromLong(bx & 3L)), by,
+                    qz.add(net.minecraft.core.Int128.fromLong(bz & 3L)), s), sampler);
+        } else pChunk.fillBiomesFromNoise(biomeresolver, sampler);
     }
 
     private NoiseChunk createNoiseChunk(ChunkAccess pChunk, StructureManager pStructureManager, Blender pBlender, RandomState pRandom) {
@@ -125,6 +134,16 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
         return mutableobject.getValue();
     }
 
+    public int getBaseHeight(net.minecraft.core.Int128 x, net.minecraft.core.Int128 z, Heightmap.Types type, LevelHeightAccessor level, RandomState random) {
+        return iterateNoiseColumn(level, random, x, z, null, type.isOpaque()).orElse(level.getMinBuildHeight());
+    }
+
+    public NoiseColumn getBaseColumn(net.minecraft.core.Int128 x, net.minecraft.core.Int128 z, LevelHeightAccessor level, RandomState random) {
+        MutableObject<NoiseColumn> column = new MutableObject<>();
+        iterateNoiseColumn(level, random, x, z, column, null);
+        return column.getValue();
+    }
+
     private static volatile boolean wrapRouterDebugInfo;
 
     /**
@@ -140,7 +159,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
     public void addDebugScreenInfo(List<String> pInfo, RandomState pRandom, BlockPos pPos) {
         DecimalFormat decimalformat = new DecimalFormat("0.000");
         NoiseRouter noiserouter = pRandom.router();
-        DensityFunction.SinglePointContext densityfunction$singlepointcontext = new DensityFunction.SinglePointContext(pPos.getXLo(), pPos.getY(), pPos.getZLo());
+        DensityFunction.SinglePointContext densityfunction$singlepointcontext = new DensityFunction.SinglePointContext(pPos.getX(), pPos.getY(), pPos.getZ());
         double d0 = noiserouter.ridges().compute(densityfunction$singlepointcontext);
         double d1 = noiserouter.temperature().compute(densityfunction$singlepointcontext);
         double d2 = noiserouter.vegetation().compute(densityfunction$singlepointcontext);
@@ -177,6 +196,11 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
     }
 
     private OptionalInt iterateNoiseColumn(LevelHeightAccessor pLevel, RandomState pRandom, long pX, long pZ, @Nullable MutableObject<NoiseColumn> pColumn, @Nullable Predicate<BlockState> pStoppingState) {
+        return iterateNoiseColumn(pLevel, pRandom, net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ), pColumn, pStoppingState);
+    }
+
+    private OptionalInt iterateNoiseColumn(LevelHeightAccessor pLevel, RandomState pRandom, net.minecraft.core.Int128 x, net.minecraft.core.Int128 z, @Nullable MutableObject<NoiseColumn> pColumn, @Nullable Predicate<BlockState> pStoppingState) {
+        long pX = x.lo(), pZ = z.lo();
         NoiseSettings noisesettings = this.settings.value().noiseSettings().clampToHeightAccessor(pLevel);
         int i = noisesettings.getCellHeight();
         int j = noisesettings.minY();
@@ -202,7 +226,8 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
             long k2 = k1 * i1;
             double d0 = (double) l1 / (double) i1;
             double d1 = (double) i2 / (double) i1;
-            NoiseChunk noisechunk = new NoiseChunk(1, pRandom, j2, k2, noisesettings, DensityFunctions.BeardifierMarker.INSTANCE, this.settings.value(), this.globalFluidPicker, Blender.empty());
+            int shift = Integer.numberOfTrailingZeros(i1);
+            NoiseChunk noisechunk = new NoiseChunk(1, pRandom, x.shiftRight(shift).shiftLeftSaturated(shift), z.shiftRight(shift).shiftLeftSaturated(shift), noisesettings, DensityFunctions.BeardifierMarker.INSTANCE, this.settings.value(), this.globalFluidPicker, Blender.empty());
             noisechunk.initializeForFirstCellX();
             noisechunk.advanceCellX(0);
 
@@ -251,8 +276,14 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
     }
 
     public void applyCarvers(WorldGenRegion pLevel, long pSeed, RandomState pRandom, BiomeManager pBiomeManager, StructureManager pStructureManager, ChunkAccess pChunk, GenerationStep.Carving pStep) {
-        BiomeManager biomemanager = pBiomeManager.withDifferentSource((p_224281_, p_224282_, p_224283_) -> {
-            return this.biomeSource.getNoiseBiome(p_224281_, p_224282_, p_224283_, pRandom.sampler());
+        BiomeManager biomemanager = pBiomeManager.withDifferentSource(new BiomeManager.NoiseBiomeSource() {
+            public Holder<Biome> getNoiseBiome(long x, int y, long z) {
+                return NoiseBasedChunkGenerator.this.biomeSource.getNoiseBiome(x, y, z, pRandom.sampler());
+            }
+
+            public Holder<Biome> getNoiseBiome(net.minecraft.core.Int128 x, int y, net.minecraft.core.Int128 z) {
+                return NoiseBasedChunkGenerator.this.biomeSource.getNoiseBiome(x, y, z, pRandom.sampler());
+            }
         });
         WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(RandomSupport.generateUniqueSeed()));
         int i = 8;
@@ -269,14 +300,14 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
                 ChunkPos chunkpos1 = new ChunkPos(WorldBounds.addChunkOffset(chunkpos.x(), j), WorldBounds.addChunkOffset(chunkpos.z(), k));
                 ChunkAccess chunkaccess = pLevel.getChunk(chunkpos1.x(), chunkpos1.z());
                 BiomeGenerationSettings biomegenerationsettings = chunkaccess.carverBiome(() -> {
-                    return this.getBiomeGenerationSettings(this.biomeSource.getNoiseBiome(QuartPos.fromBlock(chunkpos1.getMinBlockX().lo()), 0, QuartPos.fromBlock(chunkpos1.getMinBlockZ().lo()), pRandom.sampler()));
+                    return this.getBiomeGenerationSettings(this.biomeSource.getNoiseBiome(chunkpos1.getMinBlockX().shiftRight(2), 0, chunkpos1.getMinBlockZ().shiftRight(2), pRandom.sampler()));
                 });
                 Iterable<Holder<ConfiguredWorldCarver<?>>> iterable = biomegenerationsettings.getCarvers(pStep);
                 int l = 0;
 
                 for (Holder<ConfiguredWorldCarver<?>> holder : iterable) {
                     ConfiguredWorldCarver<?> configuredworldcarver = holder.value();
-                    worldgenrandom.setLargeFeatureSeed(pSeed + (long) l, chunkpos1.xLo(), chunkpos1.zLo());
+                    worldgenrandom.setLargeFeatureSeed(pSeed + (long) l, chunkpos1.x(), chunkpos1.z());
                     if (configuredworldcarver.isStartChunk(worldgenrandom)) {
                         configuredworldcarver.carve(carvingcontext, pChunk, biomemanager::getBiome, worldgenrandom, aquifer, chunkpos1, carvingmask);
                     }
@@ -417,7 +448,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
             ChunkPos chunkpos = pLevel.getCenter();
             Holder<Biome> holder = pLevel.getBiome(chunkpos.getWorldPosition().atY(pLevel.getMaxBuildHeight() - 1));
             WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(RandomSupport.generateUniqueSeed()));
-            worldgenrandom.setDecorationSeed(pLevel.getSeed(), chunkpos.getMinBlockX().lo(), chunkpos.getMinBlockZ().lo());
+            worldgenrandom.setDecorationSeed(pLevel.getSeed(), chunkpos.getMinBlockX(), chunkpos.getMinBlockZ());
             NaturalSpawner.spawnMobsForChunkGeneration(pLevel, holder, chunkpos, worldgenrandom);
         }
     }

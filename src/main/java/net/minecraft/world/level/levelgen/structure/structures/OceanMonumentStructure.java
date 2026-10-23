@@ -29,9 +29,8 @@ public class OceanMonumentStructure extends Structure {
     }
 
     public Optional<Structure.GenerationStub> findGenerationPoint(Structure.GenerationContext p_228964_) {
-        // Deferred worldgen seam: biome sampling uses low 64 bits only.
-        long i = p_228964_.chunkPos().getBlockX(9).lo();
-        long j = p_228964_.chunkPos().getBlockZ(9).lo();
+        Int128 i = p_228964_.chunkPos().getBlockX(9);
+        Int128 j = p_228964_.chunkPos().getBlockZ(9);
 
         for (Holder<Biome> holder : p_228964_.biomeSource().getBiomesWithin(i, p_228964_.chunkGenerator().getSeaLevel(), j, 29, p_228964_.randomState().sampler())) {
             if (!holder.is(BiomeTags.REQUIRED_OCEAN_MONUMENT_SURROUNDING)) {
@@ -60,8 +59,7 @@ public class OceanMonumentStructure extends Structure {
             return p_228959_;
         } else {
             WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(RandomSupport.generateUniqueSeed()));
-            // Deferred worldgen seam: seed mixing uses low 64 bits only.
-            worldgenrandom.setLargeFeatureSeed(p_228958_, p_228957_.xLo(), p_228957_.zLo());
+            worldgenrandom.setLargeFeatureSeed(p_228958_, p_228957_.x(), p_228957_.z());
             StructurePiece structurepiece = p_228959_.pieces().get(0);
             BoundingBox boundingbox = structurepiece.getBoundingBox();
             Int128 i = boundingbox.minX();

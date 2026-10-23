@@ -26,6 +26,7 @@ import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
 import net.minecraft.world.level.levelgen.synth.PreciseNoiseCoordinate;
 import net.minecraft.world.level.levelgen.synth.SimplexNoise;
+import net.minecraft.world.level.levelgen.synth.WorldgenCoordinate;
 import org.slf4j.Logger;
 
 public final class DensityFunctions {
@@ -536,7 +537,41 @@ public final class DensityFunctions {
         }
 
         public double compute(DensityFunction.FunctionContext pContext) {
+            if (!WorldgenCoordinate.fitsLong(pContext.blockXHi(), pContext.blockX()) || !WorldgenCoordinate.fitsLong(pContext.blockZHi(), pContext.blockZ())) {
+                long xHi = WorldgenCoordinate.truncShiftHigh(pContext.blockXHi(), pContext.blockX(), 3);
+                long xLo = WorldgenCoordinate.truncShiftLow(pContext.blockXHi(), pContext.blockX(), 3);
+                long zHi = WorldgenCoordinate.truncShiftHigh(pContext.blockZHi(), pContext.blockZ(), 3);
+                long zLo = WorldgenCoordinate.truncShiftLow(pContext.blockZHi(), pContext.blockZ(), 3);
+                return ((double) getHeightValueWide(this.islandNoise, xHi, xLo, zHi, zLo) - 8.0D) / 128.0D;
+            }
             return ((double) getHeightValue(this.islandNoise, pContext.blockX() / 8, pContext.blockZ() / 8) - 8.0D) / 128.0D;
+        }
+
+        private static float getHeightValueWide(SimplexNoise noise, long xHi, long xLo, long zHi, long zLo) {
+            long ixHi = WorldgenCoordinate.truncShiftHigh(xHi, xLo, 1);
+            long ixLo = WorldgenCoordinate.truncShiftLow(xHi, xLo, 1);
+            long izHi = WorldgenCoordinate.truncShiftHigh(zHi, zLo, 1);
+            long izLo = WorldgenCoordinate.truncShiftLow(zHi, zLo, 1);
+            int rx = WorldgenCoordinate.remainder(xHi, xLo, 2);
+            int rz = WorldgenCoordinate.remainder(zHi, zLo, 2);
+            double x = WorldgenCoordinate.toDouble(xHi, xLo), z = WorldgenCoordinate.toDouble(zHi, zLo);
+            float height = Mth.clamp(100.0F - Mth.sqrt(EndRingsMode.isEnabled() ? (float) (xLo * xLo + zLo * zLo) : (float) (x * x + z * z)) * 8.0F, -100.0F, 80.0F);
+            boolean precise = FarlandsMode.usesPreciseCoordinates();
+            for (int dx = -12; dx <= 12; ++dx) {
+                long axHi = WorldgenCoordinate.addHigh(ixHi, ixLo, dx), axLo = ixLo + dx;
+                for (int dz = -12; dz <= 12; ++dz) {
+                    long azHi = WorldgenCoordinate.addHigh(izHi, izLo, dz), azLo = izLo + dz;
+                    boolean outside = precise || axLo * axLo + azLo * azLo > 4096L;
+                    if (outside && (precise ? noise.getValueAt(axHi, axLo, azHi, azLo)
+                            : noise.getValue(WorldgenCoordinate.toDouble(axHi, axLo), WorldgenCoordinate.toDouble(azHi, azLo))) < (double) -0.9F) {
+                        float size = precise ? (float) ((Math.abs(WorldgenCoordinate.remainder(axHi, axLo, 13)) * 3439L + Math.abs(WorldgenCoordinate.remainder(azHi, azLo, 13)) * 147L) % 13L) + 9.0F
+                                : (Mth.abs((float) WorldgenCoordinate.toDouble(axHi, axLo)) * 3439.0F + Mth.abs((float) WorldgenCoordinate.toDouble(azHi, azLo)) * 147.0F) % 13.0F + 9.0F;
+                        float fx = rx - dx * 2, fz = rz - dz * 2;
+                        height = Math.max(height, Mth.clamp(100.0F - Mth.sqrt(fx * fx + fz * fz) * size, -100.0F, 80.0F));
+                    }
+                }
+            }
+            return height;
         }
 
         public double minValue() {
@@ -798,13 +833,15 @@ public final class DensityFunctions {
         public static final KeyDispatchDataCodec<DensityFunctions.Noise> CODEC = DensityFunctions.makeCodec(DATA_CODEC);
 
         public double compute(DensityFunction.FunctionContext pContext) {
+            long blockXHi = pContext.blockXHi();
             long blockX = pContext.blockX();
+            long blockZHi = pContext.blockZHi();
             long blockZ = pContext.blockZ();
-            if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))) {
-                return this.noise.getValueScaled(blockX, this.xzScale, pContext.blockY(), this.yScale, blockZ);
+            if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockXHi, blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZHi, blockZ))) {
+                return this.noise.getValueScaled(blockXHi, blockX, this.xzScale, pContext.blockY(), this.yScale, blockZHi, blockZ);
             }
 
-            return this.noise.getValue(FarlandsMode.scaledNoiseCoordinate(blockX, this.xzScale), (double) pContext.blockY() * this.yScale, FarlandsMode.scaledNoiseCoordinate(blockZ, this.xzScale));
+            return this.noise.getValue(FarlandsMode.scaledNoiseCoordinate(blockXHi, blockX, this.xzScale), (double) pContext.blockY() * this.yScale, FarlandsMode.scaledNoiseCoordinate(blockZHi, blockZ, this.xzScale));
         }
 
         public void fillArray(double[] pArray, DensityFunction.ContextProvider pContextProvider) {
@@ -891,6 +928,12 @@ public final class DensityFunctions {
         static final KeyDispatchDataCodec<DensityFunctions.Shift> CODEC = DensityFunctions.singleArgumentCodec(DensityFunction.NoiseHolder.CODEC, DensityFunctions.Shift::new, DensityFunctions.Shift::offsetNoise);
 
         public double compute(DensityFunction.FunctionContext p_208864_) {
+            if (!WorldgenCoordinate.fitsLong(p_208864_.blockXHi(), p_208864_.blockX()) || !WorldgenCoordinate.fitsLong(p_208864_.blockZHi(), p_208864_.blockZ())) {
+                if (FarlandsMode.usesPreciseCoordinates()) {
+                    return this.offsetNoise.getValueScaledAxes(p_208864_.blockXHi(), p_208864_.blockX(), ((long) p_208864_.blockY()) >> 63, p_208864_.blockY(), p_208864_.blockZHi(), p_208864_.blockZ(), 0.25D) * 4.0D;
+                }
+                return this.compute(WorldgenCoordinate.toDouble(p_208864_.blockXHi(), p_208864_.blockX()), (double) p_208864_.blockY(), WorldgenCoordinate.toDouble(p_208864_.blockZHi(), p_208864_.blockZ()));
+            }
             if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(p_208864_.blockX()) || PreciseNoiseCoordinate.needsPrecisePath(p_208864_.blockZ()))) {
                 return this.computePrecise(p_208864_.blockX(), p_208864_.blockY(), p_208864_.blockZ(), true, true, true);
             }
@@ -914,6 +957,12 @@ public final class DensityFunctions {
         static final KeyDispatchDataCodec<DensityFunctions.ShiftA> CODEC = DensityFunctions.singleArgumentCodec(DensityFunction.NoiseHolder.CODEC, DensityFunctions.ShiftA::new, DensityFunctions.ShiftA::offsetNoise);
 
         public double compute(DensityFunction.FunctionContext p_208884_) {
+            if (!WorldgenCoordinate.fitsLong(p_208884_.blockXHi(), p_208884_.blockX()) || !WorldgenCoordinate.fitsLong(p_208884_.blockZHi(), p_208884_.blockZ())) {
+                if (FarlandsMode.usesPreciseCoordinates()) {
+                    return this.offsetNoise.getValueScaledAxes(p_208884_.blockXHi(), p_208884_.blockX(), 0L, 0L, p_208884_.blockZHi(), p_208884_.blockZ(), 0.25D) * 4.0D;
+                }
+                return this.compute(WorldgenCoordinate.toDouble(p_208884_.blockXHi(), p_208884_.blockX()), 0.0D, WorldgenCoordinate.toDouble(p_208884_.blockZHi(), p_208884_.blockZ()));
+            }
             if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(p_208884_.blockX()) || PreciseNoiseCoordinate.needsPrecisePath(p_208884_.blockZ()))) {
                 return this.computePrecise(p_208884_.blockX(), p_208884_.blockY(), p_208884_.blockZ(), true, false, true);
             }
@@ -937,6 +986,12 @@ public final class DensityFunctions {
         static final KeyDispatchDataCodec<DensityFunctions.ShiftB> CODEC = DensityFunctions.singleArgumentCodec(DensityFunction.NoiseHolder.CODEC, DensityFunctions.ShiftB::new, DensityFunctions.ShiftB::offsetNoise);
 
         public double compute(DensityFunction.FunctionContext p_208904_) {
+            if (!WorldgenCoordinate.fitsLong(p_208904_.blockXHi(), p_208904_.blockX()) || !WorldgenCoordinate.fitsLong(p_208904_.blockZHi(), p_208904_.blockZ())) {
+                if (FarlandsMode.usesPreciseCoordinates()) {
+                    return this.offsetNoise.getValueScaledAxes(p_208904_.blockZHi(), p_208904_.blockZ(), p_208904_.blockXHi(), p_208904_.blockX(), 0L, 0L, 0.25D) * 4.0D;
+                }
+                return this.compute(WorldgenCoordinate.toDouble(p_208904_.blockZHi(), p_208904_.blockZ()), WorldgenCoordinate.toDouble(p_208904_.blockXHi(), p_208904_.blockX()), 0.0D);
+            }
             if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(p_208904_.blockX()) || PreciseNoiseCoordinate.needsPrecisePath(p_208904_.blockZ()))) {
                 return this.computePrecise(p_208904_.blockZ(), p_208904_.blockX(), p_208904_.blockY(), true, true, false);
             }
@@ -999,17 +1054,19 @@ public final class DensityFunctions {
         public static final KeyDispatchDataCodec<DensityFunctions.ShiftedNoise> CODEC = DensityFunctions.makeCodec(DATA_CODEC);
 
         public double compute(DensityFunction.FunctionContext pContext) {
+            long blockXHi = pContext.blockXHi();
             long blockX = pContext.blockX();
+            long blockZHi = pContext.blockZHi();
             long blockZ = pContext.blockZ();
             double shiftX = this.shiftX.compute(pContext);
             double shiftZ = this.shiftZ.compute(pContext);
-            if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))) {
-                return this.noise.getValueScaledShifted(blockX, this.xzScale, shiftX, (double) pContext.blockY() * this.yScale + this.shiftY.compute(pContext), blockZ, shiftZ);
+            if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockXHi, blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZHi, blockZ))) {
+                return this.noise.getValueScaledShifted(blockXHi, blockX, this.xzScale, shiftX, (double) pContext.blockY() * this.yScale + this.shiftY.compute(pContext), blockZHi, blockZ, shiftZ);
             }
 
-            double d0 = FarlandsMode.shiftedNoiseCoordinate(blockX, this.xzScale, shiftX);
+            double d0 = FarlandsMode.shiftedNoiseCoordinate(blockXHi, blockX, this.xzScale, shiftX);
             double d1 = (double) pContext.blockY() * this.yScale + this.shiftY.compute(pContext);
-            double d2 = FarlandsMode.shiftedNoiseCoordinate(blockZ, this.xzScale, shiftZ);
+            double d2 = FarlandsMode.shiftedNoiseCoordinate(blockZHi, blockZ, this.xzScale, shiftZ);
             return this.noise.getValue(d0, d1, d2);
         }
 
@@ -1238,13 +1295,15 @@ public final class DensityFunctions {
 
         public double transform(DensityFunction.FunctionContext pContext, double pValue) {
             double d0 = this.rarityValueMapper.mapper.get(pValue);
+            long blockXHi = pContext.blockXHi();
             long blockX = pContext.blockX();
+            long blockZHi = pContext.blockZHi();
             long blockZ = pContext.blockZ();
-            if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))) {
-                return d0 * Math.abs(this.noise.getValueScaled(blockX, 1.0D / d0, pContext.blockY(), 1.0D / d0, blockZ));
+            if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockXHi, blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZHi, blockZ))) {
+                return d0 * Math.abs(this.noise.getValueScaled(blockXHi, blockX, 1.0D / d0, pContext.blockY(), 1.0D / d0, blockZHi, blockZ));
             }
 
-            return d0 * Math.abs(this.noise.getValue((double) blockX / d0, (double) pContext.blockY() / d0, (double) blockZ / d0));
+            return d0 * Math.abs(this.noise.getValue(WorldgenCoordinate.toDouble(blockXHi, blockX) / d0, (double) pContext.blockY() / d0, WorldgenCoordinate.toDouble(blockZHi, blockZ) / d0));
         }
 
         public DensityFunction mapAll(DensityFunction.Visitor pVisitor) {

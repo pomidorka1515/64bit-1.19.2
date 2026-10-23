@@ -152,6 +152,26 @@ public class NormalNoise {
         return this.parameters;
     }
 
+    public double getValueScaled(long xHi, long xLo, double scale, long y, double yScale, long zHi, long zLo) {
+        if (WorldgenCoordinate.fitsLong(xHi, xLo) && WorldgenCoordinate.fitsLong(zHi, zLo))
+            return getValueScaled(xLo, scale, y, yScale, zLo);
+        return (this.first.getValueScaled(xHi, xLo, scale, 0.0D, y >> 63, y, yScale, 0.0D, zHi, zLo, 0.0D)
+                + this.second.getValueScaled(xHi, xLo, scale * INPUT_FACTOR, 0.0D, y >> 63, y, yScale * INPUT_FACTOR, 0.0D, zHi, zLo, 0.0D)) * this.valueFactor;
+    }
+
+    public double getValueScaledShifted(long xHi, long xLo, double scale, double shiftX, double y, long zHi, long zLo, double shiftZ) {
+        if (WorldgenCoordinate.fitsLong(xHi, xLo) && WorldgenCoordinate.fitsLong(zHi, zLo))
+            return getValueScaledShifted(xLo, scale, shiftX, y, zLo, shiftZ);
+        return (this.first.getValueScaled(xHi, xLo, scale, shiftX, 0L, 0L, 1.0D, y, zHi, zLo, shiftZ)
+                + this.second.getValueScaled(xHi, xLo, scale * INPUT_FACTOR, shiftX * INPUT_FACTOR, 0L, 0L, 1.0D, y * INPUT_FACTOR, zHi, zLo, shiftZ * INPUT_FACTOR)) * this.valueFactor;
+    }
+
+    /** ShiftB rotates X into the vertical noise axis; that axis is full width too. */
+    public double getValueScaledAxes(long xHi, long xLo, long yHi, long yLo, long zHi, long zLo, double scale) {
+        return (this.first.getValueScaled(xHi, xLo, scale, 0.0D, yHi, yLo, scale, 0.0D, zHi, zLo, 0.0D)
+                + this.second.getValueScaled(xHi, xLo, scale * INPUT_FACTOR, 0.0D, yHi, yLo, scale * INPUT_FACTOR, 0.0D, zHi, zLo, 0.0D)) * this.valueFactor;
+    }
+
     @VisibleForTesting
     public void parityConfigString(StringBuilder p_192847_) {
         p_192847_.append("NormalNoise {");

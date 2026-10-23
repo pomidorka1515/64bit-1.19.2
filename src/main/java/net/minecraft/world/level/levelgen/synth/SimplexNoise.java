@@ -127,6 +127,22 @@ public class SimplexNoise {
         return d13;
     }
 
+    public double getValueAt(long xHi, long xLo, long yHi, long yLo) {
+        if (WorldgenCoordinate.fitsLong(xHi, xLo) && WorldgenCoordinate.fitsLong(yHi, yLo)) return getValueAt(xLo, yLo);
+        PreciseNoiseCoordinate.Split split = PreciseNoiseCoordinate.threadScratch();
+        WorldgenCoordinate.scale(xHi, xLo, F2, 0, split);
+        long skew = split.lattice;
+        double fraction = split.fraction;
+        WorldgenCoordinate.scale(yHi, yLo, F2, 0, split);
+        skew += split.lattice;
+        fraction += split.fraction;
+        long carry = (long) Math.floor(fraction);
+        skew += carry;
+        fraction -= carry;
+        double delta = fraction * (1.0D - 2.0D * G2);
+        return getValue2D(xLo + skew, yLo + skew, delta, delta);
+    }
+
     public static void beginDebugCapture() {
         DEBUG_CAPTURE.set(true);
     }

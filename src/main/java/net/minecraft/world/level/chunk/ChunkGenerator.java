@@ -247,9 +247,9 @@ public abstract class ChunkGenerator {
             }
 
             if (!list.isEmpty()) {
-                // Structure placement algorithms retain the low-64 worldgen seam.
-                long i = SectionPos.blockToSectionCoord(pPos.getX()).lo();
-                long j = SectionPos.blockToSectionCoord(pPos.getZ()).lo();
+                // Search around the exact chunk, including its high limbs.
+                Int128 i = SectionPos.blockToSectionCoord(pPos.getX());
+                Int128 j = SectionPos.blockToSectionCoord(pPos.getZ());
 
                 for (int k = 0; k <= pSearchRadius; ++k) {
                     boolean flag = false;
@@ -305,7 +305,7 @@ public abstract class ChunkGenerator {
     }
 
     @Nullable
-    private static Pair<BlockPos, Holder<Structure>> getNearestGeneratedStructure(Set<Holder<Structure>> pStructureHoldersSet, LevelReader pLevel, StructureManager pStructureManager, long pX, long pY, int pZ, boolean pSkipKnownStructures, long pSeed, RandomSpreadStructurePlacement pSpreadPlacement) {
+    private static Pair<BlockPos, Holder<Structure>> getNearestGeneratedStructure(Set<Holder<Structure>> pStructureHoldersSet, LevelReader pLevel, StructureManager pStructureManager, Int128 pX, Int128 pY, int pZ, boolean pSkipKnownStructures, long pSeed, RandomSpreadStructurePlacement pSpreadPlacement) {
         int i = pSpreadPlacement.spacing();
 
         for (int j = -pZ; j <= pZ; ++j) {
@@ -314,8 +314,8 @@ public abstract class ChunkGenerator {
             for (int k = -pZ; k <= pZ; ++k) {
                 boolean flag1 = k == -pZ || k == pZ;
                 if (flag || flag1) {
-                    long l = pX + i * j;
-                    long i1 = pY + i * k;
+                    Int128 l = WorldBounds.addChunkOffset(pX, (long) i * j);
+                    Int128 i1 = WorldBounds.addChunkOffset(pY, (long) i * k);
                     ChunkPos chunkpos = pSpreadPlacement.getPotentialStructureChunk(pSeed, l, i1);
                     Pair<BlockPos, Holder<Structure>> pair = getStructureGeneratingAt(pStructureHoldersSet, pLevel, pStructureManager, pSkipKnownStructures, pSpreadPlacement, chunkpos);
                     if (pair != null) {
@@ -368,7 +368,7 @@ public abstract class ChunkGenerator {
             }));
             List<FeatureSorter.StepFeatureData> list = this.featuresPerStep.get();
             WorldgenRandom worldgenrandom = new WorldgenRandom(new XoroshiroRandomSource(RandomSupport.generateUniqueSeed()));
-            long i = worldgenrandom.setDecorationSeed(pLevel.getSeed(), blockpos.getX().lo(), blockpos.getZ().lo());
+            long i = worldgenrandom.setDecorationSeed(pLevel.getSeed(), blockpos.getX(), blockpos.getZ());
             Set<Holder<Biome>> set = new ObjectArraySet<>();
             ChunkPos.rangeClosed(sectionpos.chunk(), 1).forEach((p_223093_) -> {
                 ChunkAccess chunkaccess = pLevel.getChunk(p_223093_.x(), p_223093_.z());
@@ -552,14 +552,14 @@ public abstract class ChunkGenerator {
                 }
             }
 
-            if (structureplacement.isStructureChunk(this, pRandom, pSeed, chunkpos.xLo(), chunkpos.zLo())) {
+            if (structureplacement.isStructureChunk(this, pRandom, pSeed, chunkpos.x(), chunkpos.z())) {
                 if (list.size() == 1) {
                     this.tryGenerateStructure(list.get(0), pStructureManager, pRegistryAccess, pRandom, pStructureTemplateManager, pSeed, pChunk, chunkpos, sectionpos);
                 } else {
                     ArrayList<StructureSet.StructureSelectionEntry> arraylist = new ArrayList<>(list.size());
                     arraylist.addAll(list);
                     WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(0L));
-                    worldgenrandom.setLargeFeatureSeed(pSeed, chunkpos.xLo(), chunkpos.zLo());
+                    worldgenrandom.setLargeFeatureSeed(pSeed, chunkpos.x(), chunkpos.z());
                     int i = 0;
 
                     for (StructureSet.StructureSelectionEntry structureset$structureselectionentry1 : arraylist) {
@@ -675,6 +675,22 @@ public abstract class ChunkGenerator {
     public abstract int getBaseHeight(long pX, long pZ, Heightmap.Types pType, LevelHeightAccessor pLevel, RandomState pRandom);
 
     public abstract NoiseColumn getBaseColumn(long pX, long pZ, LevelHeightAccessor pHeight, RandomState pRandom);
+
+    public int getBaseHeight(Int128 x, Int128 z, Heightmap.Types type, LevelHeightAccessor level, RandomState random) {
+        return getBaseHeight(x.lo(), z.lo(), type, level, random);
+    }
+
+    public NoiseColumn getBaseColumn(Int128 x, Int128 z, LevelHeightAccessor level, RandomState random) {
+        return getBaseColumn(x.lo(), z.lo(), level, random);
+    }
+
+    public int getFirstFreeHeight(Int128 x, Int128 z, Heightmap.Types type, LevelHeightAccessor level, RandomState random) {
+        return getBaseHeight(x, z, type, level, random);
+    }
+
+    public int getFirstOccupiedHeight(Int128 x, Int128 z, Heightmap.Types type, LevelHeightAccessor level, RandomState random) {
+        return getBaseHeight(x, z, type, level, random) - 1;
+    }
 
     public int getFirstFreeHeight(long pX, long pZ, Heightmap.Types pType, LevelHeightAccessor pLevel, RandomState pRandom) {
         return this.getBaseHeight(pX, pZ, pType, pLevel, pRandom);

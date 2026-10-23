@@ -26,9 +26,8 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.placement.CaveSurface;
-import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
-import net.minecraft.world.level.levelgen.synth.PreciseNoiseCoordinate;
+import net.minecraft.world.level.levelgen.synth.WorldgenCoordinate;
 
 public class SurfaceRules {
     public static final SurfaceRules.ConditionSource ON_FLOOR = stoneDepthCheck(0, false, CaveSurface.FLOOR);
@@ -152,8 +151,8 @@ public class SurfaceRules {
             return CODEC;
         }
 
-        public SurfaceRules.SurfaceRule apply(SurfaceRules.Context p_189482_) {
-            return p_189482_.system::getBand;
+        public SurfaceRules.SurfaceRule apply(final SurfaceRules.Context p_189482_) {
+            return (x, y, z) -> p_189482_.system.getBand(p_189482_.blockXHi, x, y, p_189482_.blockZHi, z);
         }
     }
 
@@ -268,7 +267,9 @@ public class SurfaceRules {
         private final int[] preliminarySurfaceCache = new int[4];
         long lastUpdateXZ = -9223372036854775807L;
         long blockX;
+        long blockXHi;
         long blockZ;
+        long blockZHi;
         int surfaceDepth;
         private long lastSurfaceDepth2Update = this.lastUpdateXZ - 1L;
         private double surfaceSecondary;
@@ -292,17 +293,25 @@ public class SurfaceRules {
         }
 
         protected void updateXZ(long pBlockX, long pBlockZ) {
+            this.updateXZ(pBlockX >> 63, pBlockX, pBlockZ >> 63, pBlockZ);
+        }
+
+        protected void updateXZ(long xHi, long xLo, long zHi, long zLo) {
             ++this.lastUpdateXZ;
             ++this.lastUpdateY;
-            this.blockX = pBlockX;
-            this.blockZ = pBlockZ;
-            this.surfaceDepth = WorldBounds.clampSurfaceDepth(this.system.getSurfaceDepth(pBlockX, pBlockZ), this.context.getGenDepth());
+            this.blockXHi = xHi;
+            this.blockX = xLo;
+            this.blockZHi = zHi;
+            this.blockZ = zLo;
+            this.surfaceDepth = WorldBounds.clampSurfaceDepth(this.system.getSurfaceDepth(xHi, xLo, zHi, zLo), this.context.getGenDepth());
         }
 
         protected void updateY(int p_189577_, int p_189578_, int p_189579_, long i, int p_189581_, long k) {
             ++this.lastUpdateY;
+            long xHi = this.blockXHi;
+            long zHi = this.blockZHi;
             this.biome = Suppliers.memoize(() -> {
-                return this.biomeGetter.apply(this.pos.set(i, p_189581_, k));
+                return this.biomeGetter.apply(this.pos.set(xHi, i, p_189581_, zHi, k));
             });
             this.blockY = p_189581_;
             this.waterHeight = p_189579_;
@@ -313,7 +322,7 @@ public class SurfaceRules {
         protected double getSurfaceSecondary() {
             if (this.lastSurfaceDepth2Update != this.lastUpdateXZ) {
                 this.lastSurfaceDepth2Update = this.lastUpdateXZ;
-                this.surfaceSecondary = this.system.getSurfaceSecondary(this.blockX, this.blockZ);
+                this.surfaceSecondary = this.system.getSurfaceSecondary(this.blockXHi, this.blockX, this.blockZHi, this.blockZ);
             }
 
             return this.surfaceSecondary;
@@ -336,18 +345,37 @@ public class SurfaceRules {
         protected int getMinSurfaceLevel() {
             if (this.lastMinSurfaceLevelUpdate != this.lastUpdateXZ) {
                 this.lastMinSurfaceLevelUpdate = this.lastUpdateXZ;
-                long i = blockCoordToSurfaceCell(this.blockX);
-                long j = blockCoordToSurfaceCell(this.blockZ);
-                ChunkPos k = new ChunkPos(i, j);
-                if (!k.equals(lastPreliminarySurfaceCellOrigin)) {
-                    this.lastPreliminarySurfaceCellOrigin = k;
-                    this.preliminarySurfaceCache[0] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(i), surfaceCellToBlockCoord(j));
-                    this.preliminarySurfaceCache[1] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(WorldBounds.addChunkOffset(i, 1L)), surfaceCellToBlockCoord(j));
-                    this.preliminarySurfaceCache[2] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(i), surfaceCellToBlockCoord(WorldBounds.addChunkOffset(j, 1L)));
-                    this.preliminarySurfaceCache[3] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(WorldBounds.addChunkOffset(i, 1L)), surfaceCellToBlockCoord(WorldBounds.addChunkOffset(j, 1L)));
-                }
+                double xFraction = (double) ((float) (this.blockX & 15) / 16.0F);
+                double zFraction = (double) ((float) (this.blockZ & 15) / 16.0F);
+                double interpolatedLevel;
+                if (WorldgenCoordinate.fitsLong(this.blockXHi, this.blockX) && WorldgenCoordinate.fitsLong(this.blockZHi, this.blockZ)) {
+                    long i = blockCoordToSurfaceCell(this.blockX);
+                    long j = blockCoordToSurfaceCell(this.blockZ);
+                    ChunkPos k = new ChunkPos(i, j);
+                    if (!k.equals(lastPreliminarySurfaceCellOrigin)) {
+                        this.lastPreliminarySurfaceCellOrigin = k;
+                        this.preliminarySurfaceCache[0] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(i), surfaceCellToBlockCoord(j));
+                        this.preliminarySurfaceCache[1] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(WorldBounds.addChunkOffset(i, 1L)), surfaceCellToBlockCoord(j));
+                        this.preliminarySurfaceCache[2] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(i), surfaceCellToBlockCoord(WorldBounds.addChunkOffset(j, 1L)));
+                        this.preliminarySurfaceCache[3] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(WorldBounds.addChunkOffset(i, 1L)), surfaceCellToBlockCoord(WorldBounds.addChunkOffset(j, 1L)));
+                    }
 
-                double interpolatedLevel = Mth.lerp2((double) ((float) (this.blockX & 15) / 16.0F), (double) ((float) (this.blockZ & 15) / 16.0F), (double) this.preliminarySurfaceCache[0], (double) this.preliminarySurfaceCache[1], (double) this.preliminarySurfaceCache[2], (double) this.preliminarySurfaceCache[3]);
+                    interpolatedLevel = Mth.lerp2(xFraction, zFraction, (double) this.preliminarySurfaceCache[0], (double) this.preliminarySurfaceCache[1], (double) this.preliminarySurfaceCache[2], (double) this.preliminarySurfaceCache[3]);
+                } else {
+                    long xLow = this.blockX & -16L;
+                    long zLow = this.blockZ & -16L;
+                    long xHigh = this.blockXHi;
+                    long zHigh = this.blockZHi;
+                    long xNextLow = WorldgenCoordinate.addLow(xHigh, xLow, 16L);
+                    long xNextHigh = WorldgenCoordinate.addHigh(xHigh, xLow, 16L);
+                    long zNextLow = WorldgenCoordinate.addLow(zHigh, zLow, 16L);
+                    long zNextHigh = WorldgenCoordinate.addHigh(zHigh, zLow, 16L);
+                    int corner0 = this.noiseChunk.preliminarySurfaceLevel(xHigh, xLow, zHigh, zLow);
+                    int corner1 = this.noiseChunk.preliminarySurfaceLevel(xNextHigh, xNextLow, zHigh, zLow);
+                    int corner2 = this.noiseChunk.preliminarySurfaceLevel(xHigh, xLow, zNextHigh, zNextLow);
+                    int corner3 = this.noiseChunk.preliminarySurfaceLevel(xNextHigh, xNextLow, zNextHigh, zNextLow);
+                    interpolatedLevel = Mth.lerp2(xFraction, zFraction, (double) corner0, (double) corner1, (double) corner2, (double) corner3);
+                }
                 int l = Double.isFinite(interpolatedLevel) ? Mth.floor(interpolatedLevel) : this.context.getMinGenY();
                 this.minSurfaceLevel = WorldBounds.addSaturated(WorldBounds.addSaturated(l, this.surfaceDepth), -8);
                 this.minSurfaceLevel = clampSurfaceLevel(this.minSurfaceLevel);
@@ -403,7 +431,7 @@ public class SurfaceRules {
             }
 
             protected boolean compute() {
-                return this.context.biome.get().value().coldEnoughToSnow(this.context.pos.set(this.context.blockX, this.context.blockY, this.context.blockZ));
+                return this.context.biome.get().value().coldEnoughToSnow(this.context.pos.set(this.context.blockXHi, this.context.blockX, this.context.blockY, this.context.blockZHi, this.context.blockZ));
             }
         }
     }
@@ -492,11 +520,7 @@ public class SurfaceRules {
                 }
 
                 protected boolean compute() {
-                    long blockX = this.context.blockX;
-                    long blockZ = this.context.blockZ;
-                    double d0 = FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))
-                            ? normalnoise.getValueScaled(blockX, 1.0D, 0L, 0.0D, blockZ)
-                            : normalnoise.getValue(WorldBounds.noiseCoordinate(blockX), 0.0D, WorldBounds.noiseCoordinate(blockZ));
+                    double d0 = SurfaceSystem.sampleNoise(normalnoise, this.context.blockXHi, this.context.blockX, 1.0D, this.context.blockZHi, this.context.blockZ);
                     d0 = WorldBounds.clampNoise(d0);
                     double min = Double.isFinite(NoiseThresholdConditionSource.this.minThreshold) ? NoiseThresholdConditionSource.this.minThreshold : 0.0D;
                     double max = Double.isFinite(NoiseThresholdConditionSource.this.maxThreshold) ? NoiseThresholdConditionSource.this.maxThreshold : 0.0D;
@@ -698,7 +722,7 @@ public class SurfaceRules {
                         return false;
                     } else {
                         double d0 = Mth.map((double) k, (double) i, (double) j, 1.0D, 0.0D);
-                        RandomSource randomsource = positionalrandomfactory.at(this.context.blockX, k, this.context.blockZ);
+                        RandomSource randomsource = positionalrandomfactory.at(this.context.blockXHi, this.context.blockX, k, this.context.blockZHi, this.context.blockZ);
                         return (double) randomsource.nextFloat() < d0;
                     }
                 }

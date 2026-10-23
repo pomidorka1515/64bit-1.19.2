@@ -85,8 +85,8 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
             BoundingBox boundingbox = beardifier$rigid.box();
             int l = beardifier$rigid.groundLevelDelta();
             // Density contexts remain 64-bit: project generated-content sampling only.
-            double i1 = Math.max(0.0D, Math.max(WorldBounds.signedDifference(boundingbox.minX().lo(), i), WorldBounds.signedDifference(i, boundingbox.maxX().lo())));
-            double j1 = Math.max(0.0D, Math.max(WorldBounds.signedDifference(boundingbox.minZ().lo(), k), WorldBounds.signedDifference(k, boundingbox.maxZ().lo())));
+            double i1 = Math.max(0.0D, Math.max(net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.difference(boundingbox.minX().hi(), boundingbox.minX().lo(), pContext.blockXHi(), i), net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.difference(pContext.blockXHi(), i, boundingbox.maxX().hi(), boundingbox.maxX().lo())));
+            double j1 = Math.max(0.0D, Math.max(net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.difference(boundingbox.minZ().hi(), boundingbox.minZ().lo(), pContext.blockZHi(), k), net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.difference(pContext.blockZHi(), k, boundingbox.maxZ().hi(), boundingbox.maxZ().lo())));
             int k1 = boundingbox.minY() + l;
             int l1 = j - k1;
             int i3;
@@ -126,9 +126,9 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
 
         while (this.junctionIterator.hasNext()) {
             JigsawJunction jigsawjunction = this.junctionIterator.next();
-            double j2 = WorldBounds.signedDifference(i, jigsawjunction.getSourceX().lo());
+            double j2 = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.difference(pContext.blockXHi(), i, jigsawjunction.getSourceX().hi(), jigsawjunction.getSourceX().lo());
             int k2 = j - jigsawjunction.getSourceGroundY();
-            double l2 = WorldBounds.signedDifference(k, jigsawjunction.getSourceZ().lo());
+            double l2 = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.difference(pContext.blockZHi(), k, jigsawjunction.getSourceZ().hi(), jigsawjunction.getSourceZ().lo());
             d0 += getBeardContribution(j2, k2, l2, k2) * 0.4D;
         }
 

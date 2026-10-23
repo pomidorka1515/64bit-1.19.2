@@ -38,7 +38,7 @@ public class NetherFossilStructure extends Structure {
         int k = p_228576_.chunkGenerator().getSeaLevel();
         WorldGenerationContext worldgenerationcontext = new WorldGenerationContext(p_228576_.chunkGenerator(), p_228576_.heightAccessor());
         int l = this.height.sample(worldgenrandom, worldgenerationcontext);
-        NoiseColumn noisecolumn = p_228576_.chunkGenerator().getBaseColumn(i.lo(), j.lo(), p_228576_.heightAccessor(), p_228576_.randomState());
+        NoiseColumn noisecolumn = p_228576_.chunkGenerator().getBaseColumn(i, j, p_228576_.heightAccessor(), p_228576_.randomState());
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(i, l, j);
 
         while (l > k) {

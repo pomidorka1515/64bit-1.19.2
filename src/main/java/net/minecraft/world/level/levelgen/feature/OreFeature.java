@@ -34,6 +34,9 @@ public class OreFeature extends Feature<OreConfiguration> {
         // both endpoints onto the same value, crushing the blob into a 2D planar sheet.
         // All other modes retain the legacy absolute-double endpoints untouched.
         boolean preciseEllipsoid = FarlandsMode.usesPreciseCoordinates();
+        boolean wide = blockpos.getXHi() != (blockpos.getXLo() >> 63) || blockpos.getZHi() != (blockpos.getZLo() >> 63);
+        long centerX = wide ? 0L : blockpos.getXLo();
+        long centerZ = wide ? 0L : blockpos.getZLo();
         double d0;
         double d1;
         double d2;
@@ -44,17 +47,20 @@ public class OreFeature extends Feature<OreConfiguration> {
             d2 = Math.cos((double) f) * (double) f1;
             d3 = -d2;
         } else {
-            d0 = WorldBounds.clampAbsoluteDouble((double) blockpos.getXLo() + Math.sin((double) f) * (double) f1);
-            d1 = WorldBounds.clampAbsoluteDouble((double) blockpos.getXLo() - Math.sin((double) f) * (double) f1);
-            d2 = WorldBounds.clampAbsoluteDouble((double) blockpos.getZLo() + Math.cos((double) f) * (double) f1);
-            d3 = WorldBounds.clampAbsoluteDouble((double) blockpos.getZLo() - Math.cos((double) f) * (double) f1);
+            double absoluteX = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(blockpos.getXHi(), blockpos.getXLo());
+            double absoluteZ = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(blockpos.getZHi(), blockpos.getZLo());
+            d0 = WorldBounds.clampAbsoluteDouble(absoluteX + Math.sin((double) f) * (double) f1);
+            d1 = WorldBounds.clampAbsoluteDouble(absoluteX - Math.sin((double) f) * (double) f1);
+            d2 = WorldBounds.clampAbsoluteDouble(absoluteZ + Math.cos((double) f) * (double) f1);
+            d3 = WorldBounds.clampAbsoluteDouble(absoluteZ - Math.cos((double) f) * (double) f1);
+            if (wide) { d0 -= absoluteX; d1 -= absoluteX; d2 -= absoluteZ; d3 -= absoluteZ; }
         }
         int j = 2;
         double d4 = (double) (blockpos.getY() + randomsource.nextInt(3) - 2);
         double d5 = (double) (blockpos.getY() + randomsource.nextInt(3) - 2);
-        long k = WorldBounds.addBlockOffset(blockpos.getXLo(), -(long) Mth.ceil(f1) - i);
+        long k = WorldBounds.addBlockOffset(centerX, -(long) Mth.ceil(f1) - i);
         int l = blockpos.getY() - 2 - i;
-        long i1 = WorldBounds.addBlockOffset(blockpos.getZLo(), -(long) Mth.ceil(f1) - i);
+        long i1 = WorldBounds.addBlockOffset(centerZ, -(long) Mth.ceil(f1) - i);
         int j1 = 2 * (Mth.ceil(f1) + i);
         int k1 = 2 * (2 + i);
 
@@ -63,9 +69,9 @@ public class OreFeature extends Feature<OreConfiguration> {
         for (long l1 = k;; l1 = WorldBounds.addBlockOffset(l1, 1L)) {
             for (long i2 = i1;; i2 = WorldBounds.addBlockOffset(i2, 1L)) {
                 if (l <= worldgenlevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG,
-                        WorldBounds.addBlockOffset(blockpos.getX(), l1 - blockpos.getXLo()),
-                        WorldBounds.addBlockOffset(blockpos.getZ(), i2 - blockpos.getZLo()))) {
-                    return this.doPlace(worldgenlevel, randomsource, oreconfiguration, d0, d1, d2, d3, d4, d5, blockpos.getXLo(), blockpos.getZLo(), preciseEllipsoid, k, l, i1, j1, k1, blockpos);
+                        WorldBounds.addBlockOffset(blockpos.getX(), l1 - centerX),
+                        WorldBounds.addBlockOffset(blockpos.getZ(), i2 - centerZ))) {
+                    return this.doPlace(worldgenlevel, randomsource, oreconfiguration, d0, d1, d2, d3, d4, d5, centerX, centerZ, preciseEllipsoid, k, l, i1, j1, k1, blockpos);
                 }
                 if (i2 == maxZ) {
                     break;
@@ -175,9 +181,9 @@ public class OreFeature extends Feature<OreConfiguration> {
                                                 if (pLevel.ensureCanWrite(blockpos$mutableblockpos)) {
                                                     LevelChunkSection levelchunksection = bulksectionaccess.getSection(blockpos$mutableblockpos);
                                                     if (levelchunksection != null) {
-                                                        int i3 = SectionPos.sectionRelative(i2);
+                                                        int i3 = SectionPos.sectionRelative(blockpos$mutableblockpos.getXLo());
                                                         int j3 = SectionPos.sectionRelative(j2);
-                                                        int k3 = SectionPos.sectionRelative(k2);
+                                                        int k3 = SectionPos.sectionRelative(blockpos$mutableblockpos.getZLo());
                                                         BlockState blockstate = levelchunksection.getBlockState(i3, j3, k3);
 
                                                         for (OreConfiguration.TargetBlockState oreconfiguration$targetblockstate : pConfig.targetStates) {

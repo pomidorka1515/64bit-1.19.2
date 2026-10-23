@@ -57,14 +57,25 @@ public abstract class WorldCarver<C extends CarverConfiguration> {
         return 4;
     }
 
+    protected static boolean usesLocalFrame(ChunkPos pos) {
+        return pos.getMinBlockX().hi() != (pos.getMinBlockX().lo() >> 63) || pos.getMinBlockZ().hi() != (pos.getMinBlockZ().lo() >> 63);
+    }
+
+    protected static double startCoordinate(ChunkPos source, ChunkPos target, int offset, boolean x) {
+        if (!usesLocalFrame(target)) return (double) (x ? source.getBlockX(offset).lo() : source.getBlockZ(offset).lo());
+        return (x ? net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.difference(source.xHi(), source.xLo(), target.xHi(), target.xLo())
+                : net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.difference(source.zHi(), source.zLo(), target.zHi(), target.zLo())) * 16.0D + offset;
+    }
+
     protected boolean carveEllipsoid(CarvingContext pContext, C pConfig, ChunkAccess pChunk, Function<BlockPos, Holder<Biome>> pBiomeAccessor, Aquifer pAquifer, double pX, double pY, double pZ, double pHorizontalRadius, double pVerticalRadius, CarvingMask pCarvingMask, WorldCarver.CarveSkipChecker pSkipChecker) {
         ChunkPos chunkpos = pChunk.getPos();
-        double d0 = (double) chunkpos.getMiddleBlockX().lo();
-        double d1 = (double) chunkpos.getMiddleBlockZ().lo();
+        boolean local = usesLocalFrame(chunkpos);
+        double d0 = local ? 8.0D : (double) chunkpos.getMiddleBlockX().lo();
+        double d1 = local ? 8.0D : (double) chunkpos.getMiddleBlockZ().lo();
         double d2 = 16.0D + pHorizontalRadius * 2.0D;
         if (!(Math.abs(pX - d0) > d2) && !(Math.abs(pZ - d1) > d2)) {
-            long i = chunkpos.getMinBlockX().lo();
-            long j = chunkpos.getMinBlockZ().lo();
+            long i = local ? 0L : chunkpos.getMinBlockX().lo();
+            long j = local ? 0L : chunkpos.getMinBlockZ().lo();
             long k = Math.max(WorldBounds.subtractBlockOffset(WorldBounds.subtractBlockOffset(Mth.lfloor(pX - pHorizontalRadius), i), 1L), 0);
             long l = Math.min(WorldBounds.subtractBlockOffset(Mth.lfloor(pX + pHorizontalRadius), i), 15);
             int i1 = Math.max(Mth.floor(pY - pVerticalRadius) - 1, pContext.getMinGenY() + 1);
@@ -81,11 +92,11 @@ public abstract class WorldCarver<C extends CarverConfiguration> {
             BlockPos.MutableBlockPos blockpos$mutableblockpos1 = new BlockPos.MutableBlockPos();
 
             for (long j2 = k;; j2 = WorldBounds.addBlockOffset(j2, 1L)) {
-                long k2 = chunkpos.getBlockX(j2).lo();
+                long k2 = local ? j2 : chunkpos.getBlockX(j2).lo();
                 double d3 = ((double) k2 + 0.5D - pX) / pHorizontalRadius;
 
                 for (long l2 = l1;; l2 = WorldBounds.addBlockOffset(l2, 1L)) {
-                    long i3 = chunkpos.getBlockZ(l2).lo();
+                    long i3 = local ? l2 : chunkpos.getBlockZ(l2).lo();
                     double d4 = ((double) i3 + 0.5D - pZ) / pHorizontalRadius;
                     if (!(d3 * d3 + d4 * d4 >= 1.0D)) {
                         MutableBoolean mutableboolean = new MutableBoolean(false);
@@ -156,7 +167,7 @@ public abstract class WorldCarver<C extends CarverConfiguration> {
         if (pPos.getY() <= pConfig.lavaLevel.resolveY(pContext)) {
             return LAVA.createLegacyBlock();
         } else {
-            BlockState blockstate = pAquifer.computeSubstance(new DensityFunction.SinglePointContext(pPos.getXLo(), pPos.getY(), pPos.getZLo()), 0.0D);
+            BlockState blockstate = pAquifer.computeSubstance(new DensityFunction.SinglePointContext(pPos.getXHi(), pPos.getXLo(), pPos.getY(), pPos.getZHi(), pPos.getZLo()), 0.0D);
             if (blockstate == null) {
                 return isDebugEnabled(pConfig) ? pConfig.debugSettings.getBarrierState() : null;
             } else {
@@ -185,8 +196,8 @@ public abstract class WorldCarver<C extends CarverConfiguration> {
     }
 
     protected static boolean canReach(ChunkPos pChunkPos, double pX, double pZ, int pBranchIndex, int pBranchCount, float pWidth) {
-        double d0 = (double) pChunkPos.getMiddleBlockX().lo();
-        double d1 = (double) pChunkPos.getMiddleBlockZ().lo();
+        double d0 = usesLocalFrame(pChunkPos) ? 8.0D : (double) pChunkPos.getMiddleBlockX().lo();
+        double d1 = usesLocalFrame(pChunkPos) ? 8.0D : (double) pChunkPos.getMiddleBlockZ().lo();
         double d2 = pX - d0;
         double d3 = pZ - d1;
         double d4 = (double) (pBranchCount - pBranchIndex);

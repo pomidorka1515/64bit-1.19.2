@@ -79,14 +79,14 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
     }
 
     public double compute(DensityFunction.FunctionContext pContext) {
-        if (FarlandsMode.usesPreciseCoordinates() && (this.needsPreciseSampling(pContext.blockX()) || this.needsPreciseSampling(pContext.blockZ()))) {
+        if (FarlandsMode.usesPreciseCoordinates() && (!WorldgenCoordinate.fitsLong(pContext.blockXHi(), pContext.blockX()) || !WorldgenCoordinate.fitsLong(pContext.blockZHi(), pContext.blockZ()) || this.needsPreciseSampling(pContext.blockX()) || this.needsPreciseSampling(pContext.blockZ()))) {
             return this.computePrecise(pContext);
         }
 
         boolean useLegacy32BitFloor = FarlandsMode.usesLegacyBlendedNoise();
-        double d0 = FarlandsMode.scaledNoiseCoordinate(pContext.blockX(), this.xzMultiplier);
+        double d0 = FarlandsMode.scaledNoiseCoordinate(pContext.blockXHi(), pContext.blockX(), this.xzMultiplier);
         double d1 = (double) pContext.blockY() * this.yMultiplier;
-        double d2 = FarlandsMode.scaledNoiseCoordinate(pContext.blockZ(), this.xzMultiplier);
+        double d2 = FarlandsMode.scaledNoiseCoordinate(pContext.blockZHi(), pContext.blockZ(), this.xzMultiplier);
         double d3 = d0 / this.xzFactor;
         double d4 = d1 / this.yFactor;
         double d5 = d2 / this.xzFactor;
@@ -166,10 +166,16 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
                 // xzFactor division is combined into one finite scale; this is the only rounded BlendedNoise sub-term.
                 double selectorScale = this.xzMultiplier * octave / this.xzFactor;
                 PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
-                PreciseNoiseCoordinate.scale(context.blockX(), selectorScale, scratch);
+                if (WorldgenCoordinate.fitsLong(context.blockXHi(), context.blockX()))
+                    PreciseNoiseCoordinate.scale(context.blockX(), selectorScale, scratch);
+                else
+                    WorldgenCoordinate.scale(context.blockXHi(), context.blockX(), selectorScale, 0, scratch);
                 long x = scratch.lattice;
                 double fx = scratch.fraction;
-                PreciseNoiseCoordinate.scale(context.blockZ(), selectorScale, scratch);
+                if (WorldgenCoordinate.fitsLong(context.blockZHi(), context.blockZ()))
+                    PreciseNoiseCoordinate.scale(context.blockZ(), selectorScale, scratch);
+                else
+                    WorldgenCoordinate.scale(context.blockZHi(), context.blockZ(), selectorScale, 0, scratch);
                 long z = scratch.lattice;
                 double fz = scratch.fraction;
                 double scaledY = d4 * octave;
@@ -188,10 +194,16 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
         for (int j = 0; j < 16; ++j) {
             double octaveScale = this.xzMultiplier * octave;
             PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
-            PreciseNoiseCoordinate.scale(context.blockX(), octaveScale, scratch);
+            if (WorldgenCoordinate.fitsLong(context.blockXHi(), context.blockX()))
+                PreciseNoiseCoordinate.scale(context.blockX(), octaveScale, scratch);
+            else
+                WorldgenCoordinate.scale(context.blockXHi(), context.blockX(), octaveScale, 0, scratch);
             long x = scratch.lattice;
             double fx = scratch.fraction;
-            PreciseNoiseCoordinate.scale(context.blockZ(), octaveScale, scratch);
+            if (WorldgenCoordinate.fitsLong(context.blockZHi(), context.blockZ()))
+                PreciseNoiseCoordinate.scale(context.blockZ(), octaveScale, scratch);
+            else
+                WorldgenCoordinate.scale(context.blockZHi(), context.blockZ(), octaveScale, 0, scratch);
             long z = scratch.lattice;
             double fz = scratch.fraction;
             double scaledY = y * octave;
@@ -211,7 +223,10 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
         double density = Mth.clampedLerp(min / 512.0D, max / 512.0D, selectorLerp) / 128.0D;
         if (Thread.currentThread() == debugCaptureThread) {
             PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
-            PreciseNoiseCoordinate.scale(context.blockX(), this.xzMultiplier, scratch);
+            if (WorldgenCoordinate.fitsLong(context.blockXHi(), context.blockX()))
+                PreciseNoiseCoordinate.scale(context.blockX(), this.xzMultiplier, scratch);
+            else
+                WorldgenCoordinate.scale(context.blockXHi(), context.blockX(), this.xzMultiplier, 0, scratch);
             debugScaledX = (double) scratch.lattice + scratch.fraction;
             debugSelectorLerp = selectorLerp;
             debugMinLimit = min / 512.0D;

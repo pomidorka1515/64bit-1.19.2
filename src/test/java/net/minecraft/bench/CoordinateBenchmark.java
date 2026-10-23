@@ -3,6 +3,8 @@
 package net.minecraft.bench;
 
 import net.minecraft.core.Int128;
+import net.minecraft.core.Int128Math;
+import net.minecraft.core.Vec3i;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,6 +38,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CoordinateBenchmark {
     private static final int WARMUP = Integer.parseInt(
@@ -83,6 +86,7 @@ class CoordinateBenchmark {
         report.append(measure("chunk-key-raw-lookup", this::lookupRawChunkKeys));
         report.append(measure("chunk-coordinate-access", this::accessChunkCoordinates));
         report.append(measure("block-position-hot-ops", this::blockPositionHotOps));
+        report.append(measure("block-position-scratch-hot-ops", this::blockPositionScratchHotOps));
         report.append(measure("region-name-formatting", this::formatRegionNames));
         report.append(measure("sector-vec3-relative-math", this::relativeMath));
         report.append("allocation metric,ops,median_bytes,median_bytes_per_op\n");
@@ -92,6 +96,7 @@ class CoordinateBenchmark {
         report.append(allocations("chunk-key-raw-lookup", this::lookupRawChunkKeys));
         report.append(allocations("chunk-coordinate-access", this::accessChunkCoordinates));
         report.append(allocations("block-position-hot-ops", this::blockPositionHotOps));
+        report.append(allocations("block-position-scratch-hot-ops", this::blockPositionScratchHotOps));
         report.append(allocations("region-name-formatting", this::formatRegionNames));
         report.append(allocations("sector-vec3-relative-math", this::relativeMath));
         report.append(allocations("air-collision-small", () -> this.airCollisions(1)));
@@ -104,6 +109,8 @@ class CoordinateBenchmark {
                 .append("over a 33x33 window, 20 reps; setup excluded\n");
         report.append("chunk-key-raw-lookup: ChunkPosMap.get(xHi,xLo,zHi,zLo), same window/checksum; setup excluded\n");
         report.append("chunk-coordinate-access: RangeCursor over a 33x33 window, raw region/block limbs; no per-entry snapshots\n");
+        report.append("block-position-hot-ops: immutable offsets and retained BlockPos/ChunkPos snapshots, 4096 positions\n");
+        report.append("block-position-scratch-hot-ops: same coordinates/checksum with a reusable MutableBlockPos and raw hashes; no retained snapshots\n");
         report.append("region-name-formatting: canonical 32-hex X/Z .mca names, 4000 reps of 8 names\n");
         report.append("sector-vec3-relative-math: relativeX/Y/Z at ").append(FAR).append(", 20000 calls\n");
 
@@ -276,6 +283,13 @@ class CoordinateBenchmark {
     // relying on scalar replacement of an entirely synthetic coordinate pipeline.
     private static final BlockPos[] BLOCK_RESULTS = new BlockPos[4096];
     private static final ChunkPos[] CHUNK_RESULTS = new ChunkPos[4096];
+    private final BlockPos blockOrigin = new BlockPos(17L, -16L, 64, -18L, 16L);
+    private final BlockPos.MutableBlockPos blockScratch = new BlockPos.MutableBlockPos();
+
+    @Test
+    void scratchBlockPositionsMatchRetainedChecksum() {
+        assertEquals(this.blockPositionHotOps(), this.blockPositionScratchHotOps());
+    }
 
     private Result blockPositionHotOps() {
         BlockPos origin = new BlockPos(Int128.of(17L, -16L), 64, Int128.of(-18L, 16L));
@@ -285,6 +299,20 @@ class CoordinateBenchmark {
             BLOCK_RESULTS[i] = pos;
             CHUNK_RESULTS[i] = new ChunkPos(pos);
             checksum += pos.hashCode() + pos.compareTo(origin) + CHUNK_RESULTS[i].hashCode();
+        }
+        return new Result(BLOCK_RESULTS.length, checksum);
+    }
+
+    private Result blockPositionScratchHotOps() {
+        BlockPos origin = this.blockOrigin;
+        BlockPos.MutableBlockPos pos = this.blockScratch;
+        long checksum = 1L;
+        for (int i = 0; i < BLOCK_RESULTS.length; ++i) {
+            pos.setWithOffset(origin, i & 15, (i >>> 4) & 15, (i >>> 8) & 15);
+            checksum += Vec3i.hashCode(pos.xHi(), pos.xLo(), pos.getY(), pos.zHi(), pos.zLo())
+                    + pos.compareTo(origin.xHi(), origin.xLo(), origin.getY(), origin.zHi(), origin.zLo())
+                    + ChunkPos.hash(pos.xHi() >> 4, Int128Math.rightShiftLo(pos.xHi(), pos.xLo(), 4),
+                            pos.zHi() >> 4, Int128Math.rightShiftLo(pos.zHi(), pos.zLo(), 4));
         }
         return new Result(BLOCK_RESULTS.length, checksum);
     }

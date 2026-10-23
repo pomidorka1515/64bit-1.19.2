@@ -83,15 +83,25 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public int hashCode() {
-        int xHash = 31 * Long.hashCode(this.xHi()) + Long.hashCode(this.xLo());
-        int zHash = 31 * Long.hashCode(this.zHi()) + Long.hashCode(this.zLo());
-        return (this.getY() + zHash * 31) * 31 + xHash;
+        return hashCode(this.xHi(), this.xLo(), this.getY(), this.zHi(), this.zLo());
+    }
+
+    /** Hashes full-width coordinates without materializing a position or Int128 values. */
+    public static int hashCode(long xHi, long xLo, int y, long zHi, long zLo) {
+        int xHash = 31 * Long.hashCode(xHi) + Long.hashCode(xLo);
+        int zHash = 31 * Long.hashCode(zHi) + Long.hashCode(zLo);
+        return (y + zHash * 31) * 31 + xHash;
     }
 
     public int compareTo(Vec3i pOther) {
-        int result = Int128Math.compare(this.xHi(), this.xLo(), pOther.xHi(), pOther.xLo());
-        if (result == 0) result = Integer.compare(this.getY(), pOther.getY());
-        return result == 0 ? Int128Math.compare(this.zHi(), this.zLo(), pOther.zHi(), pOther.zLo()) : result;
+        return this.compareTo(pOther.xHi(), pOther.xLo(), pOther.getY(), pOther.zHi(), pOther.zLo());
+    }
+
+    /** Compares a raw position in the same X/Y/Z order as the object overload. */
+    public int compareTo(long xHi, long xLo, int y, long zHi, long zLo) {
+        int result = Int128Math.compare(this.xHi(), this.xLo(), xHi, xLo);
+        if (result == 0) result = Integer.compare(this.getY(), y);
+        return result == 0 ? Int128Math.compare(this.zHi(), this.zLo(), zHi, zLo) : result;
     }
 
     /** Value-object API boundary; internal arithmetic should use the raw limb accessors. */

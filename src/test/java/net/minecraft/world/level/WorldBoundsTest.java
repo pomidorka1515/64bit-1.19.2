@@ -19,6 +19,7 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import org.junit.jupiter.api.Test;
 
 class WorldBoundsTest {
+    private static volatile long productSink;
     private static final BigInteger MIN_128 = BigInteger.ONE.shiftLeft(127).negate();
     private static final BigInteger MAX_128 = BigInteger.ONE.shiftLeft(127).subtract(BigInteger.ONE);
 
@@ -176,6 +177,48 @@ class WorldBoundsTest {
         assertEquals(clamp128(value.add(delta)).toString(), WorldBounds.addBlockOffset(coordinate, offset).toString());
         assertEquals(clamp128(value.subtract(delta)).toString(), WorldBounds.subtractBlockOffset(coordinate, offset).toString());
         assertEquals(clamp128(value.multiply(delta)).toString(), WorldBounds.multiplySaturated(coordinate, offset).toString());
+    }
+
+    @Test
+    void overflowingProductsDoNotAllocateExceptions() {
+        var bean = (com.sun.management.ThreadMXBean) java.lang.management.ManagementFactory.getThreadMXBean();
+        org.junit.jupiter.api.Assumptions.assumeTrue(bean.isThreadAllocatedMemorySupported());
+        bean.setThreadAllocatedMemoryEnabled(true);
+        for (int i = 0; i < 20; ++i) productSink = overflowingProducts();
+        long thread = Thread.currentThread().getId();
+        long before = bean.getThreadAllocatedBytes(thread);
+        productSink = overflowingProducts();
+        long bytes = bean.getThreadAllocatedBytes(thread) - before;
+        assertTrue(bytes < 1024L, "overflow products allocated " + bytes + " bytes");
+    }
+
+    private static long overflowingProducts() {
+        long sum = 0L;
+        for (int i = 0; i < 100000; ++i) {
+            long value = Long.MAX_VALUE - i;
+            sum += WorldBounds.multiplySaturated(value, value);
+            sum += WorldBounds.multiplySaturated(-value, value);
+        }
+        return sum;
+    }
+
+    @Test
+    void saturatedLongProductsMatchBigInteger() {
+        long[] edges = {Long.MIN_VALUE, Long.MIN_VALUE + 1L, -3037000500L, -3037000499L,
+                -1L, 0L, 1L, 3037000499L, 3037000500L, Long.MAX_VALUE - 1L, Long.MAX_VALUE};
+        for (long a : edges) {
+            for (long b : edges) {
+                assertEquals(clampLong(BigInteger.valueOf(a).multiply(BigInteger.valueOf(b))),
+                        WorldBounds.multiplySaturated(a, b));
+            }
+        }
+        Random random = new Random(0x5204L);
+        for (int i = 0; i < 10000; ++i) {
+            long a = random.nextLong();
+            long b = random.nextLong();
+            assertEquals(clampLong(BigInteger.valueOf(a).multiply(BigInteger.valueOf(b))),
+                    WorldBounds.multiplySaturated(a, b));
+        }
     }
 
     @Test

@@ -255,11 +255,11 @@ public final class WorldBounds {
 
     /** Saturating multiplication in the horizontal coordinate domain. */
     public static long multiplySaturated(long first, long second) {
-        try {
-            return Math.multiplyExact(first, second);
-        } catch (ArithmeticException overflow) {
-            return (first ^ second) < 0L ? Long.MIN_VALUE : Long.MAX_VALUE;
-        }
+        long result = first * second;
+        // Overflow is routine for broken climate samples. Do not allocate an
+        // exception (and capture a stack trace) for every biome-distance axis.
+        return Math.multiplyHigh(first, second) == (result >> 63) ? result
+                : (first ^ second) < 0L ? Long.MIN_VALUE : Long.MAX_VALUE;
     }
 
     /** Computes a determinant before clamping, preserving cancellation. */

@@ -3,6 +3,7 @@ package net.minecraft.world.level.lighting;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Int128;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
@@ -21,6 +22,35 @@ public abstract class LayerLightEngine<M extends DataLayerStorageMap<M>, S exten
     protected final LightChunkGetter chunkSource;
     protected final S storage;
     private boolean runningLightUpdates;
+    private final long[] chunkXHi = new long[4];
+    private final long[] chunkXLo = new long[4];
+    private final long[] chunkZHi = new long[4];
+    private final long[] chunkZLo = new long[4];
+    private final BlockGetter[] chunks = new BlockGetter[4];
+    private boolean cacheChunks;
+
+    /** Positive results only, scoped to one synchronous update invocation. */
+    @Nullable
+    protected final BlockGetter getChunk(BlockPos pos) {
+        long xHi = pos.getXHi() >> 4;
+        long xLo = (pos.getXLo() >>> 4) | (pos.getXHi() << 60);
+        long zHi = pos.getZHi() >> 4;
+        long zLo = (pos.getZLo() >>> 4) | (pos.getZHi() << 60);
+        int slot = (int) (xLo + 3 * zLo) & 3;
+        if (this.cacheChunks && this.chunks[slot] != null && this.chunkXHi[slot] == xHi
+                && this.chunkXLo[slot] == xLo && this.chunkZHi[slot] == zHi && this.chunkZLo[slot] == zLo) {
+            return this.chunks[slot];
+        }
+        BlockGetter chunk = this.chunkSource.getChunkForLighting(Int128.of(xHi, xLo), Int128.of(zHi, zLo));
+        if (this.cacheChunks && chunk != null) {
+            this.chunkXHi[slot] = xHi;
+            this.chunkXLo[slot] = xLo;
+            this.chunkZHi[slot] = zHi;
+            this.chunkZLo[slot] = zLo;
+            this.chunks[slot] = chunk;
+        }
+        return chunk;
+    }
 
     protected LayerLightEngine(LightChunkGetter chunkSource, LightLayer layer, S storage) {
         super(16, 256, 8192);
@@ -41,7 +71,7 @@ public abstract class LayerLightEngine<M extends DataLayerStorageMap<M>, S exten
     }
 
     protected BlockState getStateAndOpacity(BlockPos blockPos, @Nullable MutableInt opacity) {
-        BlockGetter level = this.chunkSource.getChunkForLighting(SectionPos.blockToSectionCoord(blockPos.getX()), SectionPos.blockToSectionCoord(blockPos.getZ()));
+        BlockGetter level = this.getChunk(blockPos);
         if (level == null) {
             if (opacity != null) {
                 opacity.setValue(16);
@@ -64,7 +94,7 @@ public abstract class LayerLightEngine<M extends DataLayerStorageMap<M>, S exten
     }
 
     protected int getLevel(DataLayer dataLayer, BlockPos blockPos) {
-        return 15 - dataLayer.get(SectionPos.sectionRelative(blockPos.getX()), SectionPos.sectionRelative(blockPos.getY()), SectionPos.sectionRelative(blockPos.getZ()));
+        return 15 - dataLayer.get(SectionPos.sectionRelative(blockPos.getXLo()), SectionPos.sectionRelative(blockPos.getY()), SectionPos.sectionRelative(blockPos.getZLo()));
     }
 
     protected int getLevel(BlockPos blockPos) {
@@ -99,6 +129,16 @@ public abstract class LayerLightEngine<M extends DataLayerStorageMap<M>, S exten
     }
 
     public int runUpdates(int maxSteps, boolean updateSkyLight, boolean skipEdgeChecks) {
+        this.cacheChunks = true;
+        try {
+            return this.runLightUpdates(maxSteps, updateSkyLight, skipEdgeChecks);
+        } finally {
+            this.cacheChunks = false;
+            java.util.Arrays.fill(this.chunks, null);
+        }
+    }
+
+    private int runLightUpdates(int maxSteps, boolean updateSkyLight, boolean skipEdgeChecks) {
         if (!this.runningLightUpdates) {
             if (this.storage.hasWork()) {
                 maxSteps = this.storage.runUpdates(maxSteps);

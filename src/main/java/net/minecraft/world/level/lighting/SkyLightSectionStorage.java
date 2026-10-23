@@ -44,7 +44,7 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
                 sectionPos = sectionPos.offset(Direction.UP);
                 layer = this.getDataLayer(data, sectionPos);
             }
-            return layer.get(SectionPos.sectionRelative(currentPos.getX()), SectionPos.sectionRelative(currentPos.getY()), SectionPos.sectionRelative(currentPos.getZ()));
+            return layer.get(SectionPos.sectionRelative(currentPos.getXLo()), SectionPos.sectionRelative(currentPos.getY()), SectionPos.sectionRelative(currentPos.getZLo()));
         }
         return updating && !this.lightOnInSection(sectionPos) ? 0 : 15;
     }
@@ -243,16 +243,16 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
 
     protected static final class SkyDataLayerStorageMap extends DataLayerStorageMap<SkyDataLayerStorageMap> {
         int currentLowestY;
-        final Map<SectionPos, Integer> topSections;
+        final LightStorageMap<SectionPos, Integer> topSections;
 
         SkyDataLayerStorageMap(Map<SectionPos, DataLayer> layers, Map<SectionPos, Integer> topSections, int currentLowestY) {
             super(layers);
-            this.topSections = topSections;
+            this.topSections = topSections instanceof LightStorageMap ? (LightStorageMap<SectionPos, Integer>) topSections : new LightStorageMap<>(topSections);
             this.currentLowestY = currentLowestY;
         }
 
         public SkyDataLayerStorageMap copy() {
-            return new SkyDataLayerStorageMap(new HashMap<>(this.map), new HashMap<>(this.topSections), this.currentLowestY);
+            return new SkyDataLayerStorageMap(this.map.copy(), this.topSections.copy(), this.currentLowestY);
         }
     }
 }

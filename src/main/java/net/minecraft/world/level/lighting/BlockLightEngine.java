@@ -2,6 +2,7 @@ package net.minecraft.world.level.lighting;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Int128Math;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LightLayer;
@@ -21,7 +22,7 @@ public final class BlockLightEngine extends LayerLightEngine<BlockLightSectionSt
     }
 
     private int getLightEmission(BlockPos blockPos) {
-        BlockGetter level = this.chunkSource.getChunkForLighting(SectionPos.blockToSectionCoord(blockPos.getX()), SectionPos.blockToSectionCoord(blockPos.getZ()));
+        BlockGetter level = this.getChunk(blockPos);
         return level != null ? level.getLightEmission(this.pos.set(blockPos)) : 0;
     }
 
@@ -33,7 +34,7 @@ public final class BlockLightEngine extends LayerLightEngine<BlockLightSectionSt
         if (level >= 15)
             return level;
 
-        Direction direction = Direction.fromNormal(target.getX().compareTo(source.getX()), Integer.compare(target.getY(), source.getY()), target.getZ().compareTo(source.getZ()));
+        Direction direction = Direction.fromNormal(Int128Math.compare(target.getXHi(), target.getXLo(), source.getXHi(), source.getXLo()), Integer.compare(target.getY(), source.getY()), Int128Math.compare(target.getZHi(), target.getZLo(), source.getZHi(), source.getZLo()));
         if (direction == null)
             return 15;
 
@@ -48,11 +49,10 @@ public final class BlockLightEngine extends LayerLightEngine<BlockLightSectionSt
     }
 
     protected void checkNeighborsAfterUpdate(BlockPos blockPos, int level, boolean decreasing) {
-        SectionPos sectionPos = SectionPos.of(blockPos);
+        SectionPos sectionPos = this.storage.updatingSectionData.sectionForBlock(blockPos);
         for (Direction direction : DIRECTIONS) {
             BlockPos neighbor = blockPos.relative(direction);
-            SectionPos neighborSection = SectionPos.of(neighbor);
-            if (!neighbor.equals(blockPos) && (sectionPos.equals(neighborSection) || this.storage.storingLightForSection(neighborSection))) {
+            if (!neighbor.equals(blockPos) && (sectionPos.contains(neighbor) || this.storage.storingLightForSection(SectionPos.of(neighbor)))) {
                 this.checkNeighbor(blockPos, neighbor, level, decreasing);
             }
         }
@@ -68,12 +68,12 @@ public final class BlockLightEngine extends LayerLightEngine<BlockLightSectionSt
                 return computedLevel;
         }
 
-        SectionPos sectionPos = SectionPos.of(blockPos);
+        SectionPos sectionPos = this.storage.updatingSectionData.sectionForBlock(blockPos);
         DataLayer layer = this.storage.getDataLayer(sectionPos, true);
         for (Direction direction : DIRECTIONS) {
             BlockPos neighbor = blockPos.relative(direction);
             if (!neighbor.equals(blockPos) && !neighbor.equals(excludedNeighbor)) {
-                DataLayer neighborLayer = sectionPos.equals(SectionPos.of(neighbor)) ? layer : this.storage.getDataLayer(SectionPos.of(neighbor), true);
+                DataLayer neighborLayer = sectionPos.contains(neighbor) ? layer : this.storage.getDataLayer(SectionPos.of(neighbor), true);
                 if (neighborLayer != null) {
                     int neighborLevel = this.computeLevelFromNeighbor(neighbor, blockPos, this.getLevel(neighborLayer, neighbor));
                     if (computedLevel > neighborLevel)

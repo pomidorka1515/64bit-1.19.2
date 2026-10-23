@@ -70,21 +70,21 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
     protected abstract int getLightValue(BlockPos pLevelPos);
 
     protected int getStoredLevel(BlockPos pLevelPos) {
-        SectionPos i = SectionPos.of(pLevelPos);
+        SectionPos i = this.updatingSectionData.sectionForBlock(pLevelPos);
         DataLayer datalayer = this.getDataLayer(i, true);
         // Unloaded edge sections legitimately have no data layer.  Treat them as
         // unlit rather than allowing a render/light query to throw an NPE.
-        return datalayer == null ? 0 : datalayer.get(SectionPos.sectionRelative(pLevelPos.getX()), SectionPos.sectionRelative(pLevelPos.getY()), SectionPos.sectionRelative(pLevelPos.getZ()));
+        return datalayer == null ? 0 : datalayer.get(SectionPos.sectionRelative(pLevelPos.getXLo()), SectionPos.sectionRelative(pLevelPos.getY()), SectionPos.sectionRelative(pLevelPos.getZLo()));
     }
 
     protected void setStoredLevel(BlockPos pLevelPos, int pLightLevel) {
-        SectionPos i = SectionPos.of(pLevelPos);
+        SectionPos i = this.updatingSectionData.sectionForBlock(pLevelPos);
         if (this.changedSections.add(i)) {
             this.updatingSectionData.copyDataLayer(i);
         }
 
         DataLayer datalayer = this.getDataLayer(i, true);
-        datalayer.set(SectionPos.sectionRelative(pLevelPos.getX()), SectionPos.sectionRelative(pLevelPos.getY()), SectionPos.sectionRelative(pLevelPos.getZ()), pLightLevel);
+        datalayer.set(SectionPos.sectionRelative(pLevelPos.getXLo()), SectionPos.sectionRelative(pLevelPos.getY()), SectionPos.sectionRelative(pLevelPos.getZLo()), pLightLevel);
         SectionPos.aroundAndAtBlockPos(pLevelPos, this.sectionsAffectedByLightUpdates::add);
     }
 
@@ -163,7 +163,7 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
         if (pEngine.getQueueSize() != 0) {
             if (pEngine.getQueueSize() < 8192) {
                 pEngine.removeIf((p_75753_) -> {
-                    return SectionPos.of(p_75753_).equals(pSectionPos);
+                    return pSectionPos.contains(p_75753_);
                 });
             } else {
                 Int128 i = SectionPos.sectionToBlockCoord(pSectionPos.x());

@@ -22,9 +22,6 @@ public class SectionPos extends Vec3i {
     private static final int RELATIVE_X_SHIFT = 8;
     private static final int RELATIVE_Y_SHIFT = 0;
     private static final int RELATIVE_Z_SHIFT = 4;
-    private final Int128 x;
-    private final int y;
-    private final Int128 z;
 
     SectionPos(long pX, int pY, long pZ) {
         this(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
@@ -32,9 +29,11 @@ public class SectionPos extends Vec3i {
 
     SectionPos(Int128 pX, int pY, Int128 pZ) {
         super(WorldBounds.clampChunk(pX), pY, WorldBounds.clampChunk(pZ));
-        this.x = super.getX();
-        this.y = pY;
-        this.z = super.getZ();
+    }
+
+    /** Coordinates produced by shifting a block position are already inside the section bounds. */
+    private SectionPos(long xHi, long xLo, int y, long zHi, long zLo) {
+        super(xHi, xLo, y, zHi, zLo);
     }
 
     public static SectionPos of(Int128 pChunkX, int pChunkY, Int128 pChunkZ) {
@@ -46,7 +45,17 @@ public class SectionPos extends Vec3i {
     }
 
     public static SectionPos of(BlockPos pPos) {
-        return new SectionPos(blockToSectionCoord(pPos.getX()), blockToSectionCoord(pPos.getY()), blockToSectionCoord(pPos.getZ()));
+        return new SectionPos(pPos.getXHi() >> 4, (pPos.getXLo() >>> 4) | (pPos.getXHi() << 60),
+                blockToSectionCoord(pPos.getY()), pPos.getZHi() >> 4, (pPos.getZLo() >>> 4) | (pPos.getZHi() << 60));
+    }
+
+    /** Full-width comparison without allocating either section or coordinate objects. */
+    public boolean contains(BlockPos pos) {
+        return this.getY() == (pos.getY() >> 4)
+                && this.getXHi() == (pos.getXHi() >> 4)
+                && this.getXLo() == ((pos.getXLo() >>> 4) | (pos.getXHi() << 60))
+                && this.getZHi() == (pos.getZHi() >> 4)
+                && this.getZLo() == ((pos.getZLo() >>> 4) | (pos.getZHi() << 60));
     }
 
     public static SectionPos of(ChunkPos pChunkPos, int pY) {
@@ -160,10 +169,6 @@ public class SectionPos extends Vec3i {
         return WorldBounds.addBlockOffset(sectionToBlockCoord(pPos), pOffset);
     }
 
-    public Int128 getX() { return this.x; }
-    public int getY() { return this.y; }
-    public Int128 getZ() { return this.z; }
-
     public Int128 x() {
         return this.getX();
     }
@@ -201,7 +206,7 @@ public class SectionPos extends Vec3i {
     }
 
     public static SectionPos getZeroNode(SectionPos sectionPos) {
-        return new SectionPos(sectionPos.x(), 0, sectionPos.z());
+        return sectionPos.y() == 0 ? sectionPos : new SectionPos(sectionPos.getXHi(), sectionPos.getXLo(), 0, sectionPos.getZHi(), sectionPos.getZLo());
     }
 
     public BlockPos origin() {
@@ -223,7 +228,7 @@ public class SectionPos extends Vec3i {
 
     public SectionPos offset(Int128 pDx, int pDy, Int128 pDz) {
         return pDx.equals(Int128.ZERO) && pDy == 0 && pDz.equals(Int128.ZERO) ? this
-                : new SectionPos(this.x.addSaturated(pDx), this.y + pDy, this.z.addSaturated(pDz));
+                : new SectionPos(this.x().addSaturated(pDx), this.y() + pDy, this.z().addSaturated(pDz));
     }
 
     public SectionPos relative(Direction pDirection) {
@@ -306,7 +311,37 @@ public class SectionPos extends Vec3i {
     }
 
     public static void aroundAndAtBlockPos(BlockPos pPos, Consumer<SectionPos> pConsumer) {
-        aroundAndAtBlockPos(pPos.getX(), pPos.getY(), pPos.getZ(), pConsumer);
+        long minXHi = Int128Math.addSaturatedHi(pPos.getXHi(), pPos.getXLo(), -1L, -1L);
+        long minXLo = Int128Math.addSaturatedLo(pPos.getXHi(), pPos.getXLo(), -1L, -1L);
+        long maxXHi = Int128Math.addSaturatedHi(pPos.getXHi(), pPos.getXLo(), 0L, 1L);
+        long maxXLo = Int128Math.addSaturatedLo(pPos.getXHi(), pPos.getXLo(), 0L, 1L);
+        long minZHi = Int128Math.addSaturatedHi(pPos.getZHi(), pPos.getZLo(), -1L, -1L);
+        long minZLo = Int128Math.addSaturatedLo(pPos.getZHi(), pPos.getZLo(), -1L, -1L);
+        long maxZHi = Int128Math.addSaturatedHi(pPos.getZHi(), pPos.getZLo(), 0L, 1L);
+        long maxZLo = Int128Math.addSaturatedLo(pPos.getZHi(), pPos.getZLo(), 0L, 1L);
+        long xLo = (minXLo >>> 4) | (minXHi << 60);
+        long xHi = minXHi >> 4;
+        long endXLo = (maxXLo >>> 4) | (maxXHi << 60);
+        long endXHi = maxXHi >> 4;
+        long startZLo = (minZLo >>> 4) | (minZHi << 60);
+        long startZHi = minZHi >> 4;
+        long endZLo = (maxZLo >>> 4) | (maxZHi << 60);
+        long endZHi = maxZHi >> 4;
+        int minY = (pPos.getY() == Integer.MIN_VALUE ? pPos.getY() : pPos.getY() - 1) >> 4;
+        int maxY = (pPos.getY() == Integer.MAX_VALUE ? pPos.getY() : pPos.getY() + 1) >> 4;
+        for (;;) {
+            for (int y = minY; y <= maxY; ++y) {
+                long zHi = startZHi;
+                long zLo = startZLo;
+                for (;;) {
+                    pConsumer.accept(new SectionPos(xHi, xLo, y, zHi, zLo));
+                    if (zHi == endZHi && zLo == endZLo) break;
+                    if (++zLo == 0L) ++zHi;
+                }
+            }
+            if (xHi == endXHi && xLo == endXLo) break;
+            if (++xLo == 0L) ++xHi;
+        }
     }
 
     public static void aroundAndAtBlockPos(long pX, int pY, long pZ, Consumer<SectionPos> pConsumer) {

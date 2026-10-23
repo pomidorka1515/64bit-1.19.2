@@ -1,10 +1,14 @@
 package net.minecraft.world.level;
 
 import java.util.List;
+import java.util.ArrayList;
 import net.minecraft.core.Int128;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ChunkPosAllocationRegressionTest {
     @Test
@@ -16,6 +20,10 @@ class ChunkPosAllocationRegressionTest {
             assertEquals(WorldBounds.chunkToBlock(coordinate), pos.getMinBlockZ());
             assertEquals(coordinate.shiftRight(5), pos.getRegionX());
             assertEquals(coordinate.shiftRight(5), pos.getRegionZ());
+            assertSame(pos.getRegionX(), pos.getRegionX());
+            assertSame(pos.getRegionZ(), pos.getRegionZ());
+            assertEquals(pos.getRegionX(), Int128.of(pos.getRegionXHi(), pos.getRegionXLo()));
+            assertEquals(pos.getRegionZ(), Int128.of(pos.getRegionZHi(), pos.getRegionZLo()));
         }
     }
 
@@ -42,5 +50,52 @@ class ChunkPosAllocationRegressionTest {
         assertEquals(4L, ChunkPos.rangeClosed(max, 1).count());
         assertEquals(Long.MAX_VALUE, min.getChessboardDistance(max));
         assertEquals(Long.MAX_VALUE, max.getChessboardDistance(min));
+    }
+
+    @Test
+    void cursorMatchesStreamInEveryDirectionAndCanBeReused() {
+        ChunkPos.RangeCursor cursor = new ChunkPos.RangeCursor();
+        assertFalse(cursor.advance());
+        for (Int128 low : List.of(Int128.of(7L, -1L), Int128.fromLong(-1L), WorldBounds.MIN_CHUNK,
+                WorldBounds.MAX_CHUNK.subtract(Int128.ONE))) {
+            for (int dx : new int[]{0, 1}) {
+                for (int dz : new int[]{0, 1}) {
+                    ChunkPos start = new ChunkPos(low.add(Int128.fromLong(dx)), low.add(Int128.fromLong(dz)));
+                    ChunkPos end = new ChunkPos(low.add(Int128.fromLong(1 - dx)), low.add(Int128.fromLong(1 - dz)));
+                    assertSame(cursor, cursor.reset(start, end));
+                    List<ChunkPos> actual = new ArrayList<>();
+                    while (cursor.advance()) {
+                        ChunkPos snapshot = cursor.toChunkPos();
+                        actual.add(snapshot);
+                        assertEquals(snapshot.xHi(), cursor.xHi());
+                        assertEquals(snapshot.xLo(), cursor.xLo());
+                        assertEquals(snapshot.zHi(), cursor.zHi());
+                        assertEquals(snapshot.zLo(), cursor.zLo());
+                        assertEquals(snapshot.getRegionX(), Int128.of(cursor.getRegionXHi(), cursor.getRegionXLo()));
+                        assertEquals(snapshot.getRegionZ(), Int128.of(cursor.getRegionZHi(), cursor.getRegionZLo()));
+                        assertEquals(snapshot.getChessboardDistance(start), cursor.getChessboardDistance(start));
+                    }
+                    assertFalse(cursor.advance());
+                    assertEquals(ChunkPos.rangeClosed(start, end).toList(), actual);
+                    assertEquals(start, actual.get(0));
+                    assertEquals(end, actual.get(actual.size() - 1));
+                }
+            }
+        }
+        for (Int128 edge : List.of(WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK)) {
+            ChunkPos center = new ChunkPos(edge, edge);
+            cursor.reset(center, 1);
+            int count = 0;
+            while (cursor.advance()) {
+                ++count;
+            }
+            assertEquals(4, count);
+            cursor.reset(center, center);
+            assertTrue(cursor.advance());
+            ChunkPos snapshot = cursor.toChunkPos();
+            assertFalse(cursor.advance());
+            cursor.reset(ChunkPos.ZERO, ChunkPos.ZERO);
+            assertEquals(center, snapshot);
+        }
     }
 }

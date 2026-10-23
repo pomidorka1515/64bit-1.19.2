@@ -103,6 +103,7 @@ class CoordinateBenchmark {
         report.append("chunk-key-lookup: Object2ObjectOpenHashMap<ChunkPos,Integer>.get(new ChunkPos) ")
                 .append("over a 33x33 window, 20 reps; setup excluded\n");
         report.append("chunk-key-raw-lookup: ChunkPosMap.get(xHi,xLo,zHi,zLo), same window/checksum; setup excluded\n");
+        report.append("chunk-coordinate-access: RangeCursor over a 33x33 window, raw region/block limbs; no per-entry snapshots\n");
         report.append("region-name-formatting: canonical 32-hex X/Z .mca names, 4000 reps of 8 names\n");
         report.append("sector-vec3-relative-math: relativeX/Y/Z at ").append(FAR).append(", 20000 calls\n");
 
@@ -292,11 +293,10 @@ class CoordinateBenchmark {
         ChunkPos center = new ChunkPos(Int128.of(17L, -16L), Int128.of(-18L, 16L));
         long checksum = 1L;
         long ops = 0L;
-        var positions = ChunkPos.rangeClosed(center, 16).iterator();
-        while (positions.hasNext()) {
-            ChunkPos pos = positions.next();
-            checksum += pos.getChessboardDistance(center) + pos.getRegionX().lo()
-                    + pos.getRegionZ().lo() + pos.getMinBlockX().lo() + pos.getMinBlockZ().lo();
+        var positions = ChunkPos.rangeClosedCursor(center, 16);
+        while (positions.advance()) {
+            checksum += positions.getChessboardDistance(center) + positions.getRegionXLo()
+                    + positions.getRegionZLo() + (positions.xLo() << 4) + (positions.zLo() << 4);
             ++ops;
         }
         return new Result(ops, checksum);

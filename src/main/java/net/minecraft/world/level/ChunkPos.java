@@ -30,6 +30,12 @@ public class ChunkPos {
     public static final int REGION_SIZE = 32;
     public static final int REGION_MAX_INDEX = 31;
     private final long xHi, xLo, zHi, zLo;
+    // Benign-racy lazy caches: Int128 is immutable with final limbs. Do not charge
+    // every ChunkPos construction for region values most callers never request.
+    @Nullable
+    private Int128 regionX;
+    @Nullable
+    private Int128 regionZ;
 
     public ChunkPos(long pX, long pY) {
         // Every signed-long chunk coordinate lies inside the signed-128 block domain.
@@ -167,11 +173,35 @@ public class ChunkPos {
     }
 
     public Int128 getRegionX() {
-        return Int128.of(this.xHi >> 5, Int128Math.rightShiftLo(this.xHi, this.xLo, 5));
+        Int128 region = this.regionX;
+        if (region == null) {
+            this.regionX = region = Int128.of(this.getRegionXHi(), this.getRegionXLo());
+        }
+        return region;
     }
 
     public Int128 getRegionZ() {
-        return Int128.of(this.zHi >> 5, Int128Math.rightShiftLo(this.zHi, this.zLo, 5));
+        Int128 region = this.regionZ;
+        if (region == null) {
+            this.regionZ = region = Int128.of(this.getRegionZHi(), this.getRegionZLo());
+        }
+        return region;
+    }
+
+    public long getRegionXHi() {
+        return this.xHi >> 5;
+    }
+
+    public long getRegionXLo() {
+        return Int128Math.rightShiftLo(this.xHi, this.xLo, 5);
+    }
+
+    public long getRegionZHi() {
+        return this.zHi >> 5;
+    }
+
+    public long getRegionZLo() {
+        return Int128Math.rightShiftLo(this.zHi, this.zLo, 5);
     }
 
     public int getRegionLocalX() {
@@ -243,36 +273,107 @@ public class ChunkPos {
     public static Stream<ChunkPos> rangeClosed(final ChunkPos pStart, final ChunkPos pEnd) {
         long i = distancePlusOne(pStart.xHi, pStart.xLo, pEnd.xHi, pEnd.xLo);
         long j = distancePlusOne(pStart.zHi, pStart.zLo, pEnd.zHi, pEnd.zLo);
-        final int k = Int128Math.compare(pStart.xHi, pStart.xLo, pEnd.xHi, pEnd.xLo) < 0 ? 1 : -1;
-        final int l = Int128Math.compare(pStart.zHi, pStart.zLo, pEnd.zHi, pEnd.zLo) < 0 ? 1 : -1;
+        RangeCursor cursor = rangeClosedCursor(pStart, pEnd);
         return StreamSupport.stream(new Spliterators.AbstractSpliterator<ChunkPos>(safeProduct(i, j), 64) {
-            @Nullable
-            private ChunkPos pos;
-
             public boolean tryAdvance(Consumer<? super ChunkPos> p_45630_) {
-                if (this.pos == null) {
-                    this.pos = pStart;
-                } else {
-                    if (this.pos.xHi == pEnd.xHi && this.pos.xLo == pEnd.xLo) {
-                        if (this.pos.zHi == pEnd.zHi && this.pos.zLo == pEnd.zLo) {
-                            return false;
-                        }
-
-                        long zLo = this.pos.zLo + l;
-                        long zHi = this.pos.zHi + (l > 0 ? Int128Math.addCarry(this.pos.zLo, l, zLo)
-                                : -Int128Math.subtractBorrow(this.pos.zLo, 1L));
-                        this.pos = new ChunkPos(pStart.xHi, pStart.xLo, zHi, zLo);
-                    } else {
-                        long xLo = this.pos.xLo + k;
-                        long xHi = this.pos.xHi + (k > 0 ? Int128Math.addCarry(this.pos.xLo, k, xLo)
-                                : -Int128Math.subtractBorrow(this.pos.xLo, 1L));
-                        this.pos = new ChunkPos(xHi, xLo, this.pos.zHi, this.pos.zLo);
-                    }
+                if (!cursor.advance()) {
+                    return false;
                 }
-
-                p_45630_.accept(this.pos);
+                p_45630_.accept(cursor.toChunkPos());
                 return true;
             }
         }, false);
+    }
+
+    public static RangeCursor rangeClosedCursor(ChunkPos center, int radius) {
+        return new RangeCursor().reset(center, radius);
+    }
+
+    public static RangeCursor rangeClosedCursor(ChunkPos start, ChunkPos end) {
+        return new RangeCursor().reset(start, end);
+    }
+
+    /**
+     * X-fast inclusive traversal, reusable via reset. Not thread-safe.
+     * Read limbs after advance() returns true; only toChunkPos() allocates per entry.
+     * Resetting from a center/radius allocates bounds once, not per entry.
+     */
+    public static final class RangeCursor {
+        private long startXHi, startXLo, endXHi, endXLo, endZHi, endZLo;
+        private long xHi, xLo, zHi, zLo;
+        private int stepX, stepZ;
+        private boolean first, finished = true;
+
+        public RangeCursor reset(ChunkPos center, int radius) {
+            return this.reset(
+                    new ChunkPos(WorldBounds.addChunkOffset(center.x(), -(long) radius),
+                            WorldBounds.addChunkOffset(center.z(), -(long) radius)),
+                    new ChunkPos(WorldBounds.addChunkOffset(center.x(), (long) radius),
+                            WorldBounds.addChunkOffset(center.z(), (long) radius)));
+        }
+
+        public RangeCursor reset(ChunkPos start, ChunkPos end) {
+            this.startXHi = this.xHi = start.xHi;
+            this.startXLo = this.xLo = start.xLo;
+            this.zHi = start.zHi;
+            this.zLo = start.zLo;
+            this.endXHi = end.xHi;
+            this.endXLo = end.xLo;
+            this.endZHi = end.zHi;
+            this.endZLo = end.zLo;
+            this.stepX = Int128Math.compare(start.xHi, start.xLo, end.xHi, end.xLo) < 0 ? 1 : -1;
+            this.stepZ = Int128Math.compare(start.zHi, start.zLo, end.zHi, end.zLo) < 0 ? 1 : -1;
+            this.first = true;
+            this.finished = false;
+            return this;
+        }
+
+        public boolean advance() {
+            if (this.finished) {
+                return false;
+            }
+            if (this.first) {
+                this.first = false;
+                return true;
+            }
+            if (this.xHi == this.endXHi && this.xLo == this.endXLo) {
+                if (this.zHi == this.endZHi && this.zLo == this.endZLo) {
+                    this.finished = true;
+                    return false;
+                }
+                long next = this.zLo + this.stepZ;
+                this.zHi += this.stepZ > 0 ? Int128Math.addCarry(this.zLo, 1L, next)
+                        : -Int128Math.subtractBorrow(this.zLo, 1L);
+                this.zLo = next;
+                this.xHi = this.startXHi;
+                this.xLo = this.startXLo;
+            } else {
+                long next = this.xLo + this.stepX;
+                this.xHi += this.stepX > 0 ? Int128Math.addCarry(this.xLo, 1L, next)
+                        : -Int128Math.subtractBorrow(this.xLo, 1L);
+                this.xLo = next;
+            }
+            return true;
+        }
+
+        public long xHi() { return this.xHi; }
+        public long xLo() { return this.xLo; }
+        public long zHi() { return this.zHi; }
+        public long zLo() { return this.zLo; }
+
+        public long getRegionXHi() { return this.xHi >> 5; }
+        public long getRegionXLo() { return Int128Math.rightShiftLo(this.xHi, this.xLo, 5); }
+        public long getRegionZHi() { return this.zHi >> 5; }
+        public long getRegionZLo() { return Int128Math.rightShiftLo(this.zHi, this.zLo, 5); }
+
+        public long getChessboardDistance(ChunkPos other) {
+            return Math.max(distanceLong(this.xHi, this.xLo, other.xHi, other.xLo),
+                    distanceLong(this.zHi, this.zLo, other.zHi, other.zLo));
+        }
+
+        /** Returns an immutable snapshot, safe to retain after advancing or resetting this cursor. */
+        public ChunkPos toChunkPos() {
+            return new ChunkPos(this.xHi, this.xLo, this.zHi, this.zLo);
+        }
     }
 }

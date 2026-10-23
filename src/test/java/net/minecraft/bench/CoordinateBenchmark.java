@@ -41,8 +41,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CoordinateBenchmark {
+    // Five invocations can leave block traversal in tiered compilation during
+    // measurement, inflating its median by 2-3x. Warm up before comparing rows.
     private static final int WARMUP = Integer.parseInt(
-            System.getenv().getOrDefault("COORDINATE_BENCH_WARMUP", "5"));
+            System.getenv().getOrDefault("COORDINATE_BENCH_WARMUP", "50"));
     private static final int SAMPLES = 9;
     /** Far enough that a double cannot name the block, matching the current exact-position paths. */
     private static final long FAR = 1L << 53;

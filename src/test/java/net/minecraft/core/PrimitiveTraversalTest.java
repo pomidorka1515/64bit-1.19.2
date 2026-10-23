@@ -9,6 +9,51 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PrimitiveTraversalTest {
     @Test
+    void cursorResetSwitchesBetweenLocalWideAndEmptyRanges() {
+        Cursor3D cursor = new Cursor3D(0, 0, 0, 2, 2, 2);
+        int count = 0;
+        while (cursor.advance()) {
+            int type = (cursor.nextXLo() == 1 ? 0 : 1)
+                    + (cursor.nextY() == 1 ? 0 : 1) + (cursor.nextZLo() == 1 ? 0 : 1);
+            assertEquals(type, cursor.getNextType());
+            ++count;
+        }
+        assertEquals(27, count);
+        cursor.reset(Int128.MIN, Integer.MIN_VALUE, Int128.MIN,
+                Int128.MAX, Integer.MAX_VALUE, Int128.MAX);
+        for (int i = 0; i < 3; ++i) {
+            assertTrue(cursor.advance());
+            assertEquals(Int128.MIN.add(Int128.fromLong(i)), cursor.nextX());
+        }
+        cursor.reset(Int128.ONE, 0, Int128.ZERO, Int128.ZERO, 0, Int128.ZERO);
+        assertFalse(cursor.advance());
+        cursor.reset(Int128.MAX, Integer.MAX_VALUE, Int128.MAX,
+                Int128.MAX, Integer.MAX_VALUE, Int128.MAX);
+        assertTrue(cursor.advance());
+        assertEquals(Int128.MAX, cursor.nextX());
+        assertFalse(cursor.advance());
+    }
+
+    @Test
+    void blockIteratorPreservesReuseExhaustionAndWideRanges() {
+        var iterable = BlockPos.betweenClosed(0, 0, 0, 1, 0, 0);
+        var iterator = iterable.iterator();
+        BlockPos first = iterator.next();
+        assertTrue(iterator.hasNext());
+        assertEquals(1, first.getXLo());
+        assertSame(first, iterator.next());
+        assertEquals(1, first.getXLo());
+        assertFalse(iterator.hasNext());
+        assertThrows(java.util.NoSuchElementException.class, iterator::next);
+        assertEquals(0, iterable.iterator().next().getXLo());
+        var wide = BlockPos.betweenClosed(Int128.MIN, Integer.MIN_VALUE, Int128.MIN,
+                Int128.MAX, Integer.MAX_VALUE, Int128.MAX).iterator();
+        for (int i = 0; i < 3; ++i) {
+            assertEquals(Int128.MIN.add(Int128.fromLong(i)), wide.next().getX());
+        }
+    }
+
+    @Test
     void chunkHashesUseEveryLimbAndRemainConsistent() {
         ChunkPos base = new ChunkPos(123, -456);
         assertEquals(base.hashCode(), ChunkPos.hash(123, -456));

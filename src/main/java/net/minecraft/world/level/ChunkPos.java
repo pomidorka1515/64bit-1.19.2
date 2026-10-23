@@ -301,6 +301,8 @@ public class ChunkPos {
     public static final class RangeCursor {
         private long startXHi, startXLo, endXHi, endXLo, endZHi, endZLo;
         private long xHi, xLo, zHi, zLo;
+        private long startRegionXHi, startRegionXLo;
+        private long regionXHi, regionXLo, regionZHi, regionZLo;
         private int stepX, stepZ;
         private boolean first, finished = true;
 
@@ -317,6 +319,10 @@ public class ChunkPos {
             this.startXLo = this.xLo = start.xLo;
             this.zHi = start.zHi;
             this.zLo = start.zLo;
+            this.startRegionXHi = this.regionXHi = start.xHi >> 5;
+            this.startRegionXLo = this.regionXLo = Int128Math.rightShiftLo(start.xHi, start.xLo, 5);
+            this.regionZHi = start.zHi >> 5;
+            this.regionZLo = Int128Math.rightShiftLo(start.zHi, start.zLo, 5);
             this.endXHi = end.xHi;
             this.endXLo = end.xLo;
             this.endZHi = end.zHi;
@@ -345,13 +351,28 @@ public class ChunkPos {
                 this.zHi += this.stepZ > 0 ? Int128Math.addCarry(this.zLo, 1L, next)
                         : -Int128Math.subtractBorrow(this.zLo, 1L);
                 this.zLo = next;
+                // A region changes only when crossing a 32-chunk boundary.
+                if ((next & 31L) == (this.stepZ > 0 ? 0L : 31L)) {
+                    long regionNext = this.regionZLo + this.stepZ;
+                    this.regionZHi += this.stepZ > 0 ? Int128Math.addCarry(this.regionZLo, 1L, regionNext)
+                            : -Int128Math.subtractBorrow(this.regionZLo, 1L);
+                    this.regionZLo = regionNext;
+                }
                 this.xHi = this.startXHi;
                 this.xLo = this.startXLo;
+                this.regionXHi = this.startRegionXHi;
+                this.regionXLo = this.startRegionXLo;
             } else {
                 long next = this.xLo + this.stepX;
                 this.xHi += this.stepX > 0 ? Int128Math.addCarry(this.xLo, 1L, next)
                         : -Int128Math.subtractBorrow(this.xLo, 1L);
                 this.xLo = next;
+                if ((next & 31L) == (this.stepX > 0 ? 0L : 31L)) {
+                    long regionNext = this.regionXLo + this.stepX;
+                    this.regionXHi += this.stepX > 0 ? Int128Math.addCarry(this.regionXLo, 1L, regionNext)
+                            : -Int128Math.subtractBorrow(this.regionXLo, 1L);
+                    this.regionXLo = regionNext;
+                }
             }
             return true;
         }
@@ -361,10 +382,10 @@ public class ChunkPos {
         public long zHi() { return this.zHi; }
         public long zLo() { return this.zLo; }
 
-        public long getRegionXHi() { return this.xHi >> 5; }
-        public long getRegionXLo() { return Int128Math.rightShiftLo(this.xHi, this.xLo, 5); }
-        public long getRegionZHi() { return this.zHi >> 5; }
-        public long getRegionZLo() { return Int128Math.rightShiftLo(this.zHi, this.zLo, 5); }
+        public long getRegionXHi() { return this.regionXHi; }
+        public long getRegionXLo() { return this.regionXLo; }
+        public long getRegionZHi() { return this.regionZHi; }
+        public long getRegionZLo() { return this.regionZLo; }
 
         public long getChessboardDistance(ChunkPos other) {
             return Math.max(distanceLong(this.xHi, this.xLo, other.xHi, other.xLo),

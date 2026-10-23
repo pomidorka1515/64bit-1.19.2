@@ -53,6 +53,37 @@ class ChunkPosAllocationRegressionTest {
     }
 
     @Test
+    void cursorRegionLimbsMatchShiftsAcrossRegionAndLimbBoundaries() {
+        ChunkPos.RangeCursor cursor = new ChunkPos.RangeCursor();
+        for (Int128 boundary : List.of(Int128.ZERO, Int128.fromLong(32L), Int128.fromLong(-32L),
+                Int128.of(7L, 0L), Int128.of(-8L, 0L), Int128.of(32L, 0L), Int128.of(-32L, 0L),
+                WorldBounds.MIN_CHUNK.add(Int128.fromLong(33L)),
+                WorldBounds.MAX_CHUNK.subtract(Int128.fromLong(33L)))) {
+            Int128 low = boundary.subtract(Int128.fromLong(33L));
+            Int128 high = boundary.add(Int128.fromLong(33L));
+            for (boolean reverseX : new boolean[]{false, true}) {
+                for (boolean reverseZ : new boolean[]{false, true}) {
+                    ChunkPos start = new ChunkPos(reverseX ? high : low, reverseZ ? high : low);
+                    ChunkPos end = new ChunkPos(reverseX ? low : high, reverseZ ? low : high);
+                    cursor.reset(start, end);
+                    int count = 0;
+                    while (cursor.advance()) {
+                        Int128 expectedX = Int128.of(cursor.xHi(), cursor.xLo()).shiftRight(5);
+                        Int128 expectedZ = Int128.of(cursor.zHi(), cursor.zLo()).shiftRight(5);
+                        assertEquals(expectedX.hi(), cursor.getRegionXHi());
+                        assertEquals(expectedX.lo(), cursor.getRegionXLo());
+                        assertEquals(expectedZ.hi(), cursor.getRegionZHi());
+                        assertEquals(expectedZ.lo(), cursor.getRegionZLo());
+                        ++count;
+                    }
+                    assertEquals(67 * 67, count);
+                    assertFalse(cursor.advance());
+                }
+            }
+        }
+    }
+
+    @Test
     void cursorMatchesStreamInEveryDirectionAndCanBeReused() {
         ChunkPos.RangeCursor cursor = new ChunkPos.RangeCursor();
         assertFalse(cursor.advance());

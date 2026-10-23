@@ -65,6 +65,7 @@ public abstract class ChunkAccess implements BlockGetter, BiomeManager.NoiseBiom
     private BiomeGenerationSettings carverBiomeSettings;
     @Nullable
     protected NoiseChunk noiseChunk;
+    private net.minecraft.world.level.levelgen.synth.GeneratorConfig noiseConfig;
     protected final UpgradeData upgradeData;
     @Nullable
     protected BlendingData blendingData;
@@ -346,8 +347,10 @@ public abstract class ChunkAccess implements BlockGetter, BiomeManager.NoiseBiom
     }
 
     public NoiseChunk getOrCreateNoiseChunk(Function<ChunkAccess, NoiseChunk> pNoiseChunkCreator) {
-        if (this.noiseChunk == null) {
+        var config = net.minecraft.world.level.levelgen.synth.GenerationContext.current();
+        if (this.noiseChunk == null || !config.equals(this.noiseConfig)) {
             this.noiseChunk = pNoiseChunkCreator.apply(this);
+            this.noiseConfig = config;
         }
 
         return this.noiseChunk;

@@ -25,7 +25,7 @@ public interface Aquifer {
         return new Aquifer() {
             @Nullable
             public BlockState computeSubstance(DensityFunction.FunctionContext p_208172_, double p_208173_) {
-                return p_208173_ > 0.0D ? null : pDefaultFluid.computeFluid(p_208172_.blockX(), p_208172_.blockY(), p_208172_.blockZ()).at(p_208172_.blockY());
+                return p_208173_ > 0.0D ? null : pDefaultFluid.computeFluid(p_208172_.blockXHi(), p_208172_.blockX(), p_208172_.blockY(), p_208172_.blockZHi(), p_208172_.blockZ()).at(p_208172_.blockY());
             }
 
             public boolean shouldScheduleFluidUpdate() {
@@ -41,6 +41,11 @@ public interface Aquifer {
 
     public interface FluidPicker {
         Aquifer.FluidStatus computeFluid(long pX, int pY, long pZ);
+
+        /** Full-width extension; existing sea-level pickers are independent of X/Z. */
+        default Aquifer.FluidStatus computeFluid(long xHi, long xLo, int y, long zHi, long zLo) {
+            return computeFluid(xLo, y, zLo);
+        }
     }
 
     public static final class FluidStatus {
@@ -160,7 +165,7 @@ public interface Aquifer {
                 this.shouldScheduleFluidUpdate = false;
                 return null;
             } else {
-                Aquifer.FluidStatus aquifer$fluidstatus = this.globalFluidPicker.computeFluid(globalX, j, globalZ);
+                Aquifer.FluidStatus aquifer$fluidstatus = this.globalFluidPicker.computeFluid(pContext.blockXHi(), globalX, j, pContext.blockZHi(), globalZ);
                 if (aquifer$fluidstatus.at(j).is(Blocks.LAVA)) {
                     this.shouldScheduleFluidUpdate = false;
                     return Blocks.LAVA.defaultBlockState();
@@ -232,7 +237,7 @@ public interface Aquifer {
                     if (d1 <= 0.0D) {
                         this.shouldScheduleFluidUpdate = d1 >= FLOWING_UPDATE_SIMULARITY;
                         return blockstate;
-                    } else if (blockstate.is(Blocks.WATER) && this.globalFluidPicker.computeFluid(globalX, j - 1, globalZ).at(j - 1).is(Blocks.LAVA)) {
+                    } else if (blockstate.is(Blocks.WATER) && this.globalFluidPicker.computeFluid(pContext.blockXHi(), globalX, j - 1, pContext.blockZHi(), globalZ).at(j - 1).is(Blocks.LAVA)) {
                         this.shouldScheduleFluidUpdate = true;
                         return blockstate;
                     } else {
@@ -368,8 +373,7 @@ public interface Aquifer {
         }
 
         private Aquifer.FluidStatus computeFluid(long pX, int pY, long pZ) {
-            // The configured sea-level picker ignores X/Z, so local full-width inputs are safe here.
-            Aquifer.FluidStatus aquifer$fluidstatus = this.globalFluidPicker.computeFluid(pX, pY, pZ);
+            Aquifer.FluidStatus aquifer$fluidstatus = this.pickFluid(pX, pY, pZ);
             int i = Integer.MAX_VALUE;
             int j = pY + 12;
             int k = pY - 12;
@@ -396,7 +400,7 @@ public interface Aquifer {
 
                 boolean flag2 = j > k1;
                 if (flag2 || flag1) {
-                    Aquifer.FluidStatus aquifer$fluidstatus1 = this.globalFluidPicker.computeFluid(l, k1, i1);
+                    Aquifer.FluidStatus aquifer$fluidstatus1 = this.pickFluid(l, k1, i1);
                     if (!aquifer$fluidstatus1.at(k1).isAir()) {
                         if (flag1) {
                             flag = true;
@@ -419,6 +423,15 @@ public interface Aquifer {
          * One context allocation per sample. Full-width coordinates stay local for the
          * aquifer geometry and are translated here to exact global limbs.
          */
+        private Aquifer.FluidStatus pickFluid(long x, int y, long z) {
+            if (!this.fullWidth) return this.globalFluidPicker.computeFluid(x >> 63, x, y, z >> 63, z);
+            return this.globalFluidPicker.computeFluid(
+                    WorldgenCoordinate.addHigh(this.originXHi, this.originXLo, x),
+                    WorldgenCoordinate.addLow(this.originXHi, this.originXLo, x), y,
+                    WorldgenCoordinate.addHigh(this.originZHi, this.originZLo, z),
+                    WorldgenCoordinate.addLow(this.originZHi, this.originZLo, z));
+        }
+
         private DensityFunction.SinglePointContext singlePointContext(long pX, int pY, long pZ) {
             if (this.fullWidth) {
                 return new DensityFunction.SinglePointContext(

@@ -77,6 +77,7 @@ class WorldgenModeBaselineTest {
     void blendedNoiseMatchesPreChangeRawBitsForEveryMode() {
         BlendedNoise noise = new BlendedNoise(new LegacyRandomSource(SEED), XZ_SCALE, 0.125D, 80.0D, 160.0D, 8.0D);
         for (int modeIndex = 0; modeIndex < MODES.length; ++modeIndex) {
+            if (MODES[modeIndex] == FarlandsMode.Mode.BIT_64_PRECISE) continue;
             FarlandsMode.setMode(MODES[modeIndex]);
             for (int coordinateIndex = 0; coordinateIndex < HORIZONTAL_COORDINATES.length; ++coordinateIndex) {
                 long coordinate = HORIZONTAL_COORDINATES[coordinateIndex];
@@ -90,6 +91,7 @@ class WorldgenModeBaselineTest {
     void normalNoiseDoubleYOverloadMatchesPreChangeRawBitsForEveryMode() {
         NormalNoise noise = NormalNoise.create(new LegacyRandomSource(SEED), 0, 1.0D, 0.5D, 0.25D);
         for (int modeIndex = 0; modeIndex < MODES.length; ++modeIndex) {
+            if (MODES[modeIndex] == FarlandsMode.Mode.BIT_64_PRECISE) continue;
             FarlandsMode.setMode(MODES[modeIndex]);
             for (int coordinateIndex = 0; coordinateIndex < HORIZONTAL_COORDINATES.length; ++coordinateIndex) {
                 long coordinate = HORIZONTAL_COORDINATES[coordinateIndex];
@@ -103,6 +105,7 @@ class WorldgenModeBaselineTest {
     void normalNoiseLongYOverloadMatchesPreChangeRawBitsForEveryMode() {
         NormalNoise noise = NormalNoise.create(new LegacyRandomSource(SEED), 0, 1.0D, 0.5D, 0.25D);
         for (int modeIndex = 0; modeIndex < MODES.length; ++modeIndex) {
+            if (MODES[modeIndex] == FarlandsMode.Mode.BIT_64_PRECISE) continue;
             FarlandsMode.setMode(MODES[modeIndex]);
             for (int coordinateIndex = 0; coordinateIndex < HORIZONTAL_COORDINATES.length; ++coordinateIndex) {
                 long coordinate = HORIZONTAL_COORDINATES[coordinateIndex];

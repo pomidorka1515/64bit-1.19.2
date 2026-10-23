@@ -240,7 +240,10 @@ public class ChunkStatus {
     public CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> generate(Executor p_223280_, ServerLevel p_223281_, ChunkGenerator p_223282_, StructureTemplateManager p_223283_, ThreadedLevelLightEngine p_223284_, Function<ChunkAccess, CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>>> p_223285_, List<ChunkAccess> p_223286_, boolean p_223287_) {
         ChunkAccess chunkaccess = p_223286_.get(p_223286_.size() / 2);
         ProfiledDuration profiledduration = JvmProfiler.INSTANCE.onChunkGenerate(chunkaccess.getPos(), p_223281_.dimension(), this.name);
-        CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> completablefuture = this.generationTask.doWork(this, p_223280_, p_223281_, p_223282_, p_223283_, p_223284_, p_223285_, p_223286_, chunkaccess, p_223287_);
+        CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> completablefuture;
+        try (var ignored = net.minecraft.world.level.levelgen.synth.GenerationContext.open(p_223281_.getServer().getWorldData().generatorConfig())) {
+            completablefuture = this.generationTask.doWork(this, net.minecraft.world.level.levelgen.synth.GenerationContext.capture(p_223280_), p_223281_, p_223282_, p_223283_, p_223284_, p_223285_, p_223286_, chunkaccess, p_223287_);
+        }
         return profiledduration != null ? completablefuture.thenApply((p_223252_) -> {
             profiledduration.finish();
             return p_223252_;

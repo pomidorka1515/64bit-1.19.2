@@ -21,12 +21,11 @@ the original unfinished mod was written by mckuhei, whose sites are dead now. co
 - collision still works out there. movement gets solved in a tiny local frame, then applied back to the real position — including on the last representable block, not just "pretty far out".
 - every entity and block entity keeps a true position: players, mobs, vehicles, projectiles, all of them. spawning, AI, pathfinding, riding and dismounting use it.
 - camera-relative client. terrain, block entities, particles, explosions, sky, clouds and audio are drawn and heard relative to the camera, so the view doesn't dissolve into jitter.
-- five terrain modes, stored with the world. `/farlands` switches them, `/farlands confirm` applies.
+- independent generator mode and coordinate precision, both stored in world NBT. `/generator mode ...` or `/generator precision ...` stages a change; `/generator confirm` applies and saves it.
   - `32bit` — how the original mod behaved. far lands at 12,550,824.
-  - `32bit-hybrid` — the classic far lands, but the noise router, caves, aquifers and ores run on 64-bit math.
-  - `64bit` — 64-bit generator. far lands show up where double noise loses integer steps, around 2^53.
-  - `off` — same generator with the far lands patched out.
-  - `64bit-precise` — like `off`, but noise keeps an exact lattice past the 53-bit double limit.
+  - `64bit` — 64-bit generator with intentional Far Lands arithmetic.
+  - `64bit-patched` — same generator with the Far Lands arithmetic patched out.
+  - precision: `precise` retains exact integer positions; `lossy` uses absolute doubles. Precision is independent of mode and does not patch intentional generator limits.
 - outer end rings are optional. `/endrings` flips them on or off; turning them off asks for `/endrings confirm`.
 - debug that isn't lying to you at range. F3 shows precision, splits block vs region coords, and prints the generator mode. `/wraprouter` dumps NoiseRouter overflow. `/frustum` toggles frustum culling when the cull turns out wrong.
 
@@ -104,7 +103,7 @@ vanilla's `int` positions and `double` physics couldn't be patched in one spot. 
 ### commands
 
 - teleport and the other position commands move sector positions instead of adding to `getX()` / `getZ()`.
-- `/farlands`, `/endrings`, `/frustum`, `/wraprouter`.
+- `/generator`, `/endrings`, `/frustum`, `/wraprouter`.
 
 ## installing
 
@@ -116,8 +115,6 @@ build matching client/server jars from source and create a new world; do not use
 - make a **vanilla** 1.19.2 instance
 - open its settings, then Version
 - "Add to Minecraft.jar" and pick the jar you downloaded
-
-in game, `/farlands help` lists the generator modes. mode changes are saved with the world and only kick in after `/farlands confirm`.
 
 ## source
 

@@ -509,7 +509,10 @@ public final class DensityFunctions {
             long j = p_224065_ / 2;
             int k = (int) (p_224064_ % 2);
             int l = (int) (p_224065_ % 2);
-            float f = 100.0F - Mth.sqrt(EndRingsMode.isEnabled() ? (float) (p_224064_ * p_224064_ + p_224065_ * p_224065_) : (float) ((double) p_224064_ * (double) p_224064_ + (double) p_224065_ * (double) p_224065_)) * 8.0F;
+            float f = precise && !EndRingsMode.isEnabled()
+                    ? (p_224064_ < -32L || p_224064_ > 32L || p_224065_ < -32L || p_224065_ > 32L ? -100.0F
+                            : 100.0F - Mth.sqrt((float) (p_224064_ * p_224064_ + p_224065_ * p_224065_)) * 8.0F)
+                    : 100.0F - Mth.sqrt(EndRingsMode.isEnabled() ? (float) (p_224064_ * p_224064_ + p_224065_ * p_224065_) : (float) ((double) p_224064_ * (double) p_224064_ + (double) p_224065_ * (double) p_224065_)) * 8.0F;
             f = Mth.clamp(f, -100.0F, 80.0F);
 
             for (int i1 = -12; i1 <= 12; ++i1) {
@@ -521,7 +524,7 @@ public final class DensityFunctions {
                         : k1 * k1 + l1 * l1 > 4096L;
                     if (outsideCenter && (precise ? p_224063_.getValueAt(k1, l1) : p_224063_.getValue((double) k1, (double) l1)) < (double) -0.9F) {
                         // Reduce before multiplying so distant islands retain their size variation.
-                        float f1 = precise && (k1 < -1048576L || k1 > 1048576L || l1 < -1048576L || l1 > 1048576L)
+                        float f1 = precise
                             ? (float) ((Math.abs(k1 % 13L) * 3439L + Math.abs(l1 % 13L) * 147L) % 13L) + 9.0F
                             : (Mth.abs((float) k1) * 3439.0F + Mth.abs((float) l1) * 147.0F) % 13.0F + 9.0F;
                         float f2 = (float) (k - i1 * 2);
@@ -554,8 +557,9 @@ public final class DensityFunctions {
             long izLo = WorldgenCoordinate.truncShiftLow(zHi, zLo, 1);
             int rx = WorldgenCoordinate.remainder(xHi, xLo, 2);
             int rz = WorldgenCoordinate.remainder(zHi, zLo, 2);
-            double x = WorldgenCoordinate.toDouble(xHi, xLo), z = WorldgenCoordinate.toDouble(zHi, zLo);
-            float height = Mth.clamp(100.0F - Mth.sqrt(EndRingsMode.isEnabled() ? (float) (xLo * xLo + zLo * zLo) : (float) (x * x + z * z)) * 8.0F, -100.0F, 80.0F);
+            float height = EndRingsMode.isEnabled()
+                    ? Mth.clamp(100.0F - Mth.sqrt((float) (xLo * xLo + zLo * zLo)) * 8.0F, -100.0F, 80.0F)
+                    : -100.0F; // This entry point is strictly outside the long-width central island.
             boolean precise = FarlandsMode.usesPreciseCoordinates();
             for (int dx = -12; dx <= 12; ++dx) {
                 long axHi = WorldgenCoordinate.addHigh(ixHi, ixLo, dx), axLo = ixLo + dx;
@@ -928,6 +932,9 @@ public final class DensityFunctions {
         static final KeyDispatchDataCodec<DensityFunctions.Shift> CODEC = DensityFunctions.singleArgumentCodec(DensityFunction.NoiseHolder.CODEC, DensityFunctions.Shift::new, DensityFunctions.Shift::offsetNoise);
 
         public double compute(DensityFunction.FunctionContext p_208864_) {
+            if (FarlandsMode.usesPreciseCoordinates()) {
+                return this.offsetNoise.getValueScaledAxes(p_208864_.blockXHi(), p_208864_.blockX(), ((long) p_208864_.blockY()) >> 63, p_208864_.blockY(), p_208864_.blockZHi(), p_208864_.blockZ(), 0.25D) * 4.0D;
+            }
             if (!WorldgenCoordinate.fitsLong(p_208864_.blockXHi(), p_208864_.blockX()) || !WorldgenCoordinate.fitsLong(p_208864_.blockZHi(), p_208864_.blockZ())) {
                 if (FarlandsMode.usesPreciseCoordinates()) {
                     return this.offsetNoise.getValueScaledAxes(p_208864_.blockXHi(), p_208864_.blockX(), ((long) p_208864_.blockY()) >> 63, p_208864_.blockY(), p_208864_.blockZHi(), p_208864_.blockZ(), 0.25D) * 4.0D;
@@ -957,6 +964,9 @@ public final class DensityFunctions {
         static final KeyDispatchDataCodec<DensityFunctions.ShiftA> CODEC = DensityFunctions.singleArgumentCodec(DensityFunction.NoiseHolder.CODEC, DensityFunctions.ShiftA::new, DensityFunctions.ShiftA::offsetNoise);
 
         public double compute(DensityFunction.FunctionContext p_208884_) {
+            if (FarlandsMode.usesPreciseCoordinates()) {
+                return this.offsetNoise.getValueScaledAxes(p_208884_.blockXHi(), p_208884_.blockX(), 0L, 0L, p_208884_.blockZHi(), p_208884_.blockZ(), 0.25D) * 4.0D;
+            }
             if (!WorldgenCoordinate.fitsLong(p_208884_.blockXHi(), p_208884_.blockX()) || !WorldgenCoordinate.fitsLong(p_208884_.blockZHi(), p_208884_.blockZ())) {
                 if (FarlandsMode.usesPreciseCoordinates()) {
                     return this.offsetNoise.getValueScaledAxes(p_208884_.blockXHi(), p_208884_.blockX(), 0L, 0L, p_208884_.blockZHi(), p_208884_.blockZ(), 0.25D) * 4.0D;
@@ -986,6 +996,9 @@ public final class DensityFunctions {
         static final KeyDispatchDataCodec<DensityFunctions.ShiftB> CODEC = DensityFunctions.singleArgumentCodec(DensityFunction.NoiseHolder.CODEC, DensityFunctions.ShiftB::new, DensityFunctions.ShiftB::offsetNoise);
 
         public double compute(DensityFunction.FunctionContext p_208904_) {
+            if (FarlandsMode.usesPreciseCoordinates()) {
+                return this.offsetNoise.getValueScaledAxes(p_208904_.blockZHi(), p_208904_.blockZ(), p_208904_.blockXHi(), p_208904_.blockX(), 0L, 0L, 0.25D) * 4.0D;
+            }
             if (!WorldgenCoordinate.fitsLong(p_208904_.blockXHi(), p_208904_.blockX()) || !WorldgenCoordinate.fitsLong(p_208904_.blockZHi(), p_208904_.blockZ())) {
                 if (FarlandsMode.usesPreciseCoordinates()) {
                     return this.offsetNoise.getValueScaledAxes(p_208904_.blockZHi(), p_208904_.blockZ(), p_208904_.blockXHi(), p_208904_.blockX(), 0L, 0L, 0.25D) * 4.0D;

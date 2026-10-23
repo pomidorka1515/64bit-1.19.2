@@ -129,6 +129,7 @@ public final class WorldgenCoordinate {
      * lattice is reduced modulo 2^64; octave division precedes that reduction.
      */
     public static void scale(long hi, long lo, double scale, int octave, PreciseNoiseCoordinate.Split out) {
+        out.failureMagnitude = Double.NaN;
         if (!Double.isFinite(scale) || scale == 0.0D) {
             out.lattice = 0L;
             out.fraction = 0.0D;
@@ -147,6 +148,16 @@ public final class WorldgenCoordinate {
         long middle = b * mantissa;
         long p1 = middle + carry;
         long p2 = multiplyHigh(b, mantissa) + (Long.compareUnsigned(p1, middle) < 0 ? 1L : 0L);
+        int productBits = p2 != 0L ? 192 - Long.numberOfLeadingZeros(p2)
+                : p1 != 0L ? 128 - Long.numberOfLeadingZeros(p1) : 64 - Long.numberOfLeadingZeros(p0);
+        // Classification precedes permutation reduction. Conversion is permitted
+        // only for an explicitly failed legacy result, never a healthy coordinate.
+        if (productBits + power > 63 && GenerationContext.current().mode() != GeneratorMode.PATCHED) {
+            double magnitude = Math.scalb(unsignedDouble(p0), power)
+                    + Math.scalb(unsignedDouble(p1), power + 64)
+                    + Math.scalb(unsignedDouble(p2), power + 128);
+            out.failureMagnitude = negative ? -magnitude : magnitude;
+        }
         if (power >= 0) {
             long integer = power >= 64 ? 0L : p0 << power;
             out.lattice = negative ? -integer : integer;

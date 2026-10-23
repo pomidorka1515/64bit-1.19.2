@@ -38,7 +38,7 @@ class FarlandsModeTest {
 
         FarlandsMode.setMode(FarlandsMode.Mode.BIT_32_HYBRID);
         assertEquals(legacy, FarlandsMode.scaledNoiseCoordinate(coordinate, scale));
-        assertFalse(FarlandsMode.isEnabled());
+        assertTrue(FarlandsMode.isEnabled());
         assertTrue(FarlandsMode.usesLegacyBlendedNoise());
         assertFalse(FarlandsMode.isOff());
 
@@ -59,7 +59,7 @@ class FarlandsModeTest {
         FarlandsMode.setMode(FarlandsMode.Mode.BIT_64_PRECISE);
         assertEquals(WorldBounds.scaledNoiseCoordinate(coordinate, scale), FarlandsMode.scaledNoiseCoordinate(coordinate, scale));
         assertFalse(FarlandsMode.isEnabled());
-        assertFalse(FarlandsMode.isOff());
+        assertTrue(FarlandsMode.isOff());
         assertTrue(FarlandsMode.usesNoFarlandsSafeguards());
         assertTrue(FarlandsMode.usesPreciseCoordinates());
         assertEquals("64-bit (exact lattice)", FarlandsMode.getMode().generatorDescription());
@@ -80,14 +80,14 @@ class FarlandsModeTest {
     }
 
     @Test
-    void hybridUsesLegacyArithmeticOnlyForBlendedNoise() {
+    void removedHybridMigratesToOriginalArithmetic() {
         double coordinate = 16_000_000_000.0D;
         ImprovedNoise improvednoise = new ImprovedNoise(new LegacyRandomSource(1234L));
         BlendedNoise blendednoise = new BlendedNoise(new LegacyRandomSource(1234L), 0.25D, 0.125D, 80.0D, 160.0D, 8.0D);
         DensityFunction.SinglePointContext context = new DensityFunction.SinglePointContext((long) coordinate, 0, 0L);
 
         FarlandsMode.setMode(FarlandsMode.Mode.BIT_32_HYBRID);
-        assertFalse(FarlandsMode.isEnabled());
+        assertTrue(FarlandsMode.isEnabled());
         assertTrue(FarlandsMode.usesLegacyBlendedNoise());
         ImprovedNoise.beginDebugCapture();
         double hybridOrdinaryNoise;
@@ -98,7 +98,6 @@ class FarlandsModeTest {
             ImprovedNoise.endDebugCapture();
         }
 
-        assertUnitCellOffset(ImprovedNoise.getDebugString2());
         assertTrue(Double.isFinite(hybridOrdinaryNoise));
         double hybridBlendedNoise = blendednoise.compute(context);
 
@@ -112,7 +111,7 @@ class FarlandsModeTest {
         double sixtyFourBitOrdinaryNoise = improvednoise.noise(coordinate, 0.0D, 0.0D);
         double sixtyFourBitBlendedNoise = blendednoise.compute(context);
 
-        assertEquals(sixtyFourBitOrdinaryNoise, hybridOrdinaryNoise);
+        assertNotEquals(sixtyFourBitOrdinaryNoise, hybridOrdinaryNoise);
         assertEquals(legacyBlendedNoise, hybridBlendedNoise);
         assertTrue(Double.isFinite(hybridBlendedNoise));
         assertTrue(Double.isFinite(sixtyFourBitBlendedNoise));

@@ -45,6 +45,18 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
     protected static final String PLAYER = "Player";
     protected static final String WORLD_GEN_SETTINGS = "WorldGenSettings";
     private LevelSettings settings;
+    private volatile net.minecraft.world.level.levelgen.synth.GeneratorConfig generatorConfig = net.minecraft.world.level.levelgen.synth.GeneratorConfig.DEFAULT;
+
+    public net.minecraft.world.level.levelgen.synth.GeneratorConfig generatorConfig() { return this.generatorConfig; }
+
+    public void setGeneratorConfig(net.minecraft.world.level.levelgen.synth.GeneratorConfig config) {
+        this.generatorConfig = java.util.Objects.requireNonNull(config);
+    }
+
+    private PrimaryLevelData withGeneratorConfig(CompoundTag tag) {
+        this.setGeneratorConfig(net.minecraft.world.level.levelgen.synth.GeneratorConfig.read(tag));
+        return this;
+    }
     private final WorldGenSettings worldGenSettings;
     private final Lifecycle worldGenSettingsLifecycle;
     private Int128 xSpawn;
@@ -118,8 +130,6 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
         CompoundTag compoundtag = (CompoundTag) pDynamic.get("DragonFight").result().map(Dynamic::getValue).orElseGet(() -> {
             return pDynamic.get("DimensionData").get("1").get("DragonFight").orElseEmptyMap().getValue();
         });
-        String s = pDynamic.get(FarlandsMode.LEVEL_DATA_KEY).asString("");
-        FarlandsMode.setMode(s.isEmpty() ? (pDynamic.get(FarlandsMode.LEVEL_DATA_KEY).asBoolean(true) ? FarlandsMode.Mode.BIT_32 : FarlandsMode.Mode.BIT_64) : FarlandsMode.fromSerializedName(s));
         EndRingsMode.setEnabled(pDynamic.get(EndRingsMode.LEVEL_DATA_KEY).asBoolean(true));
         if (!(pDynamic.getValue() instanceof CompoundTag levelTag)) {
             throw new IllegalArgumentException("Level data must be a compound");
@@ -128,7 +138,7 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      return p_78529_.asString().result().stream();
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  })
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   .collect(Collectors.toCollection(Sets::newLinkedHashSet)),
-                new TimerQueue<>(TimerCallbacks.SERVER_CALLBACKS, pDynamic.get("ScheduledEvents").asStream()), (CompoundTag) pDynamic.get("CustomBossEvents").orElseEmptyMap().getValue(), compoundtag, pLevelSettings, pGeneratorSettings, pLifecycle);
+                new TimerQueue<>(TimerCallbacks.SERVER_CALLBACKS, pDynamic.get("ScheduledEvents").asStream()), (CompoundTag) pDynamic.get("CustomBossEvents").orElseEmptyMap().getValue(), compoundtag, pLevelSettings, pGeneratorSettings, pLifecycle).withGeneratorConfig(levelTag);
     }
 
     public CompoundTag createTag(RegistryAccess pRegistries, @Nullable CompoundTag pHostPlayerNBT) {
@@ -146,7 +156,7 @@ public class PrimaryLevelData implements ServerLevelData, WorldData {
         this.knownServerBrands.stream().map(StringTag::valueOf).forEach(listtag::add);
         pNbt.put("ServerBrands", listtag);
         pNbt.putBoolean("WasModded", this.wasModded);
-        pNbt.putString(FarlandsMode.LEVEL_DATA_KEY, FarlandsMode.getMode().serializedName());
+        this.generatorConfig.write(pNbt);
         pNbt.putBoolean(EndRingsMode.LEVEL_DATA_KEY, EndRingsMode.isEnabled());
         CompoundTag compoundtag = new CompoundTag();
         compoundtag.putString("Name", SharedConstants.getCurrentVersion().getName());

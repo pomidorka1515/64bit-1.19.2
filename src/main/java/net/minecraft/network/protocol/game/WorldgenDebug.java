@@ -28,9 +28,9 @@ public final class WorldgenDebug {
         List<String> lines = new ArrayList<>();
         BlendedNoise.beginDebugCapture();
         ImprovedNoise.beginDebugCapture();
-        try {
+        try (var ignored = net.minecraft.world.level.levelgen.synth.GenerationContext.open(player.getServer().getWorldData().generatorConfig())) {
             chunks.getGenerator().addDebugScreenInfo(lines, chunks.randomState(), pos);
-            lines.add("Config End Rings: " + EndRingsMode.isEnabled() + " Generator: " + FarlandsMode.getMode().generatorDescription());
+            lines.add(player.getServer().getWorldData().generatorConfig().debugLine(EndRingsMode.isEnabled()));
             lines.add("BlendedNoise");
             lines.add(BlendedNoise.getDebugString());
             lines.add(BlendedNoise.getDebugString2());

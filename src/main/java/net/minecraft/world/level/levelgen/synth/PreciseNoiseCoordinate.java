@@ -9,7 +9,7 @@ public final class PreciseNoiseCoordinate {
     }
 
     public static boolean needsPrecisePath(long coordinate) {
-        return coordinate < -9007199254740992L || coordinate > 9007199254740992L;
+        return true;
     }
 
     public static boolean needsPrecisePath(long hi, long lo) {
@@ -36,6 +36,10 @@ public final class PreciseNoiseCoordinate {
     }
 
     public static void scale(long coordinate, double scale, Split out) {
+        WorldgenCoordinate.scale(coordinate >> 63, coordinate, scale, 0, out);
+    }
+
+    private static void scaleLegacy(long coordinate, double scale, Split out) {
         if (!Double.isFinite(scale) || scale == 0.0D) {
             out.lattice = 0L;
             out.fraction = 0.0D;
@@ -191,5 +195,7 @@ public final class PreciseNoiseCoordinate {
     public static final class Split {
         public long lattice;
         public double fraction;
+        /** Only populated after exact arithmetic classifies a signed-long overflow. */
+        public double failureMagnitude = Double.NaN;
     }
 }

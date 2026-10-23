@@ -79,7 +79,7 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
     }
 
     public double compute(DensityFunction.FunctionContext pContext) {
-        if (FarlandsMode.usesPreciseCoordinates() && (!WorldgenCoordinate.fitsLong(pContext.blockXHi(), pContext.blockX()) || !WorldgenCoordinate.fitsLong(pContext.blockZHi(), pContext.blockZ()) || this.needsPreciseSampling(pContext.blockX()) || this.needsPreciseSampling(pContext.blockZ()))) {
+        if (FarlandsMode.usesPreciseCoordinates()) {
             return this.computePrecise(pContext);
         }
 
@@ -146,13 +146,6 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
         return d17;
     }
 
-    private boolean needsPreciseSampling(long coordinate) {
-        // Blended noise expands block coordinates before sampling. Test the largest
-        // horizontal scale too: its double loses lattice precision well before 2^53 blocks.
-        double largestScale = Math.max(this.xzMultiplier, this.xzMultiplier / this.xzFactor);
-        return PreciseNoiseCoordinate.needsPrecisePath(coordinate) || Math.abs((double) coordinate * largestScale) >= 0x1.0p53;
-    }
-
     private double computePrecise(DensityFunction.FunctionContext context) {
         double y = (double) context.blockY() * this.yMultiplier;
         double d4 = y / this.yFactor;
@@ -163,24 +156,10 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
         for (int i = 0; i < 8; ++i) {
             ImprovedNoise noise = this.mainNoise.getOctaveNoise(i);
             if (noise != null) {
-                // xzFactor division is combined into one finite scale; this is the only rounded BlendedNoise sub-term.
-                double selectorScale = this.xzMultiplier * octave / this.xzFactor;
-                PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
-                if (WorldgenCoordinate.fitsLong(context.blockXHi(), context.blockX()))
-                    PreciseNoiseCoordinate.scale(context.blockX(), selectorScale, scratch);
-                else
-                    WorldgenCoordinate.scale(context.blockXHi(), context.blockX(), selectorScale, 0, scratch);
-                long x = scratch.lattice;
-                double fx = scratch.fraction;
-                if (WorldgenCoordinate.fitsLong(context.blockZHi(), context.blockZ()))
-                    PreciseNoiseCoordinate.scale(context.blockZ(), selectorScale, scratch);
-                else
-                    WorldgenCoordinate.scale(context.blockZHi(), context.blockZ(), selectorScale, 0, scratch);
-                long z = scratch.lattice;
-                double fz = scratch.fraction;
                 double scaledY = d4 * octave;
-                long yCell = (long) Math.floor(scaledY);
-                selector += noise.noise(x, fx, yCell, scaledY - Math.floor(scaledY), z, fz, d7 * octave, scaledY) / octave;
+                selector += NoiseSampling.sample(noise, context.blockXHi(), context.blockX(), this.xzMultiplier / this.xzFactor, 0.0D,
+                        0L, 0L, 1.0D, d4, context.blockZHi(), context.blockZ(), this.xzMultiplier / this.xzFactor, 0.0D,
+                        -i, d7 * octave, scaledY) / octave;
             }
             octave /= 2.0D;
         }
@@ -192,30 +171,20 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
         double max = 0.0D;
         octave = 1.0D;
         for (int j = 0; j < 16; ++j) {
-            double octaveScale = this.xzMultiplier * octave;
-            PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
-            if (WorldgenCoordinate.fitsLong(context.blockXHi(), context.blockX()))
-                PreciseNoiseCoordinate.scale(context.blockX(), octaveScale, scratch);
-            else
-                WorldgenCoordinate.scale(context.blockXHi(), context.blockX(), octaveScale, 0, scratch);
-            long x = scratch.lattice;
-            double fx = scratch.fraction;
-            if (WorldgenCoordinate.fitsLong(context.blockZHi(), context.blockZ()))
-                PreciseNoiseCoordinate.scale(context.blockZ(), octaveScale, scratch);
-            else
-                WorldgenCoordinate.scale(context.blockZHi(), context.blockZ(), octaveScale, 0, scratch);
-            long z = scratch.lattice;
-            double fz = scratch.fraction;
             double scaledY = y * octave;
             if (!high) {
                 ImprovedNoise noise = this.minLimitNoise.getOctaveNoise(j);
                 if (noise != null)
-                    min += noise.noise(x, fx, (long) Math.floor(scaledY), scaledY - Math.floor(scaledY), z, fz, d6 * octave, scaledY) * (1.0D / octave);
+                    min += NoiseSampling.sample(noise, context.blockXHi(), context.blockX(), this.xzMultiplier, 0.0D,
+                            0L, 0L, 1.0D, y, context.blockZHi(), context.blockZ(), this.xzMultiplier, 0.0D,
+                            -j, d6 * octave, scaledY) / octave;
             }
             if (!low) {
                 ImprovedNoise noise = this.maxLimitNoise.getOctaveNoise(j);
                 if (noise != null)
-                    max += noise.noise(x, fx, (long) Math.floor(scaledY), scaledY - Math.floor(scaledY), z, fz, d6 * octave, scaledY) * (1.0D / octave);
+                    max += NoiseSampling.sample(noise, context.blockXHi(), context.blockX(), this.xzMultiplier, 0.0D,
+                            0L, 0L, 1.0D, y, context.blockZHi(), context.blockZ(), this.xzMultiplier, 0.0D,
+                            -j, d6 * octave, scaledY) / octave;
             }
             octave /= 2.0D;
         }

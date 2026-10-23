@@ -211,19 +211,9 @@ public class PerlinNoise {
             ImprovedNoise noise = this.noiseLevels[i];
             int power = this.firstOctave + i;
             if (noise != null) {
-                WorldgenCoordinate.scale(xHi, xLo, scale, power, scratch);
-                double sx = scratch.fraction + Math.scalb(shiftX, power);
-                long x = scratch.lattice + (long) Math.floor(sx);
-                double fx = PreciseNoiseCoordinate.normalize(sx);
-                WorldgenCoordinate.scale(yHi, yLo, yScale, power, scratch);
-                double sy = scratch.fraction + Math.scalb(shiftY, power);
-                long y = scratch.lattice + (long) Math.floor(sy);
-                double fy = PreciseNoiseCoordinate.normalize(sy);
-                WorldgenCoordinate.scale(zHi, zLo, scale, power, scratch);
-                double sz = scratch.fraction + Math.scalb(shiftZ, power);
-                long z = scratch.lattice + (long) Math.floor(sz);
-                double fz = PreciseNoiseCoordinate.normalize(sz);
-                value += this.amplitudes.getDouble(i) * noise.noise(x, fx, y, fy, z, fz) * valueFactor;
+                value += this.amplitudes.getDouble(i) * NoiseSampling.sample(noise,
+                        xHi, xLo, scale, shiftX, yHi, yLo, yScale, shiftY,
+                        zHi, zLo, scale, shiftZ, power, 0.0D, 0.0D) * valueFactor;
             }
             valueFactor /= 2.0D;
         }

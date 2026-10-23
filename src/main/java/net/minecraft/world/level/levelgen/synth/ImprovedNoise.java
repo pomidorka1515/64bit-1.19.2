@@ -84,6 +84,21 @@ public final class ImprovedNoise {
         return this.noise(cellX, fracX, cellY, fracY, cellZ, fracZ, 0.0D, 0.0D);
     }
 
+    double sampleRouted(PreciseNoiseCoordinate.Split x, PreciseNoiseCoordinate.Split y, PreciseNoiseCoordinate.Split z, double smearScale, double smearOffset) {
+        double smear = 0.0D;
+        if (smearScale != 0.0D) {
+            double input = smearOffset >= 0.0D && smearOffset < y.fraction ? smearOffset : y.fraction;
+            smear = (double) Mth.floor(input / smearScale + (double) SHIFT_UP_EPSILON) * smearScale;
+        }
+        if (Thread.currentThread() == debugCaptureThread) {
+            debugSamplePoint = (double) x.lattice + x.fraction;
+            debugGridIndex = x.lattice;
+            debugCellOffset = x.fraction;
+            debugSmoothedOffset = Mth.smoothstep(x.fraction);
+        }
+        return sampleAndLerp(x.lattice, y.lattice, z.lattice, x.fraction, y.fraction - smear, z.fraction, y.fraction);
+    }
+
     /** Precise split-coordinate variant retaining the legacy vertical smear operation. */
     public double noise(long cellX, double fracX, long cellY, double fracY, long cellZ, double fracZ, double smearScale, double smearOffset) {
         double x = fracX + this.xo;

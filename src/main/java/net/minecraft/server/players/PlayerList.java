@@ -322,6 +322,7 @@ public abstract class PlayerList {
     }
 
     public void remove(ServerPlayer pPlayer) {
+        net.minecraft.server.commands.GeneratorCommand.clear(this.server, pPlayer.getUUID());
         ServerLevel serverlevel = pPlayer.getLevel();
         pPlayer.awardStat(Stats.LEAVE_GAME);
         this.save(pPlayer);

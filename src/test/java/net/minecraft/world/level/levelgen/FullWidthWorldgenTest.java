@@ -11,6 +11,10 @@ import net.minecraft.world.level.biome.FixedBiomeSource;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
+import net.minecraft.world.level.levelgen.synth.GeneratorMode;
+import net.minecraft.world.level.levelgen.synth.CoordinatePrecision;
+import net.minecraft.world.level.levelgen.synth.GeneratorConfig;
+import net.minecraft.world.level.levelgen.synth.GenerationContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -31,14 +35,17 @@ class FullWidthWorldgenTest {
             NoiseBasedChunkGenerator generator = new NoiseBasedChunkGenerator(BuiltinRegistries.STRUCTURE_SETS, BuiltinRegistries.NOISE,
                     new FixedBiomeSource(BuiltinRegistries.BIOME.getHolderOrThrow(Biomes.PLAINS)), settings);
             LevelHeightAccessor height = LevelHeightAccessor.create(settings.value().noiseSettings().minY(), settings.value().noiseSettings().height());
-            for (FarlandsMode.Mode mode : FarlandsMode.Mode.values()) {
-                FarlandsMode.setMode(mode);
+            for (GeneratorMode mode : GeneratorMode.values()) {
+              for (CoordinatePrecision precision : CoordinatePrecision.values()) {
+               try (var ignored = GenerationContext.open(new GeneratorConfig(mode, precision))) {
                 RandomState state = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 1234L);
                 for (Int128 x : addresses) {
                     var column = generator.getBaseColumn(x, x, height, state);
                     assertNotNull(column, dimension + " " + mode + " " + x);
                     assertNotNull(column.getBlock(height.getMinBuildHeight()));
                 }
+               }
+              }
             }
         }
     }

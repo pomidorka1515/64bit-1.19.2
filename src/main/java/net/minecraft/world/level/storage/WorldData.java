@@ -15,6 +15,10 @@ import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.levelgen.WorldGenSettings;
 
 public interface WorldData {
+    net.minecraft.world.level.levelgen.synth.GeneratorConfig generatorConfig();
+
+    void setGeneratorConfig(net.minecraft.world.level.levelgen.synth.GeneratorConfig config);
+
     int ANVIL_VERSION_ID = 19133;
     int MCREGION_VERSION_ID = 19132;
 

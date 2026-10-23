@@ -523,6 +523,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
     }
 
     public void stopServer() {
+        net.minecraft.server.commands.GeneratorCommand.clear(this);
         if (this.metricsRecorder.isRecording()) {
             this.cancelRecordingMetrics();
         }

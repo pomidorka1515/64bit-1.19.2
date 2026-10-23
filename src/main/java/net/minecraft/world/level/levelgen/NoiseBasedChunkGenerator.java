@@ -88,7 +88,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
         return CompletableFuture.supplyAsync(Util.wrapThreadWithTaskName("init_biomes", () -> {
             this.doCreateBiomes(pBlender, pRandom, pStructureManager, pChunk);
             return pChunk;
-        }), Util.backgroundExecutor());
+        }), net.minecraft.world.level.levelgen.synth.GenerationContext.capture(Util.backgroundExecutor()));
     }
 
     private void doCreateBiomes(Blender pBlender, RandomState pRandom, StructureManager pStructureManager, ChunkAccess pChunk) {
@@ -338,7 +338,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
 
             return CompletableFuture.supplyAsync(Util.wrapThreadWithTaskName("wgen_fill_noise", () -> {
                                         return this.doFill(pBlender, pStructureManager, pRandom, pChunk, j, k);
-                                    }), Util.backgroundExecutor()).whenCompleteAsync((p_224309_, p_224310_) -> {
+                                    }), net.minecraft.world.level.levelgen.synth.GenerationContext.capture(Util.backgroundExecutor())).whenCompleteAsync((p_224309_, p_224310_) -> {
                 for (LevelChunkSection levelchunksection1 : set) {
                     levelchunksection1.release();
                 }

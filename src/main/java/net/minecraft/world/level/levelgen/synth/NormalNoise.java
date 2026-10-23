@@ -101,12 +101,16 @@ public class NormalNoise {
     }
 
     public double getValueScaled(long blockX, double xzScale, double y, long blockZ) {
+        if (FarlandsMode.usesPreciseCoordinates())
+            return getValueScaledShifted(blockX >> 63, blockX, xzScale, 0.0D, y, blockZ >> 63, blockZ, 0.0D);
         long cellY = (long) Math.floor(y);
         return this.getValueScaled(blockX, xzScale, cellY, y - (double) cellY, blockZ);
     }
 
     /** Samples a block-coordinate noise function while splitting all three scaled axes. */
     public double getValueScaled(long blockX, double xzScale, long blockY, double yScale, long blockZ) {
+        if (FarlandsMode.usesPreciseCoordinates())
+            return getValueScaled(blockX >> 63, blockX, xzScale, blockY, yScale, blockZ >> 63, blockZ);
         PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
         PreciseNoiseCoordinate.scale(blockX, xzScale, scratch);
         long firstX = scratch.lattice;
@@ -131,6 +135,8 @@ public class NormalNoise {
     }
 
     public double getValueScaledShifted(long blockX, double xzScale, double shiftX, double y, long blockZ, double shiftZ) {
+        if (FarlandsMode.usesPreciseCoordinates())
+            return getValueScaledShifted(blockX >> 63, blockX, xzScale, shiftX, y, blockZ >> 63, blockZ, shiftZ);
         PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
         PreciseNoiseCoordinate.scale(blockX, xzScale, scratch);
         long shiftedFirstX = PreciseNoiseCoordinate.shiftedLattice(scratch.lattice, scratch.fraction, shiftX);
@@ -153,15 +159,11 @@ public class NormalNoise {
     }
 
     public double getValueScaled(long xHi, long xLo, double scale, long y, double yScale, long zHi, long zLo) {
-        if (WorldgenCoordinate.fitsLong(xHi, xLo) && WorldgenCoordinate.fitsLong(zHi, zLo))
-            return getValueScaled(xLo, scale, y, yScale, zLo);
         return (this.first.getValueScaled(xHi, xLo, scale, 0.0D, y >> 63, y, yScale, 0.0D, zHi, zLo, 0.0D)
                 + this.second.getValueScaled(xHi, xLo, scale * INPUT_FACTOR, 0.0D, y >> 63, y, yScale * INPUT_FACTOR, 0.0D, zHi, zLo, 0.0D)) * this.valueFactor;
     }
 
     public double getValueScaledShifted(long xHi, long xLo, double scale, double shiftX, double y, long zHi, long zLo, double shiftZ) {
-        if (WorldgenCoordinate.fitsLong(xHi, xLo) && WorldgenCoordinate.fitsLong(zHi, zLo))
-            return getValueScaledShifted(xLo, scale, shiftX, y, zLo, shiftZ);
         return (this.first.getValueScaled(xHi, xLo, scale, shiftX, 0L, 0L, 1.0D, y, zHi, zLo, shiftZ)
                 + this.second.getValueScaled(xHi, xLo, scale * INPUT_FACTOR, shiftX * INPUT_FACTOR, 0L, 0L, 1.0D, y * INPUT_FACTOR, zHi, zLo, shiftZ * INPUT_FACTOR)) * this.valueFactor;
     }

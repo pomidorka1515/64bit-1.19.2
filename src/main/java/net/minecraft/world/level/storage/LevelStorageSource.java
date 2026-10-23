@@ -398,8 +398,13 @@ public class LevelStorageSource {
                 File file3 = this.levelDirectory.oldDataFile().toFile();
                 File file4 = this.levelDirectory.dataFile().toFile();
                 Util.safeReplaceFile(file4, file2, file3);
+                CompoundTag saved = NbtIo.readCompressed(file4).getCompound("Data");
+                if (!pServerConfiguration.generatorConfig().equals(net.minecraft.world.level.levelgen.synth.GeneratorConfig.read(saved))) {
+                    throw new IOException("Saved generator configuration did not match world data");
+                }
             } catch (Exception exception) {
                 LevelStorageSource.LOGGER.error("Failed to save level {}", file1, exception);
+                throw new IllegalStateException("Failed to save level data", exception);
             }
         }
 

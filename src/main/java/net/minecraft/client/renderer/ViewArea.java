@@ -124,6 +124,44 @@ public class ViewArea {
         }
     }
 
+    /** Uses exact grid lookups only when they cost no more than scanning the view. */
+    boolean trySetDirtyRange(Int128 minX, long minY, Int128 minZ, Int128 maxX, long maxY, Int128 maxZ,
+            boolean reRenderOnMainThread) {
+        minY = Math.max(minY, this.level.getMinSection());
+        maxY = Math.min(maxY, (long) this.level.getMinSection() + this.chunkGridSizeY - 1L);
+        return forEachDirtySection(minX, minY, minZ, maxX, maxY, maxZ, this.chunks.length,
+                (x, y, z) -> this.setDirty(x, y, z, reRenderOnMainThread));
+    }
+
+    static boolean forEachDirtySection(Int128 minX, long minY, Int128 minZ, Int128 maxX, long maxY, Int128 maxZ,
+            int maxLookups, DirtySectionConsumer consumer) {
+        if (minY > maxY)
+            return true;
+
+        long width = WorldBounds.signedDifferenceAsLong(maxX, minX);
+        long depth = WorldBounds.signedDifferenceAsLong(maxZ, minZ);
+        long budget = maxLookups / (maxY - minY + 1L);
+        // Compare before adding or multiplying: a world-sized range must not wrap.
+        if (width < 0L || depth < 0L || width >= budget || depth >= budget
+                || width + 1L > budget / (depth + 1L))
+            return false;
+
+        for (long xOffset = 0; xOffset <= width; ++xOffset) {
+            Int128 x = minX.add(Int128.fromLong(xOffset));
+            for (long zOffset = 0; zOffset <= depth; ++zOffset) {
+                Int128 z = minZ.add(Int128.fromLong(zOffset));
+                for (long y = minY; y <= maxY; ++y)
+                    consumer.accept(x, (int) y, z);
+            }
+        }
+        return true;
+    }
+
+    @FunctionalInterface
+    interface DirtySectionConsumer {
+        void accept(Int128 x, int y, Int128 z);
+    }
+
     @Nullable
     protected ChunkRenderDispatcher.RenderChunk getRenderChunkAt(BlockPos pPos) {
         Int128 i = pPos.getX().shiftRight(4);

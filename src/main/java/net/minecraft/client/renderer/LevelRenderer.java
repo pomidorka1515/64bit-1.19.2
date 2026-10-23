@@ -2518,6 +2518,8 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         long maxY = (long) Math.max(pMinY, pMaxY) + 1L;
         if (this.viewArea == null)
             return;
+        if (this.viewArea.trySetDirtyRange(minX, minY >> 4, minZ, maxX, maxY >> 4, maxZ, pReRenderOnMainThread))
+            return;
         // Work is bounded by the allocated view, even for a world-sized invalidation.
         for (ChunkRenderDispatcher.RenderChunk chunk : this.viewArea.chunks) {
             BlockPos origin = chunk.getOrigin();

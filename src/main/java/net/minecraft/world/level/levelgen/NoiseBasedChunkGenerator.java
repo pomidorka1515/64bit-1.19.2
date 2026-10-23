@@ -182,7 +182,9 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
             pInfo.add("Initial Density: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -3.0D, flag ? 2.0D : 3.0D));
             pInfo.add("Final Density: " + formatDebugValue(decimalformat, d8, 3.0D));
         } else {
-            pInfo.add("NoiseRouter T: " + formatDebugValue(decimalformat, d1, 1.5D) + " V: " + formatDebugValue(decimalformat, d2, 1.5D) + " C: " + formatDebugValue(decimalformat, d3, 1.5D) + " E: " + formatDebugValue(decimalformat, d4, 1.5D) + " D: " + formatDebugValue(decimalformat, d5, 2.5D) + " W: " + formatDebugValue(decimalformat, d0, 1.5D) + " PV: " + formatDebugValue(decimalformat, d6, 1.0D) + " AS: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -3.0D, flag ? 2.0D : 3.0D) + " N: " + formatDebugValue(decimalformat, d8, 3.0D));
+            pInfo.add("NoiseRouter");
+            pInfo.add("T: " + formatDebugValue(decimalformat, d1, 1.5D) + " V: " + formatDebugValue(decimalformat, d2, 1.5D) + " C: " + formatDebugValue(decimalformat, d3, 1.5D) + " E: " + formatDebugValue(decimalformat, d4, 1.5D) + " D: " + formatDebugValue(decimalformat, d5, 2.5D));
+            pInfo.add("W: " + formatDebugValue(decimalformat, d0, 1.5D) + " PV: " + formatDebugValue(decimalformat, d6, 1.0D) + " AS: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -3.0D, flag ? 2.0D : 3.0D) + " N: " + formatDebugValue(decimalformat, d8, 3.0D));
         }
     }
 

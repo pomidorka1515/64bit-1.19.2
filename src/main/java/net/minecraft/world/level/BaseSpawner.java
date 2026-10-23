@@ -10,6 +10,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.random.SimpleWeightedRandomList;
@@ -112,7 +113,7 @@ public abstract class BaseSpawner {
                             continue;
                         }
 
-                        Entity entity = EntityType.loadEntityRecursive(compoundtag, pServerLevel, (p_151310_) -> {
+                        Entity entity = EntityType.loadEntityRecursive(compoundtag, pServerLevel, position, (p_151310_) -> {
                             p_151310_.moveTo(position, p_151310_.getYRot(), p_151310_.getXRot());
                             return p_151310_;
                         });
@@ -161,9 +162,9 @@ public abstract class BaseSpawner {
         }
     }
 
-    private static SectorVec3 getExactSpawnPosition(CompoundTag tag) {
-        return SectorVec3.fromBlockAndFraction(tag.getLong("BlockX"), tag.getDouble("SubX"), tag.getDouble("Y"),
-                tag.getLong("BlockZ"), tag.getDouble("SubZ"));
+    static SectorVec3 getExactSpawnPosition(CompoundTag tag) {
+        return SectorVec3.fromBlockAndFraction(NbtUtils.readInt128(tag, "BlockX"), tag.getDouble("SubX"), tag.getDouble("Y"),
+                NbtUtils.readInt128(tag, "BlockZ"), tag.getDouble("SubZ"));
     }
 
     static SectorVec3 getSpawnPosition(BlockPos origin, ListTag explicitPosition, double offsetX, double y, double offsetZ) {
@@ -262,7 +263,11 @@ public abstract class BaseSpawner {
     @Nullable
     public Entity getOrCreateDisplayEntity(Level pLevel) {
         if (this.displayEntity == null) {
-            this.displayEntity = EntityType.loadEntityRecursive(this.nextSpawnData.getEntityToSpawn(), pLevel, Function.identity());
+            CompoundTag tag = this.nextSpawnData.getEntityToSpawn();
+            SectorVec3 position = tag.contains("ExactPos", 10)
+                    ? getExactSpawnPosition(tag.getCompound("ExactPos"))
+                    : getSpawnPosition(BlockPos.ZERO, tag.getList("Pos", 6), 0.0D, 0.0D, 0.0D);
+            this.displayEntity = EntityType.loadEntityRecursive(tag, pLevel, position, Function.identity());
             if (this.nextSpawnData.getEntityToSpawn().size() == 1 && this.nextSpawnData.getEntityToSpawn().contains("id", 8) && this.displayEntity instanceof Mob) {
             }
         }

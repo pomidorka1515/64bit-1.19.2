@@ -6,6 +6,8 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Int128;
 import net.minecraft.nbt.DoubleTag;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.entity.EntityType;
@@ -19,6 +21,34 @@ class SpawningPrecisionTest {
     static void bootstrap() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
+    }
+
+    @Test
+    void explicitSpawnerPositionDecodesFullWidthCoordinates() {
+        for (Int128 coordinate : interiorCoordinates()) {
+            CompoundTag tag = new CompoundTag();
+            NbtUtils.writeInt128(tag, "BlockX", coordinate);
+            NbtUtils.writeInt128(tag, "BlockZ", coordinate);
+            tag.putDouble("SubX", 0.25D);
+            tag.putDouble("SubZ", 0.75D);
+            tag.putDouble("Y", 64.5D);
+            assertEquals(SectorVec3.fromBlockAndFraction(coordinate, 0.25D, 64.5D, coordinate, 0.75D),
+                    BaseSpawner.getExactSpawnPosition(tag));
+        }
+    }
+
+    @Test
+    void spawnerDisplayLoadsIdOnlyTemplateWithoutMutatingSpawnData() {
+        BaseSpawner spawner = new BaseSpawner() {
+            public void broadcastEvent(Level level, BlockPos pos, int eventId) {}
+        };
+        CompoundTag tag = new CompoundTag();
+        tag.putString("id", "minecraft:marker");
+        spawner.setNextSpawnData(null, BlockPos.ZERO, new SpawnData(tag, java.util.Optional.empty()));
+        Level level = net.minecraft.world.entity.EntityLoadingTestLevel.create();
+        assertNotNull(spawner.getOrCreateDisplayEntity(level));
+        assertEquals(1, tag.size());
+        assertSame(spawner.getOrCreateDisplayEntity(level), spawner.getOrCreateDisplayEntity(level));
     }
 
     @Test

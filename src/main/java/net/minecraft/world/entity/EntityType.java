@@ -18,6 +18,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -520,6 +521,29 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
 
     public static Optional<EntityType<?>> by(CompoundTag pCompound) {
         return Registry.ENTITY_TYPE.getOptional(new ResourceLocation(pCompound.getString("id")));
+    }
+
+    @Nullable
+    public static Entity loadEntityRecursive(CompoundTag tag, Level level, SectorVec3 spawnPosition, Function<Entity, Entity> entityFunction) {
+        // Spawn templates are not saved entities: commands and spawners commonly
+        // supply only an id. Seed the exact position before Entity.load(), not in
+        // its post-load callback. Do not relax the persisted-entity decoder.
+        CompoundTag spawnTag = tag.copy();
+        setSpawnPosition(spawnTag, spawnPosition);
+        return loadEntityRecursive(spawnTag, level, entityFunction);
+    }
+
+    private static void setSpawnPosition(CompoundTag tag, SectorVec3 position) {
+        CompoundTag exactTag = new CompoundTag();
+        NbtUtils.writeInt128(exactTag, "BlockX", position.blockX());
+        NbtUtils.writeInt128(exactTag, "BlockZ", position.blockZ());
+        exactTag.putDouble("SubX", position.subX());
+        exactTag.putDouble("SubZ", position.subZ());
+        exactTag.putDouble("Y", position.y());
+        tag.put("ExactPos", exactTag);
+        for (Tag passenger : tag.getList("Passengers", 10)) {
+            setSpawnPosition((CompoundTag) passenger, position);
+        }
     }
 
     @Nullable

@@ -51,7 +51,7 @@ public class SummonCommand {
             CompoundTag compoundtag = pNbt.copy();
             compoundtag.putString("id", pType.toString());
             ServerLevel serverlevel = pSource.getLevel();
-            Entity entity = EntityType.loadEntityRecursive(compoundtag, serverlevel, (p_138828_) -> {
+            Entity entity = EntityType.loadEntityRecursive(compoundtag, serverlevel, exactPosition, (p_138828_) -> {
                 p_138828_.moveTo(exactPosition, p_138828_.getYRot(), p_138828_.getXRot());
                 return p_138828_;
             });

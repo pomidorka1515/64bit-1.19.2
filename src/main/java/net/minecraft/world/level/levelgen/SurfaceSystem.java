@@ -20,7 +20,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.BlockColumn;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.carver.CarvingContext;
 import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
@@ -180,31 +179,25 @@ public class SurfaceSystem {
     }
 
     protected int getSurfaceDepth(long p_189928_, long p_189929_) {
-        double d0 = WorldBounds.clampNoise(sampleNoise(this.surfaceNoise, p_189928_, 1.0D, p_189929_));
-        double depth = d0 * 2.75D + 3.0D + this.noiseRandom.at(p_189928_, 0, p_189929_).nextDouble() * 0.25D;
-        if (!Double.isFinite(depth))
-            depth = 3.0D;
-        return WorldBounds.clampSurfaceDepth((int) Math.round(depth), DimensionType.Y_SIZE);
+        return SurfaceArithmetic.depth(sampleNoise(this.surfaceNoise, p_189928_, 1.0D, p_189929_),
+                this.noiseRandom.at(p_189928_, 0, p_189929_).nextDouble());
     }
 
     protected int getSurfaceDepth(long xHi, long xLo, long zHi, long zLo) {
         if (WorldgenCoordinate.fitsLong(xHi, xLo) && WorldgenCoordinate.fitsLong(zHi, zLo))
             return this.getSurfaceDepth(xLo, zLo);
-        double d0 = WorldBounds.clampNoise(sampleNoise(this.surfaceNoise, xHi, xLo, 1.0D, zHi, zLo));
-        double depth = d0 * 2.75D + 3.0D + this.noiseRandom.at(xHi, xLo, 0, zHi, zLo).nextDouble() * 0.25D;
-        if (!Double.isFinite(depth))
-            depth = 3.0D;
-        return WorldBounds.clampSurfaceDepth((int) Math.round(depth), DimensionType.Y_SIZE);
+        return SurfaceArithmetic.depth(sampleNoise(this.surfaceNoise, xHi, xLo, 1.0D, zHi, zLo),
+                this.noiseRandom.at(xHi, xLo, 0, zHi, zLo).nextDouble());
     }
 
     protected double getSurfaceSecondary(long p_202190_, long p_202191_) {
-        return WorldBounds.clampNoise(sampleNoise(this.surfaceSecondaryNoise, p_202190_, 1.0D, p_202191_));
+        return SurfaceArithmetic.noise(sampleNoise(this.surfaceSecondaryNoise, p_202190_, 1.0D, p_202191_));
     }
 
     protected double getSurfaceSecondary(long xHi, long xLo, long zHi, long zLo) {
         if (WorldgenCoordinate.fitsLong(xHi, xLo) && WorldgenCoordinate.fitsLong(zHi, zLo))
             return this.getSurfaceSecondary(xLo, zLo);
-        return WorldBounds.clampNoise(sampleNoise(this.surfaceSecondaryNoise, xHi, xLo, 1.0D, zHi, zLo));
+        return SurfaceArithmetic.noise(sampleNoise(this.surfaceSecondaryNoise, xHi, xLo, 1.0D, zHi, zLo));
     }
 
     private static int clampSurfaceHeight(int height, int minBuildHeight, int maxBuildHeight) {

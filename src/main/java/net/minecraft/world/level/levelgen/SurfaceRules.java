@@ -303,7 +303,7 @@ public class SurfaceRules {
             this.blockX = xLo;
             this.blockZHi = zHi;
             this.blockZ = zLo;
-            this.surfaceDepth = WorldBounds.clampSurfaceDepth(this.system.getSurfaceDepth(xHi, xLo, zHi, zLo), this.context.getGenDepth());
+            this.surfaceDepth = SurfaceArithmetic.boundDepth(this.system.getSurfaceDepth(xHi, xLo, zHi, zLo), this.context.getGenDepth());
         }
 
         protected void updateY(int p_189577_, int p_189578_, int p_189579_, long i, int p_189581_, long k) {
@@ -377,8 +377,9 @@ public class SurfaceRules {
                     interpolatedLevel = Mth.lerp2(xFraction, zFraction, (double) corner0, (double) corner1, (double) corner2, (double) corner3);
                 }
                 int l = Double.isFinite(interpolatedLevel) ? Mth.floor(interpolatedLevel) : this.context.getMinGenY();
-                this.minSurfaceLevel = WorldBounds.addSaturated(WorldBounds.addSaturated(l, this.surfaceDepth), -8);
-                this.minSurfaceLevel = clampSurfaceLevel(this.minSurfaceLevel);
+                this.minSurfaceLevel = SurfaceArithmetic.add(SurfaceArithmetic.add(l, this.surfaceDepth), -8);
+                if (net.minecraft.world.level.levelgen.synth.GenerationPolicy.usesNoFarlandsSafeguards())
+                    this.minSurfaceLevel = clampSurfaceLevel(this.minSurfaceLevel);
             }
 
             return this.minSurfaceLevel;
@@ -521,7 +522,7 @@ public class SurfaceRules {
 
                 protected boolean compute() {
                     double d0 = SurfaceSystem.sampleNoise(normalnoise, this.context.blockXHi, this.context.blockX, 1.0D, this.context.blockZHi, this.context.blockZ);
-                    d0 = WorldBounds.clampNoise(d0);
+                    d0 = SurfaceArithmetic.noise(d0);
                     double min = Double.isFinite(NoiseThresholdConditionSource.this.minThreshold) ? NoiseThresholdConditionSource.this.minThreshold : 0.0D;
                     double max = Double.isFinite(NoiseThresholdConditionSource.this.maxThreshold) ? NoiseThresholdConditionSource.this.maxThreshold : 0.0D;
                     return d0 >= min && d0 <= max;
@@ -643,9 +644,9 @@ public class SurfaceRules {
                     int i = flag ? this.context.stoneDepthBelow : this.context.stoneDepthAbove;
                     int j = StoneDepthCheck.this.addSurfaceDepth ? this.context.surfaceDepth : 0;
                     int k = StoneDepthCheck.this.secondaryDepthRange == 0 ? 0 : (int) Mth.map(this.context.getSurfaceSecondary(), -1.0D, 1.0D, 0.0D, (double) Math.max(0, StoneDepthCheck.this.secondaryDepthRange));
-                    int limit = WorldBounds.addSaturated(1, StoneDepthCheck.this.offset);
-                    limit = WorldBounds.addSaturated(limit, j);
-                    limit = WorldBounds.addSaturated(limit, k);
+                    int limit = SurfaceArithmetic.add(1, StoneDepthCheck.this.offset);
+                    limit = SurfaceArithmetic.add(limit, j);
+                    limit = SurfaceArithmetic.add(limit, k);
                     return i <= limit;
                 }
             }
@@ -750,9 +751,9 @@ public class SurfaceRules {
                 protected boolean compute() {
                     if (this.context.waterHeight == Integer.MIN_VALUE)
                         return true;
-                    int left = WorldBounds.addSaturated(this.context.blockY, WaterConditionSource.this.addStoneDepth ? this.context.stoneDepthAbove : 0);
-                    int right = WorldBounds.addSaturated(this.context.waterHeight, WaterConditionSource.this.offset);
-                    right = WorldBounds.addSaturated(right, WorldBounds.multiplySaturated(this.context.surfaceDepth, WaterConditionSource.this.surfaceDepthMultiplier));
+                    int left = SurfaceArithmetic.add(this.context.blockY, WaterConditionSource.this.addStoneDepth ? this.context.stoneDepthAbove : 0);
+                    int right = SurfaceArithmetic.add(this.context.waterHeight, WaterConditionSource.this.offset);
+                    right = SurfaceArithmetic.add(right, SurfaceArithmetic.multiply(this.context.surfaceDepth, WaterConditionSource.this.surfaceDepthMultiplier));
                     return left >= right;
                 }
             }
@@ -777,9 +778,9 @@ public class SurfaceRules {
                 }
 
                 protected boolean compute() {
-                    int left = WorldBounds.addSaturated(this.context.blockY, YConditionSource.this.addStoneDepth ? this.context.stoneDepthAbove : 0);
+                    int left = SurfaceArithmetic.add(this.context.blockY, YConditionSource.this.addStoneDepth ? this.context.stoneDepthAbove : 0);
                     int right = YConditionSource.this.anchor.resolveY(this.context.context);
-                    right = WorldBounds.addSaturated(right, WorldBounds.multiplySaturated(this.context.surfaceDepth, YConditionSource.this.surfaceDepthMultiplier));
+                    right = SurfaceArithmetic.add(right, SurfaceArithmetic.multiply(this.context.surfaceDepth, YConditionSource.this.surfaceDepthMultiplier));
                     return left >= right;
                 }
             }

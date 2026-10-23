@@ -427,7 +427,10 @@ public class DebugScreenOverlay extends GuiComponent {
                 BlockPos blockpos = ((BlockHitResult) this.block).getBlockPos();
                 BlockState blockstate = this.minecraft.level.getBlockState(blockpos);
                 list.add("");
-                list.add(ChatFormatting.UNDERLINE + "Targeted Block: " + blockpos.getX() + ", " + blockpos.getY() + ", " + blockpos.getZ());
+                list.add(ChatFormatting.UNDERLINE + "Targeted Block");
+                list.add("X: " + blockpos.getX());
+                list.add("Y: " + blockpos.getY());
+                list.add("Z: " + blockpos.getZ());
                 list.add(String.valueOf((Object) Registry.BLOCK.getKey(blockstate.getBlock())));
 
                 for (Map.Entry<Property<?>, Comparable<?>> entry : blockstate.getValues().entrySet()) {
@@ -445,7 +448,10 @@ public class DebugScreenOverlay extends GuiComponent {
                 FluidState fluidstate = this.minecraft.level.getFluidState(blockpos1);
                 if (!fluidstate.isEmpty()) {
                     list.add("");
-                    list.add(ChatFormatting.UNDERLINE + "Targeted Fluid: " + blockpos1.getX() + ", " + blockpos1.getY() + ", " + blockpos1.getZ());
+                    list.add(ChatFormatting.UNDERLINE + "Targeted Fluid");
+                    list.add("X: " + blockpos1.getX());
+                    list.add("Y: " + blockpos1.getY());
+                    list.add("Z: " + blockpos1.getZ());
                     list.add(String.valueOf((Object) Registry.FLUID.getKey(fluidstate.getType())));
 
                     for (Map.Entry<Property<?>, Comparable<?>> entry1 : fluidstate.getValues().entrySet()) {

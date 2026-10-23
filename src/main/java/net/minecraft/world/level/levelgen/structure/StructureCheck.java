@@ -6,8 +6,6 @@ import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,6 +18,7 @@ import net.minecraft.nbt.visitors.CollectFields;
 import net.minecraft.nbt.visitors.FieldSelector;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.ChunkPosMap;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSource;
@@ -42,7 +41,7 @@ public class StructureCheck {
     private final LevelHeightAccessor heightAccessor;
     private final BiomeSource biomeSource;
     private final long seed;
-    private final Object2ObjectMap<ChunkPos, Object2IntMap<Structure>> loadedChunks = new Object2ObjectOpenHashMap<>();
+    private final ChunkPosMap<Object2IntMap<Structure>> loadedChunks = new ChunkPosMap<>();
     private final Map<Structure, Object2BooleanMap<ChunkPos>> featureChecks = new HashMap<>();
 
     public StructureCheck(ChunkScanAccess pStorageAccess, RegistryAccess pRegistryAccess, StructureTemplateManager pStructureTemplateManager, ChunkGenerator pChunkGenerator, RandomState pRandomState, LevelHeightAccessor pHeightAccessor, BiomeSource pBiomeSource, long pSeed) {
@@ -59,7 +58,7 @@ public class StructureCheck {
     }
 
     public StructureCheckResult checkStart(ChunkPos pChunkPos, Structure pStructure, boolean pSkipKnownStructures) {
-        Object2IntMap<Structure> object2intmap = this.loadedChunks.get(pChunkPos);
+        Object2IntMap<Structure> object2intmap = this.loadedChunks.get(pChunkPos.xHi(), pChunkPos.xLo(), pChunkPos.zHi(), pChunkPos.zLo());
         if (object2intmap != null) {
             return this.checkStructureInfo(object2intmap, pStructure, pSkipKnownStructures);
         } else {

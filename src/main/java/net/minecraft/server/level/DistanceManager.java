@@ -11,8 +11,6 @@ import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
@@ -30,6 +28,7 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.util.SortedArraySet;
 import net.minecraft.util.thread.ProcessorHandle;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.ChunkPosMap;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.slf4j.Logger;
@@ -41,8 +40,8 @@ public abstract class DistanceManager {
     private static final int INITIAL_TICKET_LIST_CAPACITY = 4;
     private static final int ENTITY_TICKING_LEVEL_THRESHOLD = 32;
     private static final int BLOCK_TICKING_LEVEL_THRESHOLD = 33;
-    final Object2ObjectMap<ChunkPos, ObjectSet<ServerPlayer>> playersPerChunk = new Object2ObjectOpenHashMap<>();
-    final Object2ObjectOpenHashMap<ChunkPos, SortedArraySet<Ticket<?>>> tickets = new Object2ObjectOpenHashMap<>();
+    final ChunkPosMap<ObjectSet<ServerPlayer>> playersPerChunk = new ChunkPosMap<>();
+    final ChunkPosMap<SortedArraySet<Ticket<?>>> tickets = new ChunkPosMap<>();
     private final DistanceManager.ChunkTicketTracker ticketTracker = new DistanceManager.ChunkTicketTracker();
     private final DistanceManager.FixedPlayerDistanceChunkTracker naturalSpawnChunkCounter = new DistanceManager.FixedPlayerDistanceChunkTracker(8);
     private final TickingTracker tickingTicketsTracker = new TickingTracker();
@@ -205,6 +204,10 @@ public abstract class DistanceManager {
     }
 
     private SortedArraySet<Ticket<?>> getTickets(ChunkPos p_140858_) {
+        SortedArraySet<Ticket<?>> cached = this.tickets.get(p_140858_.xHi(), p_140858_.xLo(), p_140858_.zHi(), p_140858_.zLo());
+        if (cached != null) {
+            return cached;
+        }
         return this.tickets.computeIfAbsent(p_140858_, (p_183923_) -> {
             return SortedArraySet.create(4);
         });
@@ -233,7 +236,7 @@ public abstract class DistanceManager {
 
     public void removePlayer(SectionPos pSectionPos, ServerPlayer pPlayer) {
         ChunkPos chunkpos = pSectionPos.chunk();
-        ObjectSet<ServerPlayer> objectset = this.playersPerChunk.get(chunkpos);
+        ObjectSet<ServerPlayer> objectset = this.playersPerChunk.get(chunkpos.xHi(), chunkpos.xLo(), chunkpos.zHi(), chunkpos.zLo());
         objectset.remove(pPlayer);
         if (objectset.isEmpty()) {
             this.playersPerChunk.remove(chunkpos);
@@ -256,7 +259,7 @@ public abstract class DistanceManager {
     }
 
     protected String getTicketDebugString(ChunkPos p_140839_) {
-        SortedArraySet<Ticket<?>> sortedarrayset = this.tickets.get(p_140839_);
+        SortedArraySet<Ticket<?>> sortedarrayset = this.tickets.get(p_140839_.xHi(), p_140839_.xLo(), p_140839_.zHi(), p_140839_.zLo());
         return sortedarrayset != null && !sortedarrayset.isEmpty() ? sortedarrayset.first().toString() : "no_ticket";
     }
 

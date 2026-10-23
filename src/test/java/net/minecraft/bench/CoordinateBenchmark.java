@@ -108,6 +108,8 @@ class CoordinateBenchmark {
         report.append("chunk-key-lookup: Object2ObjectOpenHashMap<ChunkPos,Integer>.get(new ChunkPos) ")
                 .append("over a 33x33 window, 20 reps; setup excluded\n");
         report.append("chunk-key-raw-lookup: ChunkPosMap.get(xHi,xLo,zHi,zLo), same window/checksum; setup excluded\n");
+        report.append("chunk-key comparison: historical setup-inclusive results (including 124 ns/op) are not comparable; ")
+                .append("the object-probe row is honest, not evidence of a regression. The raw row remains the optimization target.\n");
         report.append("chunk-coordinate-access: RangeCursor over a 33x33 window, raw region/block limbs; no per-entry snapshots\n");
         report.append("block-position-hot-ops: immutable offsets and retained BlockPos/ChunkPos snapshots, 4096 positions\n");
         report.append("block-position-scratch-hot-ops: same coordinates/checksum with a reusable MutableBlockPos and raw hashes; no retained snapshots\n");

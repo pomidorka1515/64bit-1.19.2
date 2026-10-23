@@ -3,8 +3,6 @@ package net.minecraft.world.level;
 import com.google.common.collect.Maps;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.List;
 import java.util.Map;
@@ -13,7 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.MobCategory;
 
 public class LocalMobCapCalculator {
-    private final Object2ObjectMap<ChunkPos, List<ServerPlayer>> playersNearChunk = new Object2ObjectOpenHashMap<>();
+    private final ChunkPosMap<List<ServerPlayer>> playersNearChunk = new ChunkPosMap<>();
     private final Map<ServerPlayer, LocalMobCapCalculator.MobCounts> playerMobCounts = Maps.newHashMap();
     private final ChunkMap chunkMap;
 
@@ -22,6 +20,10 @@ public class LocalMobCapCalculator {
     }
 
     private List<ServerPlayer> getPlayersNear(ChunkPos pPos) {
+        List<ServerPlayer> cached = this.playersNearChunk.get(pPos.xHi(), pPos.xLo(), pPos.zHi(), pPos.zLo());
+        if (cached != null) {
+            return cached;
+        }
         return this.playersNearChunk.computeIfAbsent(pPos, (p_186511_) -> {
             return this.chunkMap.getPlayersCloseForSpawning(pPos);
         });

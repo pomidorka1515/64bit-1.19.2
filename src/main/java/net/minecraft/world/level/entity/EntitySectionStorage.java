@@ -20,6 +20,7 @@ import net.minecraft.core.Int128;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.util.VisibleForDebug;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.ChunkPosMap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.SectorAABB;
 
@@ -28,7 +29,7 @@ public class EntitySectionStorage<T extends EntityAccess> {
     private final Object2ObjectFunction<ChunkPos, Visibility> intialSectionVisibility;
     private final Object2ObjectMap<SectionPos, EntitySection<T>> sections = new Object2ObjectOpenHashMap<>();
     /** Direct chunk index used by load, unload, visibility, and save operations. */
-    private final Object2ObjectMap<ChunkPos, ObjectSet<SectionPos>> sectionsByChunk = new Object2ObjectOpenHashMap<>();
+    private final ChunkPosMap<ObjectSet<SectionPos>> sectionsByChunk = new ChunkPosMap<>();
     private final ObjectSortedSet<SectionPos> sectionIds = new ObjectAVLTreeSet<>(new Comparator<>() {
         @Override
         public int compare(SectionPos o1, SectionPos o2) {
@@ -122,7 +123,7 @@ public class EntitySectionStorage<T extends EntityAccess> {
     }
 
     public Stream<SectionPos> getExistingSectionPositionsInChunk(ChunkPos chunkPos) {
-        ObjectSet<SectionPos> positions = this.sectionsByChunk.get(chunkPos);
+        ObjectSet<SectionPos> positions = this.sectionsByChunk.get(chunkPos.xHi(), chunkPos.xLo(), chunkPos.zHi(), chunkPos.zLo());
         return positions == null ? Stream.empty() : positions.stream();
     }
 

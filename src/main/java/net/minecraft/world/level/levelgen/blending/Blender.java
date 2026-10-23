@@ -2,7 +2,6 @@ package net.minecraft.world.level.levelgen.blending;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.List;
 import java.util.Map;
@@ -18,6 +17,7 @@ import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.ChunkPosMap;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
@@ -37,7 +37,7 @@ import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.lang3.mutable.MutableObject;
 
 public class Blender {
-    private static final Blender EMPTY = new Blender(new Object2ObjectOpenHashMap<>(), new Object2ObjectOpenHashMap<>()) {
+    private static final Blender EMPTY = new Blender(new ChunkPosMap<>(), new ChunkPosMap<>()) {
         public Blender.BlendingOutput blendOffsetAndFactor(int p_209724_, int p_209725_) {
             return new Blender.BlendingOutput(1.0D, 0.0D);
         }
@@ -56,8 +56,8 @@ public class Blender {
     private static final int DENSITY_BLENDING_RANGE_CELLS = 2;
     private static final int DENSITY_BLENDING_RANGE_CHUNKS = QuartPos.toSection(5);
     private static final double OLD_CHUNK_XZ_RADIUS = 8.0D;
-    private final Object2ObjectOpenHashMap<ChunkPos, BlendingData> heightAndBiomeBlendingData;
-    private final Object2ObjectOpenHashMap<ChunkPos, BlendingData> densityBlendingData;
+    private final ChunkPosMap<BlendingData> heightAndBiomeBlendingData;
+    private final ChunkPosMap<BlendingData> densityBlendingData;
 
     public static Blender empty() {
         return EMPTY;
@@ -71,8 +71,8 @@ public class Blender {
             if (!p_190203_.isOldChunkAround(chunkpos, HEIGHT_BLENDING_RANGE_CHUNKS)) {
                 return EMPTY;
             } else {
-                Object2ObjectOpenHashMap<ChunkPos, BlendingData> long2objectopenhashmap = new Object2ObjectOpenHashMap<>();
-                Object2ObjectOpenHashMap<ChunkPos, BlendingData> long2objectopenhashmap1 = new Object2ObjectOpenHashMap<>();
+                ChunkPosMap<BlendingData> long2objectopenhashmap = new ChunkPosMap<>();
+                ChunkPosMap<BlendingData> long2objectopenhashmap1 = new ChunkPosMap<>();
                 int i = Mth.square(HEIGHT_BLENDING_RANGE_CHUNKS + 1);
 
                 for (int j = -HEIGHT_BLENDING_RANGE_CHUNKS; j <= HEIGHT_BLENDING_RANGE_CHUNKS; ++j) {
@@ -96,7 +96,7 @@ public class Blender {
         }
     }
 
-    Blender(Object2ObjectOpenHashMap<ChunkPos, BlendingData> pBlendingData, Object2ObjectOpenHashMap<ChunkPos, BlendingData> pBlendingDataForDensityBlending) {
+    Blender(ChunkPosMap<BlendingData> pBlendingData, ChunkPosMap<BlendingData> pBlendingDataForDensityBlending) {
         this.heightAndBiomeBlendingData = pBlendingData;
         this.densityBlendingData = pBlendingDataForDensityBlending;
     }

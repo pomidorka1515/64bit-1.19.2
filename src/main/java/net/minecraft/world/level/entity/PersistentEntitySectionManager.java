@@ -8,7 +8,6 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 
@@ -29,6 +28,7 @@ import net.minecraft.util.CsvOutput;
 import net.minecraft.util.VisibleForDebug;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.ChunkPosMap;
 import org.slf4j.Logger;
 
 public class PersistentEntitySectionManager<T extends EntityAccess> implements AutoCloseable {
@@ -39,8 +39,8 @@ public class PersistentEntitySectionManager<T extends EntityAccess> implements A
     private final EntityLookup<T> visibleEntityStorage;
     final EntitySectionStorage<T> sectionStorage;
     private final LevelEntityGetter<T> entityGetter;
-    private final Object2ObjectMap<ChunkPos, Visibility> chunkVisibility = new Object2ObjectOpenHashMap<>();
-    private final Object2ObjectMap<ChunkPos, PersistentEntitySectionManager.ChunkLoadStatus> chunkLoadStatuses = new Object2ObjectOpenHashMap<>();
+    private final ChunkPosMap<Visibility> chunkVisibility = new ChunkPosMap<>();
+    private final ChunkPosMap<PersistentEntitySectionManager.ChunkLoadStatus> chunkLoadStatuses = new ChunkPosMap<>();
     private final ObjectSet<ChunkPos> chunksToUnload = new ObjectOpenHashSet<>();
     private final Queue<ChunkEntities<T>> loadingInbox = Queues.newConcurrentLinkedQueue();
 
@@ -313,15 +313,15 @@ public class PersistentEntitySectionManager<T extends EntityAccess> implements A
     }
 
     public boolean canPositionTick(BlockPos p_202168_) {
-        return this.chunkVisibility.get(p_202168_).isTicking();
+        return this.chunkVisibility.getContaining(p_202168_).isTicking();
     }
 
     public boolean canPositionTick(ChunkPos p_202166_) {
-        return this.chunkVisibility.get(p_202166_).isTicking();
+        return this.chunkVisibility.get(p_202166_.xHi(), p_202166_.xLo(), p_202166_.zHi(), p_202166_.zLo()).isTicking();
     }
 
     public boolean areEntitiesLoaded(ChunkPos p_157508_) {
-        return this.chunkLoadStatuses.get(p_157508_) == PersistentEntitySectionManager.ChunkLoadStatus.LOADED;
+        return this.chunkLoadStatuses.get(p_157508_.xHi(), p_157508_.xLo(), p_157508_.zHi(), p_157508_.zLo()) == PersistentEntitySectionManager.ChunkLoadStatus.LOADED;
     }
 
     public void dumpSections(Writer p_157549_) throws IOException {

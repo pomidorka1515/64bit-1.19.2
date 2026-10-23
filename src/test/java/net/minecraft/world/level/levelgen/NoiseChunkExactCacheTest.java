@@ -184,6 +184,7 @@ class NoiseChunkExactCacheTest {
                 net.minecraft.core.Int128.of(5L, -16L),
                 net.minecraft.core.Int128.of(0L, Long.MIN_VALUE),
                 net.minecraft.core.Int128.of(-2L, 0L),
+                net.minecraft.core.Int128.fromLong(Long.MAX_VALUE - 15L),
                 net.minecraft.core.Int128.MAX.subtract(net.minecraft.core.Int128.fromLong(15L))};
         for (FarlandsMode.Mode mode : FarlandsMode.Mode.values()) {
             FarlandsMode.setMode(mode);
@@ -207,8 +208,32 @@ class NoiseChunkExactCacheTest {
                 assertEquals(last.lo(), chunk.blockX());
                 assertEquals(last.hi(), chunk.blockZHi());
                 assertEquals(last.lo(), chunk.blockZ());
+                chunk.advanceCellX(4);
+                chunk.selectCellYZ(0, 4);
+                net.minecraft.core.Int128 next = origin.addSaturated(net.minecraft.core.Int128.fromLong(16L));
+                chunk.updateForX(next.lo(), 0.0D);
+                chunk.updateForZ(next.lo(), 0.0D);
+                assertEquals(next.hi(), chunk.blockXHi());
+                assertEquals(next.lo(), chunk.blockX());
+                assertEquals(next.hi(), chunk.blockZHi());
+                assertEquals(next.lo(), chunk.blockZ());
                 chunk.stopInterpolation();
             }
+        }
+    }
+
+    @Test
+    void fullWidthPreliminarySurfaceCachesExactQuartColumns() {
+        for (FarlandsMode.Mode mode : FarlandsMode.Mode.values()) {
+            FarlandsMode.setMode(mode);
+            ColumnDensity density = new ColumnDensity();
+            NoiseChunk chunk = chunk(0L, settings(density));
+            int height = chunk.preliminarySurfaceLevel(17L, 32L, -19L, 48L);
+            int calls = density.calls.get();
+            assertEquals(height, chunk.preliminarySurfaceLevel(17L, 35L, -19L, 51L));
+            assertEquals(calls, density.calls.get(), mode.toString());
+            chunk.preliminarySurfaceLevel(18L, 32L, -19L, 48L);
+            org.junit.jupiter.api.Assertions.assertTrue(density.calls.get() > calls);
         }
     }
 

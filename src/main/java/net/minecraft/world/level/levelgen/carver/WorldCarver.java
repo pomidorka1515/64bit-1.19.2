@@ -58,7 +58,14 @@ public abstract class WorldCarver<C extends CarverConfiguration> {
     }
 
     protected static boolean usesLocalFrame(ChunkPos pos) {
-        return pos.getMinBlockX().hi() != (pos.getMinBlockX().lo() >> 63) || pos.getMinBlockZ().hi() != (pos.getMinBlockZ().lo() >> 63);
+        // Neighboring carver starts extend eight chunks beyond the target.
+        // Switch before those starts cross the signed-long sampling seam.
+        return needsLocalAxis(pos.getMinBlockX()) || needsLocalAxis(pos.getMinBlockZ());
+    }
+
+    private static boolean needsLocalAxis(net.minecraft.core.Int128 coordinate) {
+        return coordinate.hi() != (coordinate.lo() >> 63)
+                || coordinate.lo() < Long.MIN_VALUE + 144L || coordinate.lo() > Long.MAX_VALUE - 144L;
     }
 
     protected static double startCoordinate(ChunkPos source, ChunkPos target, int offset, boolean x) {

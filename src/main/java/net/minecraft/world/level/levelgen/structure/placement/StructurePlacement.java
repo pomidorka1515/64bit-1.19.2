@@ -59,21 +59,14 @@ public abstract class StructurePlacement {
         return this.exclusionZone;
     }
 
-    /** Tests projected low-64 chunk coordinates; locate results retain the caller's exact anchor. */
+    /** Signed-long adapter; exclusion probes may cross into full-width coordinates. */
     public boolean isStructureChunk(ChunkGenerator pGenerator, RandomState pRandomState, long pSeed, long pX, long pZ) {
-        if (!this.isPlacementChunk(pGenerator, pRandomState, pSeed, pX, pZ)) {
-            return false;
-        } else if (this.frequency < 1.0F && !this.frequencyReductionMethod.shouldGenerate(pSeed, this.salt, pX, pZ, this.frequency)) {
-            return false;
-        } else {
-            return !this.exclusionZone.isPresent() || !this.exclusionZone.get().isPlacementForbidden(pGenerator, pRandomState, pSeed, pX, pZ);
-        }
+        return isStructureChunk(pGenerator, pRandomState, pSeed, net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ));
     }
 
-    protected abstract boolean isPlacementChunk(ChunkGenerator pGenerator, RandomState pRandomState, long pSeed, long pX, long pY);
+    protected abstract boolean isPlacementChunk(ChunkGenerator pGenerator, RandomState pRandomState, long pSeed, long pX, long pZ);
 
     public boolean isStructureChunk(ChunkGenerator generator, RandomState random, long seed, net.minecraft.core.Int128 x, net.minecraft.core.Int128 z) {
-        if (x.hi() == (x.lo() >> 63) && z.hi() == (z.lo() >> 63)) return isStructureChunk(generator, random, seed, x.lo(), z.lo());
         if (!isPlacementChunk(generator, random, seed, x, z)) return false;
         long sx = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(x.hi(), x.lo());
         long sz = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(z.hi(), z.lo());
@@ -83,14 +76,16 @@ public abstract class StructurePlacement {
             for (int dx = -zone.chunkCount(); dx <= zone.chunkCount(); ++dx)
                 for (int dz = -zone.chunkCount(); dz <= zone.chunkCount(); ++dz)
                     if (zone.otherSet().value().placement().isStructureChunk(generator, random, seed,
-                            x.addSaturated(net.minecraft.core.Int128.fromLong(dx)), z.addSaturated(net.minecraft.core.Int128.fromLong(dz)))) return false;
+                            net.minecraft.world.level.WorldBounds.addChunkOffset(x, dx), net.minecraft.world.level.WorldBounds.addChunkOffset(z, dz))) return false;
         }
         return true;
     }
 
     protected boolean isPlacementChunk(ChunkGenerator generator, RandomState random, long seed, net.minecraft.core.Int128 x, net.minecraft.core.Int128 z) {
         // Concentric rings are finite and remain centered at the original origin.
-        return false;
+        return net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.fitsLong(x.hi(), x.lo())
+                && net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.fitsLong(z.hi(), z.lo())
+                && isPlacementChunk(generator, random, seed, x.lo(), z.lo());
     }
 
     public BlockPos getLocatePos(ChunkPos pChunkPos) {

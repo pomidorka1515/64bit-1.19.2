@@ -305,17 +305,17 @@ public abstract class ChunkGenerator {
     }
 
     @Nullable
-    private static Pair<BlockPos, Holder<Structure>> getNearestGeneratedStructure(Set<Holder<Structure>> pStructureHoldersSet, LevelReader pLevel, StructureManager pStructureManager, Int128 pX, Int128 pY, int pZ, boolean pSkipKnownStructures, long pSeed, RandomSpreadStructurePlacement pSpreadPlacement) {
+    private static Pair<BlockPos, Holder<Structure>> getNearestGeneratedStructure(Set<Holder<Structure>> pStructureHoldersSet, LevelReader pLevel, StructureManager pStructureManager, Int128 pX, Int128 pZ, int pRadius, boolean pSkipKnownStructures, long pSeed, RandomSpreadStructurePlacement pSpreadPlacement) {
         int i = pSpreadPlacement.spacing();
 
-        for (int j = -pZ; j <= pZ; ++j) {
-            boolean flag = j == -pZ || j == pZ;
+        for (int j = -pRadius; j <= pRadius; ++j) {
+            boolean flag = j == -pRadius || j == pRadius;
 
-            for (int k = -pZ; k <= pZ; ++k) {
-                boolean flag1 = k == -pZ || k == pZ;
+            for (int k = -pRadius; k <= pRadius; ++k) {
+                boolean flag1 = k == -pRadius || k == pRadius;
                 if (flag || flag1) {
                     Int128 l = WorldBounds.addChunkOffset(pX, (long) i * j);
-                    Int128 i1 = WorldBounds.addChunkOffset(pY, (long) i * k);
+                    Int128 i1 = WorldBounds.addChunkOffset(pZ, (long) i * k);
                     ChunkPos chunkpos = pSpreadPlacement.getPotentialStructureChunk(pSeed, l, i1);
                     Pair<BlockPos, Holder<Structure>> pair = getStructureGeneratingAt(pStructureHoldersSet, pLevel, pStructureManager, pSkipKnownStructures, pSpreadPlacement, chunkpos);
                     if (pair != null) {

@@ -97,6 +97,21 @@ class FullWidthWorldgenTest {
     }
 
     @Test
+    void randomSpreadRegionDoesNotChangeAtSignedLongSeam() {
+        var placement = new net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement(34, 8,
+                net.minecraft.world.level.levelgen.structure.placement.RandomSpreadType.LINEAR, 1234);
+        for (Int128 edge : new Int128[] {Int128.fromLong(Long.MAX_VALUE), Int128.fromLong(Long.MIN_VALUE)}) {
+            Int128 region = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.floorDivide(edge.hi(), edge.lo(), 34);
+            Int128 start = region.multiplySaturated(34);
+            var expected = placement.getPotentialStructureChunk(1234L, start, start);
+            for (int offset = 0; offset < 34; ++offset) {
+                Int128 coordinate = start.addSaturated(Int128.fromLong(offset));
+                assertEquals(expected, placement.getPotentialStructureChunk(1234L, coordinate, coordinate));
+            }
+        }
+    }
+
+    @Test
     void randomSpreadPlacementsStayNearTheirFullWidthRegion() {
         var placement = new net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement(32, 8,
                 net.minecraft.world.level.levelgen.structure.placement.RandomSpreadType.LINEAR, 1234);

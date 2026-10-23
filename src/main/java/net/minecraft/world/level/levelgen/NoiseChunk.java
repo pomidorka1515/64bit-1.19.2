@@ -104,7 +104,11 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     public NoiseChunk(int p_224343_, RandomState p_224344_, Int128 x, Int128 z, NoiseSettings p_224347_, DensityFunctions.BeardifierOrMarker p_224348_, NoiseGeneratorSettings p_224349_, Aquifer.FluidPicker p_224350_, Blender p_224351_) {
         this.originXHi = x.hi(); this.originXLo = x.lo();
         this.originZHi = z.hi(); this.originZLo = z.lo();
-        this.fullWidth = !WorldgenCoordinate.fitsLong(x.hi(), x.lo()) || !WorldgenCoordinate.fitsLong(z.hi(), z.lo());
+        // Include the extra interpolation corner: a signed-long origin can sample
+        // beyond Long.MAX_VALUE even though every block in its chunk still fits.
+        long extent = (long) p_224343_ * p_224347_.getCellWidth();
+        this.fullWidth = !WorldgenCoordinate.fitsLong(x.hi(), x.lo()) || !WorldgenCoordinate.fitsLong(z.hi(), z.lo())
+                || x.lo() > Long.MAX_VALUE - extent || z.lo() > Long.MAX_VALUE - extent;
         long p_224345_ = x.lo(), p_224346_ = z.lo();
         this.noiseSettings = p_224347_;
         this.cellWidth = p_224347_.getCellWidth();
@@ -209,7 +213,6 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
         if (FarlandsMode.usesPreciseCoordinates()) {
             // Precise sampling uses unclamped block-column keys.
             return this.exactPreliminarySurfaceLevel.computeIfAbsent(new ColumnPos(i, j),
-                    // The deferred worldgen noise algorithm intentionally consumes low 64 bits.
                     (ToIntFunction<ColumnPos>) column -> this.computePreliminarySurfaceLevel(column.x().lo(), column.z().lo()));
         }
         return this.preliminarySurfaceLevel.computeIfAbsent(legacyNoiseColumnKey(i, j), (ToIntFunction<ChunkPos>) this::computePreliminarySurfaceLevel);
@@ -220,6 +223,11 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
             return preliminarySurfaceLevel(xLo, zLo);
         xLo &= -4L;
         zLo &= -4L;
+        return this.exactPreliminarySurfaceLevel.computeIfAbsent(new ColumnPos(Int128.of(xHi, xLo), Int128.of(zHi, zLo)),
+                (ToIntFunction<ColumnPos>) column -> this.computePreliminarySurfaceLevel(column.x().hi(), column.x().lo(), column.z().hi(), column.z().lo()));
+    }
+
+    private int computePreliminarySurfaceLevel(long xHi, long xLo, long zHi, long zLo) {
         int min = this.noiseSettings.minY();
         for (int y = min + this.noiseSettings.height(); y >= min; y -= this.cellHeight) {
             if (this.initialDensityNoJaggedness.compute(new DensityFunction.SinglePointContext(xHi, xLo, y, zHi, zLo)) > 0.390625D)

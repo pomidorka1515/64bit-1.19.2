@@ -53,7 +53,15 @@ public class OreFeature extends Feature<OreConfiguration> {
             d1 = WorldBounds.clampAbsoluteDouble(absoluteX - Math.sin((double) f) * (double) f1);
             d2 = WorldBounds.clampAbsoluteDouble(absoluteZ + Math.cos((double) f) * (double) f1);
             d3 = WorldBounds.clampAbsoluteDouble(absoluteZ - Math.cos((double) f) * (double) f1);
-            if (wide) { d0 -= absoluteX; d1 -= absoluteX; d2 -= absoluteZ; d3 -= absoluteZ; }
+            if (wide) {
+                // Keep floating-point rounding in non-precise modes, but do not
+                // subtract a rounded 128-bit endpoint from its clamped value:
+                // that would move the entire vein far outside the local frame.
+                d0 = (absoluteX + Math.sin((double) f) * (double) f1) - absoluteX;
+                d1 = (absoluteX - Math.sin((double) f) * (double) f1) - absoluteX;
+                d2 = (absoluteZ + Math.cos((double) f) * (double) f1) - absoluteZ;
+                d3 = (absoluteZ - Math.cos((double) f) * (double) f1) - absoluteZ;
+            }
         }
         int j = 2;
         double d4 = (double) (blockpos.getY() + randomsource.nextInt(3) - 2);

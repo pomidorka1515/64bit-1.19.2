@@ -1063,8 +1063,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                 exactBox.expandTowards(movement.x, movement.y, movement.z),
                 localBox.expandTowards(movement), origin, false)) {
             builder.addAll(collisions);
+            return collideWithShapes(movement, localBox, builder.build(), true);
         }
-        return collideWithShapes(movement, localBox, builder.build(), true);
     }
 
     public static Vec3 collideBoundingBox(@Nullable Entity pEntity, Vec3 pVec, AABB pCollisionBox, Level pLevel, List<VoxelShape> pPotentialHits) {

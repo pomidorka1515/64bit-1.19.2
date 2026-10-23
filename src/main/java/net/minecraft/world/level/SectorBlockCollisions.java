@@ -45,6 +45,7 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
     private boolean done;
     private boolean computing;
     private boolean leased;
+    private final VoxelShape.TranslationPool translations = new VoxelShape.TranslationPool();
     private SectorAABB rangeBox;
     private Int128 minX, maxX, minZ, maxZ;
     private int minY, maxY;
@@ -78,7 +79,7 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
     private SectorBlockCollisions() {
     }
 
-    /** Scoped, thread-confined scratch iterator. Do not use after close.
+    /** Scoped, thread-confined scratch iterator. Iterator and returned shapes must not be used after close.
      * Always close, including after an early return or exception.
      * Nested queries get independent scratch state; ordinary Iterable queries remain independent.
      */
@@ -99,6 +100,7 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
         this.leased = false;
         this.done = true;
         this.next = null;
+        this.translations.clear();
         this.collisionGetter = null;
         this.context = null;
         this.localBox = null;
@@ -253,6 +255,10 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
         return this.localEntityShape;
     }
 
+    private VoxelShape translate(VoxelShape shape, double x, double y, double z) {
+        return this.leased ? this.translations.move(shape, x, y, z) : shape.move(x, y, z);
+    }
+
     @Nullable
     private VoxelShape computeNext() {
         if (this.invalidRange) {
@@ -262,7 +268,7 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
             // delta and teleport across the world.
             if (!this.invalidRangeReported) {
                 this.invalidRangeReported = true;
-                return Shapes.block().move(this.localBox.minX, this.localBox.minY, this.localBox.minZ);
+                return this.translate(Shapes.block(), this.localBox.minX, this.localBox.minY, this.localBox.minZ);
             }
             return null;
         }
@@ -304,7 +310,7 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
                 double localX = this.localX(xLo);
                 double localY = (double) blockY - (double) this.origin.originBlockY();
                 double localZ = this.localZ(zLo);
-                VoxelShape localShape = Shapes.block().move(localX, localY, localZ);
+                VoxelShape localShape = this.translate(Shapes.block(), localX, localY, localZ);
                 if (this.localBox.intersects(localX, localY, localZ,
                             localX + 1.0D, localY + 1.0D, localZ + 1.0D)
                         && Shapes.joinIsNotEmpty(localShape, this.queryShape(), BooleanOp.AND)) {
@@ -332,11 +338,11 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
             if (shape == Shapes.block()) {
                 if (this.localBox.intersects(localX, localY, localZ,
                         localX + 1.0D, localY + 1.0D, localZ + 1.0D)) {
-                    return shape.move(localX, localY, localZ);
+                    return this.translate(shape, localX, localY, localZ);
                 }
                 continue;
             }
-            VoxelShape localShape = shape.move(localX, localY, localZ);
+            VoxelShape localShape = this.translate(shape, localX, localY, localZ);
             if (!Shapes.joinIsNotEmpty(localShape, this.queryShape(), BooleanOp.AND)) {
                 continue;
             }

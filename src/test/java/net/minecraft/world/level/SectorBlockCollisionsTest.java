@@ -66,6 +66,86 @@ class SectorBlockCollisionsTest {
     }
 
     @Test
+    void leasedPartialShapesMatchOrdinaryIteratorAndOrdinaryShapesSurviveReuse() {
+        Int128 x = Int128.of(-7L, -1L);
+        SingleBlockCollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x, 64, x));
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x.subtract(Int128.ONE), 63, x);
+        SectorAABB box = SectorAABB.around(SectorVec3.fromBlockAndFraction(x, 0.5, 64, x, 0.5), 0.6, 1.8);
+        AABB local = box.toLocalAABB(origin);
+        for (BlockState state : new BlockState[] {Blocks.STONE.defaultBlockState(),
+                Blocks.OAK_SLAB.defaultBlockState(), Blocks.OAK_FENCE.defaultBlockState()}) {
+            level.state = state;
+            VoxelShape ordinary = level.getSectorBlockCollisions(null, box, local, origin).iterator().next();
+            var boxes = ordinary.toAabbs();
+            try (var collisions = SectorBlockCollisions.acquire(level, null, box, local, origin, false)) {
+                assertEquals(boxes, collisions.next().toAabbs());
+                assertFalse(collisions.hasNext());
+            }
+            assertEquals(boxes, ordinary.toAabbs());
+        }
+    }
+
+    @Test
+    void emittedCubeSweepsDoNotAllocateAfterWarmup() {
+        org.junit.jupiter.api.Assumptions.assumeTrue(java.lang.management.ManagementFactory.getThreadMXBean()
+                instanceof com.sun.management.ThreadMXBean);
+        var bean = (com.sun.management.ThreadMXBean) java.lang.management.ManagementFactory.getThreadMXBean();
+        org.junit.jupiter.api.Assumptions.assumeTrue(bean.isThreadAllocatedMemorySupported());
+        bean.setThreadAllocatedMemoryEnabled(true);
+        Int128 x = Int128.of(7L, -1L);
+        SingleBlockCollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x, 64, x));
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x, 64, x);
+        SectorAABB box = SectorAABB.around(SectorVec3.fromBlockAndFraction(x, 0.5, 64, x, 0.5), 0.6, 1.8);
+        AABB local = box.toLocalAABB(origin);
+        long thread = Thread.currentThread().getId();
+        for (int pass = 0; pass < 2; ++pass) {
+            long before = bean.getThreadAllocatedBytes(thread);
+            int shapes = 0;
+            for (int i = 0; i < 20000; ++i) {
+                try (var collisions = SectorBlockCollisions.acquire(level, null, box, local, origin, false)) {
+                    while (collisions.hasNext()) {
+                        shapes += (int) collisions.next().max(net.minecraft.core.Direction.Axis.X);
+                    }
+                }
+            }
+            long allocated = bean.getThreadAllocatedBytes(thread) - before;
+            assertEquals(20000, shapes);
+            if (pass == 1) assertTrue(allocated < 20000 * 8L, "Allocated " + allocated + " bytes for 20000 sweeps");
+        }
+    }
+
+    @Test
+    void leasedShapesRemainDistinctUntilCloseAndAreReusedAcrossSweeps() {
+        Int128 x = Int128.of(7L, -1L);
+        SingleBlockCollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x, 64, x));
+        level.unloaded = true; // Several conservative cubes, crossing a low-word carry.
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x, 64, x);
+        SectorAABB box = new SectorAABB(x, 0.25, 64, x, 0.25,
+                x.add(Int128.ONE), 0.75, 65.8, x, 0.75);
+        AABB local = box.toLocalAABB(origin);
+        VoxelShape first;
+        VoxelShape second;
+        try (var collisions = SectorBlockCollisions.acquire(level, null, box, local, origin, false)) {
+            first = collisions.next();
+            AABB bounds = first.bounds();
+            // Populate the face cache; reuse must invalidate it.
+            first.getFaceShape(net.minecraft.core.Direction.EAST);
+            second = collisions.next();
+            assertNotSame(first, second);
+            while (collisions.hasNext()) collisions.next();
+            assertEquals(bounds, first.bounds());
+            try (var nested = SectorBlockCollisions.acquire(level, null, box, local, origin, false)) {
+                assertNotSame(first, nested.next());
+                assertEquals(bounds, first.bounds());
+            }
+        }
+        try (var collisions = SectorBlockCollisions.acquire(level, null, box, local, origin, false)) {
+            assertSame(first, collisions.next());
+            assertSame(second, collisions.next());
+        }
+    }
+
+    @Test
     void cachesFourBoundaryChunksIncludingUnloadedEntries() {
         for (boolean unloaded : new boolean[] {false, true}) {
             // Both axes cross a low-word carry as well as a chunk boundary.
@@ -216,6 +296,7 @@ class SectorBlockCollisionsTest {
         private int chunkLookups;
         private int blockLookups;
         private boolean unloaded;
+        private BlockState state = Blocks.STONE.defaultBlockState();
 
         private SingleBlockCollisionGetter(BlockPos solid) {
             this.solid = solid;
@@ -253,7 +334,7 @@ class SectorBlockCollisionsTest {
         @Override
         public BlockState getBlockState(BlockPos pos) {
             ++this.blockLookups;
-            return this.solid.equals(pos) ? Blocks.STONE.defaultBlockState() : Blocks.AIR.defaultBlockState();
+            return this.solid.equals(pos) ? this.state : Blocks.AIR.defaultBlockState();
         }
 
         @Override

@@ -3,6 +3,8 @@ package net.minecraft.world.phys.shapes;
 import com.google.common.collect.Lists;
 import com.google.common.math.DoubleMath;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
+import it.unimi.dsi.fastutil.doubles.AbstractDoubleList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -20,7 +22,8 @@ import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public abstract class VoxelShape {
-    protected final DiscreteVoxelShape shape;
+    // Immutable for ordinary shapes; only lease-scoped TranslatedShape rebinds this field.
+    protected DiscreteVoxelShape shape;
     @Nullable
     private VoxelShape[] faces;
 
@@ -58,6 +61,75 @@ public abstract class VoxelShape {
 
     public VoxelShape move(double pXOffset, double pYOffset, double pZOffset) {
         return (VoxelShape) (this.isEmpty() ? Shapes.empty() : new ArrayVoxelShape(this.shape, (DoubleList) (new OffsetDoubleList(this.getCoords(Direction.Axis.X), pXOffset)), (DoubleList) (new OffsetDoubleList(this.getCoords(Direction.Axis.Y), pYOffset)), (DoubleList) (new OffsetDoubleList(this.getCoords(Direction.Axis.Z), pZOffset))));
+    }
+
+    /** Thread-confined translations, valid only until clear(). Never publish as immutable shapes. */
+    public static final class TranslationPool {
+        private final List<TranslatedShape> shapes = new ArrayList<>();
+        private int used;
+
+        public VoxelShape move(VoxelShape source, double x, double y, double z) {
+            if (source.isEmpty()) return Shapes.empty();
+            if (this.used == this.shapes.size()) this.shapes.add(new TranslatedShape());
+            TranslatedShape translated = this.shapes.get(this.used++);
+            translated.shape = source.shape;
+            ((VoxelShape) translated).faces = null;
+            translated.xs.reset(source.getCoords(Direction.Axis.X), x);
+            translated.ys.reset(source.getCoords(Direction.Axis.Y), y);
+            translated.zs.reset(source.getCoords(Direction.Axis.Z), z);
+            return translated;
+        }
+
+        public void clear() {
+            for (int i = 0; i < this.used; ++i) {
+                TranslatedShape translated = this.shapes.get(i);
+                translated.shape = Shapes.empty().shape;
+                ((VoxelShape) translated).faces = null;
+                translated.xs.reset(null, 0);
+                translated.ys.reset(null, 0);
+                translated.zs.reset(null, 0);
+            }
+            this.used = 0;
+        }
+    }
+
+    private static final class TranslatedShape extends VoxelShape {
+        private final TranslatedCoords xs = new TranslatedCoords();
+        private final TranslatedCoords ys = new TranslatedCoords();
+        private final TranslatedCoords zs = new TranslatedCoords();
+
+        private TranslatedShape() {
+            super(Shapes.empty().shape);
+        }
+
+        @Override
+        protected DoubleList getCoords(Direction.Axis axis) {
+            return switch (axis) {
+                case X -> this.xs;
+                case Y -> this.ys;
+                case Z -> this.zs;
+            };
+        }
+    }
+
+    private static final class TranslatedCoords extends AbstractDoubleList {
+        private DoubleList delegate;
+        private double offset;
+
+        private void reset(@Nullable DoubleList delegate, double offset) {
+            this.delegate = delegate;
+            this.offset = offset;
+        }
+
+        @Override
+        public double getDouble(int index) {
+            return this.delegate.getDouble(index) + this.offset;
+        }
+
+        @Override
+        public int size() {
+            return this.delegate.size();
+        }
     }
 
     public VoxelShape optimize() {

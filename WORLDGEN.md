@@ -169,6 +169,12 @@ min/max were instantiated and searched separately; results match
 
 ## Shift-driven slicing and lava collapse
 
+`64bit-stable-shifts` patches only `ShiftA` / `shift_x` and `ShiftB` / `shift_z`,
+in both NormalNoise stacks. Their scaled inputs retain all 128 coordinate bits,
+including world X rotated into noise Y by ShiftB. All other samplers keep the
+ordinary `64bit` overflow behavior, including shifted climate noise itself;
+this removes shift extrapolation, not every possible distant terrain failure.
+
 its a **later failure than cheese/pillar overflow**. a huge cave_cheese,
 pillar, or BlendedNoise value does not mean the shifts have failed.
 

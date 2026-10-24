@@ -10,7 +10,7 @@ import org.junit.jupiter.api.io.TempDir;
 class GeneratorConfigTest {
     @TempDir Path directory;
 
-    @Test void allSixCombinationsPersistToCompressedNbt() throws Exception {
+    @Test void allCombinationsPersistToCompressedNbt() throws Exception {
         for (GeneratorMode mode : GeneratorMode.values()) {
             for (CoordinatePrecision precision : CoordinatePrecision.values()) {
                 GeneratorConfig expected = new GeneratorConfig(mode, precision);

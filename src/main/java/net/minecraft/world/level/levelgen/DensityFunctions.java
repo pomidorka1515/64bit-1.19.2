@@ -23,6 +23,8 @@ import net.minecraft.util.VisibleForDebug;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.synth.BlendedNoise;
 import net.minecraft.world.level.levelgen.synth.FarlandsMode;
+import net.minecraft.world.level.levelgen.synth.GenerationContext;
+import net.minecraft.world.level.levelgen.synth.GeneratorMode;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
 import net.minecraft.world.level.levelgen.synth.PreciseNoiseCoordinate;
 import net.minecraft.world.level.levelgen.synth.SimplexNoise;
@@ -964,6 +966,10 @@ public final class DensityFunctions {
         static final KeyDispatchDataCodec<DensityFunctions.ShiftA> CODEC = DensityFunctions.singleArgumentCodec(DensityFunction.NoiseHolder.CODEC, DensityFunctions.ShiftA::new, DensityFunctions.ShiftA::offsetNoise);
 
         public double compute(DensityFunction.FunctionContext p_208884_) {
+            if (GenerationContext.current().mode() == GeneratorMode.BIT_64_STABLE_SHIFTS) {
+                return this.computeStableAxes(p_208884_.blockXHi(), p_208884_.blockX(), 0L, 0L,
+                        p_208884_.blockZHi(), p_208884_.blockZ());
+            }
             if (FarlandsMode.usesPreciseCoordinates()) {
                 return this.offsetNoise.getValueScaledAxes(p_208884_.blockXHi(), p_208884_.blockX(), 0L, 0L, p_208884_.blockZHi(), p_208884_.blockZ(), 0.25D) * 4.0D;
             }
@@ -996,6 +1002,10 @@ public final class DensityFunctions {
         static final KeyDispatchDataCodec<DensityFunctions.ShiftB> CODEC = DensityFunctions.singleArgumentCodec(DensityFunction.NoiseHolder.CODEC, DensityFunctions.ShiftB::new, DensityFunctions.ShiftB::offsetNoise);
 
         public double compute(DensityFunction.FunctionContext p_208904_) {
+            if (GenerationContext.current().mode() == GeneratorMode.BIT_64_STABLE_SHIFTS) {
+                return this.computeStableAxes(p_208904_.blockZHi(), p_208904_.blockZ(),
+                        p_208904_.blockXHi(), p_208904_.blockX(), 0L, 0L);
+            }
             if (FarlandsMode.usesPreciseCoordinates()) {
                 return this.offsetNoise.getValueScaledAxes(p_208904_.blockZHi(), p_208904_.blockZ(), p_208904_.blockXHi(), p_208904_.blockX(), 0L, 0L, 0.25D) * 4.0D;
             }
@@ -1026,6 +1036,14 @@ public final class DensityFunctions {
 
     interface ShiftNoise extends DensityFunction {
         DensityFunction.NoiseHolder offsetNoise();
+
+        /** Protect both stacks, retaining all input limbs even for ShiftB's rotated Y axis. */
+        default double computeStableAxes(long xHi, long xLo, long yHi, long yLo, long zHi, long zLo) {
+            // Only this offset sample is patched. Restore 64-bit overflow before climate sampling.
+            try (GenerationContext ignored = GenerationContext.open(GenerationContext.current().withMode(GeneratorMode.PATCHED))) {
+                return this.offsetNoise().getValueScaledAxes(xHi, xLo, yHi, yLo, zHi, zLo, 0.25D) * 4.0D;
+            }
+        }
 
         default double minValue() {
             return -this.maxValue();

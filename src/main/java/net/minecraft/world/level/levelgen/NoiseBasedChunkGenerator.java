@@ -180,12 +180,12 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
             pInfo.add("Depth: " + formatDebugValue(decimalformat, d5, 2.5D));
             pInfo.add("Weirdness: " + formatDebugValue(decimalformat, d0, 1.5D));
             pInfo.add("Peaks & Valleys: " + formatDebugValue(decimalformat, d6, 1.0D));
-            pInfo.add("Initial Density: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -3.0D, flag ? 2.0D : 3.0D));
+            pInfo.add("Initial Density: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -64.0D, flag ? 2.0D : 64.0D));
             pInfo.add("Final Density: " + formatDebugValue(decimalformat, d8, 3.0D));
         } else {
             pInfo.add("NoiseRouter");
             pInfo.add("T: " + formatDebugValue(decimalformat, d1, 1.5D) + " V: " + formatDebugValue(decimalformat, d2, 1.5D) + " C: " + formatDebugValue(decimalformat, d3, 1.5D) + " E: " + formatDebugValue(decimalformat, d4, 1.5D) + " D: " + formatDebugValue(decimalformat, d5, 2.5D));
-            pInfo.add("W: " + formatDebugValue(decimalformat, d0, 1.5D) + " PV: " + formatDebugValue(decimalformat, d6, 1.0D) + " AS: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -3.0D, flag ? 2.0D : 3.0D) + " N: " + formatDebugValue(decimalformat, d8, 3.0D));
+            pInfo.add("W: " + formatDebugValue(decimalformat, d0, 1.5D) + " PV: " + formatDebugValue(decimalformat, d6, 1.0D) + " AS: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -64.0D, flag ? 2.0D : 64.0D) + " N: " + formatDebugValue(decimalformat, d8, 3.0D));
         }
         DensityFunction.NoiseHolder cheese = debugNoiseHolder(pRandom, Noises.CAVE_CHEESE);
         DensityFunction.NoiseHolder pillar = debugNoiseHolder(pRandom, Noises.PILLAR);

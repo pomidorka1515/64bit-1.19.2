@@ -12,7 +12,7 @@ public final class FarlandsMode extends GenerationPolicy {
     public static Mode getMode() {
         return switch (GenerationContext.current().mode()) {
             case BIT_32 -> Mode.BIT_32;
-            case BIT_64 -> Mode.BIT_64;
+            case BIT_64, BIT_64_STABLE_SHIFTS -> Mode.BIT_64;
             case PATCHED -> usesPreciseCoordinates() ? Mode.BIT_64_PRECISE : Mode.OFF;
         };
     }

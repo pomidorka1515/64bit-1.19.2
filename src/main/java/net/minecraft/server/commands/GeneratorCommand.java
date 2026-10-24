@@ -23,7 +23,7 @@ public final class GeneratorCommand {
             mode.then(Commands.literal(value.serializedName()).executes(context -> request(context.getSource(), new Change(value, null))));
         }
         mode.then(Commands.literal("help").executes(context -> {
-            context.getSource().sendSuccess(Component.literal("Generator modes:\n32bit: original 32-bit arithmetic with Far Lands; terrain stops at ~16.8 billion blocks.\n64bit: 64-bit arithmetic with Far Lands; terrain stops at ~16.8 billion × 2^32 blocks.\n64bit-patched: patched arithmetic without Far Lands."), false);
+            context.getSource().sendSuccess(Component.literal("Generator modes:\n32bit: original 32-bit arithmetic with Far Lands; terrain stops at ~16.8 billion blocks.\n64bit: 64-bit arithmetic with Far Lands; terrain stops at ~16.8 billion × 2^32 blocks.\n64bit-stable-shifts: 64-bit Far Lands with only shift_x/z overflow patched in both stacks; other noise limits remain.\n64bit-patched: patched arithmetic without Far Lands."), false);
             return 1;
         }));
         var precision = Commands.literal("precision");

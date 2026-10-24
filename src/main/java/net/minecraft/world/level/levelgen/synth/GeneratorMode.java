@@ -4,6 +4,7 @@ package net.minecraft.world.level.levelgen.synth;
 public enum GeneratorMode {
     BIT_32("32bit", "32bit"),
     BIT_64("64bit", "64bit"),
+    BIT_64_STABLE_SHIFTS("64bit-stable-shifts", "64bit (stable shifts)"),
     PATCHED("64bit-patched", "64bit (no farlands)");
 
     private final String name;

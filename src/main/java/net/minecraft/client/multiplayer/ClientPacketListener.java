@@ -62,7 +62,6 @@ import net.minecraft.client.renderer.debug.BrainDebugRenderer;
 import net.minecraft.client.renderer.debug.GoalSelectorDebugRenderer;
 import net.minecraft.client.renderer.debug.NeighborsUpdateRenderer;
 import net.minecraft.client.renderer.debug.WorldGenAttemptRenderer;
-import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.resources.sounds.BeeAggressiveSoundInstance;
 import net.minecraft.client.resources.sounds.BeeFlyingSoundInstance;
 import net.minecraft.client.resources.sounds.BeeSoundInstance;
@@ -1645,8 +1644,6 @@ public class ClientPacketListener implements ClientGamePacketListener {
                 java.util.List<String> lines = new java.util.ArrayList<>();
                 for (int i = 0; i < count; i++) lines.add(friendlybytebuf.readUtf());
                 this.worldgenDebugLines = java.util.List.copyOf(lines);
-            } else if (ClientboundCustomPayloadPacket.FRUSTUM_TOGGLE.equals(resourcelocation)) {
-                Frustum.setEnabled(!Frustum.isEnabled());
             } else if (ClientboundCustomPayloadPacket.BRAND.equals(resourcelocation)) {
                 String s = friendlybytebuf.readUtf();
                 this.minecraft.player.setServerBrand(s);

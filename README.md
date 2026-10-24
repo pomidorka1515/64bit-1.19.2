@@ -28,7 +28,7 @@ the original unfinished mod was written by mckuhei, whose sites are dead now. co
   - `64bit-patched` — same generator with the Far Lands arithmetic patched out.
   - precision: `precise` retains exact integer positions; `lossy` uses absolute doubles. Precision is independent of mode and does not patch intentional generator limits.
 - outer end rings are optional. `/endrings` flips them on or off; turning them off asks for `/endrings confirm`.
-- debug that isn't lying to you at range. F3 shows precision, splits block vs region coords, and prints the generator mode. `/wraprouter` dumps NoiseRouter overflow. `/frustum` toggles frustum culling when the cull turns out wrong.
+- debug that isn't lying to you at range. F3 shows precision, splits block vs region coords, and prints the generator mode. `/wraprouter` dumps NoiseRouter overflow.
 
 ## what got redone
 
@@ -104,7 +104,7 @@ vanilla's `int` positions and `double` physics couldn't be patched in one spot. 
 ### commands
 
 - teleport and the other position commands move sector positions instead of adding to `getX()` / `getZ()`.
-- `/generator`, `/endrings`, `/frustum`, `/wraprouter`.
+- `/generator`, `/endrings`, `/wraprouter`.
 
 ## installing
 

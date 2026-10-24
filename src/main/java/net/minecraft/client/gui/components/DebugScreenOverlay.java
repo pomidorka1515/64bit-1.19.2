@@ -36,7 +36,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.BlockPos;
@@ -218,7 +217,6 @@ public class DebugScreenOverlay extends GuiComponent {
             }
 
             list.add(this.minecraft.level.dimension().location() + " FC: " + longset.size());
-            list.add("Frustum: " + (Frustum.isEnabled() ? "\247aenabled" : "\247cdisabled") + "\247r");
 
             list.add("");
             SectorVec3 exact = entity.exactPosition();

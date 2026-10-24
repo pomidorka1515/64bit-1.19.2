@@ -61,9 +61,8 @@ public final class WorldgenDebug {
             BlendedNoise.endDebugCapture();
         }
         SimplexNoise.beginDebugCapture();
-        try {
-            // Match the explicit low-64 worldgen seam, including its diagnostic sampling.
-            Biome.BIOME_INFO_NOISE.getValue((double) pos.getXLo(), (double) pos.getZLo(), false);
+        try (var ignored = net.minecraft.world.level.levelgen.synth.GenerationContext.open(config)) {
+            Biome.BIOME_INFO_NOISE.getValueScaled(pos.getXHi(), pos.getXLo(), pos.getZHi(), pos.getZLo(), 1.0D, false);
             lines.add(SimplexNoise.getDebugString());
             lines.add(SimplexNoise.getDebugString2());
         } finally {

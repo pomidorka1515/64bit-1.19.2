@@ -10,6 +10,7 @@ import net.minecraft.core.Int128;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.FixedBiomeSource;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
@@ -21,6 +22,7 @@ import net.minecraft.world.level.levelgen.synth.GeneratorConfig;
 import net.minecraft.world.level.levelgen.synth.GeneratorMode;
 import net.minecraft.world.level.levelgen.synth.CoordinatePrecision;
 import net.minecraft.world.level.levelgen.synth.ImprovedNoise;
+import net.minecraft.world.level.levelgen.synth.SimplexNoise;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -29,6 +31,42 @@ class WorldgenDebugTest {
     static void bootstrap() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
+    }
+
+    @Test
+    void simplexDiagnosticsUseFullWidthCoordinates() {
+        var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(NoiseGeneratorSettings.OVERWORLD);
+        var generator = new NoiseBasedChunkGenerator(BuiltinRegistries.STRUCTURE_SETS, BuiltinRegistries.NOISE,
+                new FixedBiomeSource(BuiltinRegistries.BIOME.getHolderOrThrow(Biomes.PLAINS)), settings);
+        var config = new GeneratorConfig(GeneratorMode.BIT_64_STABLE_SHIFTS, CoordinatePrecision.PRECISE);
+        try (var ignored = GenerationContext.open(config)) {
+            var random = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 1234L);
+            for (long hi : new long[] {1L, -2L}) {
+                var pos = new BlockPos(Int128.of(hi, 4747L), 64, Int128.of(hi, -456L));
+                List<String> expected;
+                List<String> truncated;
+                SimplexNoise.beginDebugCapture();
+                try {
+                    Biome.BIOME_INFO_NOISE.getValueScaled(pos.getXHi(), pos.getXLo(), pos.getZHi(), pos.getZLo(), 1.0D, false);
+                    expected = List.of(SimplexNoise.getDebugString(), SimplexNoise.getDebugString2());
+                    Biome.BIOME_INFO_NOISE.getValue((double) pos.getXLo(), (double) pos.getZLo(), false);
+                    truncated = List.of(SimplexNoise.getDebugString(), SimplexNoise.getDebugString2());
+                    assertNotEquals(truncated, expected);
+                } finally {
+                    SimplexNoise.endDebugCapture();
+                }
+                var data = WorldgenDebug.sample(NoiseGeneratorSettings.OVERWORLD.location(), generator, random, pos, config).getData();
+                try {
+                    data.readResourceLocation();
+                    int count = data.readVarInt();
+                    List<String> received = new ArrayList<>();
+                    for (int i = 0; i < count; i++) received.add(data.readUtf());
+                    assertEquals(expected, received.subList(count - 2, count));
+                } finally {
+                    data.release();
+                }
+            }
+        }
     }
 
     @Test

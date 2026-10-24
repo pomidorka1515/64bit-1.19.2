@@ -179,7 +179,7 @@ public class DebugScreenOverlay extends GuiComponent {
 
         BlockPos blockpos = this.minecraft.getCameraEntity().blockPosition();
         if (this.minecraft.showOnlyReducedInfo()) {
-            return Lists.newArrayList("Minecraft " + SharedConstants.getCurrentVersion().getName() + " (" + this.minecraft.getLaunchedVersion() + "/" + ClientBrandRetriever.getClientModName() + ")", this.minecraft.fpsString, s, this.minecraft.levelRenderer.getChunkStatistics(), this.minecraft.levelRenderer.getEntityStatistics(), "P: " + this.minecraft.particleEngine.countParticles() + ". T: " + this.minecraft.level.getEntityCount(), this.minecraft.level.gatherChunkSourceStats(), "", "Chunk-relative: " + (blockpos.getXLo() & 15) + " " + (blockpos.getY() & 15) + " " + (blockpos.getZLo() & 15));
+            return Lists.newArrayList("Minecraft " + SharedConstants.getCurrentVersion().getName() + " (" + this.minecraft.getLaunchedVersion() + "/" + ClientBrandRetriever.getClientModName() + ")", this.minecraft.fpsString, s, this.minecraft.levelRenderer.getChunkStatistics(), this.minecraft.levelRenderer.getEntityStatistics(), "P: " + this.minecraft.particleEngine.countParticles() + ". T: " + this.minecraft.level.getEntityCount(), "", "Chunk-relative: " + (blockpos.getXLo() & 15) + " " + (blockpos.getY() & 15) + " " + (blockpos.getZLo() & 15));
         } else {
             Entity entity = this.minecraft.getCameraEntity();
             Direction direction = entity.getDirection();
@@ -210,12 +210,7 @@ public class DebugScreenOverlay extends GuiComponent {
 
             Level level = this.getLevel();
             ObjectSet<ChunkPos> longset = (level instanceof ServerLevel ? ((ServerLevel) level).getForcedChunks() : ObjectSets.EMPTY_SET);
-            List<String> list = Lists.newArrayList("Minecraft " + SharedConstants.getCurrentVersion().getName() + " (" + this.minecraft.getLaunchedVersion() + "/" + ClientBrandRetriever.getClientModName() + ("release".equalsIgnoreCase(this.minecraft.getVersionType()) ? "" : "/" + this.minecraft.getVersionType()) + ")", this.minecraft.fpsString, s, this.minecraft.levelRenderer.getChunkStatistics(), this.minecraft.levelRenderer.getEntityStatistics(), "P: " + this.minecraft.particleEngine.countParticles() + ". T: " + this.minecraft.level.getEntityCount(), this.minecraft.level.gatherChunkSourceStats());
-            String s2 = this.getServerChunkStats();
-            if (s2 != null) {
-                list.add(s2);
-            }
-
+            List<String> list = Lists.newArrayList("Minecraft " + SharedConstants.getCurrentVersion().getName() + " (" + this.minecraft.getLaunchedVersion() + "/" + ClientBrandRetriever.getClientModName() + ("release".equalsIgnoreCase(this.minecraft.getVersionType()) ? "" : "/" + this.minecraft.getVersionType()) + ")", this.minecraft.fpsString, s, this.minecraft.levelRenderer.getChunkStatistics(), this.minecraft.levelRenderer.getEntityStatistics(), "P: " + this.minecraft.particleEngine.countParticles() + ". T: " + this.minecraft.level.getEntityCount());
             list.add(this.minecraft.level.dimension().location() + " FC: " + longset.size());
 
             list.add("");
@@ -479,12 +474,6 @@ public class DebugScreenOverlay extends GuiComponent {
     private ServerLevel getServerLevel() {
         IntegratedServer integratedserver = this.minecraft.getSingleplayerServer();
         return integratedserver != null ? integratedserver.getLevel(this.minecraft.level.dimension()) : null;
-    }
-
-    @Nullable
-    private String getServerChunkStats() {
-        ServerLevel serverlevel = this.getServerLevel();
-        return serverlevel != null ? serverlevel.gatherChunkSourceStats() : null;
     }
 
     private Level getLevel() {

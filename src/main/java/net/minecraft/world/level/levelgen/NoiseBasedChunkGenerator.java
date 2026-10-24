@@ -46,6 +46,7 @@ import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.blending.Blender;
 import net.minecraft.world.level.levelgen.carver.CarvingContext;
 import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
+import net.minecraft.world.level.levelgen.synth.BlendedNoise;
 import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
 import org.apache.commons.lang3.mutable.MutableObject;
@@ -186,15 +187,35 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
             pInfo.add("T: " + formatDebugValue(decimalformat, d1, 1.5D) + " V: " + formatDebugValue(decimalformat, d2, 1.5D) + " C: " + formatDebugValue(decimalformat, d3, 1.5D) + " E: " + formatDebugValue(decimalformat, d4, 1.5D) + " D: " + formatDebugValue(decimalformat, d5, 2.5D));
             pInfo.add("W: " + formatDebugValue(decimalformat, d0, 1.5D) + " PV: " + formatDebugValue(decimalformat, d6, 1.0D) + " AS: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -3.0D, flag ? 2.0D : 3.0D) + " N: " + formatDebugValue(decimalformat, d8, 3.0D));
         }
+        DensityFunction.NoiseHolder cheese = debugNoiseHolder(pRandom, Noises.CAVE_CHEESE);
+        DensityFunction.NoiseHolder pillar = debugNoiseHolder(pRandom, Noises.PILLAR);
+        DensityFunction.NoiseHolder shift = debugNoiseHolder(pRandom, Noises.SHIFT);
+        double shiftX = this.settings.value().useLegacyRandomSource() ? 0.0D : new DensityFunctions.ShiftA(shift).compute(densityfunction$singlepointcontext);
+        double shiftZ = this.settings.value().useLegacyRandomSource() ? 0.0D : new DensityFunctions.ShiftB(shift).compute(densityfunction$singlepointcontext);
+        pInfo.add("cave_cheese: " + BlendedNoise.formatDebugValue(new DensityFunctions.Noise(cheese, 1.0D, 2.0D / 3.0D).compute(densityfunction$singlepointcontext))
+                + " pillar: " + BlendedNoise.formatDebugValue(new DensityFunctions.Noise(pillar, 25.0D, 0.3D).compute(densityfunction$singlepointcontext)));
+        pInfo.add("Shift X: " + BlendedNoise.formatDebugValue(shiftX)
+                + " Shift Z: " + BlendedNoise.formatDebugValue(shiftZ));
+        pInfo.add("aquifer_lava: " + BlendedNoise.formatDebugValue(noiserouter.lavaNoise().compute(densityfunction$singlepointcontext))
+                + " aquifer_barrier: " + BlendedNoise.formatDebugValue(noiserouter.barrierNoise().compute(densityfunction$singlepointcontext)));
+        pInfo.add("surface: " + BlendedNoise.formatDebugValue(SurfaceSystem.sampleNoise(pRandom.getOrCreateNoise(Noises.SURFACE), pPos.getX().hi(), pPos.getX().lo(), 1.0D, pPos.getZ().hi(), pPos.getZ().lo()))
+                + " surface_secondary: " + BlendedNoise.formatDebugValue(SurfaceSystem.sampleNoise(pRandom.getOrCreateNoise(Noises.SURFACE_SECONDARY), pPos.getX().hi(), pPos.getX().lo(), 1.0D, pPos.getZ().hi(), pPos.getZ().lo())));
+    }
+
+    private static DensityFunction.NoiseHolder debugNoiseHolder(RandomState random, ResourceKey<NormalNoise.NoiseParameters> key) {
+        NormalNoise noise = random.getOrCreateNoise(key);
+        return new DensityFunction.NoiseHolder(Holder.direct(noise.parameters()), noise);
     }
 
     private static String formatDebugValue(DecimalFormat p_224307_, double p_224308_, double p_224309_) {
         return formatDebugValue(p_224307_, p_224308_, -p_224309_, p_224309_);
     }
 
-    private static String formatDebugValue(DecimalFormat p_224310_, double p_224311_, double pExecutor, double pBlender) {
-        String s = p_224310_.format(p_224311_);
-        return !Double.isNaN(p_224311_) && p_224311_ >= pExecutor && p_224311_ <= pBlender ? s : ChatFormatting.RED + s + ChatFormatting.RESET;
+    static String formatDebugValue(DecimalFormat format, double value, double min, double max) {
+        if (Double.isFinite(value) && value >= min && value <= max) {
+            return format.format(value);
+        }
+        return ChatFormatting.RED + String.format(java.util.Locale.ROOT, "%.3e", value) + ChatFormatting.RESET;
     }
 
     private OptionalInt iterateNoiseColumn(LevelHeightAccessor pLevel, RandomState pRandom, long pX, long pZ, @Nullable MutableObject<NoiseColumn> pColumn, @Nullable Predicate<BlockState> pStoppingState) {

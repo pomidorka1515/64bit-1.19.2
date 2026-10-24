@@ -9,9 +9,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.EndRingsMode;
+import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.synth.BlendedNoise;
-import net.minecraft.world.level.levelgen.synth.FarlandsMode;
+import net.minecraft.world.level.levelgen.synth.GeneratorConfig;
 import net.minecraft.world.level.levelgen.synth.ImprovedNoise;
 import net.minecraft.world.level.levelgen.synth.SimplexNoise;
 
@@ -25,16 +28,32 @@ public final class WorldgenDebug {
     public static ClientboundCustomPayloadPacket sample(ServerPlayer player) {
         BlockPos pos = player.blockPosition();
         ServerChunkCache chunks = player.getLevel().getChunkSource();
+        return sample(player.getLevel().dimension().location(), chunks.getGenerator(), chunks.randomState(), pos,
+                player.getServer().getWorldData().generatorConfig());
+    }
+
+    static ClientboundCustomPayloadPacket sample(ResourceLocation dimension, ChunkGenerator generator, RandomState randomState,
+                                                BlockPos pos, GeneratorConfig config) {
         List<String> lines = new ArrayList<>();
         BlendedNoise.beginDebugCapture();
         ImprovedNoise.beginDebugCapture();
-        try (var ignored = net.minecraft.world.level.levelgen.synth.GenerationContext.open(player.getServer().getWorldData().generatorConfig())) {
-            chunks.getGenerator().addDebugScreenInfo(lines, chunks.randomState(), pos);
-            lines.add(player.getServer().getWorldData().generatorConfig().debugLine(EndRingsMode.isEnabled()));
-            lines.add("BlendedNoise");
+        try (var ignored = net.minecraft.world.level.levelgen.synth.GenerationContext.open(config)) {
+            // Include all generator F3 diagnostics in the same payload as the noise captures.
+            generator.addDebugScreenInfo(lines, randomState, pos);
+            lines.add(config.debugLine(EndRingsMode.isEnabled()));
+            if (pos.getY() > 256) {
+                // The density router can skip blended noise above its terrain range.
+                // Sample it directly for display only, retaining the player's full X/Z.
+                var context = new DensityFunction.SinglePointContext(pos.getX(), 256, pos.getZ());
+                randomState.router().finalDensity().mapAll(new DensityFunction.Visitor() {
+                    public DensityFunction apply(DensityFunction function) {
+                        if (function instanceof BlendedNoise noise) noise.compute(context);
+                        return function;
+                    }
+                });
+            }
             lines.add(BlendedNoise.getDebugString());
             lines.add(BlendedNoise.getDebugString2());
-            lines.add("ImprovedNoise");
             lines.add(ImprovedNoise.getDebugString());
             lines.add(ImprovedNoise.getDebugString2());
         } finally {
@@ -45,14 +64,13 @@ public final class WorldgenDebug {
         try {
             // Match the explicit low-64 worldgen seam, including its diagnostic sampling.
             Biome.BIOME_INFO_NOISE.getValue((double) pos.getXLo(), (double) pos.getZLo(), false);
-            lines.add("SimplexNoise");
             lines.add(SimplexNoise.getDebugString());
             lines.add(SimplexNoise.getDebugString2());
         } finally {
             SimplexNoise.endDebugCapture();
         }
         FriendlyByteBuf data = new FriendlyByteBuf(Unpooled.buffer());
-        data.writeResourceLocation(player.getLevel().dimension().location());
+        data.writeResourceLocation(dimension);
         data.writeVarInt(lines.size());
         for (String line : lines) data.writeUtf(line);
         return new ClientboundCustomPayloadPacket(CHANNEL, data);

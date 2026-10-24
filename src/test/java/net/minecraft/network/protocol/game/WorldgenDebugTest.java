@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.biome.Biomes;
@@ -17,6 +18,9 @@ import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.synth.BlendedNoise;
 import net.minecraft.world.level.levelgen.synth.GenerationContext;
 import net.minecraft.world.level.levelgen.synth.GeneratorConfig;
+import net.minecraft.world.level.levelgen.synth.GeneratorMode;
+import net.minecraft.world.level.levelgen.synth.CoordinatePrecision;
+import net.minecraft.world.level.levelgen.synth.ImprovedNoise;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -28,31 +32,37 @@ class WorldgenDebugTest {
     }
 
     @Test
-    void blendedNoiseAbove256DisplaysTheSampleAt256() {
+    void noiseAtAndAbove256DisplaysTheSampleAt255WithFullWidthCoordinates() {
         var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(NoiseGeneratorSettings.OVERWORLD);
         var generator = new NoiseBasedChunkGenerator(BuiltinRegistries.STRUCTURE_SETS, BuiltinRegistries.NOISE,
                 new FixedBiomeSource(BuiltinRegistries.BIOME.getHolderOrThrow(Biomes.PLAINS)), settings);
-        try (var ignored = GenerationContext.open(GeneratorConfig.DEFAULT)) {
+        var config = new GeneratorConfig(GeneratorMode.BIT_64_STABLE_SHIFTS, CoordinatePrecision.PRECISE);
+        var x = Int128.of(1L, 4747L);
+        var z = Int128.of(1L, -456L);
+        try (var ignored = GenerationContext.open(config)) {
             var random = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 1234L);
             BlendedNoise.beginDebugCapture();
+            ImprovedNoise.beginDebugCapture();
             List<String> expected;
             try {
                 random.router().finalDensity().mapAll(new DensityFunction.Visitor() {
                     public DensityFunction apply(DensityFunction function) {
                         if (function instanceof BlendedNoise noise) {
-                            noise.compute(new DensityFunction.SinglePointContext(123L, 256, -456L));
+                            noise.compute(new DensityFunction.SinglePointContext(x, 255, z));
                         }
                         return function;
                     }
                 });
-                expected = List.of(BlendedNoise.getDebugString(), BlendedNoise.getDebugString2());
+                expected = List.of(BlendedNoise.getDebugString(), BlendedNoise.getDebugString2(),
+                        ImprovedNoise.getDebugString(), ImprovedNoise.getDebugString2());
                 assertTrue(expected.stream().noneMatch(line -> line.contains("NaN")));
             } finally {
+                ImprovedNoise.endDebugCapture();
                 BlendedNoise.endDebugCapture();
             }
-            for (int y : new int[] {257, 320, 1000}) {
+            for (int y : new int[] {256, 257, 320, 1000}) {
                 var packet = WorldgenDebug.sample(NoiseGeneratorSettings.OVERWORLD.location(), generator, random,
-                        new BlockPos(123, y, -456), GeneratorConfig.DEFAULT);
+                        new BlockPos(x, y, z), config);
                 var data = packet.getData();
                 try {
                     data.readResourceLocation();

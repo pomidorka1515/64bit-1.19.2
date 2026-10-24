@@ -173,7 +173,7 @@ public class SimplexNoise {
     }
 
     public static String getDebugString2() {
-        return String.format(Locale.ROOT, "Corner Delta Y: %.3f Simplex Output: %.3f", debugCornerDeltaY, debugSimplexOutput);
+        return String.format(Locale.ROOT, "Corner Delta Y: %.3f Simplex Output: %s", debugCornerDeltaY, BlendedNoise.formatDebugValue(debugSimplexOutput));
     }
 
     public double getValue(double pX, double pY, double pZ) {

@@ -152,11 +152,13 @@ public final class ImprovedNoise {
 
     public static String getDebugString() {
         if (Double.isNaN(debugSamplePoint)) return "Not evaluated at this position";
-        return String.format(Locale.ROOT, "Sample Point: %.3f Grid Index: %d", debugSamplePoint, debugGridIndex);
+        String gridIndex = Math.abs((double) debugGridIndex) > 1_000_000_000.0D
+                ? BlendedNoise.formatDebugValue(debugGridIndex) : Long.toString(debugGridIndex);
+        return String.format(Locale.ROOT, "Sample Point: %s Grid Index: %s", BlendedNoise.formatDebugValue(debugSamplePoint), gridIndex);
     }
 
     public static String getDebugString2() {
-        return String.format(Locale.ROOT, "Cell Offset: %.3f Smoothed Offset: %.3f", debugCellOffset, debugSmoothedOffset);
+        return String.format(Locale.ROOT, "Cell Offset: %s Smoothed Offset: %s", BlendedNoise.formatDebugValue(debugCellOffset), BlendedNoise.formatDebugValue(debugSmoothedOffset));
     }
 
     private static double gradDot(int pGradIndex, double pXFactor, double pYFactor, double pZFactor) {

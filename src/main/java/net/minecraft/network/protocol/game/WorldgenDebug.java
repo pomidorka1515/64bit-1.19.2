@@ -41,10 +41,10 @@ public final class WorldgenDebug {
             // Include all generator F3 diagnostics in the same payload as the noise captures.
             generator.addDebugScreenInfo(lines, randomState, pos);
             lines.add(config.debugLine(EndRingsMode.isEnabled()));
-            if (pos.getY() > 256) {
-                // The density router can skip blended noise above its terrain range.
+            if (pos.getY() >= 256) {
+                // The density router can skip blended noise at the upper slide boundary too.
                 // Sample it directly for display only, retaining the player's full X/Z.
-                var context = new DensityFunction.SinglePointContext(pos.getX(), 256, pos.getZ());
+                var context = new DensityFunction.SinglePointContext(pos.getX(), 255, pos.getZ());
                 randomState.router().finalDensity().mapAll(new DensityFunction.Visitor() {
                     public DensityFunction apply(DensityFunction function) {
                         if (function instanceof BlendedNoise noise) noise.compute(context);

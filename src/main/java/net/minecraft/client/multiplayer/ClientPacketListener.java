@@ -399,8 +399,8 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
     public void handleAddEntity(ClientboundAddEntityPacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
-        if (!this.isTrackedPosition(pPacket.getExactPosition()))
-            return;
+        // Entity tracking is server-owned. Spawns can precede the chunk-cache
+        // center update during login/teleport and must not be discarded.
         EntityType<?> entitytype = pPacket.getType();
         Entity entity = entitytype.create(this.level);
         if (entity != null) {
@@ -432,8 +432,6 @@ public class ClientPacketListener implements ClientGamePacketListener {
     public void handleAddExperienceOrb(ClientboundAddExperienceOrbPacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
         SectorVec3 exactPosition = pPacket.getExactPosition();
-        if (!this.isTrackedPosition(exactPosition))
-            return;
         Entity entity = new ExperienceOrb(this.level, 0.0D, exactPosition.y(), 0.0D, pPacket.getValue());
         entity.applyExactPosition(exactPosition);
         entity.syncSectorPacketPositionCodec();
@@ -465,8 +463,6 @@ public class ClientPacketListener implements ClientGamePacketListener {
         if (playerinfo == null) {
             LOGGER.warn("Server attempted to add player prior to sending player info (Player id {})", (Object) pPacket.getPlayerId());
         } else {
-            if (!this.isTrackedPosition(pPacket.getExactPosition()))
-                return;
             float f = (float) (pPacket.getyRot() * 360) / 256.0F;
             float f1 = (float) (pPacket.getxRot() * 360) / 256.0F;
             int i = pPacket.getEntityId();
@@ -486,8 +482,6 @@ public class ClientPacketListener implements ClientGamePacketListener {
         Entity entity = this.level.getEntity(pPacket.getId());
         if (entity != null) {
             SectorVec3 exactPosition = pPacket.getExactPosition();
-            if (!this.isTrackedPosition(exactPosition))
-                return;
             entity.getPositionCodec().setBase(exactPosition);
             if (!entity.isControlledByLocalInstance()) {
                 float f = (float) (pPacket.getyRot() * 360) / 256.0F;
@@ -516,8 +510,6 @@ public class ClientPacketListener implements ClientGamePacketListener {
             SectorVec3 exactPosition = pPacket.hasPosition()
                     ? vecdeltacodec.decodeExact((long) pPacket.getXa(), (long) pPacket.getYa(), (long) pPacket.getZa())
                     : entity.sectorPosition();
-            if (pPacket.hasPosition() && !this.isTrackedPosition(exactPosition))
-                return;
             if (pPacket.hasPosition()) {
                 vecdeltacodec.setBase(exactPosition);
             }
@@ -2113,10 +2105,6 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
     public Connection getConnection() {
         return this.connection;
-    }
-
-    private boolean isTrackedPosition(SectorVec3 position) {
-        return this.level.getChunkSource().isInViewRange(position.blockX().shiftRight(4), position.blockZ().shiftRight(4));
     }
 
     private boolean isLoadedPosition(BlockPos position) {

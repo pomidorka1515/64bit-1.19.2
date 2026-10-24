@@ -34,16 +34,20 @@ class DebugOverlayOptimizationTest {
         String y = cache.yLine;
         String halves = cache.xHalves;
         String sub = cache.subLine;
+        String halvesLine = cache.halvesLine;
+        assertEquals("xLo/Hi: ffffffffffffffff / 7fffffffffffffff | zLo/Hi: 0 / 8000000000000000", halvesLine);
         cache.update(SectorVec3.fromBlockAndFraction(Int128.MAX, 0.125, 10.25, Int128.MIN, 0.5));
         assertSame(x, cache.xLine);
         assertSame(z, cache.zLine);
         assertSame(y, cache.yLine);
         assertSame(halves, cache.xHalves);
+        assertSame(halvesLine, cache.halvesLine);
         assertSame(sub, cache.subLine);
         cache.update(SectorVec3.fromBlockAndFraction(Int128.MAX, 0.25, 11.5, Int128.MIN, 0.5));
         assertNotEquals(x, cache.xLine);
         assertSame(z, cache.zLine);
         assertSame(halves, cache.xHalves);
+        assertSame(halvesLine, cache.halvesLine);
         assertEquals("Y: 11.50000", cache.yLine);
     }
 

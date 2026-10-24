@@ -224,8 +224,7 @@ public class DebugScreenOverlay extends GuiComponent {
             list.add(this.positionDisplay.xLine);
             list.add(this.positionDisplay.yLine);
             list.add(this.positionDisplay.zLine);
-            list.add(this.positionDisplay.xHalves);
-            list.add(this.positionDisplay.zHalves);
+            list.add(this.positionDisplay.halvesLine);
             list.add("Block: [" + (blockpos.getXLo() & 15) + " " + (blockpos.getY() & 15) + " " + (blockpos.getZLo() & 15) + "]");
             this.regionDisplay.update(this.minecraft.gameRenderer.getMainCamera().getBlockPosition());
             list.add(this.chunkXLine);
@@ -304,7 +303,7 @@ public class DebugScreenOverlay extends GuiComponent {
     }
 
     static String formatCoordinateHalves(String axis, Int128 coordinate) {
-        return axis + "Lo: " + Long.toHexString(coordinate.lo()) + " / " + axis + "Hi: " + Long.toHexString(coordinate.hi());
+        return axis + "Lo/Hi: " + Long.toHexString(coordinate.lo()) + " / " + Long.toHexString(coordinate.hi());
     }
 
     static String formatSubPosition(SectorVec3 exact) {
@@ -410,6 +409,7 @@ public class DebugScreenOverlay extends GuiComponent {
         private double subZ = Double.NaN;
         private double y = Double.NaN;
         String xLine, yLine, zLine, xHalves, zHalves, subLine;
+        String halvesLine;
 
         void update(SectorVec3 position) {
             boolean xChanged = !position.blockX().equals(this.x);
@@ -425,6 +425,9 @@ public class DebugScreenOverlay extends GuiComponent {
             if (zChanged) {
                 this.z = position.blockZ();
                 this.zHalves = formatCoordinateHalves("z", this.z);
+            }
+            if (xChanged || zChanged) {
+                this.halvesLine = this.xHalves + " | " + this.zHalves;
             }
             if (xChanged || xFractionChanged) this.xLine = "X: " + formatCoordinate(this.x, position.subX());
             if (zChanged || zFractionChanged) this.zLine = "Z: " + formatCoordinate(this.z, position.subZ());

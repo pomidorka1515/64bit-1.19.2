@@ -21,11 +21,11 @@ class DebugPositionDisplayTest {
 
     @Test
     void formatsRawHalvesInLowercaseHexWithoutPrefix() {
-        assertEquals("xLo: ffffffffffffffff / xHi: 7fffffffffffffff",
+        assertEquals("xLo/Hi: ffffffffffffffff / 7fffffffffffffff",
                 DebugScreenOverlay.formatCoordinateHalves("x", Int128.MAX));
-        assertEquals("zLo: f7ba291 / zHi: abcabc123",
+        assertEquals("zLo/Hi: f7ba291 / abcabc123",
                 DebugScreenOverlay.formatCoordinateHalves("z", Int128.of(0xabcabc123L, 0xf7ba291L)));
-        assertEquals("xLo: 0 / xHi: 8000000000000000",
+        assertEquals("xLo/Hi: 0 / 8000000000000000",
                 DebugScreenOverlay.formatCoordinateHalves("x", Int128.MIN));
     }
 

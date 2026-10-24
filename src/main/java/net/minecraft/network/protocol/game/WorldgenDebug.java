@@ -39,8 +39,8 @@ public final class WorldgenDebug {
         ImprovedNoise.beginDebugCapture();
         try (var ignored = net.minecraft.world.level.levelgen.synth.GenerationContext.open(config)) {
             // Include all generator F3 diagnostics in the same payload as the noise captures.
-            generator.addDebugScreenInfo(lines, randomState, pos);
             lines.add(config.debugLine(EndRingsMode.isEnabled()));
+            generator.addDebugScreenInfo(lines, randomState, pos);
             if (pos.getY() >= 256) {
                 // The density router can skip blended noise at the upper slide boundary too.
                 // Sample it directly for display only, retaining the player's full X/Z.

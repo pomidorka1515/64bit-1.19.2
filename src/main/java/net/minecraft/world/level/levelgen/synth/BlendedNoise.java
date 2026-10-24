@@ -224,7 +224,7 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
     }
 
     public static String getDebugString2() {
-        return String.format(Locale.ROOT, "Min-Limit (Low): %s Max-Limit (High): %s Blended Density: %s", formatDebugValue(debugMinLimit), formatDebugValue(debugMaxLimit), formatDebugValue(debugBlendedDensity));
+        return String.format(Locale.ROOT, "Min-Limit: %s Max-Limit: %s Blended Density: %s", formatDebugValue(debugMinLimit), formatDebugValue(debugMaxLimit), formatDebugValue(debugBlendedDensity));
     }
 
     public static String formatDebugValue(double value) {

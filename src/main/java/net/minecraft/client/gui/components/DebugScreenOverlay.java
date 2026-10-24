@@ -13,7 +13,6 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.datafixers.DataFixUtils;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Transformation;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import it.unimi.dsi.fastutil.objects.ObjectSets;
 
@@ -28,8 +27,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
@@ -49,27 +46,20 @@ import net.minecraft.core.Int128;
 import net.minecraft.core.Int128Math;
 import net.minecraft.core.Registry;
 import net.minecraft.network.Connection;
-import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.FrameTimer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.biome.BiomeSource;
-import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.storage.RegionFileNames;
-import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -146,7 +136,6 @@ public class DebugScreenOverlay extends GuiComponent {
         list.add("");
         boolean flag = this.minecraft.getSingleplayerServer() != null;
         list.add("Debug: Pie [shift]: " + (this.minecraft.options.renderDebugCharts ? "visible" : "hidden") + (flag ? " FPS + TPS" : " FPS") + " [alt]: " + (this.minecraft.options.renderFpsChart ? "visible" : "hidden"));
-        list.add("For help: press F3 + Q");
 
         for (int i = 0; i < list.size(); ++i) {
             String s = list.get(i);
@@ -287,34 +276,11 @@ public class DebugScreenOverlay extends GuiComponent {
                 }
             }
 
-            ServerLevel serverlevel = this.getServerLevel();
-            if (serverlevel != null) {
-                ServerChunkCache serverchunkcache = serverlevel.getChunkSource();
-                ChunkGenerator chunkgenerator = serverchunkcache.getGenerator();
-                RandomState randomstate = serverchunkcache.randomState();
-
-                Climate.Sampler climate$sampler = randomstate.sampler();
-                BiomeSource biomesource = chunkgenerator.getBiomeSource();
-                biomesource.addDebugInfo(list, blockpos, climate$sampler);
-                NaturalSpawner.SpawnState naturalspawner$spawnstate = serverchunkcache.getLastSpawnState();
-                if (naturalspawner$spawnstate != null) {
-                    Object2IntMap<MobCategory> object2intmap = naturalspawner$spawnstate.getMobCategoryCounts();
-                    int i1 = naturalspawner$spawnstate.getSpawnableChunkCount();
-                    list.add("SC: " + i1 + ", " + (String) Stream.of(MobCategory.values()).map((p_94068_) -> {
-                                                                                              return Character.toUpperCase(p_94068_.getName().charAt(0)) + ": " + object2intmap.getInt(p_94068_);
-                                                                                          })
-                                     .collect(Collectors.joining(", ")));
-                } else {
-                    list.add("SC: N/A");
-                }
-            }
-
             PostChain postchain = this.minecraft.gameRenderer.currentEffect();
             if (postchain != null) {
                 list.add("Shader: " + postchain.getName());
             }
 
-            list.add(this.minecraft.getSoundManager().getDebugString() + " (Mood " + Math.round(this.minecraft.player.getCurrentMood() * 100.0F) + "%)");
             list.add("");
             List<String> diagnostics = this.minecraft.getConnection().getWorldgenDebugLines();
             if (diagnostics.isEmpty()) list.add("Worldgen debug: awaiting server data");

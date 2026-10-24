@@ -164,7 +164,8 @@ class WorldgenDebugTest {
                     assertTrue(count > expected.size() && count <= 64);
                     List<String> received = new ArrayList<>();
                     for (int i = 0; i < count; i++) received.add(data.readUtf());
-                    assertEquals(expected, received.subList(0, expected.size()));
+                    assertTrue(received.get(0).startsWith("Config "));
+                    assertEquals(expected, received.subList(1, 1 + expected.size()));
                     for (String field : List.of("cave_cheese:", "pillar:", "Shift X:", "Shift Z:",
                             "aquifer_lava:", "aquifer_barrier:", "surface:", "surface_secondary:")) {
                         assertTrue(received.stream().anyMatch(line -> line.contains(field)), field);

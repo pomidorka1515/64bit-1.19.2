@@ -426,7 +426,7 @@ public class Options {
     }, new OptionInstance.ClampingLazyMaxIntRange(0, () -> {
         Minecraft minecraft = Minecraft.getInstance();
         return !minecraft.isRunning() ? 2147483646 : minecraft.getWindow().calculateScale(0, minecraft.isEnforceUnicode());
-    }), 0, (p_231974_) -> {});
+    }), 2, (p_231974_) -> {});
     private final OptionInstance<ParticleStatus> particles = new OptionInstance<>("options.particles", OptionInstance.noTooltip(), OptionInstance.forOptionEnum(), new OptionInstance.Enum<>(Arrays.asList(ParticleStatus.values()), Codec.INT.xmap(ParticleStatus::byId, ParticleStatus::getId)), ParticleStatus.ALL, (p_231869_) -> {});
     private final OptionInstance<NarratorStatus> narrator = new OptionInstance<>("options.narrator", OptionInstance.noTooltip(), (p_231907_, p_231908_) -> { return (Component) (this.minecraft.getNarrator().isActive() ? p_231908_.getName() : Component.translatable("options.narrator.notavailable")); }, new OptionInstance.Enum<>(Arrays.asList(NarratorStatus.values()), Codec.INT.xmap(NarratorStatus::byId, NarratorStatus::getId)), NarratorStatus.OFF, (p_231860_) -> { this.minecraft.getNarrator().updateNarratorStatus(p_231860_); });
     public String languageCode = "en_us";

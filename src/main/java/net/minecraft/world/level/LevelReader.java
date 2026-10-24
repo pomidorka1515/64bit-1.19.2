@@ -39,7 +39,15 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
     int getHeight(Heightmap.Types pHeightmapType, long pX, long pZ);
 
     default int getHeight(Heightmap.Types pHeightmapType, Int128 pX, Int128 pZ) {
-        return this.getHeightmapPos(pHeightmapType, new BlockPos(pX, 0, pZ)).getY();
+        Int128 chunkX = SectionPos.blockToSectionCoord(pX);
+        Int128 chunkZ = SectionPos.blockToSectionCoord(pZ);
+        int height = this.getMinBuildHeight();
+        if (this.hasChunk(chunkX, chunkZ)) {
+            ChunkAccess chunk = this.getChunk(chunkX, chunkZ, ChunkStatus.HEIGHTMAPS, true);
+            if (chunk != null)
+                height = chunk.getHeight(pHeightmapType, (int) (pX.lo() & 15L), (int) (pZ.lo() & 15L)) + 1;
+        }
+        return height;
     }
 
     int getSkyDarken();
@@ -97,15 +105,8 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
     }
 
     default BlockPos getHeightmapPos(Heightmap.Types pHeightmapType, BlockPos pPos) {
-        Int128 chunkX = SectionPos.blockToSectionCoord(pPos.getX());
-        Int128 chunkZ = SectionPos.blockToSectionCoord(pPos.getZ());
-        int height = this.getMinBuildHeight();
-        if (this.hasChunk(chunkX, chunkZ)) {
-            ChunkAccess chunk = this.getChunk(chunkX, chunkZ, ChunkStatus.HEIGHTMAPS, true);
-            if (chunk != null)
-                height = chunk.getHeight(pHeightmapType, (int) (pPos.getXLo() & 15L), (int) (pPos.getZLo() & 15L)) + 1;
-        }
-        return new BlockPos(pPos.getX(), height, pPos.getZ());
+        // Generation regions can read primed heightmaps before HEIGHTMAPS status.
+        return new BlockPos(pPos.getX(), this.getHeight(pHeightmapType, pPos.getX(), pPos.getZ()), pPos.getZ());
     }
 
     default boolean isEmptyBlock(BlockPos pPos) {

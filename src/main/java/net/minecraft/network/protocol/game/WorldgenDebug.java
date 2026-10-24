@@ -54,6 +54,13 @@ public final class WorldgenDebug {
             }
             lines.add(BlendedNoise.getDebugString());
             lines.add(BlendedNoise.getDebugString2());
+            if (pos.getY() >= 256) {
+                // ImprovedNoise is also sampled by later router diagnostics, not just
+                // BlendedNoise. Replay the full diagnostic order at 255 so its last
+                // captured sample matches the actual F3 payload at that height.
+                generator.addDebugScreenInfo(new ArrayList<>(), randomState,
+                        new BlockPos(pos.getX(), 255, pos.getZ()));
+            }
             lines.add(ImprovedNoise.getDebugString());
             lines.add(ImprovedNoise.getDebugString2());
         } finally {

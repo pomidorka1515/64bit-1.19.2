@@ -70,6 +70,35 @@ class WorldgenDebugTest {
     }
 
     @Test
+    void improvedOffsetsAboveSlideMatchActualDebugPayloadAt255() {
+        var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(NoiseGeneratorSettings.OVERWORLD);
+        var generator = new NoiseBasedChunkGenerator(BuiltinRegistries.STRUCTURE_SETS, BuiltinRegistries.NOISE,
+                new FixedBiomeSource(BuiltinRegistries.BIOME.getHolderOrThrow(Biomes.PLAINS)), settings);
+        var config = new GeneratorConfig(GeneratorMode.BIT_64_STABLE_SHIFTS, CoordinatePrecision.PRECISE);
+        var random = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 1234L);
+        var x = Int128.parseDecimal("1855315496539495033392");
+        String expected = null;
+        for (int y : new int[] {255, 256, 257, 320, 1000}) {
+            var data = WorldgenDebug.sample(NoiseGeneratorSettings.OVERWORLD.location(), generator, random,
+                    new BlockPos(x, y, Int128.ZERO), config).getData();
+            try {
+                data.readResourceLocation();
+                int count = data.readVarInt();
+                String offsets = null;
+                for (int i = 0; i < count; ++i) {
+                    String line = data.readUtf();
+                    if (line.startsWith("Cell Offset:")) offsets = line;
+                }
+                assertNotNull(offsets);
+                if (y == 255) expected = offsets;
+                else assertEquals(expected, offsets, "Y=" + y);
+            } finally {
+                data.release();
+            }
+        }
+    }
+
+    @Test
     void noiseAtAndAbove256DisplaysTheSampleAt255WithFullWidthCoordinates() {
         var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(NoiseGeneratorSettings.OVERWORLD);
         var generator = new NoiseBasedChunkGenerator(BuiltinRegistries.STRUCTURE_SETS, BuiltinRegistries.NOISE,
@@ -91,8 +120,7 @@ class WorldgenDebugTest {
                         return function;
                     }
                 });
-                expected = List.of(BlendedNoise.getDebugString(), BlendedNoise.getDebugString2(),
-                        ImprovedNoise.getDebugString(), ImprovedNoise.getDebugString2());
+                expected = List.of(BlendedNoise.getDebugString(), BlendedNoise.getDebugString2());
                 assertTrue(expected.stream().noneMatch(line -> line.contains("NaN")));
             } finally {
                 ImprovedNoise.endDebugCapture();

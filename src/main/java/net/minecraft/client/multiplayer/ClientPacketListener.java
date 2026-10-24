@@ -94,7 +94,6 @@ import net.minecraft.network.chat.LastSeenMessages;
 import net.minecraft.network.chat.LastSeenMessagesTracker;
 import net.minecraft.network.chat.MessageSignature;
 import net.minecraft.network.chat.PlayerChatMessage;
-import net.minecraft.network.chat.SignedMessageChain;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketUtils;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -297,8 +296,6 @@ import org.slf4j.Logger;
 public class ClientPacketListener implements ClientGamePacketListener {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final Component GENERIC_DISCONNECT_MESSAGE = Component.translatable("disconnect.lost");
-    private static final Component UNSECURE_SERVER_TOAST_TITLE = Component.translatable("multiplayer.unsecureserver.toast.title");
-    private static final Component UNSERURE_SERVER_TOAST = Component.translatable("multiplayer.unsecureserver.toast");
     private static final int UNACKNOWLEDGED_MESSAGES_THRESHOLD = 64;
     private final Connection connection;
     private final GameProfile localGameProfile;
@@ -319,7 +316,6 @@ public class ClientPacketListener implements ClientGamePacketListener {
     private Set<ResourceKey<Level>> levels;
     private RegistryAccess.Frozen registryAccess = RegistryAccess.BUILTIN.get();
     private final ClientTelemetryManager telemetryManager;
-    private final SignedMessageChain.Encoder signedMessageEncoder = (new SignedMessageChain()).encoder();
     private final LastSeenMessagesTracker lastSeenMessagesTracker = new LastSeenMessagesTracker(5);
     private Optional<LastSeenMessages.Entry> lastUnacknowledgedReceivedMessage = Optional.empty();
     private int unacknowledgedReceivedMessageCount;
@@ -1389,13 +1385,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
                 }
             });
             serverdata.setPreviewsChat(pPacket.previewsChat());
-            serverdata.setEnforcesSecureChat(pPacket.enforcesSecureChat());
             ServerList.saveSingleServer(serverdata);
-            if (!pPacket.enforcesSecureChat()) {
-                SystemToast systemtoast = SystemToast.multiline(this.minecraft, SystemToast.SystemToastIds.UNSECURE_SERVER_WARNING, UNSECURE_SERVER_TOAST_TITLE, UNSERURE_SERVER_TOAST);
-                this.minecraft.getToasts().addToast(systemtoast);
-            }
-
             ServerData.ChatPreview serverdata$chatpreview = serverdata.getChatPreview();
             if (serverdata$chatpreview != null && !serverdata$chatpreview.isAcknowledged()) {
                 this.minecraft.execute(() -> {
@@ -1454,8 +1444,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
             } else {
                 PlayerInfo playerinfo = this.playerInfoMap.get(clientboundplayerinfopacket$playerupdate.getProfile().getId());
                 if (pPacket.getAction() == ClientboundPlayerInfoPacket.Action.ADD_PLAYER && playerinfo == null) {
-                    boolean flag = Util.mapNullable(this.minecraft.getCurrentServer(), ServerData::enforcesSecureChat, false);
-                    playerinfo = new PlayerInfo(clientboundplayerinfopacket$playerupdate, this.minecraft.getServiceSignatureValidator(), flag);
+                    playerinfo = new PlayerInfo(clientboundplayerinfopacket$playerupdate);
                     this.playerInfoMap.put(playerinfo.getProfile().getId(), playerinfo);
                     this.minecraft.getPlayerSocialManager().addPlayer(playerinfo);
                 }
@@ -2166,10 +2155,6 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
     public RegistryAccess registryAccess() {
         return this.registryAccess;
-    }
-
-    public SignedMessageChain.Encoder signedMessageEncoder() {
-        return this.signedMessageEncoder;
     }
 
     public LastSeenMessages.Update generateMessageAcknowledgements() {

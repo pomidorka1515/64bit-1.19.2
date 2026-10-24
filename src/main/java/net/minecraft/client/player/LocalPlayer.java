@@ -155,7 +155,7 @@ public class LocalPlayer extends AbstractClientPlayer {
     private boolean showDeathScreen = true;
 
     public LocalPlayer(Minecraft pMinecraft, ClientLevel pClientLevel, ClientPacketListener pConnection, StatsCounter pStats, ClientRecipeBook pRecipeBook, boolean pWasShiftKeyDown, boolean pWasSprinting) {
-        super(pClientLevel, pConnection.getLocalGameProfile(), pMinecraft.getProfileKeyPairManager().profilePublicKey().orElse((ProfilePublicKey) null));
+        super(pClientLevel, pConnection.getLocalGameProfile(), null);
         this.minecraft = pMinecraft;
         this.connection = pConnection;
         this.stats = pStats;
@@ -324,46 +324,15 @@ public class LocalPlayer extends AbstractClientPlayer {
         ChatMessageContent chatmessagecontent = this.buildSignedContent(pPlain, pDecorated);
         MessageSigner messagesigner = this.createMessageSigner();
         LastSeenMessages.Update lastseenmessages$update = this.connection.generateMessageAcknowledgements();
-        MessageSignature messagesignature = this.signMessage(messagesigner, chatmessagecontent, lastseenmessages$update.lastSeen());
+        MessageSignature messagesignature = MessageSignature.EMPTY;
         this.connection.send(new ServerboundChatPacket(chatmessagecontent.plain(), messagesigner.timeStamp(), messagesigner.salt(), messagesignature, chatmessagecontent.isDecorated(), lastseenmessages$update));
     }
 
-    private MessageSignature signMessage(MessageSigner pSigner, ChatMessageContent pMessageContent, LastSeenMessages pLastSeenMessages) {
-        try {
-            Signer signer = this.minecraft.getProfileKeyPairManager().signer();
-            if (signer != null) {
-                return this.connection.signedMessageEncoder().pack(signer, pSigner, pMessageContent, pLastSeenMessages).signature();
-            }
-        } catch (Exception exception) {
-            LOGGER.error("Failed to sign chat message: '{}'", pMessageContent.plain(), exception);
-        }
-
-        return MessageSignature.EMPTY;
-    }
-
     private void sendCommand(String pPlain, @Nullable Component pDecorated) {
-        ParseResults<SharedSuggestionProvider> parseresults = this.connection.getCommands().parse(pPlain, this.connection.getSuggestionsProvider());
         MessageSigner messagesigner = this.createMessageSigner();
         LastSeenMessages.Update lastseenmessages$update = this.connection.generateMessageAcknowledgements();
-        ArgumentSignatures argumentsignatures = this.signCommandArguments(messagesigner, parseresults, pDecorated, lastseenmessages$update.lastSeen());
+        ArgumentSignatures argumentsignatures = ArgumentSignatures.EMPTY;
         this.connection.send(new ServerboundChatCommandPacket(pPlain, messagesigner.timeStamp(), messagesigner.salt(), argumentsignatures, pDecorated != null, lastseenmessages$update));
-    }
-
-    private ArgumentSignatures signCommandArguments(MessageSigner p_242336_, ParseResults<SharedSuggestionProvider> p_242251_, @Nullable Component p_242373_, LastSeenMessages p_242435_) {
-        Signer signer = this.minecraft.getProfileKeyPairManager().signer();
-        if (signer == null) {
-            return ArgumentSignatures.EMPTY;
-        } else {
-            try {
-                return ArgumentSignatures.signCommand(PreviewableCommand.of(p_242251_), (p_243155_, p_243156_) -> {
-                    ChatMessageContent chatmessagecontent = this.buildSignedContent(p_243156_, p_242373_);
-                    return this.connection.signedMessageEncoder().pack(signer, p_242336_, chatmessagecontent, p_242435_).signature();
-                });
-            } catch (Exception exception) {
-                LOGGER.error("Failed to sign command arguments", (Throwable) exception);
-                return ArgumentSignatures.EMPTY;
-            }
-        }
     }
 
     private ChatMessageContent buildSignedContent(String pPlain, @Nullable Component pDecorated) {

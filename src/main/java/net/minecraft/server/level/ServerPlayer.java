@@ -1293,7 +1293,7 @@ public class ServerPlayer extends Player {
     }
 
     public void sendServerStatus(ServerStatus p_215110_) {
-        this.connection.send(new ClientboundServerDataPacket(p_215110_.getDescription(), p_215110_.getFavicon(), p_215110_.previewsChat(), p_215110_.enforcesSecureChat()));
+        this.connection.send(new ClientboundServerDataPacket(p_215110_.getDescription(), p_215110_.getFavicon(), p_215110_.previewsChat()));
     }
 
     protected int getPermissionLevel() {

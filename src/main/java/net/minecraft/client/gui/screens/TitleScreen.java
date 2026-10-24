@@ -1,7 +1,6 @@
 package net.minecraft.client.gui.screens;
 
 import com.google.common.util.concurrent.Runnables;
-import com.mojang.authlib.minecraft.BanDetails;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -176,12 +175,7 @@ public class TitleScreen extends Screen {
         if (this.minecraft.allowsMultiplayer()) {
             return null;
         } else {
-            BanDetails bandetails = this.minecraft.multiplayerBan();
-            if (bandetails != null) {
-                return bandetails.expires() != null ? Component.translatable("title.multiplayer.disabled.banned.temporary") : Component.translatable("title.multiplayer.disabled.banned.permanent");
-            } else {
-                return Component.translatable("title.multiplayer.disabled");
-            }
+            return Component.translatable("title.multiplayer.disabled");
         }
     }
 

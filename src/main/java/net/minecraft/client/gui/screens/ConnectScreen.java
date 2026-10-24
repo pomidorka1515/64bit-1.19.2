@@ -56,7 +56,6 @@ public class ConnectScreen extends Screen {
     }
 
     private void connect(final Minecraft pMinecraft, final ServerAddress pServerAddress) {
-        final CompletableFuture<Optional<ProfilePublicKey.Data>> completablefuture = pMinecraft.getProfileKeyPairManager().preparePublicKey();
         LOGGER.info("Connecting to {}, {}", pServerAddress.getHost(), pServerAddress.getPort());
         Thread thread = new Thread("Server Connector #" + UNIQUE_THREAD_ID.incrementAndGet()) {
             public void run() {
@@ -83,7 +82,7 @@ public class ConnectScreen extends Screen {
                     ConnectScreen.this.connection = Connection.connectToServer(inetsocketaddress, pMinecraft.options.useNativeTransport());
                     ConnectScreen.this.connection.setListener(new ClientHandshakePacketListenerImpl(ConnectScreen.this.connection, pMinecraft, ConnectScreen.this.parent, ConnectScreen.this::updateStatus));
                     ConnectScreen.this.connection.send(new ClientIntentionPacket(inetsocketaddress.getHostName(), inetsocketaddress.getPort(), ConnectionProtocol.LOGIN));
-                    ConnectScreen.this.connection.send(new ServerboundHelloPacket(pMinecraft.getUser().getName(), completablefuture.join(), Optional.ofNullable(pMinecraft.getUser().getProfileId())));
+                    ConnectScreen.this.connection.send(new ServerboundHelloPacket(pMinecraft.getUser().getName(), Optional.empty(), Optional.ofNullable(pMinecraft.getUser().getProfileId())));
                 } catch (Exception exception2) {
                     if (ConnectScreen.this.aborted) {
                         return;

@@ -13,7 +13,6 @@ import java.io.File;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -742,8 +741,7 @@ public abstract class PlayerList {
     }
 
     private void broadcastChatMessage(PlayerChatMessage pMessage, Predicate<ServerPlayer> pShouldFilterMessageTo, @Nullable ServerPlayer pSenderPlayer, ChatSender pChatSender, ChatType.Bound pBoundChatType) {
-        boolean flag = this.verifyChatTrusted(pMessage, pChatSender);
-        this.server.logChatMessage(pMessage.serverContent(), pBoundChatType, flag ? null : "Not Secure");
+        this.server.logChatMessage(pMessage.serverContent(), pBoundChatType, null);
         OutgoingPlayerChatMessage outgoingplayerchatmessage = OutgoingPlayerChatMessage.create(pMessage);
         boolean flag1 = pMessage.isFullyFiltered();
         boolean flag2 = false;
@@ -771,10 +769,6 @@ public abstract class PlayerList {
                 serverplayer.sendChatHeader(pMessage.signedHeader(), pMessage.headerSignature(), abyte);
             }
         }
-    }
-
-    private boolean verifyChatTrusted(PlayerChatMessage pMessage, ChatSender pSender) {
-        return !pMessage.hasExpiredServer(Instant.now()) && pMessage.verify(pSender);
     }
 
     public ServerStatsCounter getPlayerStats(Player pPlayer) {

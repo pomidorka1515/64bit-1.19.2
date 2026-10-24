@@ -71,17 +71,7 @@ public class ClientHandshakePacketListenerImpl implements ClientLoginPacketListe
             cipher = Crypt.getCipher(2, secretkey);
             cipher1 = Crypt.getCipher(1, secretkey);
             byte[] abyte = pPacket.getNonce();
-            Signer signer = this.minecraft.getProfileKeyPairManager().signer();
-            if (signer == null) {
-                serverboundkeypacket = new ServerboundKeyPacket(secretkey, publickey, abyte);
-            } else {
-                long i = Crypt.SaltSupplier.getLong();
-                byte[] abyte1 = signer.sign((p_233598_) -> {
-                    p_233598_.update(abyte);
-                    p_233598_.update(Longs.toByteArray(i));
-                });
-                serverboundkeypacket = new ServerboundKeyPacket(secretkey, publickey, i, abyte1);
-            }
+            serverboundkeypacket = new ServerboundKeyPacket(secretkey, publickey, abyte);
         } catch (Exception exception) {
             throw new IllegalStateException("Protocol error", exception);
         }

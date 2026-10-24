@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Queues;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.exceptions.AuthenticationException;
-import com.mojang.authlib.minecraft.BanDetails;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.minecraft.UserApiService;
 import com.mojang.authlib.minecraft.UserApiService.UserFlag;
@@ -72,9 +71,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.client.gui.components.toasts.ToastComponent;
-import net.minecraft.client.gui.components.toasts.TutorialToast;
 import net.minecraft.client.gui.font.FontManager;
-import net.minecraft.client.gui.screens.BanNoticeScreen;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.ConfirmLinkScreen;
 import net.minecraft.client.gui.screens.ConnectScreen;
@@ -95,7 +92,6 @@ import net.minecraft.client.gui.screens.advancements.AdvancementsScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.gui.screens.social.PlayerSocialManager;
-import net.minecraft.client.gui.screens.social.SocialInteractionsScreen;
 import net.minecraft.client.gui.screens.worldselection.WorldOpenFlows;
 import net.minecraft.client.main.GameConfig;
 import net.minecraft.client.model.geom.EntityModelSet;
@@ -103,11 +99,8 @@ import net.minecraft.client.multiplayer.ClientHandshakePacketListenerImpl;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
-import net.minecraft.client.multiplayer.ProfileKeyPairManager;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.chat.ChatListener;
-import net.minecraft.client.multiplayer.chat.report.ReportEnvironment;
-import net.minecraft.client.multiplayer.chat.report.ReportingContext;
 import net.minecraft.client.multiplayer.resolver.ServerAddress;
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.client.player.LocalPlayer;
@@ -252,7 +245,6 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
     public static final ResourceLocation ALT_FONT = new ResourceLocation("alt");
     private static final ResourceLocation REGIONAL_COMPLIANCIES = new ResourceLocation("regional_compliancies.json");
     private static final CompletableFuture<Unit> RESOURCE_RELOAD_INITIAL_TASK = CompletableFuture.completedFuture(Unit.INSTANCE);
-    private static final Component SOCIAL_INTERACTIONS_NOT_AVAILABLE = Component.translatable("multiplayer.socialInteractions.not_available");
     public static final String UPDATE_DRIVERS_ADVICE = "Please make sure you have up-to-date drivers (see aka.ms/mcdriver for instructions).";
     private final File resourcePackDirectory;
     private final PropertyMap profileProperties;
@@ -316,7 +308,6 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
     private final EntityModelSet entityModels;
     private final BlockEntityRenderDispatcher blockEntityRenderDispatcher;
     private final UUID deviceSessionId = UUID.randomUUID();
-    private final ProfileKeyPairManager profileKeyPairManager;
     private final RealmsDataFetcher realmsDataFetcher;
     @Nullable
     public MultiPlayerGameMode gameMode;
@@ -365,7 +356,6 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
     @Nullable
     private CompletableFuture<Void> pendingReload;
     @Nullable
-    private TutorialToast socialInteractionsToast;
     private ProfilerFiller profiler = InactiveProfiler.INSTANCE;
     private int fpsPieRenderTicks;
     private final ContinuousProfiler fpsPieProfiler = new ContinuousProfiler(Util.timeSource, () -> {
@@ -382,7 +372,6 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
     private final Realms32BitWarningStatus realms32BitWarningStatus;
     private final GameNarrator narrator;
     private final ChatListener chatListener;
-    private ReportingContext reportingContext;
     private String debugPath = "root";
 
     public Minecraft(GameConfig pGameConfig) {
@@ -542,12 +531,10 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
         this.window.setDefaultErrorCallback();
         this.resizeDisplay();
         this.gameRenderer.preloadUiShader(this.getClientPackSource().getVanillaPack().asProvider());
-        this.profileKeyPairManager = new ProfileKeyPairManager(this.userApiService, this.user.getGameProfile().getId(), this.gameDirectory.toPath());
         this.realms32BitWarningStatus = new Realms32BitWarningStatus(this);
         this.narrator = new GameNarrator(this);
         this.chatListener = new ChatListener(this);
         this.chatListener.setMessageDelay(this.options.chatDelay().get());
-        this.reportingContext = ReportingContext.create(ReportEnvironment.local(), this.userApiService);
         LoadingOverlay.registerTextures(this);
         List<PackResources> list = this.resourcePackRepository.openAllSelected();
         this.reloadStateTracker.startReload(ResourceLoadStateTracker.ReloadReason.INITIAL, list);
@@ -565,14 +552,6 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
             reloadinstance.done().thenRunAsync(() -> {
                 ConnectScreen.startConnecting(new TitleScreen(), this, new ServerAddress(s, i), (ServerData) null);
             }, this);
-        } else if (this.shouldShowBanNotice()) {
-            this.setScreen(BanNoticeScreen.create((p_238185_) -> {
-                if (p_238185_) {
-                    Util.getPlatform().openUri("https://aka.ms/mcjavamoderation");
-                }
-
-                this.setScreen(new TitleScreen(true));
-            }, this.multiplayerBan()));
         } else {
             this.setScreen(new TitleScreen(true));
         }
@@ -883,21 +862,9 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
     private void openChatScreen(String pDefaultText) {
         Minecraft.ChatStatus minecraft$chatstatus = this.getChatStatus();
         if (!minecraft$chatstatus.isChatAllowed(this.isLocalServer())) {
-            if (this.gui.isShowingChatDisabledByPlayer()) {
-                this.gui.setChatDisabledByPlayerShown(false);
-                this.setScreen(new ConfirmLinkScreen((p_243338_) -> {
-                    if (p_243338_) {
-                        Util.getPlatform().openUri("https://aka.ms/JavaAccountSettings");
-                    }
-
-                    this.setScreen((Screen) null);
-                }, Minecraft.ChatStatus.INFO_DISABLED_BY_PROFILE, "https://aka.ms/JavaAccountSettings", true));
-            } else {
-                Component component = minecraft$chatstatus.getMessage();
-                this.gui.setOverlayMessage(component, false);
-                this.narrator.sayNow(component);
-                this.gui.setChatDisabledByPlayerShown(minecraft$chatstatus == Minecraft.ChatStatus.DISABLED_BY_PROFILE);
-            }
+            Component component = minecraft$chatstatus.getMessage();
+            this.gui.setOverlayMessage(component, false);
+            this.narrator.sayNow(component);
         } else {
             this.setScreen(new ChatScreen(pDefaultText));
         }
@@ -1716,15 +1683,6 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
         this.soundManager.tick(this.pause);
         if (this.level != null) {
             if (!this.pause) {
-                if (!this.options.joinedFirstServer && this.isMultiplayerServer()) {
-                    Component component = Component.translatable("tutorial.socialInteractions.title");
-                    Component component1 = Component.translatable("tutorial.socialInteractions.description", Tutorial.key("socialInteractions"));
-                    this.socialInteractionsToast = new TutorialToast(TutorialToast.Icons.SOCIAL_INTERACTIONS, component, component1, true);
-                    this.tutorial.addTimedToast(this.socialInteractionsToast, 160);
-                    this.options.joinedFirstServer = true;
-                    this.options.save();
-                }
-
                 this.tutorial.tick();
 
                 try {
@@ -1791,20 +1749,6 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
                 } else {
                     CreativeModeInventoryScreen.handleHotbarLoadOrSave(this, i, flag1, flag);
                 }
-            }
-        }
-
-        while (this.options.keySocialInteractions.consumeClick()) {
-            if (!this.isMultiplayerServer()) {
-                this.player.displayClientMessage(SOCIAL_INTERACTIONS_NOT_AVAILABLE, true);
-                this.narrator.sayNow(SOCIAL_INTERACTIONS_NOT_AVAILABLE);
-            } else {
-                if (this.socialInteractionsToast != null) {
-                    this.tutorial.removeTimedToast(this.socialInteractionsToast);
-                    this.socialInteractionsToast = null;
-                }
-
-                this.setScreen(new SocialInteractionsScreen());
             }
         }
 
@@ -1884,16 +1828,11 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
         return this.gpuUtilization;
     }
 
-    public ProfileKeyPairManager getProfileKeyPairManager() {
-        return this.profileKeyPairManager;
-    }
-
     public WorldOpenFlows createWorldOpenFlows() {
         return new WorldOpenFlows(this, this.levelSource);
     }
 
     public void doWorldLoad(String p_231381_, LevelStorageSource.LevelStorageAccess p_231382_, PackRepository p_231383_, WorldStem p_231384_) {
-        CompletableFuture<Optional<ProfilePublicKey.Data>> completablefuture = this.profileKeyPairManager.preparePublicKey();
         this.clearLevel();
         this.progressListener.set((StoringChunkProgressListener) null);
 
@@ -1911,7 +1850,6 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
                 });
             });
             this.isLocalServer = true;
-            this.updateReportEnvironment(ReportEnvironment.local());
         } catch (Throwable throwable) {
             CrashReport crashreport = CrashReport.forThrowable(throwable, "Starting integrated server");
             CrashReportCategory crashreportcategory = crashreport.addCategory("Starting integrated server");
@@ -1950,7 +1888,7 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
         Connection connection = Connection.connectToLocalServer(socketaddress);
         connection.setListener(new ClientHandshakePacketListenerImpl(connection, this, (Screen) null, (p_231442_) -> {}));
         connection.send(new ClientIntentionPacket(socketaddress.toString(), 0, ConnectionProtocol.LOGIN));
-        connection.send(new ServerboundHelloPacket(this.getUser().getName(), completablefuture.join(), Optional.ofNullable(this.getUser().getProfileId())));
+        connection.send(new ServerboundHelloPacket(this.getUser().getName(), Optional.empty(), Optional.ofNullable(this.getUser().getProfileId())));
         this.pendingConnection = connection;
     }
 
@@ -2039,20 +1977,11 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
     }
 
     public boolean allowsMultiplayer() {
-        return this.allowsMultiplayer && this.userApiService.properties().flag(UserFlag.SERVERS_ALLOWED) && this.multiplayerBan() == null;
+        return this.allowsMultiplayer;
     }
 
     public boolean allowsRealms() {
-        return this.userApiService.properties().flag(UserFlag.REALMS_ALLOWED) && this.multiplayerBan() == null;
-    }
-
-    public boolean shouldShowBanNotice() {
-        return this.multiplayerBan() != null;
-    }
-
-    @Nullable
-    public BanDetails multiplayerBan() {
-        return this.userApiService.properties().bannedScopes().get("MULTIPLAYER");
+        return true;
     }
 
     public boolean isBlocked(UUID pPlayerUUID) {
@@ -2069,7 +1998,7 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
         } else if (!this.allowsChat) {
             return Minecraft.ChatStatus.DISABLED_BY_LAUNCHER;
         } else {
-            return !this.userApiService.properties().flag(UserFlag.CHAT_ALLOWED) ? Minecraft.ChatStatus.DISABLED_BY_PROFILE : Minecraft.ChatStatus.ENABLED;
+            return Minecraft.ChatStatus.ENABLED;
         }
     }
 
@@ -2268,19 +2197,10 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
 
     public void setCurrentServer(@Nullable ServerData pCurrentServer) {
         this.currentServer = pCurrentServer;
-        ReportEnvironment reportenvironment = pCurrentServer != null ? ReportEnvironment.thirdParty(pCurrentServer.ip) : ReportEnvironment.local();
-        this.updateReportEnvironment(reportenvironment);
     }
 
     public void setCurrentServer(RealmsServer pRealmsServer, String pIp) {
         this.currentServer = pRealmsServer.toServerData(pIp);
-        this.updateReportEnvironment(ReportEnvironment.realm(pRealmsServer));
-    }
-
-    private void updateReportEnvironment(ReportEnvironment pReportEnvironment) {
-        if (!this.reportingContext.matches(pReportEnvironment)) {
-            this.reportingContext = ReportingContext.create(pReportEnvironment, this.userApiService);
-        }
     }
 
     @Nullable
@@ -2715,10 +2635,6 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
         return this.chatListener;
     }
 
-    public ReportingContext getReportingContext() {
-        return this.reportingContext;
-    }
-
     public RealmsDataFetcher realmsDataFetcher() {
         return this.realmsDataFetcher;
     }
@@ -2739,15 +2655,8 @@ public class Minecraft extends ReentrantBlockableEventLoop<Runnable> implements 
             public boolean isChatAllowed(boolean p_168057_) {
                 return p_168057_;
             }
-        },
-        DISABLED_BY_PROFILE(Component.translatable("chat.disabled.profile", Component.keybind(Minecraft.instance.options.keyChat.getName())).withStyle(ChatFormatting.RED)) {
-            public boolean isChatAllowed(boolean p_168063_) {
-                return p_168063_;
-            }
         };
 
-        static final Component INFO_DISABLED_BY_PROFILE = Component.translatable("chat.disabled.profile.moreInfo");
-        private static final String URL_DISABLED_BY_PROFILE = "https://aka.ms/JavaAccountSettings";
         private final Component message;
 
         ChatStatus(Component p_168033_) {

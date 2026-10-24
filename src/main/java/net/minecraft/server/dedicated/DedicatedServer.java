@@ -411,10 +411,6 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface 
         return this.getProperties().networkCompressionThreshold;
     }
 
-    public boolean enforceSecureProfile() {
-        return this.getProperties().enforceSecureProfile && this.getProperties().onlineMode;
-    }
-
     protected boolean convertOldUsers() {
         boolean flag = false;
 

@@ -55,12 +55,10 @@ import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FilterMask;
 import net.minecraft.network.chat.LastSeenMessages;
-import net.minecraft.network.chat.LastSeenMessagesValidator;
 import net.minecraft.network.chat.MessageSignature;
 import net.minecraft.network.chat.MessageSigner;
 import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.network.chat.PreviewableCommand;
-import net.minecraft.network.chat.SignedMessageChain;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketUtils;
 import net.minecraft.network.protocol.game.ClientboundBlockChangedAckPacket;
@@ -220,8 +218,6 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
     private final ChatPreviewCache chatPreviewCache = new ChatPreviewCache();
     private final ChatPreviewThrottler chatPreviewThrottler = new ChatPreviewThrottler();
     private final AtomicReference<Instant> lastChatTimeStamp = new AtomicReference<>(Instant.EPOCH);
-    private final SignedMessageChain.Decoder signedMessageDecoder;
-    private final LastSeenMessagesValidator lastSeenMessagesValidator = new LastSeenMessagesValidator();
     private final FutureChain chatMessageChain;
 
     public ServerGamePacketListenerImpl(MinecraftServer pServer, Connection pConnection, ServerPlayer pPlayer) {
@@ -232,12 +228,6 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         pPlayer.connection = this;
         this.keepAliveTime = Util.getMillis();
         pPlayer.getTextFilter().join();
-        ProfilePublicKey profilepublickey = pPlayer.getProfilePublicKey();
-        if (profilepublickey != null) {
-            this.signedMessageDecoder = (new SignedMessageChain()).decoder();
-        } else {
-            this.signedMessageDecoder = SignedMessageChain.Decoder.UNSIGNED;
-        }
 
         this.chatMessageChain = new FutureChain(pServer);
     }
@@ -1238,7 +1228,6 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
             if (this.tryHandleChat(pPacket.message(), pPacket.timeStamp(), pPacket.lastSeenMessages())) {
                 this.server.submit(() -> {
                     PlayerChatMessage playerchatmessage = this.getSignedMessage(pPacket);
-                    if (this.verifyChatMessage(playerchatmessage)) {
                         this.chatMessageChain.append(() -> {
                             CompletableFuture<FilteredText> completablefuture = this.filterTextPacket(playerchatmessage.signedContent().plain());
                             CompletableFuture<PlayerChatMessage> completablefuture1 = this.server.getChatDecorator().decorate(this.player, playerchatmessage);
@@ -1248,7 +1237,6 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                                 this.broadcastChatMessage(playerchatmessage1);
                             }, this.server);
                         });
-                    }
                 });
             }
         }
@@ -1271,12 +1259,6 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         ParseResults<CommandSourceStack> parseresults = this.parseCommand(pPacket.command());
         Map<String, PlayerChatMessage> map = this.collectSignedArguments(pPacket, PreviewableCommand.of(parseresults));
 
-        for (PlayerChatMessage playerchatmessage : map.values()) {
-            if (!this.verifyChatMessage(playerchatmessage)) {
-                return;
-            }
-        }
-
         CommandSigningContext commandsigningcontext = new CommandSigningContext.SignedArguments(map);
         parseresults = Commands.mapSource(parseresults, (p_242749_) -> {
             return p_242749_.withSigningContext(commandsigningcontext);
@@ -1287,14 +1269,11 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
     private Map<String, PlayerChatMessage> collectSignedArguments(ServerboundChatCommandPacket pPacket, PreviewableCommand<?> pCommand) {
         Component component = this.chatPreviewCache.pull(pPacket.command());
         MessageSigner messagesigner = new MessageSigner(this.player.getUUID(), pPacket.timeStamp(), pPacket.salt());
-        LastSeenMessages lastseenmessages = pPacket.lastSeenMessages().lastSeen();
         Map<String, PlayerChatMessage> map = new Object2ObjectOpenHashMap<>();
-        SignedMessageChain.Decoder signedmessagechain$decoder = this.player.connection.signedMessageDecoder();
 
         for (Pair<String, String> pair : ArgumentSignatures.collectPlainSignableArguments(pCommand)) {
             String s = pair.getFirst();
             String s1 = pair.getSecond();
-            MessageSignature messagesignature = pPacket.argumentSignatures().get(s);
             ChatMessageContent chatmessagecontent;
             if (pPacket.signedPreview() && component != null) {
                 chatmessagecontent = new ChatMessageContent(s1, component);
@@ -1302,8 +1281,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
                 chatmessagecontent = new ChatMessageContent(s1);
             }
 
-            SignedMessageChain.Link signedmessagechain$link = new SignedMessageChain.Link(messagesignature);
-            map.put(s, signedmessagechain$decoder.unpack(signedmessagechain$link, messagesigner, chatmessagecontent, lastseenmessages));
+            map.put(s, PlayerChatMessage.unsigned(messagesigner, chatmessagecontent));
         }
 
         return map;
@@ -1323,18 +1301,8 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
             this.send(new ClientboundSystemChatPacket(Component.translatable("chat.disabled.options").withStyle(ChatFormatting.RED), false));
             return false;
         } else {
-            Set<LastSeenMessagesValidator.ErrorCondition> set;
-            synchronized (this.lastSeenMessagesValidator) {
-                set = this.lastSeenMessagesValidator.validateAndUpdate(p_242217_);
-            }
-
-            if (!set.isEmpty()) {
-                this.handleValidationFailure(set);
-                return false;
-            } else {
-                this.player.resetLastActionTime();
-                return true;
-            }
+            this.player.resetLastActionTime();
+            return true;
         }
     }
 
@@ -1362,10 +1330,8 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
 
     private PlayerChatMessage getSignedMessage(ServerboundChatPacket pPacket) {
         MessageSigner messagesigner = pPacket.getSigner(this.player);
-        SignedMessageChain.Link signedmessagechain$link = new SignedMessageChain.Link(pPacket.signature());
-        LastSeenMessages lastseenmessages = pPacket.lastSeenMessages().lastSeen();
         ChatMessageContent chatmessagecontent = this.getSignedContent(pPacket);
-        return this.signedMessageDecoder.unpack(signedmessagechain$link, messagesigner, chatmessagecontent, lastseenmessages);
+        return PlayerChatMessage.unsigned(messagesigner, chatmessagecontent);
     }
 
     private ChatMessageContent getSignedContent(ServerboundChatPacket pPacket) {
@@ -1376,28 +1342,6 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
     private void broadcastChatMessage(PlayerChatMessage pMessage) {
         this.server.getPlayerList().broadcastChatMessage(pMessage, this.player, ChatType.bind(ChatType.CHAT, this.player));
         this.detectRateSpam();
-    }
-
-    private boolean verifyChatMessage(PlayerChatMessage pMessage) {
-        ChatSender chatsender = this.player.asChatSender();
-        ProfilePublicKey profilepublickey = chatsender.profilePublicKey();
-        if (profilepublickey != null) {
-            if (profilepublickey.data().hasExpired()) {
-                this.player.sendSystemMessage(Component.translatable("chat.disabled.expiredProfileKey").withStyle(ChatFormatting.RED));
-                return false;
-            }
-
-            if (!pMessage.verify(chatsender)) {
-                this.disconnect(Component.translatable("multiplayer.disconnect.unsigned_chat"));
-                return false;
-            }
-        }
-
-        if (pMessage.hasExpiredServer(Instant.now())) {
-            LOGGER.warn("{} sent expired chat: '{}'. Is the client/server system time unsynchronized?", this.player.getName().getString(), pMessage.signedContent().plain());
-        }
-
-        return true;
     }
 
     private void detectRateSpam() {
@@ -1478,19 +1422,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
     }
 
     public void handleChatAck(ServerboundChatAckPacket pPacket) {
-        Set<LastSeenMessagesValidator.ErrorCondition> set;
-        synchronized (this.lastSeenMessagesValidator) {
-            set = this.lastSeenMessagesValidator.validateAndUpdate(pPacket.lastSeenMessages());
-        }
-
-        if (!set.isEmpty()) {
-            this.handleValidationFailure(set);
-        }
-    }
-
-    private void handleValidationFailure(Set<LastSeenMessagesValidator.ErrorCondition> pErrorConditions) {
-        LOGGER.warn("Failed to validate message from {}, reasons: {}", this.player.getName().getString(), pErrorConditions.stream().map(LastSeenMessagesValidator.ErrorCondition::message).collect(Collectors.joining(",")));
-        this.disconnect(Component.translatable("multiplayer.disconnect.chat_validation_failed"));
+        // Chat acknowledgements are not used for report-evidence validation.
     }
 
     public void handleAnimate(ServerboundSwingPacket pPacket) {
@@ -1552,23 +1484,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         }
     }
 
-    public SignedMessageChain.Decoder signedMessageDecoder() {
-        return this.signedMessageDecoder;
-    }
-
     public void addPendingMessage(PlayerChatMessage pMessage) {
-        LastSeenMessages.Entry lastseenmessages$entry = pMessage.toLastSeenEntry();
-        if (lastseenmessages$entry != null) {
-            int i;
-            synchronized (this.lastSeenMessagesValidator) {
-                this.lastSeenMessagesValidator.addPending(lastseenmessages$entry);
-                i = this.lastSeenMessagesValidator.pendingMessagesCount();
-            }
-
-            if (i > 4096) {
-                this.disconnect(Component.translatable("multiplayer.disconnect.too_many_pending_chats"));
-            }
-        }
     }
 
     public void handleInteract(ServerboundInteractPacket pPacket) {

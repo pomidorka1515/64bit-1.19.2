@@ -91,7 +91,6 @@ public class DedicatedServerProperties extends Settings<DedicatedServerPropertie
     public final boolean previewsChat = this.get("previews-chat", false);
     public final Settings<DedicatedServerProperties>.MutableValue<Integer> playerIdleTimeout = this.getMutable("player-idle-timeout", 0);
     public final Settings<DedicatedServerProperties>.MutableValue<Boolean> whiteList = this.getMutable("white-list", false);
-    public final boolean enforceSecureProfile = this.get("enforce-secure-profile", true);
     private final DedicatedServerProperties.WorldGenProperties worldGenProperties = new DedicatedServerProperties.WorldGenProperties(this.get("level-seed", ""), this.get("generator-settings", (p_211543_) -> {
         return GsonHelper.parse(!p_211543_.isEmpty() ? p_211543_ : "{}");
     }, new JsonObject()), this.get("generate-structures", true), this.get("level-type", (p_211541_) -> {

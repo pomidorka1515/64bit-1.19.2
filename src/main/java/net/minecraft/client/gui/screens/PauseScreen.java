@@ -8,7 +8,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.achievement.StatsScreen;
 import net.minecraft.client.gui.screens.advancements.AdvancementsScreen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
-import net.minecraft.client.gui.screens.social.SocialInteractionsScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -64,16 +63,13 @@ public class PauseScreen extends Screen {
             }, "https://aka.ms/snapshotbugs?ref=game", true));
         }));
         button.active = !SharedConstants.getCurrentVersion().getDataVersion().isSideSeries();
-        this.addRenderableWidget(new Button(this.width / 2 - 102, this.height / 4 + 96 + -16, 98, 20, Component.translatable("menu.options"), (p_96323_) -> {
+        boolean canShareToLan = this.minecraft.hasSingleplayerServer() && !this.minecraft.getSingleplayerServer().isPublished();
+        this.addRenderableWidget(new Button(this.width / 2 - 102, this.height / 4 + 96 + -16, canShareToLan ? 98 : 204, 20, Component.translatable("menu.options"), (p_96323_) -> {
             this.minecraft.setScreen(new OptionsScreen(this, this.minecraft.options));
         }));
-        if (this.minecraft.hasSingleplayerServer() && !this.minecraft.getSingleplayerServer().isPublished()) {
+        if (canShareToLan) {
             this.addRenderableWidget(new Button(this.width / 2 + 4, this.height / 4 + 96 + -16, 98, 20, Component.translatable("menu.shareToLan"), (p_96321_) -> {
                 this.minecraft.setScreen(new ShareToLanScreen(this));
-            }));
-        } else {
-            this.addRenderableWidget(new Button(this.width / 2 + 4, this.height / 4 + 96 + -16, 98, 20, Component.translatable("menu.playerReporting"), (p_238870_) -> {
-                this.minecraft.setScreen(new SocialInteractionsScreen());
             }));
         }
 

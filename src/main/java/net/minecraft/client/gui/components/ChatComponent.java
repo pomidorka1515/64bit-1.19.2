@@ -81,11 +81,6 @@ public class ChatComponent extends GuiComponent {
                                 if (guimessagetag != null) {
                                     int j3 = guimessagetag.indicatorColor() | i2 << 24;
                                     fill(pPoseStack, -4, l2 - l, -2, l2, j3);
-                                    if (flag && guimessage$line.endOfEntry() && guimessagetag.icon() != null) {
-                                        int k3 = this.getTagIconLeft(guimessage$line);
-                                        int l3 = i3 + 9;
-                                        this.drawTagIcon(pPoseStack, k3, l3, guimessagetag.icon());
-                                    }
                                 }
 
                                 RenderSystem.enableBlend();
@@ -132,15 +127,6 @@ public class ChatComponent extends GuiComponent {
         }
     }
 
-    private void drawTagIcon(PoseStack pPoseStack, int pLeft, int pBottom, GuiMessageTag.Icon pTagIcon) {
-        int i = pBottom - pTagIcon.height - 1;
-        pTagIcon.draw(pPoseStack, pLeft, i);
-    }
-
-    private int getTagIconLeft(GuiMessage.Line pLine) {
-        return this.minecraft.font.width(pLine.content()) + 4;
-    }
-
     private boolean isChatHidden() {
         return this.minecraft.options.chatVisibility().get() == ChatVisiblity.HIDDEN;
     }
@@ -183,9 +169,6 @@ public class ChatComponent extends GuiComponent {
     private void addMessage(Component pChatComponent, @Nullable MessageSignature pHeaderSignature, int pAddedTime, @Nullable GuiMessageTag pTag, boolean pOnlyTrim) {
         this.logChatMessage(pChatComponent, pTag);
         int i = Mth.floor((double) this.getWidth() / this.getScale());
-        if (pTag != null && pTag.icon() != null) {
-            i -= pTag.icon().width + 4 + 2;
-        }
 
         List<FormattedCharSequence> list = ComponentRenderUtils.wrapComponents(pChatComponent, i, this.minecraft.font);
         boolean flag = this.isChatFocused();
@@ -304,37 +287,6 @@ public class ChatComponent extends GuiComponent {
             }
         } else {
             return null;
-        }
-    }
-
-    @Nullable
-    public GuiMessageTag getMessageTagAt(double pMouseX, double pMouseY) {
-        double d0 = this.screenToChatX(pMouseX);
-        double d1 = this.screenToChatY(pMouseY);
-        int i = this.getMessageIndexAt(d1);
-        if (i >= 0 && i < this.trimmedMessages.size()) {
-            GuiMessage.Line guimessage$line = this.trimmedMessages.get(i);
-            GuiMessageTag guimessagetag = guimessage$line.tag();
-            if (guimessagetag != null && this.hasSelectedMessageTag(d0, guimessage$line, guimessagetag)) {
-                return guimessagetag;
-            }
-        }
-
-        return null;
-    }
-
-    private boolean hasSelectedMessageTag(double p_240619_, GuiMessage.Line p_240547_, GuiMessageTag p_240637_) {
-        if (p_240619_ < 0.0D) {
-            return true;
-        } else {
-            GuiMessageTag.Icon guimessagetag$icon = p_240637_.icon();
-            if (guimessagetag$icon == null) {
-                return false;
-            } else {
-                int i = this.getTagIconLeft(p_240547_);
-                int j = i + guimessagetag$icon.width;
-                return p_240619_ >= (double) i && p_240619_ <= (double) j;
-            }
         }
     }
 

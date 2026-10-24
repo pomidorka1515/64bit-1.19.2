@@ -23,8 +23,8 @@ class GeneratorConfigTest {
                 assertEquals(precision.serializedName(), saved.getString("GeneratorPrecision"));
                 assertFalse(saved.contains("FarlandsMode"));
                 assertEquals(expected, GeneratorConfig.read(saved));
-                assertEquals("Config End Rings: true Precision: " + precision.serializedName() + " Generator: " + mode.generatorDescription(), expected.debugLine(true));
-                assertEquals("Config End Rings: false Precision: " + precision.serializedName() + " Generator: " + mode.generatorDescription(), expected.debugLine(false));
+                assertEquals("Config " + mode.generatorDescription() + " | " + precision.serializedName() + " | end rings: true", expected.debugLine(true));
+                assertEquals("Config " + mode.generatorDescription() + " | " + precision.serializedName() + " | end rings: false", expected.debugLine(false));
             }
         }
     }

@@ -220,19 +220,23 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
 
     public static String getDebugString() {
         if (Double.isNaN(debugScaledX)) return "Not evaluated at this position";
-        return String.format(Locale.ROOT, "Scaled X: %.3f Selector Lerp: %s", debugScaledX, formatDebugValue(debugSelectorLerp));
+        return String.format(Locale.ROOT, "Scaled X: %.0f Selector lerp: %s", debugScaledX, formatDebugValue(debugSelectorLerp));
     }
 
     public static String getDebugString2() {
-        return String.format(Locale.ROOT, "Min-Limit: %s Max-Limit: %s Blended Density: %s", formatDebugValue(debugMinLimit), formatDebugValue(debugMaxLimit), formatDebugValue(debugBlendedDensity));
+        return String.format(Locale.ROOT, "BlendedNoise min: %s max: %s density: %s", formatDebugValue(debugMinLimit), formatDebugValue(debugMaxLimit), formatDebugValue(debugBlendedDensity));
     }
 
     public static String formatDebugValue(double value) {
         if (!Double.isFinite(value) || Math.abs(value) > 1_000_000_000.0D) {
-            return "\247c" + String.format(Locale.ROOT, "%.3e", value) + "\247r";
+            return "\247c" + formatScientific(value) + "\247r";
         }
 
-        return String.format(Locale.ROOT, "%.3f", value);
+        return String.format(Locale.ROOT, "%.2f", value);
+    }
+
+    public static String formatScientific(double value) {
+        return String.format(Locale.ROOT, "%.2e", value).replace("e+", "e").replaceAll("e(-?)0+(\\d+)", "e$1$2");
     }
 
     public double minValue() {

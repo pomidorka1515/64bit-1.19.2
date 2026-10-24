@@ -169,11 +169,12 @@ public class SimplexNoise {
     }
 
     public static String getDebugString() {
-        return String.format(Locale.ROOT, "Skew Grid: %d Corner Delta X: %.3f", debugSkewGrid, debugCornerDeltaX);
+        return String.format(Locale.ROOT, "Simplex: delta: (%.2f, %.2f) output: %s skew grid: %d",
+                debugCornerDeltaX, debugCornerDeltaY, BlendedNoise.formatDebugValue(debugSimplexOutput), debugSkewGrid);
     }
 
     public static String getDebugString2() {
-        return String.format(Locale.ROOT, "Corner Delta Y: %.3f Simplex Output: %s", debugCornerDeltaY, BlendedNoise.formatDebugValue(debugSimplexOutput));
+        return String.format(Locale.ROOT, "Corner Delta Y: %.2f Simplex Output: %s", debugCornerDeltaY, BlendedNoise.formatDebugValue(debugSimplexOutput));
     }
 
     public double getValue(double pX, double pY, double pZ) {

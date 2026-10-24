@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.synth.WorldgenCoordinate;
+import net.minecraft.world.level.levelgen.synth.NoiseSampling;
 import org.apache.commons.lang3.mutable.MutableDouble;
 
 public interface Aquifer {
@@ -83,6 +84,7 @@ public interface Aquifer {
         private final DensityFunction lavaNoise;
         private final PositionalRandomFactory positionalRandomFactory;
         private final Aquifer.FluidStatus[] aquiferCache;
+        private final java.util.Set<Aquifer.FluidStatus> extrapolatedWater = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
         private final BlockPos[] aquiferLocationCache;
         private final Aquifer.FluidPicker globalFluidPicker;
         private final DensityFunction erosion;
@@ -236,10 +238,10 @@ public interface Aquifer {
                     BlockState blockstate = aquifer$fluidstatus1.at(j);
                     if (d1 <= 0.0D) {
                         this.shouldScheduleFluidUpdate = d1 >= FLOWING_UPDATE_SIMULARITY;
-                        return blockstate;
+                        return this.filterWaterOutput(aquifer$fluidstatus1, blockstate);
                     } else if (blockstate.is(Blocks.WATER) && this.globalFluidPicker.computeFluid(pContext.blockXHi(), globalX, j - 1, pContext.blockZHi(), globalZ).at(j - 1).is(Blocks.LAVA)) {
                         this.shouldScheduleFluidUpdate = true;
-                        return blockstate;
+                        return this.filterWaterOutput(aquifer$fluidstatus1, blockstate);
                     } else {
                         MutableDouble mutabledouble = new MutableDouble(Double.NaN);
                         Aquifer.FluidStatus aquifer$fluidstatus2 = this.getAquiferStatus(k2);
@@ -268,7 +270,7 @@ public interface Aquifer {
                             }
 
                             this.shouldScheduleFluidUpdate = true;
-                            return blockstate;
+                            return this.filterWaterOutput(aquifer$fluidstatus1, blockstate);
                         }
                     }
                 }
@@ -277,6 +279,14 @@ public interface Aquifer {
 
         public boolean shouldScheduleFluidUpdate() {
             return this.shouldScheduleFluidUpdate;
+        }
+
+        private BlockState filterWaterOutput(Aquifer.FluidStatus status, BlockState state) {
+            if (state.is(Blocks.WATER) && this.extrapolatedWater.contains(status)) {
+                this.shouldScheduleFluidUpdate = false;
+                return Blocks.AIR.defaultBlockState();
+            }
+            return state;
         }
 
         private static double similarity(double k1, double l1) {
@@ -373,6 +383,14 @@ public interface Aquifer {
         }
 
         private Aquifer.FluidStatus computeFluid(long pX, int pY, long pZ) {
+            return this.computeFluid(pX, pY, pZ, true);
+        }
+
+        private Aquifer.FluidStatus computeFluidUnfiltered(long pX, int pY, long pZ) {
+            return this.computeFluid(pX, pY, pZ, false);
+        }
+
+        private Aquifer.FluidStatus computeFluid(long pX, int pY, long pZ, boolean filterWater) {
             Aquifer.FluidStatus aquifer$fluidstatus = this.pickFluid(pX, pY, pZ);
             int i = Integer.MAX_VALUE;
             int j = pY + 12;
@@ -415,8 +433,17 @@ public interface Aquifer {
                 i = Math.min(i, j1);
             }
 
-            int l1 = this.computeSurfaceLevel(pX, pY, pZ, aquifer$fluidstatus, i, flag);
-            return new Aquifer.FluidStatus(l1, this.computeFluidType(pX, pY, pZ, aquifer$fluidstatus, l1));
+            SurfaceLevel surface = this.computeSurfaceLevel(pX, pY, pZ, aquifer$fluidstatus, i, flag);
+            int l1 = surface.level();
+            Aquifer.FluidStatus status = new Aquifer.FluidStatus(l1, this.computeFluidType(pX, pY, pZ, aquifer$fluidstatus, l1));
+            // Only tag locally computed water whose actual floodedness sample extrapolated.
+            // Surface/ocean early returns can share picker statuses and must remain untouched.
+            // Keep fluid levels/types unchanged for pressure and lava calculations.
+            if (filterWater && surface.extrapolated() && status.fluidType.is(Blocks.WATER)
+                    && l1 != DimensionType.WAY_BELOW_MIN_Y) {
+                this.extrapolatedWater.add(status);
+            }
+            return status;
         }
 
         /**
@@ -462,10 +489,13 @@ public interface Aquifer {
             return new DensityFunction.SinglePointContext(Math.floorDiv(pX, divisor), pY, Math.floorDiv(pZ, divisor));
         }
 
-        private int computeSurfaceLevel(long p_223910_, int p_223911_, long p_223912_, Aquifer.FluidStatus p_223913_, int p_223914_, boolean p_223915_) {
+        private record SurfaceLevel(int level, boolean extrapolated) {}
+
+        private SurfaceLevel computeSurfaceLevel(long p_223910_, int p_223911_, long p_223912_, Aquifer.FluidStatus p_223913_, int p_223914_, boolean p_223915_) {
             DensityFunction.SinglePointContext densityfunction$singlepointcontext = this.singlePointContext(p_223910_, p_223911_, p_223912_);
             double d0;
             double d1;
+            boolean extrapolated = false;
             if (OverworldBiomeBuilder.isDeepDarkRegion(this.erosion.compute(densityfunction$singlepointcontext), this.depth.compute(densityfunction$singlepointcontext))) {
                 d0 = -1.0D;
                 d1 = -1.0D;
@@ -473,7 +503,10 @@ public interface Aquifer {
                 int i = p_223914_ + 8 - p_223911_;
                 int j = 64;
                 double d2 = p_223915_ ? Mth.clampedMap((double) i, 0.0D, 64.0D, 1.0D, 0.0D) : 0.0D;
-                double d3 = Mth.clamp(this.fluidLevelFloodednessNoise.compute(densityfunction$singlepointcontext), -1.0D, 1.0D);
+                NoiseSampling.Sample floodedness = NoiseSampling.sampleWithExtrapolation(
+                        () -> this.fluidLevelFloodednessNoise.compute(densityfunction$singlepointcontext));
+                extrapolated = floodedness.extrapolated();
+                double d3 = Mth.clamp(floodedness.value(), -1.0D, 1.0D);
                 double d4 = Mth.map(d2, 1.0D, 0.0D, -0.3D, 0.8D);
                 double d5 = Mth.map(d2, 1.0D, 0.0D, -0.8D, 0.4D);
                 d0 = d3 - d5;
@@ -489,7 +522,7 @@ public interface Aquifer {
                 k = DimensionType.WAY_BELOW_MIN_Y;
             }
 
-            return k;
+            return new SurfaceLevel(k, extrapolated);
         }
 
         private int computeRandomizedFluidSurfaceLevel(long p_223910_, int p_223900_, long p_223901_, int p_223902_) {

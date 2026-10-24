@@ -16,13 +16,13 @@ class NoiseRouterDebugFormattingTest {
         Bootstrap.bootStrap();
     }
 
-    private final DecimalFormat format = new DecimalFormat("0.000", DecimalFormatSymbols.getInstance(Locale.ROOT));
+    private final DecimalFormat format = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ROOT));
 
     @Test
     void validValuesKeepFixedPrecisionIncludingRangeBoundaries() {
-        assertEquals("0.123", format(0.1234D));
-        assertEquals("-1.500", format(-1.5D));
-        assertEquals("1.500", format(1.5D));
+        assertEquals("0.12", format(0.1234D));
+        assertEquals("-1.50", format(-1.5D));
+        assertEquals("1.50", format(1.5D));
     }
 
     @Test
@@ -35,9 +35,9 @@ class NoiseRouterDebugFormattingTest {
 
     @Test
     void invalidValuesAreRedAndRoundedInScientificNotation() {
-        assertEquals("\247c1.501e+00\247r", format(1.501D));
-        assertEquals("\247c1.235e+115\247r", format(1.23456e115D));
-        assertEquals("\247c-1.235e+115\247r", format(-1.23456e115D));
+        assertEquals("\247c1.50e0\247r", format(1.501D));
+        assertEquals("\247c1.23e115\247r", format(1.23456e115D));
+        assertEquals("\247c-1.23e115\247r", format(-1.23456e115D));
         assertEquals("\247cNaN\247r", format(Double.NaN));
         assertEquals("\247cInfinity\247r", format(Double.POSITIVE_INFINITY));
         assertEquals("\247c-Infinity\247r", format(Double.NEGATIVE_INFINITY));

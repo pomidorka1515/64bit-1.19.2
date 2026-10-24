@@ -154,11 +154,11 @@ public final class ImprovedNoise {
         if (Double.isNaN(debugSamplePoint)) return "Not evaluated at this position";
         String gridIndex = Math.abs((double) debugGridIndex) > 1_000_000_000.0D
                 ? BlendedNoise.formatDebugValue(debugGridIndex) : Long.toString(debugGridIndex);
-        return String.format(Locale.ROOT, "Sample Point: %s Grid Index: %s", BlendedNoise.formatDebugValue(debugSamplePoint), gridIndex);
+        return String.format(Locale.ROOT, "Grid Sample point: %s index: %s", BlendedNoise.formatDebugValue(debugSamplePoint), gridIndex);
     }
 
     public static String getDebugString2() {
-        return String.format(Locale.ROOT, "Cell Offset: %s Smoothed Offset: %s", BlendedNoise.formatDebugValue(debugCellOffset), BlendedNoise.formatDebugValue(debugSmoothedOffset));
+        return String.format(Locale.ROOT, "Cell Offset raw: %s smoothed: %s", BlendedNoise.formatDebugValue(debugCellOffset), BlendedNoise.formatDebugValue(debugSmoothedOffset));
     }
 
     private static double gradDot(int pGradIndex, double pXFactor, double pYFactor, double pZFactor) {
@@ -170,6 +170,7 @@ public final class ImprovedNoise {
     }
 
     private double sampleAndLerp(long pGridX, long pGridY, long pGridZ, double pDeltaX, double pWeirdDeltaY, double pDeltaZ, double pDeltaY) {
+        NoiseSampling.observeFractions(pDeltaX, pDeltaY, pDeltaZ);
         int i = this.p(pGridX);
         int j = this.p(pGridX + 1);
         int k = this.p(i + pGridY);

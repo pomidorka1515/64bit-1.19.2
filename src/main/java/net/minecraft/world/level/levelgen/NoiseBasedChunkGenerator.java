@@ -46,7 +46,6 @@ import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.blending.Blender;
 import net.minecraft.world.level.levelgen.carver.CarvingContext;
 import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
-import net.minecraft.world.level.levelgen.synth.BlendedNoise;
 import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
 import org.apache.commons.lang3.mutable.MutableObject;
@@ -158,7 +157,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
     }
 
     public void addDebugScreenInfo(List<String> pInfo, RandomState pRandom, BlockPos pPos) {
-        DecimalFormat decimalformat = new DecimalFormat("0.000");
+        DecimalFormat decimalformat = new DecimalFormat("0.00", java.text.DecimalFormatSymbols.getInstance(java.util.Locale.ROOT));
         NoiseRouter noiserouter = pRandom.router();
         DensityFunction.SinglePointContext densityfunction$singlepointcontext = new DensityFunction.SinglePointContext(pPos.getX(), pPos.getY(), pPos.getZ());
         double d0 = noiserouter.ridges().compute(densityfunction$singlepointcontext);
@@ -183,28 +182,11 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
             pInfo.add("Initial Density: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -64.0D, flag ? 2.0D : 64.0D));
             pInfo.add("Final Density: " + formatDebugValue(decimalformat, d8, 3.0D));
         } else {
-            pInfo.add("NoiseRouter");
-            pInfo.add("T: " + formatDebugValue(decimalformat, d1, 1.5D) + " V: " + formatDebugValue(decimalformat, d2, 1.5D) + " C: " + formatDebugValue(decimalformat, d3, 1.5D) + " E: " + formatDebugValue(decimalformat, d4, 1.5D) + " D: " + formatDebugValue(decimalformat, d5, 2.5D));
-            pInfo.add("W: " + formatDebugValue(decimalformat, d0, 1.5D) + " PV: " + formatDebugValue(decimalformat, d6, 1.0D) + " AS: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -64.0D, flag ? 2.0D : 64.0D) + " N: " + formatDebugValue(decimalformat, d8, 3.0D));
+            pInfo.add("NoiseRouter T: " + formatDebugValue(decimalformat, d1, 1.5D) + " V: " + formatDebugValue(decimalformat, d2, 1.5D) + " C: " + formatDebugValue(decimalformat, d3, 1.5D) + " E: " + formatDebugValue(decimalformat, d4, 1.5D));
+            pInfo.add(" D: " + formatDebugValue(decimalformat, d5, 2.5D)
+                    + " W: " + formatDebugValue(decimalformat, d0, 1.5D) + " PV: " + formatDebugValue(decimalformat, d6, 1.0D) + " AS: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -64.0D, flag ? 2.0D : 64.0D) + " N: " + formatDebugValue(decimalformat, d8, 3.0D));
         }
-        DensityFunction.NoiseHolder cheese = debugNoiseHolder(pRandom, Noises.CAVE_CHEESE);
-        DensityFunction.NoiseHolder pillar = debugNoiseHolder(pRandom, Noises.PILLAR);
-        DensityFunction.NoiseHolder shift = debugNoiseHolder(pRandom, Noises.SHIFT);
-        double shiftX = this.settings.value().useLegacyRandomSource() ? 0.0D : new DensityFunctions.ShiftA(shift).compute(densityfunction$singlepointcontext);
-        double shiftZ = this.settings.value().useLegacyRandomSource() ? 0.0D : new DensityFunctions.ShiftB(shift).compute(densityfunction$singlepointcontext);
-        pInfo.add("cave_cheese: " + BlendedNoise.formatDebugValue(new DensityFunctions.Noise(cheese, 1.0D, 2.0D / 3.0D).compute(densityfunction$singlepointcontext))
-                + " pillar: " + BlendedNoise.formatDebugValue(new DensityFunctions.Noise(pillar, 25.0D, 0.3D).compute(densityfunction$singlepointcontext)));
-        pInfo.add("Shift X: " + BlendedNoise.formatDebugValue(shiftX)
-                + " Shift Z: " + BlendedNoise.formatDebugValue(shiftZ));
-        pInfo.add("aquifer_lava: " + BlendedNoise.formatDebugValue(noiserouter.lavaNoise().compute(densityfunction$singlepointcontext))
-                + " aquifer_barrier: " + BlendedNoise.formatDebugValue(noiserouter.barrierNoise().compute(densityfunction$singlepointcontext)));
-        pInfo.add("surface: " + BlendedNoise.formatDebugValue(SurfaceSystem.sampleNoise(pRandom.getOrCreateNoise(Noises.SURFACE), pPos.getX().hi(), pPos.getX().lo(), 1.0D, pPos.getZ().hi(), pPos.getZ().lo()))
-                + " surface_secondary: " + BlendedNoise.formatDebugValue(SurfaceSystem.sampleNoise(pRandom.getOrCreateNoise(Noises.SURFACE_SECONDARY), pPos.getX().hi(), pPos.getX().lo(), 1.0D, pPos.getZ().hi(), pPos.getZ().lo())));
-    }
-
-    private static DensityFunction.NoiseHolder debugNoiseHolder(RandomState random, ResourceKey<NormalNoise.NoiseParameters> key) {
-        NormalNoise noise = random.getOrCreateNoise(key);
-        return new DensityFunction.NoiseHolder(Holder.direct(noise.parameters()), noise);
+        WorldgenDiagnostics.append(pInfo, pRandom, pPos, this.settings);
     }
 
     private static String formatDebugValue(DecimalFormat p_224307_, double p_224308_, double p_224309_) {
@@ -215,7 +197,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
         if (Double.isFinite(value) && value >= min && value <= max) {
             return format.format(value);
         }
-        return ChatFormatting.RED + String.format(java.util.Locale.ROOT, "%.3e", value) + ChatFormatting.RESET;
+        return ChatFormatting.RED + net.minecraft.world.level.levelgen.synth.BlendedNoise.formatScientific(value) + ChatFormatting.RESET;
     }
 
     private OptionalInt iterateNoiseColumn(LevelHeightAccessor pLevel, RandomState pRandom, long pX, long pZ, @Nullable MutableObject<NoiseColumn> pColumn, @Nullable Predicate<BlockState> pStoppingState) {

@@ -136,33 +136,59 @@ public class DebugScreenOverlay extends GuiComponent {
         boolean flag = this.minecraft.getSingleplayerServer() != null;
         list.add("Debug: Pie [shift]: " + (this.minecraft.options.renderDebugCharts ? "visible" : "hidden") + (flag ? " FPS + TPS" : " FPS") + " [alt]: " + (this.minecraft.options.renderFpsChart ? "visible" : "hidden"));
 
-        for (int i = 0; i < list.size(); ++i) {
-            String s = list.get(i);
-            if (!Strings.isNullOrEmpty(s)) {
-                int j = 9;
-                int k = this.font.width(s);
-                int l = 2;
-                int i1 = 2 + j * i;
-                fill(pPoseStack, 1, i1 - 1, 2 + k + 1, i1 + j - 1, -1873784752);
-                this.font.draw(pPoseStack, s, 2.0F, (float) i1, 14737632);
+        drawInformation(pPoseStack, list, false);
+    }
+
+    private void drawInformation(PoseStack pPoseStack, List<String> lines, boolean right) {
+        var window = this.minecraft.getWindow();
+        int divider = informationDivider(window.getWidth());
+        if (!right) {
+            int widestLine = 0;
+            for (String line : lines) widestLine = Math.max(widestLine, this.font.width(line));
+            float pixelScale = DebugInformationLayout.singleColumnScale(widestLine, lines.size(),
+                    divider, window.getHeight(), window.getGuiScale());
+            float scale = (float) (pixelScale / window.getGuiScale());
+            pPoseStack.pushPose();
+            // Scale the actual Minecraft font equally on both axes; never split lines or glyphs.
+            pPoseStack.scale(scale, scale, 1.0F);
+            for (int i = 0; i < lines.size(); ++i) {
+                String text = lines.get(i);
+                int textWidth = this.font.width(text);
+                int y = 2 + i * 9;
+                if (textWidth == 0) continue;
+                fill(pPoseStack, 1, y - 1, textWidth + 3, y + 8, -1873784752);
+                this.font.draw(pPoseStack, text, 2.0F, (float) y, COLOR_GREY);
             }
+            pPoseStack.popPose();
+            return;
         }
+        int origin = right ? divider : 0;
+        int width = right ? window.getWidth() - divider : divider;
+        var layout = DebugInformationLayout.arrange(lines, width, window.getHeight(),
+                (int) window.getGuiScale(), (text, wrapWidth) -> text.isEmpty()
+                        ? List.of(net.minecraft.util.FormattedCharSequence.EMPTY)
+                        : this.font.split(net.minecraft.network.chat.Component.literal(text), wrapWidth));
+        float scale = (float) (layout.pixelScale() / window.getGuiScale());
+        pPoseStack.pushPose();
+        pPoseStack.scale(scale, scale, 1.0F);
+        for (int i = 0; i < layout.lines().size(); ++i) {
+            var text = layout.lines().get(i);
+            int textWidth = this.font.width(text);
+            int x = origin / layout.pixelScale() + layout.textX(i, textWidth, right);
+            int y = 2 + (i % layout.rows()) * 9;
+            if (textWidth == 0) continue;
+            fill(pPoseStack, x - 1, y - 1, x + textWidth + 1, y + 8, -1873784752);
+            this.font.draw(pPoseStack, text, (float) x, (float) y, 14737632);
+        }
+        pPoseStack.popPose();
+    }
+
+    static int informationDivider(int framebufferWidth) {
+        return framebufferWidth * 7 / 10;
     }
 
     protected void drawSystemInformation(PoseStack pPoseStack) {
-        List<String> list = this.getSystemInformation();
-
-        for (int i = 0; i < list.size(); ++i) {
-            String s = list.get(i);
-            if (!Strings.isNullOrEmpty(s)) {
-                int j = 9;
-                int k = this.font.width(s);
-                int l = this.minecraft.getWindow().getGuiScaledWidth() - 2 - k;
-                int i1 = 2 + j * i;
-                fill(pPoseStack, l - 1, i1 - 1, l + k + 1, i1 + j - 1, -1873784752);
-                this.font.draw(pPoseStack, s, (float) l, (float) i1, 14737632);
-            }
-        }
+        drawInformation(pPoseStack, this.getSystemInformation(), true);
     }
 
     protected List<String> getGameInformation() {

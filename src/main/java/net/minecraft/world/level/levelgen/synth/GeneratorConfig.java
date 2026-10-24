@@ -52,7 +52,7 @@ public record GeneratorConfig(GeneratorMode mode, CoordinatePrecision precision)
     }
 
     public String debugLine(boolean endRings) {
-        return "Config End Rings: " + endRings + " Precision: " + this.precision.serializedName()
-                + " Generator: " + this.mode.generatorDescription();
+        return "Config " + this.mode.generatorDescription() + " | " + this.precision.serializedName()
+                + " | end rings: " + endRings;
     }
 }

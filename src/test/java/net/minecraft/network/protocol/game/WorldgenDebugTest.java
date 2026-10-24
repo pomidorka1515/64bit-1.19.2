@@ -48,9 +48,9 @@ class WorldgenDebugTest {
                 SimplexNoise.beginDebugCapture();
                 try {
                     Biome.BIOME_INFO_NOISE.getValueScaled(pos.getXHi(), pos.getXLo(), pos.getZHi(), pos.getZLo(), 1.0D, false);
-                    expected = List.of(SimplexNoise.getDebugString(), SimplexNoise.getDebugString2());
+                    expected = List.of(SimplexNoise.getDebugString());
                     Biome.BIOME_INFO_NOISE.getValue((double) pos.getXLo(), (double) pos.getZLo(), false);
-                    truncated = List.of(SimplexNoise.getDebugString(), SimplexNoise.getDebugString2());
+                    truncated = List.of(SimplexNoise.getDebugString());
                     assertNotEquals(truncated, expected);
                 } finally {
                     SimplexNoise.endDebugCapture();
@@ -61,7 +61,7 @@ class WorldgenDebugTest {
                     int count = data.readVarInt();
                     List<String> received = new ArrayList<>();
                     for (int i = 0; i < count; i++) received.add(data.readUtf());
-                    assertEquals(expected, received.subList(count - 2, count));
+                    assertEquals(expected, received.subList(count - 1, count));
                 } finally {
                     data.release();
                 }
@@ -87,7 +87,7 @@ class WorldgenDebugTest {
                 String offsets = null;
                 for (int i = 0; i < count; ++i) {
                     String line = data.readUtf();
-                    if (line.startsWith("Cell Offset:")) offsets = line;
+                    if (line.startsWith("Grid Sample point:")) offsets = line;
                 }
                 assertNotNull(offsets);
                 if (y == 255) expected = offsets;
@@ -166,9 +166,17 @@ class WorldgenDebugTest {
                     for (int i = 0; i < count; i++) received.add(data.readUtf());
                     assertTrue(received.get(0).startsWith("Config "));
                     assertEquals(expected, received.subList(1, 1 + expected.size()));
-                    for (String field : List.of("cave_cheese:", "pillar:", "Shift X:", "Shift Z:",
-                            "aquifer_lava:", "aquifer_barrier:", "surface:", "surface_secondary:")) {
+                    for (String field : List.of("Shift X:", " Z:",
+                            "Aquifers lava:", "barrier:", "Surface primary:", "secondary:")) {
                         assertTrue(received.stream().anyMatch(line -> line.contains(field)), field);
+                    }
+                    if (dimension.equals(NoiseGeneratorSettings.OVERWORLD)) {
+                        for (String field : List.of("cheese:", "Pillars ", "Roughness ",
+                                "Caves layer:", "candidate:", "underground:", "selected:", "ridges: [")) {
+                            assertTrue(received.stream().anyMatch(line -> line.contains(field)), field);
+                        }
+                    } else {
+                        assertTrue(received.stream().anyMatch(line -> line.startsWith("Cave probes inactive:")));
                     }
                     assertFalse(data.isReadable());
                 } finally {

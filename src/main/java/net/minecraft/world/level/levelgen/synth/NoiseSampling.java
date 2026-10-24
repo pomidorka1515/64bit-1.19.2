@@ -3,8 +3,45 @@ package net.minecraft.world.level.levelgen.synth;
 /** Shared exact-position routing boundary, followed by intentional arithmetic. */
 public final class NoiseSampling {
     private static final ThreadLocal<Axes> SCRATCH = ThreadLocal.withInitial(Axes::new);
+    private static final ThreadLocal<ExtrapolationCapture> EXTRAPOLATION_CAPTURE = new ThreadLocal<>();
 
     private NoiseSampling() {}
+
+    /** Observes the actual interpolation fractions without changing the sampled value. */
+    public static boolean hasExtrapolation(java.util.function.DoubleSupplier sample) {
+        return sampleWithExtrapolation(sample).extrapolated();
+    }
+
+    /** Returns the sampled value and its provenance from the same evaluation. */
+    public static Sample sampleWithExtrapolation(java.util.function.DoubleSupplier sample) {
+        ExtrapolationCapture previous = EXTRAPOLATION_CAPTURE.get();
+        ExtrapolationCapture capture = new ExtrapolationCapture();
+        EXTRAPOLATION_CAPTURE.set(capture);
+        try {
+            double value = sample.getAsDouble();
+            return new Sample(value, capture.extrapolated);
+        } finally {
+            if (previous == null) EXTRAPOLATION_CAPTURE.remove();
+            else {
+                previous.extrapolated |= capture.extrapolated;
+                EXTRAPOLATION_CAPTURE.set(previous);
+            }
+        }
+    }
+
+    public record Sample(double value, boolean extrapolated) {}
+
+    static void observeFractions(double x, double y, double z) {
+        ExtrapolationCapture capture = EXTRAPOLATION_CAPTURE.get();
+        if (capture != null && (!(x >= 0.0D && x < 1.0D)
+                || !(y >= 0.0D && y < 1.0D) || !(z >= 0.0D && z < 1.0D))) {
+            capture.extrapolated = true;
+        }
+    }
+
+    private static final class ExtrapolationCapture {
+        boolean extrapolated;
+    }
 
     public static double sample(ImprovedNoise noise,
             long xHi, long xLo, double xScale, double shiftX,

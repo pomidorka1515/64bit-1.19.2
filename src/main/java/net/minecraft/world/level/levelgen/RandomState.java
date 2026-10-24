@@ -26,6 +26,9 @@ public final class RandomState {
     private final PositionalRandomFactory oreRandom;
     private final Map<ResourceKey<NormalNoise.NoiseParameters>, NormalNoise> noiseIntances;
     private final Map<ResourceLocation, PositionalRandomFactory> positionalRandoms;
+    private final DensityFunction.Visitor debugWiring;
+    private final Map<ResourceKey<DensityFunction>, DensityFunction> debugFunctions = new HashMap<>();
+    private final Map<ResourceKey<DensityFunction>, Map<String, DensityFunction>> debugCaveFunctions = new HashMap<>();
 
     public static RandomState create(RegistryAccess pRegistryAccess, ResourceKey<NoiseGeneratorSettings> pResourceKey, long pLegacyLevelSeed) {
         return create(pRegistryAccess.registryOrThrow(Registry.NOISE_GENERATOR_SETTINGS_REGISTRY).getOrThrow(pResourceKey), pRegistryAccess.registryOrThrow(Registry.NOISE_REGISTRY), pLegacyLevelSeed);
@@ -91,6 +94,8 @@ public final class RandomState {
         }
 
         this.router = pNoiseGeneratorSettings.noiseRouter().mapAll(new NoiseWiringHelper());
+        // Separate, lazy wiring: debug-only probes must never replace the generation router.
+        this.debugWiring = new NoiseWiringHelper();
         this.sampler = new Climate.Sampler(this.router.temperature(), this.router.vegetation(), this.router.continents(), this.router.erosion(), this.router.depth(), this.router.ridges(), pNoiseGeneratorSettings.spawnTarget());
     }
 
@@ -108,6 +113,19 @@ public final class RandomState {
 
     public long legacyLevelSeed() {
         return this.legacyLevelSeed;
+    }
+
+    synchronized DensityFunction debugFunction(ResourceKey<DensityFunction> key) {
+        return this.debugFunctions.computeIfAbsent(key, k ->
+                net.minecraft.data.BuiltinRegistries.DENSITY_FUNCTION.getOrThrow(k).mapAll(this.debugWiring));
+    }
+
+    synchronized Map<String, DensityFunction> debugCaves(ResourceKey<DensityFunction> slopedCheese) {
+        return this.debugCaveFunctions.computeIfAbsent(slopedCheese, k -> {
+            Map<String, DensityFunction> wired = new java.util.LinkedHashMap<>();
+            NoiseRouterData.debugCaves(k).forEach((name, function) -> wired.put(name, function.mapAll(this.debugWiring)));
+            return Map.copyOf(wired);
+        });
     }
 
     public NoiseRouter router() {

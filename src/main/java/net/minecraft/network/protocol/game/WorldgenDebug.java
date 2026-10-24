@@ -52,8 +52,8 @@ public final class WorldgenDebug {
                     }
                 });
             }
-            lines.add(BlendedNoise.getDebugString());
             lines.add(BlendedNoise.getDebugString2());
+            lines.add(BlendedNoise.getDebugString());
             if (pos.getY() >= 256) {
                 // ImprovedNoise is also sampled by later router diagnostics, not just
                 // BlendedNoise. Replay the full diagnostic order at 255 so its last
@@ -71,7 +71,6 @@ public final class WorldgenDebug {
         try (var ignored = net.minecraft.world.level.levelgen.synth.GenerationContext.open(config)) {
             Biome.BIOME_INFO_NOISE.getValueScaled(pos.getXHi(), pos.getXLo(), pos.getZHi(), pos.getZLo(), 1.0D, false);
             lines.add(SimplexNoise.getDebugString());
-            lines.add(SimplexNoise.getDebugString2());
         } finally {
             SimplexNoise.endDebugCapture();
         }

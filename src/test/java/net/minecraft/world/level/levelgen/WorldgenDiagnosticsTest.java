@@ -54,6 +54,38 @@ class WorldgenDiagnosticsTest {
     }
 
     @Test
+    void netherOnlyShowsActiveRouterAndSurfaceFields() {
+        var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(NoiseGeneratorSettings.NETHER);
+        try (var ignored = GenerationContext.open(GeneratorConfig.DEFAULT)) {
+            var random = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 0L);
+            var generator = new NoiseBasedChunkGenerator(
+                    BuiltinRegistries.STRUCTURE_SETS, BuiltinRegistries.NOISE,
+                    new net.minecraft.world.level.biome.FixedBiomeSource(
+                            BuiltinRegistries.BIOME.getHolderOrThrow(net.minecraft.world.level.biome.Biomes.NETHER_WASTES)), settings);
+            var pos = new BlockPos(123, 64, -456);
+            List<String> lines = new ArrayList<>();
+            generator.addDebugScreenInfo(lines, random, pos);
+            assertEquals(4, lines.size());
+            assertTrue(lines.get(0).matches("NoiseRouter T: .* V: .* N: .*"));
+            assertTrue(lines.get(1).startsWith("Surface primary:"));
+            assertTrue(lines.get(2).startsWith("Nether soul_sand_layer:"));
+            assertTrue(lines.get(3).startsWith("Nether netherrack:"));
+            NoiseBasedChunkGenerator.toggleWrapRouterDebugInfo();
+            try {
+                lines.clear();
+                generator.addDebugScreenInfo(lines, random, pos);
+                assertEquals(7, lines.size());
+                assertEquals("(Verbose) NoiseRouter: ", lines.get(0));
+                assertTrue(lines.get(1).startsWith("Temperature: "));
+                assertTrue(lines.get(2).startsWith("Vegetation: "));
+                assertTrue(lines.get(3).startsWith("Final Density: "));
+            } finally {
+                NoiseBasedChunkGenerator.toggleWrapRouterDebugInfo();
+            }
+        }
+    }
+
+    @Test
     void allOverworldPresetsHaveSeededContributions() {
         for (var preset : List.of(NoiseGeneratorSettings.OVERWORLD, NoiseGeneratorSettings.LARGE_BIOMES, NoiseGeneratorSettings.AMPLIFIED)) {
             var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(preset);

@@ -24,6 +24,11 @@ final class WorldgenDiagnostics {
     static void append(List<String> lines, RandomState random, BlockPos pos, Holder<NoiseGeneratorSettings> settings) {
         if (settings.is(NoiseGeneratorSettings.END)) return;
         var debug = new WorldgenDiagnostics(lines, random, pos);
+        if (settings.is(NoiseGeneratorSettings.NETHER)) {
+            // Legacy Nether routing has no shifts, Overworld caves, aquifers or ore veins.
+            debug.surfaces(true);
+            return;
+        }
         var shift = debug.holder(Noises.SHIFT);
         debug.line("Shift", "X", settings.value().useLegacyRandomSource() ? 0.0D : new DensityFunctions.ShiftA(shift).compute(debug.context),
                 "Z", settings.value().useLegacyRandomSource() ? 0.0D : new DensityFunctions.ShiftB(shift).compute(debug.context));

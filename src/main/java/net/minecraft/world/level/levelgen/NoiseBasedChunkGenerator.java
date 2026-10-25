@@ -177,6 +177,24 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
             }
             return;
         }
+        if (this.stable(NoiseGeneratorSettings.NETHER)) {
+            // Nether routing only uses climate temperature/vegetation and final density.
+            double temperature = noiserouter.temperature().compute(densityfunction$singlepointcontext);
+            double vegetation = noiserouter.vegetation().compute(densityfunction$singlepointcontext);
+            double density = noiserouter.finalDensity().compute(densityfunction$singlepointcontext);
+            if (wrapRouterDebugInfo) {
+                pInfo.add("(Verbose) NoiseRouter: ");
+                pInfo.add("Temperature: " + formatDebugValue(decimalformat, temperature, 1.5D));
+                pInfo.add("Vegetation: " + formatDebugValue(decimalformat, vegetation, 1.5D));
+                pInfo.add("Final Density: " + formatDebugValue(decimalformat, density, 3.0D));
+            } else {
+                pInfo.add("NoiseRouter T: " + formatDebugValue(decimalformat, temperature, 1.5D)
+                        + " V: " + formatDebugValue(decimalformat, vegetation, 1.5D)
+                        + " N: " + formatDebugValue(decimalformat, density, 3.0D));
+            }
+            WorldgenDiagnostics.append(pInfo, pRandom, pPos, this.settings);
+            return;
+        }
         double d0 = noiserouter.ridges().compute(densityfunction$singlepointcontext);
         double d1 = noiserouter.temperature().compute(densityfunction$singlepointcontext);
         double d2 = noiserouter.vegetation().compute(densityfunction$singlepointcontext);

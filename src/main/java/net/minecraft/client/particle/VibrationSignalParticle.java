@@ -94,7 +94,9 @@ public class VibrationSignalParticle extends TextureSheetParticle {
             if (optional.isEmpty()) {
                 this.remove();
             } else {
-                int i = this.lifetime - this.age;
+                // age was already incremented above; include this movement tick.
+                // The final live tick must divide by one, not zero.
+                int i = this.lifetime - this.age + 1;
                 double d0 = 1.0D / (double) i;
                 SectorVec3 targetPosition = optional.get();
                 SectorVec3 currentPosition = this.exactPosition();

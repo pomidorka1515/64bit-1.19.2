@@ -46,6 +46,7 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
     private final double yScale;
     private static volatile Thread debugCaptureThread;
     private static double debugScaledX;
+    private static String debugScaledXSplit;
     private static double debugSelectorLerp;
     private static double debugMinLimit;
     private static double debugMaxLimit;
@@ -137,6 +138,7 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
         double d17 = Mth.clampedLerp(d8 / 512.0D, d9 / 512.0D, d16) / 128.0D;
         if (Thread.currentThread() == debugCaptureThread) {
             debugScaledX = d0;
+            debugScaledXSplit = null;
             debugSelectorLerp = d16;
             debugMinLimit = d8 / 512.0D;
             debugMaxLimit = d9 / 512.0D;
@@ -196,7 +198,10 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
                 PreciseNoiseCoordinate.scale(context.blockX(), this.xzMultiplier, scratch);
             else
                 WorldgenCoordinate.scale(context.blockXHi(), context.blockX(), this.xzMultiplier, 0, scratch);
-            debugScaledX = (double) scratch.lattice + scratch.fraction;
+            // Formatting must not recombine a precise lattice and fraction in double.
+            debugScaledX = Double.isNaN(scratch.failureMagnitude) ? scratch.fraction : scratch.failureMagnitude;
+            debugScaledXSplit = Double.isNaN(scratch.failureMagnitude)
+                    ? formatSplitDebugValue(scratch.lattice, scratch.fraction, 0) : null;
             debugSelectorLerp = selectorLerp;
             debugMinLimit = min / 512.0D;
             debugMaxLimit = max / 512.0D;
@@ -206,6 +211,7 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
     }
 
     public static void beginDebugCapture() {
+        debugScaledXSplit = null;
         debugScaledX = Double.NaN;
         debugSelectorLerp = Double.NaN;
         debugMinLimit = Double.NaN;
@@ -220,11 +226,21 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
 
     public static String getDebugString() {
         if (Double.isNaN(debugScaledX)) return "Not evaluated at this position";
-        return String.format(Locale.ROOT, "Scaled X: %.0f Selector lerp: %s", debugScaledX, formatDebugValue(debugSelectorLerp));
+        return "Scaled X: " + (debugScaledXSplit != null ? debugScaledXSplit : String.format(Locale.ROOT, "%.0f", debugScaledX))
+                + " Selector lerp: " + formatDebugValue(debugSelectorLerp);
     }
 
     public static String getDebugString2() {
         return String.format(Locale.ROOT, "BlendedNoise min: %s max: %s density: %s", formatDebugValue(debugMinLimit), formatDebugValue(debugMaxLimit), formatDebugValue(debugBlendedDensity));
+    }
+
+    /** Display-only decimal addition; retain every lattice digit before rounding the fraction. */
+    static String formatSplitDebugValue(long lattice, double fraction, int digits) {
+        if (!Double.isFinite(fraction)) return formatDebugValue(fraction);
+        var value = java.math.BigDecimal.valueOf(lattice).add(java.math.BigDecimal.valueOf(fraction));
+        String text = value.setScale(digits, java.math.RoundingMode.HALF_UP).toPlainString();
+        return value.abs().compareTo(java.math.BigDecimal.valueOf(1_000_000_000L)) > 0
+                ? "\247c" + text + "\247r" : text;
     }
 
     public static String formatDebugValue(double value) {

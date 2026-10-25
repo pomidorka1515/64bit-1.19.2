@@ -7,6 +7,33 @@ import org.junit.jupiter.api.Test;
 
 class NoiseDebugFormattingTest {
     @Test
+    void splitDisplaysRetainLatticeDigitsAndFractionsBeyondDoublePrecision() {
+        assertEquals("\247c9223372036854775807.25\247r", BlendedNoise.formatSplitDebugValue(Long.MAX_VALUE, .25D, 2));
+        assertEquals("\247c-9223372036854775807.75\247r", BlendedNoise.formatSplitDebugValue(Long.MIN_VALUE, .25D, 2));
+        assertEquals("\247c9223372036854775808\247r", BlendedNoise.formatSplitDebugValue(Long.MAX_VALUE, .75D, 0));
+        assertEquals("1.25", BlendedNoise.formatSplitDebugValue(1L, .25D, 2));
+    }
+
+    @Test
+    void improvedNoiseCaptureRetainsExactGridAndSplitSample() {
+        var noise = new ImprovedNoise(new net.minecraft.world.level.levelgen.LegacyRandomSource(1234L));
+        var x = new PreciseNoiseCoordinate.Split();
+        var yz = new PreciseNoiseCoordinate.Split();
+        x.lattice = Long.MAX_VALUE;
+        x.fraction = .25D;
+        ImprovedNoise.beginDebugCapture();
+        try {
+            noise.sampleRouted(x, yz, yz, 0.0D, 0.0D);
+            assertEquals("Grid Sample point: \247c9223372036854775807.25\247r index: \247c9223372036854775807\247r",
+                    ImprovedNoise.getDebugString());
+            noise.noise(0.0D, 0.0D, 0.0D);
+            assertTrue(ImprovedNoise.getDebugString().matches("Grid Sample point: -?\\d+\\.\\d{2} index: -?\\d+"));
+        } finally {
+            ImprovedNoise.endDebugCapture();
+        }
+    }
+
+    @Test
     void ordinaryValuesRoundToTwoDecimalPlaces() {
         assertEquals("0.12", BlendedNoise.formatDebugValue(0.1234D));
         assertEquals("-0.12", BlendedNoise.formatDebugValue(-0.1236D));

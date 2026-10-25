@@ -58,6 +58,7 @@ public final class ImprovedNoise {
         double d5 = d2 - (double) k;
         if (Thread.currentThread() == debugCaptureThread) {
             debugSamplePoint = d0;
+            debugSplitSample = false;
             debugGridIndex = i;
             debugCellOffset = d3;
             debugSmoothedOffset = Mth.smoothstep(d3);
@@ -91,7 +92,8 @@ public final class ImprovedNoise {
             smear = (double) Mth.floor(input / smearScale + (double) SHIFT_UP_EPSILON) * smearScale;
         }
         if (Thread.currentThread() == debugCaptureThread) {
-            debugSamplePoint = (double) x.lattice + x.fraction;
+            debugSamplePoint = x.fraction;
+            debugSplitSample = true;
             debugGridIndex = x.lattice;
             debugCellOffset = x.fraction;
             debugSmoothedOffset = Mth.smoothstep(x.fraction);
@@ -111,7 +113,8 @@ public final class ImprovedNoise {
         double fy = y - Math.floor(y);
         double fz = z - Math.floor(z);
         if (Thread.currentThread() == debugCaptureThread) {
-            debugSamplePoint = (double) xCell + fx;
+            debugSamplePoint = fx;
+            debugSplitSample = true;
             debugGridIndex = xCell;
             debugCellOffset = fx;
             debugSmoothedOffset = Mth.smoothstep(fx);
@@ -139,6 +142,7 @@ public final class ImprovedNoise {
     }
 
     public static void beginDebugCapture() {
+        debugSplitSample = false;
         debugSamplePoint = Double.NaN;
         debugCellOffset = Double.NaN;
         debugSmoothedOffset = Double.NaN;
@@ -150,11 +154,16 @@ public final class ImprovedNoise {
         debugCaptureThread = null;
     }
 
+    private static boolean debugSplitSample;
+
     public static String getDebugString() {
         if (Double.isNaN(debugSamplePoint)) return "Not evaluated at this position";
-        String gridIndex = Math.abs((double) debugGridIndex) > 1_000_000_000.0D
-                ? BlendedNoise.formatDebugValue(debugGridIndex) : Long.toString(debugGridIndex);
-        return String.format(Locale.ROOT, "Grid Sample point: %s index: %s", BlendedNoise.formatDebugValue(debugSamplePoint), gridIndex);
+        String gridIndex = Long.toString(debugGridIndex);
+        if (debugGridIndex < -1_000_000_000L || debugGridIndex > 1_000_000_000L)
+            gridIndex = "\247c" + gridIndex + "\247r";
+        String sample = debugSplitSample ? BlendedNoise.formatSplitDebugValue(debugGridIndex, debugSamplePoint, 2)
+                : BlendedNoise.formatDebugValue(debugSamplePoint);
+        return String.format(Locale.ROOT, "Grid Sample point: %s index: %s", sample, gridIndex);
     }
 
     public static String getDebugString2() {

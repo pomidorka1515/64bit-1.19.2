@@ -166,7 +166,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
         double d3 = noiserouter.continents().compute(densityfunction$singlepointcontext);
         double d4 = noiserouter.erosion().compute(densityfunction$singlepointcontext);
         double d5 = noiserouter.depth().compute(densityfunction$singlepointcontext);
-        double d6 = NoiseRouterData.peaksAndValleys((float) d0);
+        double d6 = debugPeaksAndValleys(d0);
         double d7 = noiserouter.initialDensityWithoutJaggedness().compute(densityfunction$singlepointcontext);
         double d8 = noiserouter.finalDensity().compute(densityfunction$singlepointcontext);
         boolean flag = this.stable(NoiseGeneratorSettings.END);
@@ -187,6 +187,12 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
                     + " W: " + formatDebugValue(decimalformat, d0, 1.5D) + " PV: " + formatDebugValue(decimalformat, d6, 1.0D) + " AS: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -64.0D, flag ? 2.0D : 64.0D) + " N: " + formatDebugValue(decimalformat, d8, 3.0D));
         }
         WorldgenDiagnostics.append(pInfo, pRandom, pPos, this.settings);
+    }
+
+    // Match the folded-ridges density function without narrowing the debug value to float.
+    // The float helper is also used by worldgen; leave its behavior unchanged.
+    static double debugPeaksAndValleys(double weirdness) {
+        return -(Math.abs(Math.abs(weirdness) - 2.0D / 3.0D) - 1.0D / 3.0D) * 3.0D;
     }
 
     private static String formatDebugValue(DecimalFormat p_224307_, double p_224308_, double p_224309_) {

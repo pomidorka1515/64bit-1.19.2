@@ -2,6 +2,7 @@ package net.minecraft.world.level;
 
 import net.minecraft.core.Int128;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.mojang.datafixers.util.Pair;
@@ -176,7 +177,9 @@ public class Explosion {
         Int128 minZ = this.position.add(0.0D, 0.0D, -(double) f2 - 1.0D).blockZ();
         Int128 maxZ = this.position.add(0.0D, 0.0D, (double) f2 + 1.0D).blockZ();
 
-        for (Entity entity : this.level.getEntities().getAll()) {
+        // Damage can synchronously remove entities (or trigger another explosion).
+        // Never iterate the live registry while applying those side effects.
+        for (Entity entity : Lists.newArrayList(this.level.getEntities().getAll())) {
             this.hurtEntity(entity, f2, minX, maxX, minY, maxY, minZ, maxZ);
             if (entity instanceof EnderDragon dragon) {
                 for (EnderDragonPart part : dragon.getSubEntities()) {

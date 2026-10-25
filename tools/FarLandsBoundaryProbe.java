@@ -96,6 +96,8 @@ public final class FarLandsBoundaryProbe {
     private static BigInteger boundary64(int sign, double scale, double factor, double octave, double offset) {
         BigInteger lo = BigInteger.ZERO, hi = BigInteger.ONE.shiftLeft(110);
         BigInteger direction = BigInteger.valueOf(sign);
+        if (!broken64(hi.multiply(direction), scale, factor, octave, offset))
+            throw new AssertionError("Search upper bound is healthy");
         while (hi.subtract(lo).compareTo(BigInteger.ONE) > 0) {
             BigInteger mid = lo.add(hi).shiftRight(1);
             if (broken64(mid.multiply(direction), scale, factor, octave, offset)) hi = mid;
@@ -142,6 +144,17 @@ public final class FarLandsBoundaryProbe {
         return expected;
     }
 
+    private static String signedWalls(ImprovedNoise noise, double scale, double factor, int octave) {
+        StringBuilder result = new StringBuilder();
+        for (double offset : new double[] {noise.xo, noise.zo}) {
+            for (int sign : new int[] {1, -1}) {
+                result.append(String.format(Locale.ROOT, " | %,d",
+                        boundary64(sign, scale, factor, Math.scalb(1.0, octave), offset)));
+            }
+        }
+        return result.toString();
+    }
+
     private static void catalog() throws Exception {
         String[] specs = {
             "temperature:0.25", "vegetation:0.25", "continentalness:0.25", "erosion:0.25", "ridge:0.25",
@@ -159,8 +172,10 @@ public final class FarLandsBoundaryProbe {
             "powder_snow:1", "nether_state_selector:1", "ice:1", "soul_sand_layer:1", "gravel_layer:1",
             "patch:1", "netherrack:1", "nether_wart:1"
         };
-        System.out.println("| Input | horizontal scale | second stack N | first stack N |");
-        System.out.println("| --- | ---: | ---: | ---: |");
+        boolean bit32 = GenerationContext.current().mode().uses32BitArithmetic();
+        System.out.println(bit32 ? "| Input / stack | horizontal scale | +X | −X | +Z | −Z |"
+                : "| Input | horizontal scale | second stack N | first stack N |");
+        System.out.println(bit32 ? "| --- | ---: | ---: | ---: | ---: | ---: |" : "| --- | ---: | ---: | ---: |");
         for (String spec : specs) {
             String[] parts = spec.split(":");
             catalogRow(parts[0], Double.parseDouble(parts[1]));
@@ -175,7 +190,9 @@ public final class FarLandsBoundaryProbe {
         for (String stack : new String[] {"minLimitNoise", "maxLimitNoise", "mainNoise"}) {
             var perlin = (PerlinNoise) field(terrain, stack);
             double scale = 684.412 * .25 / (stack.equals("mainNoise") ? 80 : 1);
-            System.out.printf("| blended / %s | %s | %,d | — |%n", stack, scale,
+            if (bit32) System.out.printf("| blended / %s | %s%s |%n", stack, scale,
+                    signedWalls(perlin.getOctaveNoise(0), scale, 1, 0));
+            else System.out.printf("| blended / %s | %s | %,d | — |%n", stack, scale,
                     checkedWall(perlin.getOctaveNoise(0), scale, 1, 0));
         }
     }
@@ -192,10 +209,17 @@ public final class FarLandsBoundaryProbe {
             var levels = (ImprovedNoise[]) field(field(normal, stack), "noiseLevels");
             int index = levels.length - 1;
             while (levels[index] == null) --index;
+            if (GenerationContext.current().mode().uses32BitArithmetic()) {
+                System.out.printf("| %s / %s | %s%s |%n", name, stack, scale,
+                        signedWalls(levels[index], scale, stack.equals("second") ? 1.0181268882175227 : 1,
+                                parameters.firstOctave() + index));
+                continue;
+            }
             walls[column++] = checkedWall(levels[index], scale,
                     stack.equals("second") ? 1.0181268882175227 : 1, parameters.firstOctave() + index);
         }
-        System.out.printf("| %s | %s | %,d | %,d |%n", name, scale, walls[0], walls[1]);
+        if (!GenerationContext.current().mode().uses32BitArithmetic())
+            System.out.printf("| %s | %s | %,d | %,d |%n", name, scale, walls[0], walls[1]);
     }
 
     public static void main(String[] args) throws Exception {
@@ -236,7 +260,7 @@ public final class FarLandsBoundaryProbe {
                 for (int axis = 0; axis < 2; ++axis) {
                     double offset = axis == 0 ? noise.xo : noise.zo;
                     for (int sign : new int[] {1, -1}) {
-                        if (bit64) {
+                        if (bit64 || precise) {
                             BigInteger b = boundary64(sign, scale, factor, octave, offset);
                             if (precise) {
                                 var split = new PreciseNoiseCoordinate.Split();

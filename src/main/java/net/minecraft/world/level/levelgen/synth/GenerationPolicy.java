@@ -11,7 +11,7 @@ public class GenerationPolicy {
 
     /** Returns whether the original 32-bit Far Lands arithmetic is active globally. */
     public static boolean isEnabled() {
-        return GenerationContext.current().mode() == GeneratorMode.BIT_32;
+        return GenerationContext.current().mode().uses32BitArithmetic();
     }
 
     /** Returns whether BlendedNoise should retain its original 32-bit arithmetic. */

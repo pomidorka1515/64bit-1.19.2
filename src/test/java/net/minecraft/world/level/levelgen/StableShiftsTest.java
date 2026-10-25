@@ -43,10 +43,12 @@ class StableShiftsTest {
                         var point = new DensityFunction.SinglePointContext(xAxis ? coordinate : Int128.ZERO, 80,
                                 xAxis ? Int128.ZERO : coordinate);
                         double expected = sample(shift, point, GeneratorMode.PATCHED, CoordinatePrecision.PRECISE);
-                        double actual = sample(shift, point, GeneratorMode.BIT_64_STABLE_SHIFTS, precision);
-                        assertTrue(Double.isFinite(actual));
-                        assertTrue(Math.abs(actual) <= shift.maxValue());
-                        assertEquals(expected, actual);
+                        for (var mode : new GeneratorMode[] {GeneratorMode.BIT_32_STABLE_SHIFTS, GeneratorMode.BIT_64_STABLE_SHIFTS}) {
+                            double actual = sample(shift, point, mode, precision);
+                            assertTrue(Double.isFinite(actual));
+                            assertTrue(Math.abs(actual) <= shift.maxValue());
+                            assertEquals(expected, actual);
+                        }
                     }
                 }
                 var point = new DensityFunction.SinglePointContext(Int128.of(17L, 37L), 80, Int128.of(-19L, 41L));
@@ -76,6 +78,25 @@ class StableShiftsTest {
                     assertEquals(sample(function, point, GeneratorMode.BIT_64, precision),
                             sample(function, point, GeneratorMode.BIT_64_STABLE_SHIFTS, precision));
                 }
+            }
+        }
+    }
+
+    @Test void unrelatedNoiseRetains32BitArithmetic() {
+        var parameters = new NormalNoise.NoiseParameters(-3, 1.0D, 1.0D);
+        var holder = new DensityFunction.NoiseHolder(Holder.direct(parameters),
+                NormalNoise.create(new LegacyRandomSource(0L), parameters));
+        var function = new DensityFunctions.Noise(holder, 25.0D, 1.0D);
+        for (var precision : CoordinatePrecision.values()) {
+            for (long coordinate : new long[] {0L, 30_000_000L, Integer.MAX_VALUE, -16_800_000_000L, Long.MAX_VALUE}) {
+                var point = new DensityFunction.SinglePointContext(Int128.fromLong(coordinate), 80, Int128.ZERO);
+                assertEquals(sample(function, point, GeneratorMode.BIT_32, precision),
+                        sample(function, point, GeneratorMode.BIT_32_STABLE_SHIFTS, precision));
+            }
+            try (var ignored = GenerationContext.open(new GeneratorConfig(GeneratorMode.BIT_32_STABLE_SHIFTS, precision))) {
+                assertTrue(GenerationPolicy.isEnabled());
+                assertTrue(GenerationPolicy.usesLegacyBlendedNoise());
+                assertFalse(GenerationPolicy.usesNoFarlandsSafeguards());
             }
         }
     }

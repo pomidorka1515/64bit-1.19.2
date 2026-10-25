@@ -55,10 +55,11 @@ public final class ShiftCollapseProbe {
 
     public static void main(String[] args) throws Exception {
         Locale.setDefault(Locale.ROOT);
-        boolean precise = args.length > 0 && args[0].equals("64");
+        boolean bit64 = args.length > 0 && args[0].equals("64");
+        boolean precise = true;
         net.minecraft.SharedConstants.tryDetectVersion();
         net.minecraft.server.Bootstrap.bootStrap();
-        try (var ignored = GenerationContext.open(new GeneratorConfig(precise ? GeneratorMode.BIT_64 : GeneratorMode.BIT_32,
+        try (var ignored = GenerationContext.open(new GeneratorConfig(bit64 ? GeneratorMode.BIT_64 : GeneratorMode.BIT_32,
                 precise ? CoordinatePrecision.PRECISE : CoordinatePrecision.LOSSY))) {
             var state = RandomState.create(BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getOrThrow(NoiseGeneratorSettings.OVERWORLD),
                     BuiltinRegistries.NOISE, 0L);

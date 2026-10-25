@@ -14,7 +14,7 @@ class GeneratorCommandTest {
         assertNull(dispatcher.getRoot().getChild("farlands"));
         var root = dispatcher.getRoot().getChild("generator");
         assertEquals(Set.of("mode", "precision", "confirm"), names(root));
-        assertEquals(Set.of("32bit", "64bit", "64bit-stable-shifts", "64bit-patched", "help"), names(root.getChild("mode")));
+        assertEquals(Set.of("32bit", "32bit-stable-shifts", "64bit", "64bit-stable-shifts", "64bit-patched", "help"), names(root.getChild("mode")));
         assertEquals(Set.of("precise", "lossy", "help"), names(root.getChild("precision")));
         assertNull(root.getCommand());
         assertNull(root.getChild("mode").getCommand());

@@ -7,11 +7,11 @@ import org.junit.jupiter.api.Test;
 class GeneratorArithmeticTest {
     @Test void preciseRoutingPreservesLegacyFailureInsteadOfWrappingItAway() {
         ImprovedNoise noise = new ImprovedNoise(new LegacyRandomSource(1234L));
-        for (GeneratorMode mode : new GeneratorMode[] {GeneratorMode.BIT_32, GeneratorMode.BIT_64}) {
-            for (long x : mode == GeneratorMode.BIT_32
+        for (GeneratorMode mode : new GeneratorMode[] {GeneratorMode.BIT_32, GeneratorMode.BIT_32_STABLE_SHIFTS, GeneratorMode.BIT_64, GeneratorMode.BIT_64_STABLE_SHIFTS}) {
+            for (long x : mode.uses32BitArithmetic()
                     ? new long[] {Integer.MAX_VALUE - 512L, Integer.MAX_VALUE + 512L, Integer.MIN_VALUE - 512L, 16_800_000_000L, -16_800_000_000L}
                     : new long[] {Long.MAX_VALUE, Long.MIN_VALUE, Long.MAX_VALUE - 4096L}) {
-                double scale = mode == GeneratorMode.BIT_64 ? 2.0D : 1.0D;
+                double scale = mode.uses32BitArithmetic() ? 1.0D : 2.0D;
                 double reference;
                 try (var ignored = GenerationContext.open(new GeneratorConfig(mode, CoordinatePrecision.LOSSY))) {
                     reference = noise.noise((double) x * scale, 73.0D, 37.0D);

@@ -489,6 +489,70 @@ generated-chunk/interpolated-block verification.
   the fallback's double rounding, unlike earlier fallback-entry boundaries.
   Matching arithmetic edges do not imply seed-independent visible terrain.
 
+## Stable-shifts: distant pillar-infinity exposure
+
+seed 0, default overworld settings unchanged, **64bit-stable-shifts / precise**.
+each direction below fixes the other world horizontal coordinate at **0** and
+checks Y=-64..319 through actual `NoiseChunk` interpolation and noise-fill
+materials. these are independently measured local boundaries, **not** the
+32-bit coordinates multiplied by 2^32, and not global firsts over every Y/Z.
+surface rules, structures and carvers arent relevant
+
+### Cause and progression
+
+`NoiseRouterData.pillars()` evaluates
+`(2 * pillar + mapped_rareness) * mapped_thickness^3`. The already-extrapolating
+inputs eventually overflow double arithmetic. Positive infinite pillars can
+win the underground max; negative infinite pillars need not. Ordinary lerp in
+`NoiseChunk.NoiseInterpolator` can then evaluate `Infinity - Infinity` or
+`0 * Infinity`, producing NaN. Squeeze cannot repair NaN, and aquifer solid
+selection (`density > 0`) rejects it. Direct router final density may remain
+finite and saturated while actual interpolated density fails.
+
+The shifts remain stabilized: this is a separate failure. Individual height
+bands change abruptly; different corners/heights fail at different distances,
+so the overall exposure can progress in stages. Negative directions can jump
+straight into extensive failure because their failed floor produces enormous
+negative fractions. The first NaN does not necessarily remove a solid block:
+it can occur in an already-empty height band.
+
+### Exact checked local interpolated boundaries, all four directions
+
+"Outward" = first NaN-containing column **in the checked local window**;
+"inward" is its adjacent column toward zero. each boundary was verified by an
+exhaustive 33-column window (16 blocks inward through 16 blocks outward).
+counts cover the full 384-height column
+
+| Direction | Inward coordinate | Outward coordinate | NaN heights inward → outward | Solid blocks inward → outward | Top solid Y inward → outward |
+| --- | ---: | ---: | --- | --- | --- |
+| +X, Z=0 | 2,319,144,373,482,458,742,507 | **2,319,144,373,482,458,742,508** | 0 → 16 | 209 → 193 | 255 → 255 |
+| −X, Z=0 | -2,319,144,370,667,437,144,696 | **-2,319,144,370,667,437,144,697** | 0 → 112 | 136 → 34 | 255 → 255 |
+| +Z, X=0 | 2,319,144,373,009,074,352,935 | **2,319,144,373,009,074,352,936** | 0 → 16 | 207 → 207 | 255 → 255 |
+| −Z, X=0 | -2,319,144,370,667,437,144,696 | **-2,319,144,370,667,437,144,697** | 0 → 240 | 207 → 80 | 255 → 31 |
+
+the +Z row is an exact **NaN onset**, not yet solid loss in that column. the
+other rows already remove solid noise-fill blocks
+
+### Raw pillar checks versus interpolated effects
+
+the following adjacent integer-input checks use the actual seeded pillar
+function. Other=4 means Z=4 for X travel, or X=4 for Z travel. negative rows
+use Other=0
+
+| Direction | Y | Other | Last finite coordinate inward | First nonfinite coordinate outward | Pillar value inward → outward |
+| --- | ---: | ---: | ---: | ---: | --- |
+| +X | 128 | 4 | 2,319,144,373,477,576,476,466 | 2,319,144,373,477,576,476,467 | 1.797687469893245e308 → +Infinity |
+| −X | -64 | 0 | -2,319,144,370,667,437,144,696 | -2,319,144,370,667,437,144,697 | -3.247194039676121e125 → -Infinity |
+| +Z | 136 | 4 | 2,319,144,373,009,074,352,937 | 2,319,144,373,009,074,352,938 | 1.7976882462173448e308 → +Infinity |
+| −Z | -64 | 0 | -2,319,144,370,667,437,144,696 | -2,319,144,370,667,437,144,697 | 4.963603700275303e125 → +Infinity |
+
+for +X the earlier raw infinity does **not** immediately produce a NaN in the
+measured column; later branch/interpolation conditions matter. for +Z the
+affected grid plane is ...352,940, whose cell begins at ...352,936. interpolation
+therefore fails before the raw integer-input boundary. on negative travel,
+the interpolation cell orientation is different; do not blindly mirror the
+positive `ceil(N/4)*4 - 4` rule.
+
 ## Far Lands degradation stages
 
 ### 32-bit

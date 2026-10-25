@@ -86,21 +86,15 @@ public final class EndBoundaryProbe {
         for (String stack : new String[] {"minLimitNoise", "maxLimitNoise", "mainNoise"}) {
             ImprovedNoise octave = ((PerlinNoise) field(noise, stack)).getOctaveNoise(0);
             double scale = 684.412 * .25 / (stack.equals("mainNoise") ? 80 : 1);
-            for (boolean precise : new boolean[] {false, true}) {
+            for (boolean bit64 : new boolean[] {false, true}) {
                 try (var ignored = GenerationContext.open(new GeneratorConfig(
-                        precise ? GeneratorMode.BIT_64 : GeneratorMode.BIT_32,
-                        precise ? CoordinatePrecision.PRECISE : CoordinatePrecision.LOSSY))) {
-                    System.out.printf("blended %s %s", precise ? "64-precise" : "32-lossy", stack);
+                        bit64 ? GeneratorMode.BIT_64 : GeneratorMode.BIT_32,
+                        CoordinatePrecision.PRECISE))) {
+                    System.out.printf("blended %s %s", bit64 ? "64-precise" : "32-precise", stack);
                     for (double offset : new double[] {octave.xo, octave.zo}) {
                         for (int sign : new int[] {1, -1}) {
                             BigInteger edge = first(ONE.shiftLeft(70), n -> {
                                 BigInteger block = n.multiply(BigInteger.valueOf(sign));
-                                if (!precise) {
-                                    double point = block.doubleValue() * (684.412 * .25);
-                                    if (stack.equals("mainNoise")) point /= 80;
-                                    point += offset;
-                                    return (double) Mth.floor(point) != Math.floor(point);
-                                }
                                 var split = new PreciseNoiseCoordinate.Split();
                                 WorldgenCoordinate.scale(block.shiftRight(64).longValue(), block.longValue(), scale, 0, split);
                                 try { route.invoke(null, split, offset); }

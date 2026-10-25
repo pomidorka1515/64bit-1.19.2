@@ -65,10 +65,10 @@ public final class NoiseSampling {
         long cell = axis.lattice + carry;
         boolean overflow = ((axis.lattice ^ cell) & (carry ^ cell)) < 0L;
         if (mode != GeneratorMode.PATCHED && (!Double.isNaN(axis.failureMagnitude) || overflow
-                || mode == GeneratorMode.BIT_32 && (cell < Integer.MIN_VALUE || cell > Integer.MAX_VALUE))) {
+                || mode.uses32BitArithmetic() && (cell < Integer.MIN_VALUE || cell > Integer.MAX_VALUE))) {
             double failure = !Double.isNaN(axis.failureMagnitude) ? axis.failureMagnitude + shift
                     : (double) axis.lattice + local;
-            long floor = FarlandsMode.floor(failure, mode == GeneratorMode.BIT_32);
+            long floor = FarlandsMode.floor(failure, mode.uses32BitArithmetic());
             axis.lattice = floor;
             axis.fraction = failure - (double) floor;
         } else {

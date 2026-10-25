@@ -22,6 +22,7 @@ final class WorldgenDiagnostics {
     }
 
     static void append(List<String> lines, RandomState random, BlockPos pos, Holder<NoiseGeneratorSettings> settings) {
+        if (settings.is(NoiseGeneratorSettings.END)) return;
         var debug = new WorldgenDiagnostics(lines, random, pos);
         var shift = debug.holder(Noises.SHIFT);
         debug.line("Shift", "X", settings.value().useLegacyRandomSource() ? 0.0D : new DensityFunctions.ShiftA(shift).compute(debug.context),

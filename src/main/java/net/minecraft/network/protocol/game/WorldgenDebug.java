@@ -12,6 +12,8 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.EndRingsMode;
+import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
+import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.synth.BlendedNoise;
 import net.minecraft.world.level.levelgen.synth.GeneratorConfig;
@@ -67,12 +69,15 @@ public final class WorldgenDebug {
             ImprovedNoise.endDebugCapture();
             BlendedNoise.endDebugCapture();
         }
-        SimplexNoise.beginDebugCapture();
-        try (var ignored = net.minecraft.world.level.levelgen.synth.GenerationContext.open(config)) {
-            Biome.BIOME_INFO_NOISE.getValueScaled(pos.getXHi(), pos.getXLo(), pos.getZHi(), pos.getZLo(), 1.0D, false);
-            lines.add(SimplexNoise.getDebugString());
-        } finally {
-            SimplexNoise.endDebugCapture();
+        // The End does not use the biome surface-info noise sampled by this probe.
+        if (!(generator instanceof NoiseBasedChunkGenerator noiseGenerator && noiseGenerator.stable(NoiseGeneratorSettings.END))) {
+            SimplexNoise.beginDebugCapture();
+            try (var ignored = net.minecraft.world.level.levelgen.synth.GenerationContext.open(config)) {
+                Biome.BIOME_INFO_NOISE.getValueScaled(pos.getXHi(), pos.getXLo(), pos.getZHi(), pos.getZLo(), 1.0D, false);
+                lines.add(SimplexNoise.getDebugString());
+            } finally {
+                SimplexNoise.endDebugCapture();
+            }
         }
         FriendlyByteBuf data = new FriendlyByteBuf(Unpooled.buffer());
         data.writeResourceLocation(dimension);

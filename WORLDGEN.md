@@ -167,6 +167,198 @@ min/max were instantiated and searched separately; results match
 | max limit | 53,905,378,846,979,752 | 53,905,378,846,979,752 |
 | main selector | 4,312,430,307,758,379,737 | 4,312,430,307,758,379,740 |
 
+## The End
+
+seed 0 unless stated otherwise. these are the current implementation's End
+paths, not vanilla's older int-square End-ring distances. the End uses island
+simplex noise and BlendedNoise, not the overworld's climate shifts, cave noises,
+aquifers, ore veins or noise-based surface materials. the F3 erosion slot holds
+the island density; it does **not** sample the `erosion` NormalNoise above
+
+the End's density interpolation grid is **8 blocks horizontally and 4 vertically**.
+for an unshifted horizontal noise boundary N the first positive density plane is
+`8 * ceil(N / 8)`, not the overworld's 4-block formula. biome selection samples
+the island field at section centers (`16 * section + 8`) instead; a density-input
+boundary is not an exact first visible block or biome boundary
+
+### Base 3D noise
+
+End settings: xzScale=0.25, yScale=0.25, xzFactor=80, yFactor=160,
+smearScaleMultiplier=4. horizontal nominal scales match the earlier base-noise
+table, but the End uses `LegacyRandomSource(seed)` rather than the overworld's
+hashed xoroshiro terrain source. exact 32-bit octave offsets therefore differ
+
+highest-frequency octave, independently checked X/Z and both signs, with an
+inward-neighbor check. these are input-floor failures, not guaranteed terrain
+transitions; selector branch selection can skip a limit stack
+
+#### 32-bit / lossy
+
+| Stack | +X | −X | +Z | −Z |
+| --- | ---: | ---: | ---: | ---: |
+| min limit | 12,550,823 | -12,550,826 | 12,550,824 | -12,550,826 |
+| max limit | 12,550,824 | -12,550,825 | 12,550,824 | -12,550,826 |
+| main selector | 1,004,065,851 | -1,004,065,998 | 1,004,065,821 | -1,004,066,028 |
+
+#### 64-bit / precise
+
+these first-extrapolation values match the overworld catalog, despite the
+different seed source. all four signed directions were checked, not inferred
+from the nominal scale. the grid planes below use the End's 8-block cells
+
+| Stack | N | first affected positive 8-block grid plane |
+| --- | ---: | ---: |
+| min limit | 53,905,378,846,979,752 | 53,905,378,846,979,752 |
+| max limit | 53,905,378,846,979,752 | 53,905,378,846,979,752 |
+| main selector | 4,312,430,307,758,379,737 | 4,312,430,307,758,379,744 |
+
+### Island simplex and lossy island sizes
+
+let `qX = trunc(X / 8)`, `qZ = trunc(Z / 8)`. the island search tests the
+25 by 25 candidate window
+`u = trunc(qX / 2) + dx`, `v = trunc(qZ / 2) + dz`, with dx,dz in [-12,12].
+the candidate's simplex output must be below -0.9 to create an outer island.
+simplex uses no seed-dependent coordinate offset here; the permutation and
+which candidates pass the threshold **are** seed-dependent
+
+tables below are exact **sampler input** boundaries on specified transects.
+`16 * N` is the corresponding candidate-center block reference, not the first
+player block affected: the window reaches 12 candidate steps outward, and can
+reach a failure while its center is still healthy. diagonals specify both
+input coordinates, not radial distance. swapping X/Z gives the same arithmetic
+threshold, but not necessarily the same noise output
+
+#### 32-bit / lossy: simplex floor and unskew-sum overflow
+
+`F2 = (sqrt(3) - 1) / 2`, `i = floor(u + (u+v)*F2)`,
+`j = floor(v + (u+v)*F2)`. before either floor fails, the **int addition**
+`i+j` can already wrap in `floorSum`. the resulting wrong unskew displaces
+the corners outside their support; this is not ImprovedNoise's quintic
+extrapolation. the simplex candidate can become zero and stop passing -0.9
+
+| Failure / input transect | positive N | negative N | positive candidate-center block reference |
+| --- | ---: | ---: | ---: |
+| int unskew sum / (n,0) | 1,239,850,263 | -1,239,850,263 | 19,837,604,208 |
+| int unskew sum / (n,n) | 619,925,132 | -619,925,132 | 9,918,802,112 |
+| individual floor / (n,0) | 1,572,067,139 | -1,572,067,139 | 25,153,074,224 |
+| individual floor / (n,n) | 1,239,850,263 | -1,239,850,263 | 19,837,604,208 |
+| individual floor / (n,-n) | 2,147,483,648 | -2,147,483,648 | 34,359,738,368 |
+
+the anti-diagonal has no earlier int-sum overflow. candidate-window offsets
+mean the actual generator does not exclusively sample any one listed line
+
+#### 64-bit / lossy: individual simplex floors
+
+the unskew sum is added as doubles, so there is no int-sum stage. converting
+the candidate integers to doubles still loses precision; the following are
+the later floor-range failures, **not** the first loss of island detail
+
+| Input transect | positive N | negative N |
+| --- | ---: | ---: |
+| (n,0) | 6,751,976,948,087,738,881 | -6,751,976,948,087,740,929 |
+| (n,n) | 5,325,116,328,314,171,905 | -5,325,116,328,314,172,928 |
+| (n,-n) | 9,223,372,036,854,775,296 | -9,223,372,036,854,775,296 |
+
+negative floor failure tests strictly below -2^63; positive failure starts at
+2^63. double rounding explains the asymmetric integer-input thresholds
+
+| Lossy candidate conversion | first positive integer not retained exactly | candidate-center block reference |
+| --- | ---: | ---: |
+| integer to double / simplex input | 9,007,199,254,740,993 | 144,115,188,075,855,888 |
+| integer to float / size input | 16,777,217 | 268,435,472 |
+
+negative conversion losses mirror these magnitudes. simplex skew arithmetic
+can lose local detail before the integer-to-double conversion itself fails;
+the size calculation's earlier multiplication-rounding examples are below.
+these conversion rows are not additional sharp terrain walls
+
+#### Precise simplex
+
+both 32-bit / precise and 64-bit / precise use `getValueAt`, not the lossy
+floor path. it keeps the local skew fraction and only needs lattice indices
+modulo 256 for the permutation. wrapping lattice indices is intentional here;
+the `failureMagnitude` flag is not routed through `NoiseSampling.route`.
+there is therefore **no corresponding 2^31 or 2^63 simplex extrapolation wall**
+on this path. this does not protect the separate BlendedNoise or End-rings
+arithmetic. full-width smoke checks through candidate inputs near ±2^123
+retained finite simplex output within [-1,1]; this is not an exhaustive scan
+of every coordinate
+
+#### Lossy size variation
+
+the lossy candidate-size formula is
+`(abs((float)u)*3439 + abs((float)v)*147) % 13 + 9`.
+float multiplication/addition can round before the remainder, **well before**
+the integer-to-float conversion itself loses whole candidate coordinates.
+these are the first mismatches from exact integer arithmetic on the specified
+nonnegative candidate-input lines, exhaustively checked from zero
+
+| Input transect | first candidate N | candidate-center block reference | lossy size | exact size |
+| --- | ---: | ---: | ---: | ---: |
+| (n,0) | 4,879 | 78,064 | 10 | 11 |
+| (0,n) | 114,131 | 1,826,096 | 11 | 12 |
+| (n,n) | 4,879 | 78,064 | 12 | 14 |
+
+these are rounding differences, not overflow walls or proof that those
+candidates actually create islands for seed 0. mixed-coordinate lines can
+have different first mismatches. precise mode reduces the integer coordinates
+modulo 13 before multiplication, avoiding this lossy size calculation
+
+### end rings: squared-distance overflow
+
+`EndRingsMode=true` evaluates `qX*qX + qZ*qZ` as a signed **long**, then
+converts it to float for sqrt. this is independent of the selected 32/64-bit
+noise lattice. the first negative wrapped sum makes sqrt and island density
+NaN. `Math.max` with nearby island candidates does not recover a NaN base
+height. these arithmetic edges are seed-independent; the neighboring finite
+island shapes are not
+
+| Transect | first overflowing q magnitude | first NaN block-coordinate magnitude |
+| --- | ---: | ---: |
+| axis, other coordinate=0 | 3,037,000,500 | 24,296,004,000 |
+| diagonal, X=Z | 2,147,483,648 | 17,179,869,184 |
+
+both signs were checked through the actual seed-0 island density in
+64-bit / precise, including the inward block: finite before, NaN at the
+boundary. disabling End rings retained finite values at both edges.
+
+#### Ring widths and why they vary
+
+let `R = qX^2 + qZ^2` in mathematical integers. the square expression's signed
+result is negative when `R mod 2^64` is in `[2^63, 2^64)`.
+before discrete sampling becomes important, the kth NaN annulus therefore has
+q-space radii `sqrt(k*2^64 + 2^63)` through `sqrt((k+1)*2^64)`.
+the radial widths shrink overall, but **a width measured along X or Z is not
+the radial width**: at a fixed transverse coordinate z it follows
+`sqrt(radius^2 - z^2)`, and can be much wider near a tangent. a diagonal's
+coordinate width differs by a factor of sqrt(2) from its radial width.
+island gaps, already-broken base noise, lossy candidate sampling, height and
+interpolation further change the visible terrain bands
+
+exact positive block intervals below are the first six negative-square bands;
+negative transects mirror them. diagonal intervals are values of each axis,
+not diagonal travel distances. widths include both endpoints. the next finite
+width describes a **nonnegative square**, not guaranteed solid terrain
+
+| Transect | band | first NaN block | last NaN block | width | next finite width |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| axis | 1 | 24,296,004,000 | 34,359,738,367 | 10,063,734,368 | 7,722,174,984 |
+| axis | 2 | 42,081,913,352 | 48,592,007,999 | 6,510,094,648 | 5,735,508,528 |
+| axis | 3 | 54,327,516,528 | 59,512,812,591 | 5,185,296,064 | 4,768,371,848 |
+| axis | 4 | 64,281,184,440 | 68,719,476,735 | 4,438,292,296 | 4,168,535,264 |
+| axis | 5 | 72,888,012,000 | 76,830,710,679 | 3,942,698,680 | 3,750,018,496 |
+| axis | 6 | 80,580,729,176 | 84,163,826,703 | 3,583,097,528 | 3,436,661,512 |
+| X=Z | 1 | 17,179,869,184 | 24,296,003,999 | 7,116,134,816 | 5,460,402,296 |
+| X=Z | 2 | 29,756,406,296 | 34,359,738,367 | 4,603,332,072 | 4,055,616,976 |
+| X=Z | 3 | 38,415,355,344 | 42,081,913,351 | 3,666,558,008 | 3,371,748,072 |
+| X=Z | 4 | 45,453,661,424 | 48,592,007,999 | 3,138,346,576 | 2,947,599,552 |
+| X=Z | 5 | 51,539,607,552 | 54,327,516,527 | 2,787,908,976 | 2,651,663,504 |
+| X=Z | 6 | 56,979,180,032 | 59,512,812,591 | 2,533,632,560 | 2,430,086,664 |
+
+with End rings disabled, precise mode bypasses the distant central square
+entirely. lossy mode uses double squares there, avoiding this particular
+long-square NaN but not the lossy simplex, size or candidate-gate issues
+
 ## Shift-driven slicing and lava collapse
 
 `64bit-stable-shifts` patches only `ShiftA` / `shift_x` and `ShiftB` / `shift_z`,

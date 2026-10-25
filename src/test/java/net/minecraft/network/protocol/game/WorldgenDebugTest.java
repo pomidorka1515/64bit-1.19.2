@@ -166,23 +166,52 @@ class WorldgenDebugTest {
                     for (int i = 0; i < count; i++) received.add(data.readUtf());
                     assertTrue(received.get(0).startsWith("Config "));
                     assertEquals(expected, received.subList(1, 1 + expected.size()));
-                    for (String field : List.of("Shift X:", " Z:",
-                            "Aquifers lava:", "barrier:", "Surface primary:", "secondary:")) {
-                        assertTrue(received.stream().anyMatch(line -> line.contains(field)), field);
+                    if (!dimension.equals(NoiseGeneratorSettings.END)) {
+                        for (String field : List.of("Shift X:", " Z:",
+                                "Aquifers lava:", "barrier:", "Surface primary:", "secondary:")) {
+                            assertTrue(received.stream().anyMatch(line -> line.contains(field)), field);
+                        }
                     }
                     if (dimension.equals(NoiseGeneratorSettings.OVERWORLD)) {
                         for (String field : List.of("cheese:", "Pillars ", "Roughness ",
                                 "Caves layer:", "candidate:", "underground:", "selected:", "ridges: [")) {
                             assertTrue(received.stream().anyMatch(line -> line.contains(field)), field);
                         }
-                    } else {
+                    } else if (dimension.equals(NoiseGeneratorSettings.NETHER)) {
                         assertTrue(received.stream().anyMatch(line -> line.startsWith("Cave probes inactive:")));
+                    } else {
+                        assertTrue(received.stream().anyMatch(line -> line.startsWith("NoiseRouter E:")));
+                        for (String field : List.of(" T:", " V:", " C:", " D:", " W:", " PV:",
+                                "Cave probes", "Shift X:", "Aquifers", "Ores", "Surface", "Badlands",
+                                "Iceberg", "Materials", "Snow/Ice", "Simplex:")) {
+                            assertTrue(received.stream().noneMatch(line -> line.contains(field)), field);
+                        }
                     }
                     assertFalse(data.isReadable());
                 } finally {
                     data.release();
                 }
             }
+        }
+    }
+
+    @Test
+    void verboseEndRouterOnlyShowsUsedFields() {
+        var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(NoiseGeneratorSettings.END);
+        var generator = new NoiseBasedChunkGenerator(BuiltinRegistries.STRUCTURE_SETS, BuiltinRegistries.NOISE,
+                new FixedBiomeSource(BuiltinRegistries.BIOME.getHolderOrThrow(Biomes.THE_END)), settings);
+        NoiseBasedChunkGenerator.toggleWrapRouterDebugInfo();
+        try (var ignored = GenerationContext.open(GeneratorConfig.DEFAULT)) {
+            var random = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 1234L);
+            List<String> lines = new ArrayList<>();
+            generator.addDebugScreenInfo(lines, random, new BlockPos(123, 64, -456));
+            assertEquals(4, lines.size());
+            assertEquals("(Verbose) NoiseRouter: ", lines.get(0));
+            assertTrue(lines.get(1).startsWith("Erosion: "));
+            assertTrue(lines.get(2).startsWith("Initial Density: "));
+            assertTrue(lines.get(3).startsWith("Final Density: "));
+        } finally {
+            NoiseBasedChunkGenerator.toggleWrapRouterDebugInfo();
         }
     }
 }

@@ -160,6 +160,23 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
         DecimalFormat decimalformat = new DecimalFormat("0.00", java.text.DecimalFormatSymbols.getInstance(java.util.Locale.ROOT));
         NoiseRouter noiserouter = pRandom.router();
         DensityFunction.SinglePointContext densityfunction$singlepointcontext = new DensityFunction.SinglePointContext(pPos.getX(), pPos.getY(), pPos.getZ());
+        if (this.stable(NoiseGeneratorSettings.END)) {
+            // The End only uses the island field (stored in erosion) and the density fields.
+            double islands = noiserouter.erosion().compute(densityfunction$singlepointcontext);
+            double initial = noiserouter.initialDensityWithoutJaggedness().compute(densityfunction$singlepointcontext);
+            double density = noiserouter.finalDensity().compute(densityfunction$singlepointcontext);
+            if (wrapRouterDebugInfo) {
+                pInfo.add("(Verbose) NoiseRouter: ");
+                pInfo.add("Erosion: " + formatDebugValue(decimalformat, islands, 1.5D));
+                pInfo.add("Initial Density: " + formatDebugValue(decimalformat, initial, -25.0D, 2.0D));
+                pInfo.add("Final Density: " + formatDebugValue(decimalformat, density, 3.0D));
+            } else {
+                pInfo.add("NoiseRouter E: " + formatDebugValue(decimalformat, islands, 1.5D)
+                        + " AS: " + formatDebugValue(decimalformat, initial, -25.0D, 2.0D)
+                        + " N: " + formatDebugValue(decimalformat, density, 3.0D));
+            }
+            return;
+        }
         double d0 = noiserouter.ridges().compute(densityfunction$singlepointcontext);
         double d1 = noiserouter.temperature().compute(densityfunction$singlepointcontext);
         double d2 = noiserouter.vegetation().compute(densityfunction$singlepointcontext);

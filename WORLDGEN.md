@@ -766,3 +766,88 @@ lossy has different exact boundaries: it rounds absolute coordinates first,
 erases the seed offsets at these magnitudes and makes X/Z onsets coincide.
 the old lossy table is not interchangeable with this precise table. patched
 mode does not intentionally take these overflow routes
+
+## IEEE-754 infinity and NaN progression
+
+these are **floating-point overflows**, not the earlier 2^31 orb 2^63 / 2^63 lattice
+failures. both generation modes use the same IEEE-754 binary64 (`double`)
+limit; that does **not** give them the same world-coordinate failure points.
+stable shifts prevent one route to failure, not compound cave overflow.
+an overflowing mathematical result is not stored as a number above 2^1024:
+it rounds to signed Infinity, and subsequent operations can produce NaN.
+
+### Traced arithmetic paths
+
+| Point | How Infinity / NaN appears | What can happen next |
+| --- | --- | --- |
+| ImprovedNoise smoothstep | the failed floor leaves an unbounded fraction; `t*t*t*(t*(t*6-15)+10)` can overflow | lerp multiplies these weights by gradient differences; several extrapolating axes compound the growth |
+| Perlin / NormalNoise accumulation | weighted octave sums and the two-stack sum can overflow, or combine opposite infinities | the returned noise can be Infinity or NaN; a lattice failure alone is not yet floating-point overflow |
+| shift-driven climate | shift outputs become coordinates for another extrapolating noise | repeated growth reaches Infinity/NaN much earlier than a world coordinate reaches the double limit |
+| terrain splines / depth / sloped cheese | shifted climate values feed spline interpolation and density arithmetic | infinities can saturate some branches; invalid combinations propagate NaN |
+| pillars | `(2*pillar + mapped_rareness) * mapped_thickness^3` | compound multiplication overflows while individual raw noises can still be finite; positive infinity can win the underground max |
+| spaghetti roughness | `mapped_roughness_modulator * (abs(roughness)-0.4)` | the product can overflow even with two finite inputs |
+| 2D spaghetti | the elevation/thickness sum is cubed before the final clamp | Infinity can be clamped; NaN cannot be repaired by that clamp |
+| cave layer | `4 * cave_layer^2` | the square or subsequent multiplication can overflow before cave branch selection |
+| other density / surface combinations | scaled sums, products, squares and cubes of extrapolated noise | use-site arithmetic can overflow before the underlying raw sampler does; surface failures are not automatically terrain-density failures |
+| NoiseChunk interpolation | lerp subtracts endpoints and multiplies by the interpolation fraction | `Infinity-Infinity` and `0*Infinity` give NaN, including at cell endpoints |
+| final solid selection | `density > 0` is false for NaN | the aquifer fluid/air branch runs; this is not lava at every height |
+| End rings | signed-long squared-distance wrap feeds a negative value to sqrt | NaN without any double Infinity; this is the separate ring failure cataloged above |
+
+### Executed seed-0 survey
+
+`tools/InfinityProbe.java` checks precise coordinates, other horizontal axis=0,
+Y=64, all four directions independently, in ordinary and stable-shifts 32/64-bit
+modes. it samples 16 points per power-of-two interval through the positive
+signed-128-bit range. rows below are **first observed samples in that survey**,
+not exact first failing blocks, exhaustive boundaries, or generated-column
+tests. approximate notation comes first, followed by the full integer magnitude.
+the earlier ExposureProbe section gives the tighter local pillar checks.
+
+| Observed event | Mode | Directions sharing this sampled magnitude | Approximate magnitude; full magnitude |
+| --- | --- | --- | --- |
+| shifted final density NaN | 32-bit, ordinary | ±X, ±Z | ≈1.71798692e10; 17,179,869,184 |
+| shifted final density NaN | 64-bit, ordinary | +X, +Z | ≈7.37869763e19; 73,786,976,294,838,206,464 |
+| shifted final density NaN | 64-bit, ordinary | −X, −Z | ≈7.83986623e19; 78,398,662,313,265,594,368 |
+| pillar Infinity | 32-bit, ordinary and stable shifts | ±X | ≈4.92581209e14; 492,581,209,243,648 |
+| pillar Infinity | 32-bit, ordinary and stable shifts | ±Z | ≈4.57396837e14; 457,396,837,154,816 |
+| pillar Infinity | 64-bit, ordinary and stable shifts | ±X, ±Z | ≈2.36118324e21; 2,361,183,241,434,822,606,848 |
+| spaghetti roughness Infinity | both widths, ordinary and stable shifts | ±X, ±Z | ≈4.48753264e27; 4,487,532,642,409,503,496,509,325,312 |
+
+Infinity here includes either sign. the survey found no nonfinite **unit-scale
+raw NormalNoise output** and no nonfinite **direct final density with stable
+shifts** at its sampled points. neither result proves absence between samples;
+direct final density also omits the interpolated failure demonstrated above.
+positive X/Z and negative X/Z share the IEEE limit, but actual seeded failure
+coordinates and signs must not be assumed equal: the 32-bit pillar rows already
+provide a counterexample. no unmeasured global infinity walls are implied.
+
+### Final double-coordinate overflow threshold
+
+the largest finite double is `2^1024 - 2^971`, approximately
+**1.7976931348623157e308**, its full integer value:
+
+```text
+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368
+```
+
+under round-to-nearest, ties-to-even, the first exact integer magnitude that
+converts to Infinity is **`2^1024 - 2^970`**, approximately
+**1.7976931348623158e308**, full number:
+
+```text
+179769313486231580793728971405303415079934132710037826936173778980444968292764750946649017977587207096330286416692887910946555547851940402630657488671505820681908902000708383676273854845817711531764475730270069855571366959622842914819860834936475292719074168444365510704342711559699508093042880177904174497792
+```
+
+the probe verifies that this integer converts to +Infinity and its inward
+integer neighbor still converts to a finite double. +X and +Z have the same
+positive threshold; −X and −Z have its negative mirror. this IEEE-754 limit is
+identical for both generator widths and both precision settings.
+
+**at or beyond this threshold no finite, unscaled double coordinate exists.**
+it is an overflow threshold, not a last finite coordinate or a verified last
+terrain block. this project's signed-128-bit world coordinates stop much
+earlier, at `2^127-1` positively and `-2^127` negatively. consequently terrain
+cannot be addressed there in this implementation at all; claiming this is its
+measured final terrain boundary would be incorrect. an arbitrary-width or
+modulo-based generator need not convert an absolute coordinate to double, so
+IEEE-754 alone does not forbid all conceivable generation beyond this number.

@@ -167,18 +167,24 @@ class WorldgenDebugTest {
                     assertTrue(received.get(0).startsWith("Config "));
                     assertEquals(expected, received.subList(1, 1 + expected.size()));
                     if (!dimension.equals(NoiseGeneratorSettings.END)) {
-                        for (String field : List.of("Shift X:", " Z:",
-                                "Aquifers lava:", "barrier:", "Surface primary:", "secondary:")) {
+                        for (String field : List.of("Surface primary:", "secondary:")) {
                             assertTrue(received.stream().anyMatch(line -> line.contains(field)), field);
                         }
                     }
                     if (dimension.equals(NoiseGeneratorSettings.OVERWORLD)) {
-                        for (String field : List.of("cheese:", "Pillars ", "Roughness ",
+                        for (String field : List.of("Shift X:", " Z:", "Aquifers lava:", "barrier:",
+                                "cheese:", "Pillars ", "Roughness ",
                                 "Caves layer:", "candidate:", "underground:", "selected:", "ridges: [")) {
                             assertTrue(received.stream().anyMatch(line -> line.contains(field)), field);
                         }
                     } else if (dimension.equals(NoiseGeneratorSettings.NETHER)) {
-                        assertTrue(received.stream().anyMatch(line -> line.startsWith("Cave probes inactive:")));
+                        for (String field : List.of("NoiseRouter T:", "Nether soul_sand_layer:", "Nether netherrack:")) {
+                            assertTrue(received.stream().anyMatch(line -> line.startsWith(field)), field);
+                        }
+                        for (String field : List.of("Shift X:", "Aquifers", "Ores", "Cave probes", "Caves layer:",
+                                "Badlands", "Iceberg", "Materials", "Snow/Ice")) {
+                            assertTrue(received.stream().noneMatch(line -> line.contains(field)), field);
+                        }
                     } else {
                         assertTrue(received.stream().anyMatch(line -> line.startsWith("NoiseRouter E:")));
                         for (String field : List.of(" T:", " V:", " C:", " D:", " W:", " PV:",

@@ -40,9 +40,18 @@ public final class InfinityProbe {
                     });
                 }
                 for (var key : BuiltinRegistries.DENSITY_FUNCTION.keySet()) {
-                    if (key.getPath().startsWith("overworld/"))
+                    if (key.getPath().startsWith("overworld/") || key.getPath().equals("shift_x")
+                            || key.getPath().equals("shift_z"))
                         nodes.put(key.getPath(), state.debugFunction(ResourceKey.create(Registry.DENSITY_FUNCTION_REGISTRY, key)));
                 }
+                state.debugCaves(ResourceKey.create(Registry.DENSITY_FUNCTION_REGISTRY,
+                        new net.minecraft.resources.ResourceLocation("overworld/sloped_cheese")))
+                        .forEach((name, function) -> nodes.put("cave_branch/" + name, function));
+                // Include pre-clamp cave arithmetic: clamps otherwise conceal infinity.
+                var layer = new DensityFunctions.Noise(new DensityFunction.NoiseHolder(
+                        BuiltinRegistries.NOISE.getHolderOrThrow(Noises.CAVE_LAYER),
+                        state.getOrCreateNoise(Noises.CAVE_LAYER)), 1, 8);
+                nodes.put("cave_layer/square_times_four", DensityFunctions.mul(DensityFunctions.constant(4), layer.square()));
                 nodes.put("router/temperature", state.router().temperature());
                 nodes.put("router/vegetation", state.router().vegetation());
                 nodes.put("router/continents", state.router().continents());
@@ -64,7 +73,7 @@ public final class InfinityProbe {
                             double value = entry.getValue().compute(p);
                             String kind = Double.isNaN(value) ? "NaN" : Double.isInfinite(value) ? "Infinity" : null;
                             if (kind != null && seen.putIfAbsent(entry.getKey() + kind, true) == null)
-                                System.out.printf("%s %s%s %s %s %.8e %s%n", mode, sign > 0 ? "+" : "-", axis == 0 ? "X" : "Z", entry.getKey(), kind, n.abs().doubleValue(), n);
+                                System.out.printf("%s %s%s %s %s %.8e %s value=%s%n", mode, sign > 0 ? "+" : "-", axis == 0 ? "X" : "Z", entry.getKey(), kind, n.abs().doubleValue(), n, value);
                         }
                     }
                 }

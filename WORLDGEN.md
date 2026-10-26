@@ -30,6 +30,162 @@ whose highest active octaves differ; the catalog separates those cases
 | noodle_ridge_a / noodle_ridge_b | 101,243,976,853 | 434,839,569,500,144,462,263 |
 | jagged | 2,812,333 | 12,078,876,930,559,568 |
 
+## Climate overflow: behavioral pipeline
+
+the boundary tables describe sampler arithmetic. the downstream pipeline is:
+
+`world position → shifts → shifted climate noises → terrain splines / biome search`
+
+terrain then follows `offset → depth → sloped_cheese → surface/underground
+selection → final density → interpolation → aquifer solid/fluid selection`.
+biome search is a separate consumer of the climate values, not the cause of
+the density branch switch. the source details below matter: neither every
+overflow nor every nonfinite climate value has the same visible outcome.
+
+### 1. Shift eclipse: ordinary versus stable shifts
+
+ordinary `64bit` shifts first extrapolate at the nominal magnitude
+**72,473,261,583,357,402,475**. the seed-0 precise first-extrapolation boundary
+is **72,473,261,583,357,418,567**; see the signed shift tables below.
+this coincides with the continentalness reference scale and precedes the
+erosion, ridge, temperature and vegetation reference scales.
+
+`DensityFunctions.ShiftedNoise` uses **`world_coord * scale + shift`**, not
+`(world_coord + shift) * scale`. the horizontal climate scale is 0.25.
+`ShiftA` and `ShiftB` already multiply their offset-noise outputs by 4.
+those results are added as sampling coordinates, not as small density terms.
+once a shift extrapolates, its enormous output can drive the receiving noise
+far beyond its own lattice range even while the world position is nowhere
+near that channel's zero-shift boundary. signs and transverse variation then
+scramble the resulting climate field.
+
+this is the **shift eclipse**: ordinary generation does not provide clean,
+independent climate transitions at each later table entry. continentalness
+can fail alongside the shifts; it is not strictly a later event. the table's
+zero-shift references remain useful arithmetic references, but are not a
+sequence of observable ordinary-mode biome walls.
+
+to isolate a climate sampler's own overflow during generation, use
+**`64bit-stable-shifts`** (or explicitly disable shifts in a diagnostic).
+stable shifts retain bounded shift sampling while leaving the receiving
+climate samplers' ordinary overflow behavior intact. their still-nonzero
+shifts can perturb the reference boundaries. this isolates the cause; it
+does not guarantee intact terrain, since base noise and cave noises fail too.
+
+### 2. Spline extrapolation, negative infinite offset, and the cave fallback
+
+continentalness, erosion and ridge-derived peaks/valleys feed nested
+`CubicSpline` curves for terrain offset, factor and jaggedness. they are not
+simply added to density as raw climate values. `TerrainProvider.overworldOffset`
+places its outer continentalness knots between **-1.1 and 1.0**. outside a
+spline's knot range, `CubicSpline.Multipoint.linearExtend` evaluates:
+
+`value = endpoint_value + endpoint_derivative * (input - endpoint_location)`
+
+**a zero derivative returns the endpoint value directly**, without multiplying
+zero by an infinite input. importantly, both outer continentalness endpoint
+derivatives are zero in this source. the high continental edge does **not**
+have a negative slope: a huge positive C selects the nested inland spline,
+whose erosion and ridge inputs still need evaluation.
+
+splines use **float**, even though raw density functions return double.
+finite double C and E values can easily be far beyond the float range,
+so both become positive infinity when supplied to spline coordinates. this
+can select endpoint sub-splines; nonzero derivatives in the nested ridge
+splines can extrapolate to signed infinity, and invalid combinations can
+produce NaN. thus the reported `offset: -Infinity`, `factor: 4.69`,
+`sloped_cheese: -Infinity` is a downstream spline/density failure, **not proof
+that C alone multiplied a negative continental endpoint slope**.
+
+once offset is negative infinite, adding the finite height gradient gives
+negative infinite depth. with a finite positive factor such as 4.69 and no
+competing invalid/infinite terms, `noiseGradientDensity` and `sloped_cheese`
+remain negative infinite. the decisive branch in `NoiseRouterData.selectCaves`
+is:
+
+```text
+rangeChoice(sloped_cheese, -1,000,000.0, 1.5625,
+            min(sloped_cheese, 5 * entrances), underground)
+```
+
+the interval includes its lower bound and excludes its upper bound.
+**negative infinity is below -1,000,000.0, so it selects `underground`, not
+the normal surface/entrance branch.** NaN also fails the interval test.
+this connects broken climate/splines to the cave/pillar-dominated terrain
+associated with the MC-311599-style fallback. the underground branch
+still consumes sloped cheese and other cave fields: it is not a clean reset
+to healthy caves. its clamps, max operations and pillar gate can retain finite
+density despite a nonfinite surface input, as the measured transects below
+demonstrate. later interpolation can introduce additional NaN failures.
+
+### 3. Six-dimensional biome distance collapse: quantization and integer wrap
+
+`MultiNoiseBiomeSource` searches climate targets in temperature, vegetation
+(humidity), continentalness, erosion, depth and weirdness: `(T,V,C,E,D,W)`.
+conceptually it minimizes a squared distance, but targets are **intervals**,
+not necessarily individual points:
+
+`fitness = d(T,I_T)^2 + d(V,I_V)^2 + d(C,I_C)^2 + d(E,I_E)^2 + d(D,I_D)^2 + d(W,I_W)^2 + offset^2`
+
+here `d` is zero inside a target interval and otherwise the distance to its
+nearest edge. `offset` is an additional target penalty. in this implementation
+the actual arithmetic is **not a double Euclidean-distance search**:
+
+1. `Climate.Sampler` casts each density result to float.
+2. `Climate.quantizeCoord` computes `(long)(value * 10000.0F)`.
+3. interval distances, squares and their sum use signed **long** arithmetic.
+4. `Climate.RTree` searches those distances, retaining a thread-local last leaf
+   as an initial candidate and updating only for a strictly smaller distance.
+
+there are two useful failure regimes, but neither is floating-point distance
+mantissa drowning followed by an Infinity comparison:
+
+- **finite out-of-range climate:** a growing dimension can dominate the intended
+  metric and suppress normal biome variation. however, long squares/sums can
+  wrap long before float or double infinity. wrapped distances can become
+  negative, invalidate nearest-neighbor pruning, and give pathological bands
+  or biome choices rather than a reliable one-dimensional closest-C search.
+- **saturated/nonfinite climate:** Java casts sufficiently large positive
+  values and positive infinity to **9,223,372,036,854,775,807**, negative ones
+  to **-9,223,372,036,854,775,808**, and NaN to **0**. once multiple positions
+  quantize to the same climate vector, they lose those distinctions entirely.
+  distance subtraction, squaring and summation still wrap; the search never
+  compares floating-point infinite or NaN distances.
+
+`+Infinity < +Infinity` is false, but it does **not** explain this
+biome search. equal integer distances can retain an existing candidate; tree
+ordering and the cached last result matter. there is no general rule that
+overflow permanently chooses the first biome in the registry.
+
+### 4. Why regular and `_large` reference scales differ by four
+
+`NoiseData.registerBiomeNoises` preserves each channel's amplitude list and
+lowers its first octave by **2** for `_large`. it does not remove two octaves:
+it moves the same spectrum down two octave levels. every corresponding
+frequency is multiplied by **0.25**, so the nominal world-coordinate magnitude
+needed to reach the same lattice limit is multiplied by **4**.
+
+| Channel | regular nominal 64-bit N | `_large` nominal 64-bit N |
+| --- | ---: | ---: |
+| temperature | 9,276,577,482,669,747,516,696 | 37,106,309,930,678,990,066,784 |
+| vegetation | 4,638,288,741,334,873,758,348 | 18,553,154,965,339,495,033,392 |
+| continentalness | 72,473,261,583,357,402,475 | 289,893,046,333,429,609,897 |
+| erosion | 1,159,572,185,333,718,439,587 | 4,638,288,741,334,873,758,348 |
+
+the factor of four is a **scale relationship**, not an exact identity between
+rounded table integers or seeded first-failure coordinates. the nominal table
+also groups some channels; use the exact zero-shift catalog for precise walls.
+
+crucially `NoiseRouterData.overworld` **selects regular OR large-biome noises**
+for these channels. it does not combine regular micro-variation with a `_large`
+macro backdrop in one world. ordinary settings use the regular channels;
+large-biomes settings substitute the `_large` channels, including the terrain
+continentalness/erosion splines. ridge and the shared shifts are not similarly
+replaced. therefore the two reference distances describe failures in different
+settings, **not two successive local-then-continental climate collapses in
+every world**. stable shifts make this comparison meaningful without the
+shared shift blowout eclipsing the later large-biome sampler boundaries.
+
 ## Variable-scale spaghetti
 
 | Rarity | Inputs | 32-bit N | 64-bit N |
@@ -793,61 +949,109 @@ it rounds to signed Infinity, and subsequent operations can produce NaN.
 | final solid selection | `density > 0` is false for NaN | the aquifer fluid/air branch runs; this is not lava at every height |
 | End rings | signed-long squared-distance wrap feeds a negative value to sqrt | NaN without any double Infinity; this is the separate ring failure cataloged above |
 
-### Executed seed-0 survey
+### Consolidated Infinity / NaN coordinate catalog
 
-`tools/InfinityProbe.java` checks precise coordinates, other horizontal axis=0,
-Y=64, all four directions independently, in ordinary and stable-shifts 32/64-bit
-modes. it samples 16 points per power-of-two interval through the positive
-signed-128-bit range. rows below are **first observed samples in that survey**,
-not exact first failing blocks, exhaustive boundaries, or generated-column
-tests. approximate notation comes first, followed by the full integer magnitude.
-the earlier ExposureProbe section gives the tighter local pillar checks.
+**axes cannot generally be discarded.** the IEEE conversion limit is symmetric
+in X/Z and sign, but seeded noise values, nested splines, products and branch
+selection are not. `±X` means the two signs matched in the specified test;
+`±X, ±Z` means all four matched. coordinate sign and **result sign** are separate.
+even matched survey samples do not prove identical exact onsets.
 
-| Observed event | Mode | Directions sharing this sampled magnitude | Approximate magnitude; full magnitude |
-| --- | --- | --- | --- |
-| shifted final density NaN | 32-bit, ordinary | ±X, ±Z | ≈1.71798692e10; 17,179,869,184 |
-| shifted final density NaN | 64-bit, ordinary | +X, +Z | ≈7.37869763e19; 73,786,976,294,838,206,464 |
-| shifted final density NaN | 64-bit, ordinary | −X, −Z | ≈7.83986623e19; 78,398,662,313,265,594,368 |
-| pillar Infinity | 32-bit, ordinary and stable shifts | ±X | ≈4.92581209e14; 492,581,209,243,648 |
-| pillar Infinity | 32-bit, ordinary and stable shifts | ±Z | ≈4.57396837e14; 457,396,837,154,816 |
-| pillar Infinity | 64-bit, ordinary and stable shifts | ±X, ±Z | ≈2.36118324e21; 2,361,183,241,434,822,606,848 |
-| spaghetti roughness Infinity | both widths, ordinary and stable shifts | ±X, ±Z | ≈4.48753264e27; 4,487,532,642,409,503,496,509,325,312 |
+the catalog combines all observed nonfinite event types from the probes with
+the tighter local tests documented above. it is **not an exhaustive list of
+global first failures**: those depend on seed, Y, transverse coordinate,
+settings, precision, sampling/interpolation and nonmonotonic branch selection.
+there is no single coordinate at which every instance of a named noise
+permanently becomes infinite. a function can encounter NaN, later infinity,
+and finite values again; some clamps conceal infinity entirely.
 
-Infinity here includes either sign. the survey found no nonfinite **unit-scale
-raw NormalNoise output** and no nonfinite **direct final density with stable
-shifts** at its sampled points. neither result proves absence between samples;
-direct final density also omits the interpolated failure demonstrated above.
-positive X/Z and negative X/Z share the IEEE limit, but actual seeded failure
-coordinates and signs must not be assumed equal: the 32-bit pillar rows already
-provide a counterexample. no unmeasured global infinity walls are implied.
+evidence labels:
 
-### Final double-coordinate overflow threshold
+- **S**: expanded `tools/InfinityProbe.java` survey, seed 0, precise, Y=64,
+  other axis=0; 16 samples per power-of-two interval through the positive
+  signed-128-bit range. **first observed sample of that result kind**, not an
+  exact first block. raw noise, registered overworld functions, shift functions,
+  router outputs, cave-branch nodes and pre-clamp `4*cave_layer²` are checked.
+- **L**: locally verified adjacent-coordinate boundary; conditions specified
+  in the earlier stable-shifts pillar section. not a global first.
+- **G**: measured first nonfinite density-grid sample on the earlier defined
+  32-bit shift transect; not a first generated block.
+- **E**: exact arithmetic threshold, with the stated conversion or End-ring
+  operation, not necessarily a world-generation infinity.
+- **P**: observed at the first affected 64-bit shift grid plane, other axis=0,
+  Y=64; this is not an independently located infinity onset.
 
-the largest finite double is `2^1024 - 2^971`, approximately
-**1.7976931348623157e308**, its full integer value:
+`ordinary` and `stable` refer to the corresponding generator modes. `both
+widths / both` covers ordinary and stable-shifts 32/64-bit modes. duplicate
+registered/router outputs are merged below. powers are approximate `log2(N)`
+unless an exact expression is supplied; the full column is the magnitude N.
 
-```text
-179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368
-```
+| Event / evaluated field | Mode | Directions / conditions | Result | Evidence | Approximate power of two | Full coordinate magnitude N |
+| --- | --- | --- | --- | --- | ---: | ---: |
+| shift-driven final density | 32-bit ordinary | −X; first affected grid plane | NaN | G | ≈2^33.9741 | 16,873,996,804 |
+| shift-driven final density | 32-bit ordinary | −Z; first affected grid plane | NaN | G | ≈2^33.9741 | 16,873,996,624 |
+| shift-driven final density | 32-bit ordinary | +Z | NaN | G | ≈2^33.9741 | 16,874,464,128 |
+| shift-driven final density | 32-bit ordinary | +X | NaN | G | ≈2^33.9741 | 16,874,602,452 |
+| climate: T, V, C, E, ridges, folded ridges | 32-bit ordinary | ±X, ±Z | NaN | S | 2^34 | 17,179,869,184 |
+| terrain: offset, depth, sloped_cheese, final density | 32-bit ordinary | ±X, ±Z | NaN | S | 2^34 | 17,179,869,184 |
+| caves: cheese_layer, candidate, underground, selected | 32-bit ordinary | ±X, ±Z | NaN | S | 2^34 | 17,179,869,184 |
+| End-ring squared distance → sqrt / island density (not double overflow) | End rings enabled | diagonal X=Z, each axis | NaN | E | ≈2^34 | 17,179,869,184 |
+| End-ring squared distance → sqrt / island density (not double overflow) | End rings enabled | axis, other=0 | NaN | E | ≈2^34.5000 | 24,296,004,000 |
+| offset → depth → sloped_cheese | 32-bit stable | ±Z | −Infinity | S | 2^38 | 274,877,906,944 |
+| offset → depth → sloped_cheese | 32-bit stable | −X | −Infinity | S | ≈2^39.1699 | 618,475,290,624 |
+| offset → depth → sloped_cheese | 32-bit stable | +X | −Infinity | S | ≈2^40.7549 | 1,855,425,871,872 |
+| pillars and gated_pillars | 32-bit ordinary / stable | ±Z | −Infinity | S | ≈2^48.7004 | 457,396,837,154,816 |
+| pillars and gated_pillars | 32-bit ordinary / stable | ±X | −Infinity | S | ≈2^48.8074 | 492,581,209,243,648 |
+| continentalness | 64-bit ordinary | −X, first affected shift grid plane | NaN | P | ≈2^65.9741 | 72,473,261,583,357,418,568 |
+| continentalness; depth | 64-bit ordinary | −Z for C; +Z for depth, first affected shift grid plane | Infinity for C; −Infinity for depth | P | ≈2^65.9741 | 72,473,261,583,357,418,568 |
+| continentalness | 64-bit ordinary | ±X, ±Z | NaN | S | 2^66 | 73,786,976,294,838,206,464 |
+| climate: T, V, E, ridges, folded ridges | 64-bit ordinary | +X, +Z | NaN | S | 2^66 | 73,786,976,294,838,206,464 |
+| terrain: offset, depth, sloped_cheese, final density | 64-bit ordinary | +X, +Z | NaN | S | 2^66 | 73,786,976,294,838,206,464 |
+| caves: cheese_layer, candidate, underground, selected | 64-bit ordinary | +X, +Z | NaN | S | 2^66 | 73,786,976,294,838,206,464 |
+| climate: T, V, E, ridges, folded ridges | 64-bit ordinary | −X, −Z | NaN | S | ≈2^66.0875 | 78,398,662,313,265,594,368 |
+| terrain: offset, depth, sloped_cheese, final density | 64-bit ordinary | −X, −Z | NaN | S | ≈2^66.0875 | 78,398,662,313,265,594,368 |
+| caves: cheese_layer, candidate, underground, selected | 64-bit ordinary | −X, −Z | NaN | S | ≈2^66.0875 | 78,398,662,313,265,594,368 |
+| erosion (already NaN at an earlier surveyed position) | 64-bit ordinary | +Z | +Infinity | S | 2^70 | 1,180,591,620,717,411,303,424 |
+| raw pillar compound | 64-bit stable | −X, Y=-64, other=0 | −Infinity | L | ≈2^70.9741 | 2,319,144,370,667,437,144,697 |
+| raw pillar compound | 64-bit stable | −Z, Y=-64, other=0 | +Infinity | L | ≈2^70.9741 | 2,319,144,370,667,437,144,697 |
+| interpolated final density | 64-bit stable | −X / −Z, column Y=-64..319 | NaN | L | ≈2^70.9741 | 2,319,144,370,667,437,144,697 |
+| interpolated final density | 64-bit stable | +Z, column Y=-64..319 | NaN | L | ≈2^70.9741 | 2,319,144,373,009,074,352,936 |
+| raw pillar compound | 64-bit stable | +Z, Y=136, other=4 | +Infinity | L | ≈2^70.9741 | 2,319,144,373,009,074,352,938 |
+| raw pillar compound | 64-bit stable | +X, Y=128, other=4 | +Infinity | L | ≈2^70.9741 | 2,319,144,373,477,576,476,467 |
+| interpolated final density | 64-bit stable | +X, column Y=-64..319 | NaN | L | ≈2^70.9741 | 2,319,144,373,482,458,742,508 |
+| pillars and gated_pillars | 64-bit ordinary / stable | ±X, ±Z, Y=64 | −Infinity | S | 2^71 | 2,361,183,241,434,822,606,848 |
+| spaghetti roughness product | both widths / both | ±X | +Infinity | S | ≈2^91.8580 | 4,487,532,642,409,503,496,509,325,312 |
+| spaghetti roughness product | both widths / both | ±Z | −Infinity | S | ≈2^91.8580 | 4,487,532,642,409,503,496,509,325,312 |
+| pre-clamp cave layer: `4*cave_layer²` | both widths / both | ±Z | +Infinity | S | ≈2^92.9542 | 9,594,035,304,461,697,130,468,212,736 |
+| cave cheese_layer sum (layer plus clamped cheese terms) | both widths, stable only | ±Z | +Infinity | S | ≈2^92.9542 | 9,594,035,304,461,697,130,468,212,736 |
+| pre-clamp cave layer: `4*cave_layer²` | both widths / both | ±X | +Infinity | S | ≈2^93.1699 | 11,141,460,353,568,422,474,092,118,016 |
+| cave cheese_layer sum (layer plus clamped cheese terms) | both widths, stable only | ±X | +Infinity | S | ≈2^93.1699 | 11,141,460,353,568,422,474,092,118,016 |
+| positive world-coordinate storage limit, **still finite** | signed Int128, all modes | any positive axis | not an Infinity event | E | 2^127 − 1 | 170,141,183,460,469,231,731,687,303,715,884,105,727 |
+| negative world-coordinate storage limit, **still finite** | signed Int128, all modes | any negative axis | not an Infinity event | E | 2^127 | 170,141,183,460,469,231,731,687,303,715,884,105,728 |
+| largest finite binary64 value, **not a world boundary** | IEEE-754 double | either sign; axes irrelevant | finite ±Double.MAX_VALUE | E | ≈2^1024; exact 2^1024 − 2^971 | 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368 |
+| first exact integer magnitude converting to binary64 Infinity | IEEE-754 round-to-nearest, ties-to-even | ±, axes irrelevant; outside Int128 world range | ±Infinity | E | ≈2^1024; exact **2^1024 − 2^970** | 179769313486231580793728971405303415079934132710037826936173778980444968292764750946649017977587207096330286416692887910946555547851940402630657488671505820681908902000708383676273854845817711531764475730270069855571366959622842914819860834936475292719074168444365510704342711559699508093042880177904174497792 |
 
-under round-to-nearest, ties-to-even, the first exact integer magnitude that
-converts to Infinity is **`2^1024 - 2^970`**, approximately
-**1.7976931348623158e308**, full number:
+### Coverage and limits of the catalog
 
-```text
-179769313486231580793728971405303415079934132710037826936173778980444968292764750946649017977587207096330286416692887910946555547851940402630657488671505820681908902000708383676273854845817711531764475730270069855571366959622842914819860834936475292719074168444365510704342711559699508093042880177904174497792
-```
+the expanded survey found **no nonfinite unit-scale raw NormalNoise**, shift_x,
+shift_z, factor or jaggedness at its samples, and no nonfinite **direct final
+density with stable shifts**. none of those absences proves safety between
+samples. the earlier local tests demonstrate interpolated NaN despite finite
+direct final density. ordinary cheese_layer is already NaN in the survey before
+its raw cave-layer square reaches infinity; stable shifts expose that infinity
+in the sum instead. the underground min/max can still reject an infinite sum.
 
-the probe verifies that this integer converts to +Infinity and its inward
-integer neighbor still converts to a finite double. +X and +Z have the same
-positive threshold; −X and −Z have its negative mirror. this IEEE-754 limit is
-identical for both generator widths and both precision settings.
+other possible arithmetic routes, such as a pre-clamp spaghetti elevation
+cube or individual octave interpolation weights, do not have measured global
+coordinate thresholds here. their enclosing registered functions may clamp
+them or bypass them. surface-rule-specific, large-biomes, amplified, other
+seeds/heights and mixed-axis failures likewise have no exhaustive infinity
+catalog. **no coordinate is invented for an unmeasured event.** the earlier
+noise-input tables remain lattice-extrapolation boundaries, not Infinity walls.
 
-**at or beyond this threshold no finite, unscaled double coordinate exists.**
-it is an overflow threshold, not a last finite coordinate or a verified last
-terrain block. this project's signed-128-bit world coordinates stop much
-earlier, at `2^127-1` positively and `-2^127` negatively. consequently terrain
-cannot be addressed there in this implementation at all; claiming this is its
-measured final terrain boundary would be incorrect. an arbitrary-width or
-modulo-based generator need not convert an absolute coordinate to double, so
-IEEE-754 alone does not forbid all conceivable generation beyond this number.
+the probe verifies the final table row by converting its exact integer and
+the inward integer neighbor: only the former becomes infinity. this numerical
+conversion limit is shared by both noise widths and precision settings, but
+is unreachable by Int128 world positions. it is not a measured
+last terrain block, nor a prohibition on generators that avoid converting
+absolute coordinates to double.

@@ -1,34 +1,143 @@
 # worldgen overflow values
 
-nominal block-coordinate magnitudes N; table boundaries on both axes are ±N.
-seed offsets and shifted inputs can change actual onset, so these are scale-based
-lattice boundaries, not guaranteed first broken blocks or surface transitions
-
-the seed-0 section below uses actual octave offsets instead
-
-for sharp 64-bit / precise walls use the exact catalog below, not the nominal
-64-bit column. some nominal groups also omit call-site scales or combine noises
-whose highest active octaves differ; the catalog separates those cases
+seed 0. Noise inputs and SurfaceSystem / SurfaceRules tables below contain
+separate measured **32-bit / lossy** and **64-bit / precise** signed
+block-coordinate boundary tables, not nominal
+scales. each highest active octave and stack was searched independently in
+**+X, +Z, −Z, −X** order, checking that the adjacent integer toward zero is
+healthy. inputs are grouped only when scale, stack and all four values match.
+`= <column>` means exactly the same signed value (not an estimate)
 
 ## Noise inputs
 
-| Input | 32-bit N | 64-bit N |
-| --- | ---: | ---: |
-| temperature | 2,159,871,506,195 | 9,276,577,482,669,747,516,696 |
-| vegetation / erosion_large | 1,079,935,753,098 | 4,638,288,741,334,873,758,348 |
-| continentalness / shift_x / shift_z / aquifer_barrier | 16,873,996,143 | 72,473,261,583,357,402,475 |
-| erosion / ridge / aquifer_fluid_level_floodedness | 269,983,938,275 | 1,159,572,185,333,718,439,587 |
-| temperature_large | 8,639,486,024,780 | 37,106,309,930,678,990,066,784 |
-| vegetation_large | 4,319,743,012,390 | 18,553,154,965,339,495,033,392 |
-| continentalness_large / aquifer_fluid_level_spread / spaghetti_roughness / ore_vein_a / ore_vein_b / ore_gap | 67,495,984,569 | 289,893,046,333,429,609,897 |
-| aquifer_lava / cave_cheese | 4,218,499,036 | 18,118,315,395,839,350,619 |
-| pillar | 5,399,678,766 | 23,191,443,706,674,368,388 |
-| pillar_rareness / pillar_thickness / spaghetti_2d_elevation / spaghetti_3d_thickness / spaghetti_roughness_modulator / cave_layer / noodle / noodle_thickness | 539,967,876,549 | 2,319,144,370,667,436,879,174 |
-| spaghetti_2d_modulator / spaghetti_2d_thickness / spaghetti_3d_rarity | 2,159,871,506,195 | 9,276,577,482,669,747,516,696 |
-| cave_entrance | 89,994,646,092 | 386,524,061,777,906,146,529 |
-| ore_veininess | 359,978,584,366 | 1,546,096,247,111,624,586,116 |
-| noodle_ridge_a / noodle_ridge_b | 101,243,976,853 | 434,839,569,500,144,462,263 |
-| jagged | 2,812,333 | 12,078,876,930,559,568 |
+climate sampler rows use **zero added shift**; actual generation adds the
+position-dependent shifts. shift_x and shift_z themselves use actual offset
+noise, including ShiftB's rotation of world X into noise Y. aquifer_barrier,
+aquifer_fluid_level_floodedness and aquifer_fluid_level_spread have X/Z scale 1:
+their single scale argument changes Y only. the separate 64-bit counterpart
+below uses the same zero-shift conditions
+
+### 32-bit / lossy
+
+| Input / stack | X/Z scale | +X | +Z | −Z | −X |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| temperature / second | 0.25 | 2,159,871,461,051 | 2,159,871,261,976 | -2,159,871,750,415 | -2,159,871,551,340 |
+| temperature / first | 0.25 | 2,199,023,051,862 | 2,199,023,064,316 | -2,199,023,446,789 | -2,199,023,459,243 |
+| vegetation / second | 0.25 | 1,079,935,627,531 | 1,079,935,630,357 | -1,079,935,875,839 | -1,079,935,878,664 |
+| vegetation / first | 0.25 | 1,099,511,574,757 | 1,099,511,604,763 | -1,099,511,650,790 | -1,099,511,680,796 |
+| continentalness / second | 0.25 | 16,873,994,513 | 16,873,995,059 | -16,873,997,227 | -16,873,997,772 |
+| continentalness / first | 0.25 | 17,179,868,295 | 17,179,869,005 | -17,179,869,364 | -17,179,870,074 |
+| erosion / second | 0.25 | 269,983,926,302 | 269,983,913,475 | -269,983,963,075 | -269,983,950,248 |
+| erosion / first | 0.25 | 274,877,895,003 | 274,877,902,109 | -274,877,911,780 | -274,877,918,886 |
+| ridge / second | 0.25 | 269,983,936,574 | 269,983,909,921 | -269,983,966,629 | -269,983,939,976 |
+| ridge / first | 0.25 | 274,877,893,570 | 274,877,876,286 | -274,877,937,603 | -274,877,920,319 |
+| temperature_large / second | 0.25 | 8,639,485,574,370 | 8,639,485,589,377 | -8,639,486,460,184 | -8,639,486,475,191 |
+| temperature_large / first | 0.25 | 8,796,092,848,386 | 8,796,092,100,111 | -8,796,093,944,306 | -8,796,093,196,031 |
+| vegetation_large / second | 0.25 | 4,319,742,507,050 | 4,319,742,822,341 | -4,319,743,202,440 | -4,319,743,517,731 |
+| vegetation_large / first | 0.25 | 4,398,046,073,757 | 4,398,046,463,569 | -4,398,046,558,640 | -4,398,046,948,452 |
+| continentalness_large / second | 0.25 | 67,495,982,115 | 67,495,978,973 | -67,495,990,165 | -67,495,987,024 |
+| continentalness_large / first | 0.25 | 68,719,473,482 | 68,719,473,280 | -68,719,480,193 | -68,719,479,991 |
+| erosion_large / second | 0.25 | 1,079,935,634,243 | 1,079,935,695,464 | -1,079,935,810,732 | -1,079,935,871,953 |
+| erosion_large / first | 0.25 | 1,099,511,529,390 | 1,099,511,596,383 | -1,099,511,659,170 | -1,099,511,726,163 |
+| offset / shift_x / second | 0.25 | 16,873,994,542 | 16,873,995,662 | -16,873,996,623 | -16,873,997,744 |
+| offset / shift_x / first | 0.25 | 17,179,868,388 | 17,179,867,495 | -17,179,870,874 | -17,179,869,981 |
+| shift_z / second | 0.25 | 16,873,995,483 | 16,873,994,542 | -16,873,997,744 | -16,873,996,803 |
+| shift_z / first | 0.25 | 17,179,868,680 | 17,179,868,388 | -17,179,869,981 | -17,179,869,689 |
+| aquifer_barrier / second | 1.0 | 16,873,996,003 | 16,873,994,840 | -16,873,997,445 | -16,873,996,282 |
+| aquifer_barrier / first | 1.0 | 17,179,869,060 | 17,179,867,258 | -17,179,871,111 | -17,179,869,309 |
+| aquifer_fluid_level_floodedness / second | 1.0 | 269,983,910,877 | 269,983,907,694 | -269,983,968,856 | -269,983,965,673 |
+| aquifer_fluid_level_floodedness / first | 1.0 | 274,877,890,777 | 274,877,875,622 | -274,877,938,267 | -274,877,923,112 |
+| aquifer_fluid_level_spread / second | 1.0 | 67,495,982,650 | 67,495,983,344 | -67,495,985,794 | -67,495,986,488 |
+| aquifer_fluid_level_spread / first | 1.0 | 68,719,473,563 | 68,719,474,643 | -68,719,478,830 | -68,719,479,910 |
+| aquifer_lava / second | 1.0 | 4,218,498,832 | 4,218,498,945 | -4,218,499,127 | -4,218,499,240 |
+| aquifer_lava / first | 1.0 | 4,294,967,226 | 4,294,967,083 | -4,294,967,510 | -4,294,967,367 |
+| cave_cheese / second | 1.0 | 4,218,498,805 | 4,218,498,760 | -4,218,499,312 | -4,218,499,267 |
+| cave_cheese / first | 1.0 | 4,294,967,173 | 4,294,966,982 | -4,294,967,611 | -4,294,967,420 |
+| pillar / second | 25.0 | 5,399,678,716 | 5,399,678,204 | -5,399,679,328 | -5,399,678,815 |
+| pillar / first | 25.0 | 5,497,557,855 | 5,497,557,533 | -5,497,558,746 | -5,497,558,423 |
+| pillar_rareness / second | 1.0 | 539,967,863,510 | 539,967,834,176 | -539,967,918,923 | -539,967,889,589 |
+| pillar_rareness / first | 1.0 | 549,755,785,233 | 549,755,810,812 | -549,755,816,965 | -549,755,842,544 |
+| pillar_thickness / second | 1.0 | 539,967,871,021 | 539,967,832,465 | -539,967,920,634 | -539,967,882,078 |
+| pillar_thickness / first | 1.0 | 549,755,756,396 | 549,755,788,952 | -549,755,838,825 | -549,755,871,381 |
+| spaghetti_2d_elevation / second | 1.0 | 539,967,857,991 | 539,967,838,185 | -539,967,914,913 | -539,967,895,108 |
+| spaghetti_2d_elevation / first | 1.0 | 549,755,753,528 | 549,755,811,168 | -549,755,816,609 | -549,755,874,249 |
+| spaghetti_3d_thickness / second | 1.0 | 539,967,823,017 | 539,967,863,097 | -539,967,890,001 | -539,967,930,081 |
+| spaghetti_3d_thickness / first | 1.0 | 549,755,786,349 | 549,755,774,423 | -549,755,853,354 | -549,755,841,428 |
+| spaghetti_roughness / second | 1.0 | 67,495,977,355 | 67,495,977,972 | -67,495,991,166 | -67,495,991,783 |
+| spaghetti_roughness / first | 1.0 | 68,719,470,813 | 68,719,474,462 | -68,719,479,011 | -68,719,482,660 |
+| spaghetti_roughness_modulator / second | 1.0 | 539,967,838,082 | 539,967,820,689 | -539,967,932,410 | -539,967,915,017 |
+| spaghetti_roughness_modulator / first | 1.0 | 549,755,772,804 | 549,755,805,032 | -549,755,822,745 | -549,755,854,973 |
+| cave_layer / second | 1.0 | 539,967,855,676 | 539,967,860,124 | -539,967,892,974 | -539,967,897,423 |
+| cave_layer / first | 1.0 | 549,755,812,118 | 549,755,791,159 | -549,755,836,618 | -549,755,815,659 |
+| noodle / second | 1.0 | 539,967,827,965 | 539,967,821,257 | -539,967,931,841 | -539,967,925,133 |
+| noodle / first | 1.0 | 549,755,800,008 | 549,755,754,333 | -549,755,873,444 | -549,755,827,769 |
+| noodle_thickness / second | 1.0 | 539,967,848,775 | 539,967,873,822 | -539,967,879,277 | -539,967,904,323 |
+| noodle_thickness / first | 1.0 | 549,755,785,091 | 549,755,807,682 | -549,755,820,095 | -549,755,842,686 |
+| spaghetti_2d_modulator / second | 2.0 | 2,159,871,296,996 | 2,159,871,276,961 | -2,159,871,735,430 | -2,159,871,715,395 |
+| spaghetti_2d_modulator / first | 2.0 | 2,199,023,070,622 | 2,199,023,015,428 | -2,199,023,495,677 | -2,199,023,440,483 |
+| spaghetti_2d_thickness / second | 2.0 | 2,159,871,287,460 | 2,159,871,416,944 | -2,159,871,595,447 | -2,159,871,724,931 |
+| spaghetti_2d_thickness / first | 2.0 | 2,199,023,121,894 | 2,199,023,180,385 | -2,199,023,330,720 | -2,199,023,389,211 |
+| spaghetti_3d_rarity / second | 2.0 | 2,159,871,346,163 | 2,159,871,451,089 | -2,159,871,561,302 | -2,159,871,666,228 |
+| spaghetti_3d_rarity / first | 2.0 | 2,199,023,031,743 | 2,199,023,127,637 | -2,199,023,383,468 | -2,199,023,479,362 |
+| cave_entrance / second | 0.75 | 89,994,638,053 | 89,994,643,692 | -89,994,648,492 | -89,994,654,131 |
+| cave_entrance / first | 0.75 | 91,625,967,072 | 91,625,958,654 | -91,625,979,310 | -91,625,970,892 |
+| ore_veininess / second | 1.5 | 359,978,573,239 | 359,978,570,348 | -359,978,598,384 | -359,978,595,494 |
+| ore_veininess / first | 1.5 | 366,503,867,602 | 366,503,874,146 | -366,503,877,706 | -366,503,884,250 |
+| ore_vein_a / second | 4.0 | 67,495,982,715 | 67,495,984,409 | -67,495,984,729 | -67,495,986,424 |
+| ore_vein_a / first | 4.0 | 68,719,473,846 | 68,719,475,046 | -68,719,478,427 | -68,719,479,627 |
+| ore_vein_b / second | 4.0 | 67,495,982,027 | 67,495,978,327 | -67,495,990,811 | -67,495,987,111 |
+| ore_vein_b / first | 4.0 | 68,719,475,035 | 68,719,475,397 | -68,719,478,076 | -68,719,478,438 |
+| ore_gap / second | 1.0 | 67,495,978,864 | 67,495,978,820 | -67,495,990,318 | -67,495,990,274 |
+| ore_gap / first | 1.0 | 68,719,476,549 | 68,719,472,757 | -68,719,480,716 | -68,719,476,924 |
+| noodle_ridge_a / second | 2.6666666666666665 | 101,243,965,109 | 101,243,965,490 | -101,243,988,216 | -101,243,988,598 |
+| noodle_ridge_a / first | 2.6666666666666665 | 103,079,209,368 | 103,079,214,120 | -103,079,216,089 | -103,079,220,841 |
+| noodle_ridge_b / second | 2.6666666666666665 | 101,243,967,202 | 101,243,971,223 | -101,243,982,484 | -101,243,986,505 |
+| noodle_ridge_b / first | 2.6666666666666665 | 103,079,211,933 | 103,079,207,528 | -103,079,222,681 | -103,079,218,276 |
+| jagged / second | 1500.0 | 2,812,333 | = +X | -2,812,333 | = −Z |
+| jagged / first | 1500.0 | 2,863,312 | = +X | -2,863,312 | = −Z |
+
+### 64-bit / precise
+
+| Input / stack | X/Z scale | +X | +Z | −Z | −X |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| temperature / second | 0.25 | 9,276,577,482,669,748,554,649 | = +X | -9,276,577,482,669,748,554,649 | = −Z |
+| temperature / first | 0.25 | 9,444,732,965,739,291,484,160 | = +X | -9,444,732,965,739,291,484,160 | = −Z |
+| vegetation / erosion_large / second | 0.25 | 4,638,288,741,334,874,281,348 | = +X | -4,638,288,741,334,874,281,348 | = −Z |
+| vegetation / erosion_large / first | 0.25 | 4,722,366,482,869,645,746,176 | = +X | -4,722,366,482,869,645,746,176 | = −Z |
+| continentalness / offset / shift_x / shift_z / second | 0.25 | 72,473,261,583,357,418,567 | = +X | -72,473,261,583,357,418,567 | = −Z |
+| continentalness / offset / shift_x / shift_z / first | 0.25 | 73,786,976,294,838,222,848 | = +X | -73,786,976,294,838,222,848 | = −Z |
+| erosion / ridge / second | 0.25 | 1,159,572,185,333,718,576,372 | = +X | -1,159,572,185,333,718,576,372 | = −Z |
+| erosion / ridge / first | 0.25 | 1,180,591,620,717,411,442,688 | = +X | -1,180,591,620,717,411,442,688 | = −Z |
+| temperature_large / second | 0.25 | 37,106,309,930,678,994,194,458 | = +X | -37,106,309,930,678,994,194,458 | = −Z |
+| temperature_large / first | 0.25 | 37,778,931,862,957,165,912,064 | = +X | -37,778,931,862,957,165,912,064 | = −Z |
+| vegetation_large / second | 0.25 | 18,553,154,965,339,497,101,252 | = +X | -18,553,154,965,339,497,101,252 | = −Z |
+| vegetation_large / first | 0.25 | 18,889,465,931,478,582,960,128 | = +X | -18,889,465,931,478,582,960,128 | = −Z |
+| continentalness_large / second | 0.25 | 289,893,046,333,429,650,128 | = +X | -289,893,046,333,429,650,128 | = −Z |
+| continentalness_large / first | 0.25 | 295,147,905,179,352,866,816 | = +X | -295,147,905,179,352,866,816 | = −Z |
+| aquifer_barrier / second | 1.0 | 72,473,261,583,357,418,567 | = +X | -72,473,261,583,357,418,567 | = −Z |
+| aquifer_barrier / first | 1.0 | 73,786,976,294,838,222,848 | = +X | -73,786,976,294,838,222,848 | = −Z |
+| aquifer_fluid_level_floodedness / second | 1.0 | 1,159,572,185,333,718,576,372 | = +X | -1,159,572,185,333,718,576,372 | = −Z |
+| aquifer_fluid_level_floodedness / first | 1.0 | 1,180,591,620,717,411,442,688 | = +X | -1,180,591,620,717,411,442,688 | = −Z |
+| aquifer_fluid_level_spread / spaghetti_roughness / ore_gap / second | 1.0 | 289,893,046,333,429,650,128 | = +X | -289,893,046,333,429,650,128 | = −Z |
+| aquifer_fluid_level_spread / spaghetti_roughness / ore_gap / first | 1.0 | 295,147,905,179,352,866,816 | = +X | -295,147,905,179,352,866,816 | = −Z |
+| aquifer_lava / cave_cheese / second | 1.0 | 18,118,315,395,839,352,631 | = +X | -18,118,315,395,839,352,631 | = −Z |
+| aquifer_lava / cave_cheese / first | 1.0 | 18,446,744,073,709,553,665 | = +X | -18,446,744,073,709,553,665 | = −Z |
+| pillar / second | 25.0 | 23,191,443,706,674,373,537 | = +X | -23,191,443,706,674,373,537 | = −Z |
+| pillar / first | 25.0 | 23,611,832,414,348,231,312 | = +X | -23,611,832,414,348,231,312 | = −Z |
+| pillar_rareness / pillar_thickness / spaghetti_2d_elevation / spaghetti_3d_thickness / spaghetti_roughness_modulator / cave_layer / noodle / noodle_thickness / second | 1.0 | 2,319,144,370,667,437,144,697 | = +X | -2,319,144,370,667,437,144,697 | = −Z |
+| pillar_rareness / pillar_thickness / spaghetti_2d_elevation / spaghetti_3d_thickness / spaghetti_roughness_modulator / cave_layer / noodle / noodle_thickness / first | 1.0 | 2,361,183,241,434,822,877,184 | = +X | -2,361,183,241,434,822,877,184 | = −Z |
+| spaghetti_2d_modulator / spaghetti_2d_thickness / spaghetti_3d_rarity / second | 2.0 | 9,276,577,482,669,748,554,649 | = +X | -9,276,577,482,669,748,554,649 | = −Z |
+| spaghetti_2d_modulator / spaghetti_2d_thickness / spaghetti_3d_rarity / first | 2.0 | 9,444,732,965,739,291,484,160 | = +X | -9,444,732,965,739,291,484,160 | = −Z |
+| cave_entrance / second | 0.75 | 386,524,061,777,906,194,806 | = +X | -386,524,061,777,906,194,806 | = −Z |
+| cave_entrance / first | 0.75 | 393,530,540,239,137,150,294 | = +X | -393,530,540,239,137,150,294 | = −Z |
+| ore_veininess / second | 1.5 | 1,546,096,247,111,624,763,132 | = +X | -1,546,096,247,111,624,763,132 | = −Z |
+| ore_veininess / first | 1.5 | 1,574,122,160,956,548,584,790 | = +X | -1,574,122,160,956,548,584,790 | = −Z |
+| ore_vein_a / ore_vein_b / second | 4.0 | 289,893,046,333,429,650,128 | = +X | -289,893,046,333,429,650,128 | = −Z |
+| ore_vein_a / ore_vein_b / first | 4.0 | 295,147,905,179,352,866,816 | = +X | -295,147,905,179,352,866,816 | = −Z |
+| noodle_ridge_a / noodle_ridge_b / second | 2.6666666666666665 | 434,839,569,500,144,516,574 | = +X | -434,839,569,500,144,516,574 | = −Z |
+| noodle_ridge_a / noodle_ridge_b / first | 2.6666666666666665 | 442,721,857,769,029,318,657 | = +X | -442,721,857,769,029,318,657 | = −Z |
+| jagged / second | 1500.0 | 12,078,876,930,559,569 | = +X | -12,078,876,930,559,569 | = −Z |
+| jagged / first | 1500.0 | 12,297,829,382,473,036 | = +X | -12,297,829,382,473,036 | = −Z |
 
 ## Climate overflow: behavioral pipeline
 
@@ -61,7 +170,7 @@ scramble the resulting climate field.
 
 this is the **shift eclipse**: ordinary generation does not provide clean,
 independent climate transitions at each later table entry. continentalness
-can fail alongside the shifts; it is not strictly a later event. the table's
+fails alongside the shifts; it is not strictly a later event. the table's
 zero-shift references remain useful arithmetic references, but are not a
 sequence of observable ordinary-mode biome walls.
 
@@ -70,7 +179,8 @@ to isolate a climate sampler's own overflow during generation, use
 stable shifts retain bounded shift sampling while leaving the receiving
 climate samplers' ordinary overflow behavior intact. their still-nonzero
 shifts can perturb the reference boundaries. this isolates the cause; it
-does not guarantee intact terrain, since base noise and cave noises fail too.
+does not guarantee intact terrain further out,
+since base noise and cave noises fail too.
 
 ### 2. Spline extrapolation, negative infinite offset, and the cave fallback
 
@@ -206,23 +316,86 @@ shared shift blowout eclipsing the later large-biome sampler boundaries.
 
 ## SurfaceSystem / SurfaceRules noise inputs
 
-| Input / use | Scale | Highest active octave | 32-bit N | 64-bit N |
-| --- | ---: | ---: | ---: | ---: |
-| surface | 1 | -4 | 33,747,992,285 | 144,946,523,166,714,804,949 |
-| surface_secondary | 1 | -3 | 16,873,996,143 | 72,473,261,583,357,402,475 |
-| clay_bands_offset | 1 | -8 | 539,967,876,549 | 2,319,144,370,667,436,879,174 |
-| badlands_pillar | 0.2 | 1 | 5,273,123,795 | 22,647,894,244,799,187,656 |
-| badlands_pillar_roof | 0.75 | -8 | 719,957,168,732 | 3,092,192,494,223,249,172,232 |
-| badlands_surface / iceberg_surface | 1 | -4 | 33,747,992,285 | 144,946,523,166,714,804,949 |
-| iceberg_pillar | 1.28 | -3 | 13,182,809,487 | 56,619,735,611,997,971,069 |
-| iceberg_pillar_roof | 1.17 | -3 | 14,422,218,925 | 61,942,958,618,254,190,842 |
-| swamp | 1 | -2 | 8,436,998,072 | 36,236,630,791,678,701,238 |
-| calcite | 1 | -6 | 134,991,969,138 | 579,786,092,666,859,219,794 |
-| gravel / packed_ice | 1 | -5 | 67,495,984,569 | 289,893,046,333,429,609,897 |
-| powder_snow / nether_state_selector | 1 | -3 | 16,873,996,143 | 72,473,261,583,357,402,475 |
-| ice | 1 | -1 | 4,218,499,036 | 18,118,315,395,839,350,619 |
-| soul_sand_layer / gravel_layer | 1 | 0 | 2,109,249,518 | 9,059,157,697,919,675,310 |
-| patch / netherrack / nether_wart | 1 | 0 | 2,109,249,518 | 9,059,157,697,919,675,310 |
+seed 0 as always.
+scales include the SurfaceSystem call sites;
+SurfaceRules samples its named noise at scale 1. these affect only the rules /
+biome features that consume them, not necessarily terrain density
+
+### 32-bit / lossy
+
+| Input / stack | X/Z scale | +X | +Z | −Z | −X |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| surface / second | 1.0 | 33,747,990,847 | 33,747,989,218 | -33,747,995,351 | -33,747,993,723 |
+| surface / first | 1.0 | 34,359,735,509 | 34,359,737,773 | -34,359,738,964 | -34,359,741,228 |
+| surface_secondary / second | 1.0 | 16,873,994,941 | 16,873,995,192 | -16,873,997,094 | -16,873,997,344 |
+| surface_secondary / first | 1.0 | 17,179,867,586 | 17,179,868,359 | -17,179,870,010 | -17,179,870,783 |
+| clay_bands_offset / second | 1.0 | 539,967,862,633 | 539,967,822,334 | -539,967,930,764 | -539,967,890,465 |
+| clay_bands_offset / first | 1.0 | 549,755,793,493 | 549,755,767,101 | -549,755,860,676 | -549,755,834,284 |
+| badlands_pillar / second | 0.2 | 5,273,123,686 | 5,273,123,748 | -5,273,123,842 | -5,273,123,904 |
+| badlands_pillar / first | 0.2 | 5,368,709,016 | 5,368,708,734 | -5,368,709,507 | -5,368,709,225 |
+| badlands_pillar_roof / second | 0.75 | 719,957,124,994 | 719,957,112,110 | -719,957,225,354 | -719,957,212,470 |
+| badlands_pillar_roof / first | 0.75 | 733,007,704,062 | 733,007,725,226 | -733,007,778,476 | -733,007,799,640 |
+| badlands_surface / second | 1.0 | 33,747,990,236 | 33,747,990,685 | -33,747,993,884 | -33,747,994,334 |
+| badlands_surface / first | 1.0 | 34,359,734,389 | 34,359,735,943 | -34,359,740,794 | -34,359,742,348 |
+| iceberg_surface / second | 1.0 | 33,747,991,943 | 33,747,991,447 | -33,747,993,123 | -33,747,992,627 |
+| iceberg_surface / first | 1.0 | 34,359,738,143 | 34,359,737,108 | -34,359,739,629 | -34,359,738,594 |
+| iceberg_pillar / second | 1.28 | 13,182,808,351 | 13,182,808,572 | -13,182,810,402 | -13,182,810,622 |
+| iceberg_pillar / first | 1.28 | 13,421,772,474 | 13,421,772,496 | -13,421,773,105 | -13,421,773,127 |
+| iceberg_pillar_roof / second | 1.17 | 14,422,217,299 | 14,422,218,024 | -14,422,219,827 | -14,422,220,552 |
+| iceberg_pillar_roof / first | 1.17 | 14,683,647,999 | 14,683,648,321 | -14,683,649,431 | -14,683,649,752 |
+| surface_swamp / second | 1.0 | 8,436,997,727 | 8,436,997,284 | -8,436,998,859 | -8,436,998,416 |
+| surface_swamp / first | 1.0 | 8,589,933,863 | 8,589,934,084 | -8,589,935,101 | -8,589,935,322 |
+| calcite / second | 1.0 | 134,991,964,658 | 134,991,965,454 | -134,991,972,822 | -134,991,973,618 |
+| calcite / first | 1.0 | 137,438,940,663 | 137,438,938,518 | -137,438,968,427 | -137,438,966,282 |
+| gravel / second | 1.0 | 67,495,976,555 | 67,495,980,480 | -67,495,988,658 | -67,495,992,584 |
+| gravel / first | 1.0 | 68,719,471,514 | 68,719,472,894 | -68,719,480,579 | -68,719,481,959 |
+| packed_ice / second | 1.0 | 33,747,989,685 | 33,747,988,878 | -33,747,995,692 | -33,747,994,884 |
+| packed_ice / first | 1.0 | 34,359,734,616 | 34,359,737,986 | -34,359,738,751 | -34,359,742,121 |
+| powder_snow / second | 1.0 | 16,873,995,043 | 16,873,994,584 | -16,873,997,701 | -16,873,997,242 |
+| powder_snow / first | 1.0 | 17,179,868,000 | 17,179,868,907 | -17,179,869,462 | -17,179,870,369 |
+| nether_state_selector / second | 1.0 | 33,747,991,164 | 33,747,990,357 | -33,747,994,212 | -33,747,993,406 |
+| nether_state_selector / first | 1.0 | 34,359,735,845 | 34,359,734,817 | -34,359,741,920 | -34,359,740,892 |
+| ice / second | 1.0 | 4,218,498,915 | 4,218,498,652 | -4,218,499,420 | -4,218,499,158 |
+| ice / first | 1.0 | 4,294,967,266 | 4,294,967,294 | -4,294,967,299 | -4,294,967,327 |
+| soul_sand_layer / second | 1.0 | 2,109,249,426 | 2,109,249,326 | -2,109,249,711 | -2,109,249,610 |
+| soul_sand_layer / first | 1.0 | 2,147,483,620 | 2,147,483,461 | -2,147,483,836 | -2,147,483,677 |
+| gravel_layer / second | 1.0 | 2,109,249,400 | 2,109,249,373 | -2,109,249,663 | -2,109,249,636 |
+| gravel_layer / first | 1.0 | 2,147,483,553 | 2,147,483,613 | -2,147,483,684 | -2,147,483,744 |
+| patch / second | 1.0 | 2,109,249,336 | 2,109,249,477 | -2,109,249,560 | -2,109,249,700 |
+| patch / first | 1.0 | 2,147,483,520 | 2,147,483,514 | -2,147,483,783 | -2,147,483,777 |
+| netherrack / second | 1.0 | 2,109,249,345 | 2,109,249,371 | -2,109,249,666 | -2,109,249,692 |
+| netherrack / first | 1.0 | 2,147,483,642 | 2,147,483,455 | -2,147,483,842 | -2,147,483,655 |
+| nether_wart / second | 1.0 | 2,109,249,398 | 2,109,249,384 | -2,109,249,653 | -2,109,249,638 |
+| nether_wart / first | 1.0 | 2,147,483,483 | 2,147,483,475 | -2,147,483,822 | -2,147,483,814 |
+
+### 64-bit / precise
+
+| Input / stack | X/Z scale | +X | +Z | −Z | −X |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| surface / badlands_surface / iceberg_surface / packed_ice / nether_state_selector / second | 1.0 | 144,946,523,166,714,829,087 | = +X | -144,946,523,166,714,829,087 | = −Z |
+| surface / badlands_surface / iceberg_surface / packed_ice / nether_state_selector / first | 1.0 | 147,573,952,589,676,437,504 | = +X | -147,573,952,589,676,437,504 | = −Z |
+| surface_secondary / powder_snow / second | 1.0 | 72,473,261,583,357,418,567 | = +X | -72,473,261,583,357,418,567 | = −Z |
+| surface_secondary / powder_snow / first | 1.0 | 73,786,976,294,838,222,848 | = +X | -73,786,976,294,838,222,848 | = −Z |
+| clay_bands_offset / second | 1.0 | 2,319,144,370,667,437,144,697 | = +X | -2,319,144,370,667,437,144,697 | = −Z |
+| clay_bands_offset / first | 1.0 | 2,361,183,241,434,822,877,184 | = +X | -2,361,183,241,434,822,877,184 | = −Z |
+| badlands_pillar / second | 0.2 | 22,647,894,244,799,192,685 | = +X | -22,647,894,244,799,192,685 | = −Z |
+| badlands_pillar / first | 0.2 | 23,058,430,092,136,943,360 | = +X | -23,058,430,092,136,943,360 | = −Z |
+| badlands_pillar_roof / second | 0.75 | 3,092,192,494,223,249,520,899 | = +X | -3,092,192,494,223,249,520,899 | = −Z |
+| badlands_pillar_roof / first | 0.75 | 3,148,244,321,913,097,164,118 | = +X | -3,148,244,321,913,097,164,118 | = −Z |
+| iceberg_pillar / second | 1.28 | 56,619,735,611,997,983,641 | = +X | -56,619,735,611,997,983,641 | = −Z |
+| iceberg_pillar / first | 1.28 | 57,646,075,230,342,360,400 | = +X | -57,646,075,230,342,360,400 | = −Z |
+| iceberg_pillar_roof / second | 1.17 | 61,942,958,618,254,204,596 | = +X | -61,942,958,618,254,204,596 | = −Z |
+| iceberg_pillar_roof / first | 1.17 | 63,065,791,704,989,937,889 | = +X | -63,065,791,704,989,937,889 | = −Z |
+| surface_swamp / second | 1.0 | 36,236,630,791,678,709,284 | = +X | -36,236,630,791,678,709,284 | = −Z |
+| surface_swamp / first | 1.0 | 36,893,488,147,419,111,424 | = +X | -36,893,488,147,419,111,424 | = −Z |
+| calcite / second | 1.0 | 579,786,092,666,859,292,209 | = +X | -579,786,092,666,859,292,209 | = −Z |
+| calcite / first | 1.0 | 590,295,810,358,705,725,440 | = +X | -590,295,810,358,705,725,440 | = −Z |
+| gravel / second | 1.0 | 289,893,046,333,429,650,128 | = +X | -289,893,046,333,429,650,128 | = −Z |
+| gravel / first | 1.0 | 295,147,905,179,352,866,816 | = +X | -295,147,905,179,352,866,816 | = −Z |
+| ice / second | 1.0 | 18,118,315,395,839,352,631 | = +X | -18,118,315,395,839,352,631 | = −Z |
+| ice / first | 1.0 | 18,446,744,073,709,553,665 | = +X | -18,446,744,073,709,553,665 | = −Z |
+| soul_sand_layer / gravel_layer / patch / netherrack / nether_wart / second | 1.0 | 9,059,157,697,919,676,316 | = +X | -9,059,157,697,919,676,316 | = −Z |
+| soul_sand_layer / gravel_layer / patch / netherrack / nether_wart / first | 1.0 | 9,223,372,036,854,776,833 | = +X | -9,223,372,036,854,776,833 | = −Z |
 
 ## Other walls, seed 0, 64-bit / precise
 
@@ -240,24 +413,11 @@ negative planes mirror those. surface rules are not sampled on that same grid
 
 ### Fixed-scale inputs
 
-| Input / use | horizontal scale | second stack N | first stack N |
-| --- | ---: | ---: | ---: |
-| aquifer_lava / cave_cheese / ice | 1 | 18,118,315,395,839,352,631 | 18,446,744,073,709,553,665 |
-| pillar | 25 | 23,191,443,706,674,373,537 | 23,611,832,414,348,231,312 |
-| aquifer_barrier | 0.5 | 144,946,523,166,714,829,087 | 147,573,952,589,676,437,504 |
-| aquifer_fluid_level_floodedness | 0.67 | 1,730,704,754,229,430,738,800 | 1,762,077,045,846,882,639,053 |
-| aquifer_fluid_level_spread | 0.7142857142857143 | 405,850,264,866,801,513,398 | 413,207,067,251,093,998,633 |
-| pillar_rareness / pillar_thickness / spaghetti_2d_elevation / spaghetti_3d_thickness / spaghetti_roughness_modulator / cave_layer / noodle / noodle_thickness | 1 | 2,319,144,370,667,437,144,697 | 2,361,183,241,434,822,877,184 |
-| spaghetti_roughness / ore_gap | 1 | 289,893,046,333,429,650,128 | 295,147,905,179,352,866,816 |
-| ore_vein_a / ore_vein_b | 4 | 289,893,046,333,429,650,128 | 295,147,905,179,352,866,816 |
-| spaghetti_2d_modulator / spaghetti_2d_thickness / spaghetti_3d_rarity | 2 | 9,276,577,482,669,748,554,649 | 9,444,732,965,739,291,484,160 |
-| cave_entrance | 0.75 | 386,524,061,777,906,194,806 | 393,530,540,239,137,150,294 |
-| ore_veininess | 1.5 | 1,546,096,247,111,624,763,132 | 1,574,122,160,956,548,584,790 |
-| noodle_ridge_a / noodle_ridge_b | 2.6666666666666665 | 434,839,569,500,144,516,574 | 442,721,857,769,029,318,657 |
-| jagged | 1500 | 12,078,876,930,559,569 | 12,297,829,382,473,036 |
+See the separate **64-bit / precise** table under [input boundaries](#noise-inputs);
 
-the single-scale cave_layer call's `8` scales Y only. the spaghetti thickness
-modulator's two-scale call uses X/Z=2; these are different overloads
+the single-scale cave_layer call's `8` and the three aquifer scale arguments
+scale Y only. the spaghetti thickness modulator's two-scale call uses X/Z=2;
+these are different overloads
 
 ### Shifted climate inputs, zero-shift references
 
@@ -267,15 +427,7 @@ position and can already have overflowed. these are exact zero-shift reference
 walls, not exact global biome walls. offset is the noise underlying shift_x/z;
 ShiftB rotates world X into the noise Y axis
 
-| Input | horizontal scale | second stack N | first stack N |
-| --- | ---: | ---: | ---: |
-| temperature | 0.25 | 9,276,577,482,669,748,554,649 | 9,444,732,965,739,291,484,160 |
-| vegetation / erosion_large | 0.25 | 4,638,288,741,334,874,281,348 | 4,722,366,482,869,645,746,176 |
-| continentalness / offset | 0.25 | 72,473,261,583,357,418,567 | 73,786,976,294,838,222,848 |
-| erosion / ridge | 0.25 | 1,159,572,185,333,718,576,372 | 1,180,591,620,717,411,442,688 |
-| temperature_large | 0.25 | 37,106,309,930,678,994,194,458 | 37,778,931,862,957,165,912,064 |
-| vegetation_large | 0.25 | 18,553,154,965,339,497,101,252 | 18,889,465,931,478,582,960,128 |
-| continentalness_large | 0.25 | 289,893,046,333,429,650,128 | 295,147,905,179,352,866,816 |
+See the separate **64-bit / precise** table under [input boundaries](#noise-inputs); values are not repeated here.
 
 ### Variable-scale spaghetti
 
@@ -296,20 +448,7 @@ branch from position-dependent noise; there is no single global spaghetti wall
 these inputs only affect locations where the corresponding surface rule or
 biome feature is used. they do not all create terrain-density walls
 
-| Input / use | horizontal scale | second stack N | first stack N |
-| --- | ---: | ---: | ---: |
-| surface / badlands_surface / iceberg_surface / packed_ice / nether_state_selector | 1 | 144,946,523,166,714,829,087 | 147,573,952,589,676,437,504 |
-| surface_secondary / powder_snow | 1 | 72,473,261,583,357,418,567 | 73,786,976,294,838,222,848 |
-| clay_bands_offset | 1 | 2,319,144,370,667,437,144,697 | 2,361,183,241,434,822,877,184 |
-| badlands_pillar | 0.2 | 22,647,894,244,799,192,685 | 23,058,430,092,136,943,360 |
-| badlands_pillar_roof | 0.75 | 3,092,192,494,223,249,520,899 | 3,148,244,321,913,097,164,118 |
-| iceberg_pillar | 1.28 | 56,619,735,611,997,983,641 | 57,646,075,230,342,360,400 |
-| iceberg_pillar_roof | 1.17 | 61,942,958,618,254,204,596 | 63,065,791,704,989,937,889 |
-| swamp (surface_swamp) | 1 | 36,236,630,791,678,709,284 | 36,893,488,147,419,111,424 |
-| calcite | 1 | 579,786,092,666,859,292,209 | 590,295,810,358,705,725,440 |
-| gravel | 1 | 289,893,046,333,429,650,128 | 295,147,905,179,352,866,816 |
-| ice | 1 | 18,118,315,395,839,352,631 | 18,446,744,073,709,553,665 |
-| soul_sand_layer / gravel_layer / patch / netherrack / nether_wart | 1 | 9,059,157,697,919,676,316 | 9,223,372,036,854,776,833 |
+See the separate **64-bit / precise** table under [input boundaries](#surfacesystem--surfacerules-noise-inputs); values are not repeated here.
 
 ### Base 3D noise
 
@@ -325,7 +464,7 @@ min/max were instantiated and searched separately; results match
 
 ## The End
 
-seed 0 unless stated otherwise. these are the current implementation's End
+seed 0 . these are the current implementation's End
 paths, not vanilla's older int-square End-ring distances. the End uses island
 simplex noise and BlendedNoise, not the overworld's climate shifts, cave noises,
 aquifers, ore veins or noise-based surface materials. the F3 erosion slot holds
@@ -986,6 +1125,22 @@ widths / both` covers ordinary and stable-shifts 32/64-bit modes. duplicate
 registered/router outputs are merged below. powers are approximate `log2(N)`
 unless an exact expression is supplied; the full column is the magnitude N.
 
+scaled-input conversion references below use **one rounding of the exact product
+`N * scale` to binary64**, with `T = 2^1024 − 2^970` and first integer
+`N = ceil(T / scale)`. `tools/ScaledDoubleOverflowProbe.java` verifies both
+signs and their inward neighbors. these are mathematical references **outside
+the Int128 world range**, not measured sampler/world failures: converting N to
+double before multiplying, the second NormalNoise stack, octave scaling and
+added climate shifts are different operations. the scales are from
+`NoiseRouterData`: jagged has Y scale 0, spaghetti modulator/thickness/rarity
+has Y scale 1, and shifted climate is horizontal. ore vein a/b, noodle ridge
+a/b and ore_veininess use their listed scales on all three axes;
+cave_entrance uses 0.75 horizontally but 0.5 vertically. noodle's stored
+binary64 scale is exactly `6004799503160661 / 2^51`, **not exact 8/3**;
+its reference below uses that stored coefficient. Infinity here describes the
+converted input, not the returned noise or density.
+
+
 | Event / evaluated field | Mode | Directions / conditions | Result | Evidence | Approximate power of two | Full coordinate magnitude N |
 | --- | --- | --- | --- | --- | ---: | ---: |
 | shift-driven final density | 32-bit ordinary | −X; first affected grid plane | NaN | G | ≈2^33.9741 | 16,873,996,804 |
@@ -1028,30 +1183,12 @@ unless an exact expression is supplied; the full column is the magnitude N.
 | cave cheese_layer sum (layer plus clamped cheese terms) | both widths, stable only | ±X | +Infinity | S | ≈2^93.1699 | 11,141,460,353,568,422,474,092,118,016 |
 | positive world-coordinate storage limit, **still finite** | signed Int128, all modes | any positive axis | not an Infinity event | E | 2^127 − 1 | 170,141,183,460,469,231,731,687,303,715,884,105,727 |
 | negative world-coordinate storage limit, **still finite** | signed Int128, all modes | any negative axis | not an Infinity event | E | 2^127 | 170,141,183,460,469,231,731,687,303,715,884,105,728 |
+| jagged scaled-input conversion reference, **outside world range** | IEEE-754 round-to-nearest, ties-to-even | scale 1500.0, ±X / ±Z; exact product then convert | ±Infinity | E | ≈2^1013.4493; exact ceil(T / 1500) | 119846208990821053862485980936868943386622755140025217957449185986963312195176500631099345318391471397553524277795258607297703698567960268420438325781003880454605934667138922450849236563878474354509650486846713237047577973081895276546573889957650195146049445629577007136228474373133005395361920118602782999 |
+| ore_vein_a / b scaled-input conversion reference, **outside world range** | IEEE-754 round-to-nearest, ties-to-even | scale 4.0, any axis, either sign; exact product then convert | ±Infinity | E | 2^1022 − 2^968 | 44942328371557895198432242851325853769983533177509456734043444745111242073191187736662254494396801774082571604173221977736638886962985100657664372167876455170477225500177095919068463711454427882941118932567517463892841739905710728704965208734118823179768542111091377676085677889924877023260720044476043624448 |
+| noodle_ridge_a / b scaled-input conversion reference, **outside world range** | IEEE-754 round-to-nearest, ties-to-even | scale 2.6666666666666665 (stored binary64), any axis, either sign; exact product then convert | ±Infinity | E | ≈2^1022.5850; exact ceil(T · 2^51 / 6004799503160661) | 67413492557336846539848944654588427510674136710336496477536280434149753427062861174765678995902826007920042704951772509122046163305406233434817786489802796641662960034324556978613332350467285294794906107031877163314306505878423580552717416452810213936256441506719861839980217226929893614313258623609084051456 |
+| spaghetti modulator/thickness/rarity scaled-input conversion reference, **outside world range** | IEEE-754 round-to-nearest, ties-to-even | scale 2.0, ±X / ±Z; exact product then convert | ±Infinity | E | 2^1023 − 2^969 | 89884656743115790396864485702651707539967066355018913468086889490222484146382375473324508988793603548165143208346443955473277773925970201315328744335752910340954451000354191838136927422908855765882237865135034927785683479811421457409930417468237646359537084222182755352171355779849754046521440088952087248896 |
+| ore_veininess scaled-input conversion reference, **outside world range** | IEEE-754 round-to-nearest, ties-to-even | scale 1.5 (3/2), any axis, either sign; exact product then convert | ±Infinity | E | ≈2^1023.4150; exact ceil(2T / 3) | 119846208990821053862485980936868943386622755140025217957449185986963312195176500631099345318391471397553524277795258607297703698567960268420438325781003880454605934667138922450849236563878474354509650486846713237047577973081895276546573889957650195146049445629577007136228474373133005395361920118602782998528 |
 | largest finite binary64 value, **not a world boundary** | IEEE-754 double | either sign; axes irrelevant | finite ±Double.MAX_VALUE | E | ≈2^1024; exact 2^1024 − 2^971 | 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368 |
 | first exact integer magnitude converting to binary64 Infinity | IEEE-754 round-to-nearest, ties-to-even | ±, axes irrelevant; outside Int128 world range | ±Infinity | E | ≈2^1024; exact **2^1024 − 2^970** | 179769313486231580793728971405303415079934132710037826936173778980444968292764750946649017977587207096330286416692887910946555547851940402630657488671505820681908902000708383676273854845817711531764475730270069855571366959622842914819860834936475292719074168444365510704342711559699508093042880177904174497792 |
-
-### Coverage and limits of the catalog
-
-the expanded survey found **no nonfinite unit-scale raw NormalNoise**, shift_x,
-shift_z, factor or jaggedness at its samples, and no nonfinite **direct final
-density with stable shifts**. none of those absences proves safety between
-samples. the earlier local tests demonstrate interpolated NaN despite finite
-direct final density. ordinary cheese_layer is already NaN in the survey before
-its raw cave-layer square reaches infinity; stable shifts expose that infinity
-in the sum instead. the underground min/max can still reject an infinite sum.
-
-other possible arithmetic routes, such as a pre-clamp spaghetti elevation
-cube or individual octave interpolation weights, do not have measured global
-coordinate thresholds here. their enclosing registered functions may clamp
-them or bypass them. surface-rule-specific, large-biomes, amplified, other
-seeds/heights and mixed-axis failures likewise have no exhaustive infinity
-catalog. **no coordinate is invented for an unmeasured event.** the earlier
-noise-input tables remain lattice-extrapolation boundaries, not Infinity walls.
-
-the probe verifies the final table row by converting its exact integer and
-the inward integer neighbor: only the former becomes infinity. this numerical
-conversion limit is shared by both noise widths and precision settings, but
-is unreachable by Int128 world positions. it is not a measured
-last terrain block, nor a prohibition on generators that avoid converting
-absolute coordinates to double.
+| cave_entrance scaled-input conversion reference, **outside world range** | IEEE-754 round-to-nearest, ties-to-even | scale 0.75 (3/4), ±X / ±Z; exact product then convert | ±Infinity | E | ≈2^1024.4150; exact (2^1026 − 2^972 + 1) / 3 | 239692417981642107724971961873737886773245510280050435914898371973926624390353001262198690636782942795107048555590517214595407397135920536840876651562007760909211869334277844901698473127756948709019300973693426474095155946163790553093147779915300390292098891259154014272456948746266010790723840237205565997056 |
+| zero-shift climate scaled-input conversion reference, **outside world range** | IEEE-754 round-to-nearest, ties-to-even | scale 0.25, ±X / ±Z; exact product then convert | ±Infinity | E | 2^1026 − 2^972 | 719077253944926323174915885621213660319736530840151307744695115921779873171059003786596071910348828385321145666771551643786222191407761610522629954686023282727635608002833534705095419383270846127057902921080279422285467838491371659279443339745901170876296673777462042817370846238798032372171520711616697991168 |

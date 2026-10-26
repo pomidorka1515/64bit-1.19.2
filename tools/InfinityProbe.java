@@ -15,6 +15,7 @@ import net.minecraft.world.level.levelgen.synth.*;
 public final class InfinityProbe {
     public static void main(String[] args) {
         Locale.setDefault(Locale.ROOT);
+        boolean stableOffsetCheck = args.length == 1 && args[0].equals("--stable-offset-check");
         BigInteger threshold = BigInteger.ONE.shiftLeft(1024).subtract(BigInteger.ONE.shiftLeft(970));
         if (!Double.isFinite(threshold.subtract(BigInteger.ONE).doubleValue())
                 || threshold.doubleValue() != Double.POSITIVE_INFINITY) throw new AssertionError("double boundary");
@@ -24,6 +25,7 @@ public final class InfinityProbe {
         Bootstrap.bootStrap();
         for (GeneratorMode mode : new GeneratorMode[]{GeneratorMode.BIT_32, GeneratorMode.BIT_64,
                 GeneratorMode.BIT_32_STABLE_SHIFTS, GeneratorMode.BIT_64_STABLE_SHIFTS}) {
+            if (stableOffsetCheck && mode != GeneratorMode.BIT_64_STABLE_SHIFTS) continue;
             try (var ignored = GenerationContext.open(new GeneratorConfig(mode, CoordinatePrecision.PRECISE))) {
                 var state = RandomState.create(BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getOrThrow(NoiseGeneratorSettings.OVERWORLD), BuiltinRegistries.NOISE, 0);
                 Map<String, DensityFunction> nodes = new LinkedHashMap<>();
@@ -59,6 +61,19 @@ public final class InfinityProbe {
                 nodes.put("router/depth", state.router().depth());
                 nodes.put("router/ridges", state.router().ridges());
                 nodes.put("router/final", state.router().finalDensity());
+                if (stableOffsetCheck) {
+                    BigInteger magnitude = BigInteger.ONE.shiftLeft(70);
+                    for (int axis = 0; axis < 2; axis++) for (int sign : new int[]{1, -1}) {
+                        BigInteger n = magnitude.multiply(BigInteger.valueOf(sign));
+                        long hi = n.shiftRight(64).longValue(), lo = n.longValue();
+                        var p = new DensityFunction.SinglePointContext(axis == 0 ? hi : 0, axis == 0 ? lo : 0, 64,
+                                axis == 1 ? hi : 0, axis == 1 ? lo : 0);
+                        for (String field : new String[]{"overworld/offset", "overworld/depth", "overworld/sloped_cheese"})
+                            System.out.printf("%s %s%s %s N=%s value=%s%n", mode, sign > 0 ? "+" : "-",
+                                    axis == 0 ? "X" : "Z", field, magnitude, nodes.get(field).compute(p));
+                    }
+                    continue;
+                }
                 for (int axis = 0; axis < 2; axis++) for (int sign : new int[]{1, -1}) {
                     Map<String, Boolean> seen = new LinkedHashMap<>();
                     // Sixteen samples per power of two; no claim of a first failing block.

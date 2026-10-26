@@ -57,7 +57,9 @@ public final class FarLandsBoundaryProbe {
     }
 
     private static long boundary(int sign, double scale, double factor, double octave, double offset) {
-        long lo = 0, hi = 100_000_000_000L;
+        long lo = 0, hi = 1L << 55;
+        if (!broken(sign * hi, scale, factor, octave, offset))
+            throw new AssertionError("Search upper bound is healthy");
         while (hi - lo > 1) {
             long mid = lo + (hi - lo) / 2;
             if (broken(sign * mid, scale, factor, octave, offset)) hi = mid;
@@ -146,11 +148,13 @@ public final class FarLandsBoundaryProbe {
 
     private static String signedWalls(ImprovedNoise noise, double scale, double factor, int octave) {
         StringBuilder result = new StringBuilder();
-        for (double offset : new double[] {noise.xo, noise.zo}) {
-            for (int sign : new int[] {1, -1}) {
-                result.append(String.format(Locale.ROOT, " | %,d",
-                        boundary64(sign, scale, factor, Math.scalb(1.0, octave), offset)));
-            }
+        for (int direction = 0; direction < 4; direction++) {
+            double offset = direction == 0 || direction == 3 ? noise.xo : noise.zo;
+            int sign = direction < 2 ? 1 : -1;
+            result.append(String.format(Locale.ROOT, " | %,d",
+                    GenerationContext.current().mode().uses32BitArithmetic() && !precise
+                            ? BigInteger.valueOf(boundary(sign, scale, factor, Math.scalb(1.0, octave), offset))
+                            : boundary64(sign, scale, factor, Math.scalb(1.0, octave), offset)));
         }
         return result.toString();
     }
@@ -159,8 +163,8 @@ public final class FarLandsBoundaryProbe {
         String[] specs = {
             "temperature:0.25", "vegetation:0.25", "continentalness:0.25", "erosion:0.25", "ridge:0.25",
             "temperature_large:0.25", "vegetation_large:0.25", "continentalness_large:0.25", "erosion_large:0.25",
-            "offset:0.25", "aquifer_barrier:0.5", "aquifer_fluid_level_floodedness:0.67",
-            "aquifer_fluid_level_spread:0.7142857142857143", "aquifer_lava:1", "cave_cheese:1", "pillar:25",
+            "offset:0.25", "shift_x:0.25", "shift_z:0.25", "aquifer_barrier:1", "aquifer_fluid_level_floodedness:1",
+            "aquifer_fluid_level_spread:1", "aquifer_lava:1", "cave_cheese:1", "pillar:25",
             "pillar_rareness:1", "pillar_thickness:1", "spaghetti_2d_elevation:1", "spaghetti_3d_thickness:1",
             "spaghetti_roughness:1", "spaghetti_roughness_modulator:1", "cave_layer:1", "noodle:1", "noodle_thickness:1",
             "spaghetti_2d_modulator:2", "spaghetti_2d_thickness:2", "spaghetti_3d_rarity:2",
@@ -173,7 +177,7 @@ public final class FarLandsBoundaryProbe {
             "patch:1", "netherrack:1", "nether_wart:1"
         };
         boolean bit32 = GenerationContext.current().mode().uses32BitArithmetic();
-        System.out.println(bit32 ? "| Input / stack | horizontal scale | +X | −X | +Z | −Z |"
+        System.out.println(bit32 ? "| Input / stack | horizontal scale | +X | +Z | −Z | −X |"
                 : "| Input | horizontal scale | second stack N | first stack N |");
         System.out.println(bit32 ? "| --- | ---: | ---: | ---: | ---: | ---: |" : "| --- | ---: | ---: | ---: |");
         for (String spec : specs) {
@@ -198,17 +202,43 @@ public final class FarLandsBoundaryProbe {
     }
 
     private static void catalogRow(String name, double scale) throws Exception {
+        String noiseName = name.startsWith("shift_") ? "offset" : name;
         var parameters = net.minecraft.data.BuiltinRegistries.NOISE.get(
-                new net.minecraft.resources.ResourceLocation(name));
+                new net.minecraft.resources.ResourceLocation(noiseName));
         if (parameters == null) throw new IllegalArgumentException(name);
         var normal = NormalNoise.create(new XoroshiroRandomSource(0L).forkPositional()
-                .fromHashOf("minecraft:" + name), parameters);
+                .fromHashOf("minecraft:" + noiseName), parameters);
         BigInteger[] walls = new BigInteger[2];
         int column = 0;
         for (String stack : new String[] {"second", "first"}) {
             var levels = (ImprovedNoise[]) field(field(normal, stack), "noiseLevels");
             int index = levels.length - 1;
             while (levels[index] == null) --index;
+            ImprovedNoise axisNoise = levels[index];
+            if (name.equals("shift_z")) {
+                // ShiftB samples (Z/4, X/4, 0): world X uses noise Y, world Z uses noise X.
+                double factor = stack.equals("second") ? 1.0181268882175227 : 1;
+                StringBuilder directions = new StringBuilder();
+                BigInteger common = null;
+                for (int d = 0; d < 4; d++) {
+                    double offset = d == 0 || d == 3 ? axisNoise.yo : axisNoise.xo;
+                    int sign = d < 2 ? 1 : -1;
+                    BigInteger wall = GenerationContext.current().mode().uses32BitArithmetic() && !precise
+                            ? BigInteger.valueOf(boundary(sign, scale, factor,
+                                    Math.scalb(1.0, parameters.firstOctave() + index), offset))
+                            : boundary64(sign, scale, factor,
+                                    Math.scalb(1.0, parameters.firstOctave() + index), offset);
+                    directions.append(String.format(Locale.ROOT, " | %,d", wall));
+                    if (!GenerationContext.current().mode().uses32BitArithmetic()) {
+                        if (common != null && !common.equals(wall.abs())) throw new AssertionError("ShiftB axes differ");
+                        common = wall.abs();
+                    }
+                }
+                if (GenerationContext.current().mode().uses32BitArithmetic())
+                    System.out.printf("| %s / %s | %s%s |%n", name, stack, scale, directions);
+                else walls[column++] = common;
+                continue;
+            }
             if (GenerationContext.current().mode().uses32BitArithmetic()) {
                 System.out.printf("| %s / %s | %s%s |%n", name, stack, scale,
                         signedWalls(levels[index], scale, stack.equals("second") ? 1.0181268882175227 : 1,

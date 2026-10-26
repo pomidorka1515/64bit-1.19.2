@@ -16,7 +16,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Guardian;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.SectorAABB;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -42,9 +43,10 @@ public class GuardianRenderer extends MobRenderer<Guardian, GuardianModel> {
             if (pLivingEntity.hasActiveAttackTarget()) {
                 LivingEntity livingentity = pLivingEntity.getActiveAttackTarget();
                 if (livingentity != null) {
-                    Vec3 vec3 = this.getPosition(livingentity, (double) livingentity.getBbHeight() * 0.5D, 1.0F);
-                    Vec3 vec31 = this.getPosition(pLivingEntity, (double) pLivingEntity.getEyeHeight(), 1.0F);
-                    return pCamera.isVisible(new AABB(vec31.x, vec31.y, vec31.z, vec3.x, vec3.y, vec3.z));
+                    SectorVec3 target = this.getPosition(livingentity, (double) livingentity.getBbHeight() * 0.5D, 1.0F);
+                    SectorVec3 source = this.getPosition(pLivingEntity, (double) pLivingEntity.getEyeHeight(), 1.0F);
+                    return pCamera.isVisible(new SectorAABB(source.blockX(), source.subX(), source.y(), source.blockZ(), source.subZ(),
+                            target.blockX(), target.subX(), target.y(), target.blockZ(), target.subZ()));
                 }
             }
 
@@ -52,11 +54,8 @@ public class GuardianRenderer extends MobRenderer<Guardian, GuardianModel> {
         }
     }
 
-    private Vec3 getPosition(LivingEntity pLivingEntity, double pYOffset, float pPartialTick) {
-        double d0 = Mth.lerp((double) pPartialTick, pLivingEntity.xOld, pLivingEntity.getX());
-        double d1 = Mth.lerp((double) pPartialTick, pLivingEntity.yOld, pLivingEntity.getY()) + pYOffset;
-        double d2 = Mth.lerp((double) pPartialTick, pLivingEntity.zOld, pLivingEntity.getZ());
-        return new Vec3(d0, d1, d2);
+    private SectorVec3 getPosition(LivingEntity pLivingEntity, double pYOffset, float pPartialTick) {
+        return pLivingEntity.interpolatedExactPosition(pPartialTick).add(0.0D, pYOffset, 0.0D);
     }
 
     public void render(Guardian pEntity, float pEntityYaw, float pPartialTicks, PoseStack pMatrixStack, MultiBufferSource pBuffer, int pPackedLight) {
@@ -69,9 +68,9 @@ public class GuardianRenderer extends MobRenderer<Guardian, GuardianModel> {
             float f3 = pEntity.getEyeHeight();
             pMatrixStack.pushPose();
             pMatrixStack.translate(0.0D, (double) f3, 0.0D);
-            Vec3 vec3 = this.getPosition(livingentity, (double) livingentity.getBbHeight() * 0.5D, pPartialTicks);
-            Vec3 vec31 = this.getPosition(pEntity, (double) f3, pPartialTicks);
-            Vec3 vec32 = vec3.subtract(vec31);
+            SectorVec3 vec3 = this.getPosition(livingentity, (double) livingentity.getBbHeight() * 0.5D, pPartialTicks);
+            SectorVec3 vec31 = this.getPosition(pEntity, (double) f3, pPartialTicks);
+            Vec3 vec32 = vec3.relativeTo(vec31);
             float f4 = (float) (vec32.length() + 1.0D);
             vec32 = vec32.normalize();
             float f5 = (float) Math.acos(vec32.y);

@@ -11,6 +11,7 @@ import java.util.function.Predicate;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Int128;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelSimulatedReader;
@@ -98,7 +99,7 @@ class FancyTrunkPlacerPrecisionTest {
     private static boolean hasVerticalColumn(Map<BlockPos, BlockState> placed, long x, long z) {
         int yLogs = 0;
         for (Map.Entry<BlockPos, BlockState> entry : placed.entrySet()) {
-            if (entry.getKey().getX() == x && entry.getKey().getZ() == z && entry.getValue().hasProperty(RotatedPillarBlock.AXIS)) {
+            if (entry.getKey().getX().equals(Int128.fromLong(x)) && entry.getKey().getZ().equals(Int128.fromLong(z)) && entry.getValue().hasProperty(RotatedPillarBlock.AXIS)) {
                 ++yLogs;
             }
         }
@@ -108,7 +109,7 @@ class FancyTrunkPlacerPrecisionTest {
     private static int countSidewaysColumnLogs(Map<BlockPos, BlockState> placed, long x, long z) {
         int sideways = 0;
         for (Map.Entry<BlockPos, BlockState> entry : placed.entrySet()) {
-            if (entry.getKey().getX() == x && entry.getKey().getZ() == z && entry.getValue().hasProperty(RotatedPillarBlock.AXIS)
+            if (entry.getKey().getX().equals(Int128.fromLong(x)) && entry.getKey().getZ().equals(Int128.fromLong(z)) && entry.getValue().hasProperty(RotatedPillarBlock.AXIS)
                     && entry.getValue().getValue(RotatedPillarBlock.AXIS) != Direction.Axis.Y) {
                 ++sideways;
             }

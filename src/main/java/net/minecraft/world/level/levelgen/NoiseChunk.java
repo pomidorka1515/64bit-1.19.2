@@ -14,6 +14,8 @@ import java.util.function.ToIntFunction;
 
 import javax.annotation.Nullable;
 import net.minecraft.core.QuartPos;
+import net.minecraft.core.Int128;
+import net.minecraft.world.level.levelgen.synth.WorldgenCoordinate;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.KeyDispatchDataCodec;
@@ -58,6 +60,9 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     private long cellStartBlockX;
     int cellStartBlockY;
     private long cellStartBlockZ;
+    private long cellStartBlockXHi, cellStartBlockZHi;
+    private final long originXHi, originXLo, originZHi, originZLo;
+    private final boolean fullWidth;
     long inCellX;
     int inCellY;
     long inCellZ;
@@ -88,22 +93,35 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
         NoiseSettings noisesettings = pNoiseGeneratorSettings.noiseSettings().clampToHeightAccessor(pChunk);
         ChunkPos chunkpos = pChunk.getPos();
         int i = 16 / noisesettings.getCellWidth();
+        // Retain both limbs through the density context and noise lattice.
         return new NoiseChunk(i, pState, chunkpos.getMinBlockX(), chunkpos.getMinBlockZ(), noisesettings, pBeardifierOrMarker, pNoiseGeneratorSettings, pFluidPicke, pBlender);
     }
 
     public NoiseChunk(int p_224343_, RandomState p_224344_, long p_224345_, long p_224346_, NoiseSettings p_224347_, DensityFunctions.BeardifierOrMarker p_224348_, NoiseGeneratorSettings p_224349_, Aquifer.FluidPicker p_224350_, Blender p_224351_) {
+        this(p_224343_, p_224344_, Int128.fromLong(p_224345_), Int128.fromLong(p_224346_), p_224347_, p_224348_, p_224349_, p_224350_, p_224351_);
+    }
+
+    public NoiseChunk(int p_224343_, RandomState p_224344_, Int128 x, Int128 z, NoiseSettings p_224347_, DensityFunctions.BeardifierOrMarker p_224348_, NoiseGeneratorSettings p_224349_, Aquifer.FluidPicker p_224350_, Blender p_224351_) {
+        this.originXHi = x.hi(); this.originXLo = x.lo();
+        this.originZHi = z.hi(); this.originZLo = z.lo();
+        // Include the extra interpolation corner: a signed-long origin can sample
+        // beyond Long.MAX_VALUE even though every block in its chunk still fits.
+        long extent = (long) p_224343_ * p_224347_.getCellWidth();
+        this.fullWidth = !WorldgenCoordinate.fitsLong(x.hi(), x.lo()) || !WorldgenCoordinate.fitsLong(z.hi(), z.lo())
+                || x.lo() > Long.MAX_VALUE - extent || z.lo() > Long.MAX_VALUE - extent;
+        long p_224345_ = x.lo(), p_224346_ = z.lo();
         this.noiseSettings = p_224347_;
         this.cellWidth = p_224347_.getCellWidth();
         this.cellHeight = p_224347_.getCellHeight();
         this.cellCountXZ = p_224343_;
         this.cellCountY = Mth.intFloorDiv(p_224347_.height(), this.cellHeight);
         this.cellNoiseMinY = Mth.intFloorDiv(p_224347_.minY(), this.cellHeight);
-        this.firstCellX = Math.floorDiv(p_224345_, this.cellWidth);
-        this.firstCellZ = Math.floorDiv(p_224346_, this.cellWidth);
+        this.firstCellX = WorldgenCoordinate.shiftLow(x.hi(), x.lo(), Integer.numberOfTrailingZeros(this.cellWidth));
+        this.firstCellZ = WorldgenCoordinate.shiftLow(z.hi(), z.lo(), Integer.numberOfTrailingZeros(this.cellWidth));
         this.interpolators = Lists.newArrayList();
         this.cellCaches = Lists.newArrayList();
-        this.firstNoiseX = QuartPos.fromBlock(p_224345_);
-        this.firstNoiseZ = QuartPos.fromBlock(p_224346_);
+        this.firstNoiseX = WorldgenCoordinate.shiftLow(x.hi(), x.lo(), 2);
+        this.firstNoiseZ = WorldgenCoordinate.shiftLow(z.hi(), z.lo(), 2);
         this.noiseSizeXZ = QuartPos.fromBlock(p_224343_ * this.cellWidth);
         this.blender = p_224351_;
         this.beardifier = p_224348_;
@@ -130,7 +148,7 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
         } else {
             long k1 = SectionPos.blockToSectionCoord(p_224345_);
             long l1 = SectionPos.blockToSectionCoord(p_224346_);
-            this.aquifer = Aquifer.create(this, new ChunkPos(k1, l1), noiserouter1, p_224344_.aquiferRandom(), p_224347_.minY(), p_224347_.height(), p_224350_);
+            this.aquifer = Aquifer.create(this, new ChunkPos(x.shiftRight(4), z.shiftRight(4)), noiserouter1, p_224344_.aquiferRandom(), p_224347_.minY(), p_224347_.height(), p_224350_);
         }
 
         ImmutableList.Builder<NoiseChunk.BlockStateFiller> builder = ImmutableList.builder();
@@ -156,6 +174,7 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     }
 
     public long blockX() {
+        if (this.fullWidth) return WorldgenCoordinate.addLow(this.cellStartBlockXHi, this.cellStartBlockX, this.inCellX);
         return WorldBounds.addBlockOffset(this.cellStartBlockX, this.inCellX);
     }
 
@@ -164,22 +183,68 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     }
 
     public long blockZ() {
+        if (this.fullWidth) return WorldgenCoordinate.addLow(this.cellStartBlockZHi, this.cellStartBlockZ, this.inCellZ);
         return WorldBounds.addBlockOffset(this.cellStartBlockZ, this.inCellZ);
+    }
+
+    public long blockXHi() {
+        return this.fullWidth ? WorldgenCoordinate.addHigh(this.cellStartBlockXHi, this.cellStartBlockX, this.inCellX) : blockX() >> 63;
+    }
+
+    public long blockZHi() {
+        return this.fullWidth ? WorldgenCoordinate.addHigh(this.cellStartBlockZHi, this.cellStartBlockZ, this.inCellZ) : blockZ() >> 63;
+    }
+
+    private void setCellX(long offset) {
+        long local = offset * this.cellWidth - (this.originXLo & (this.cellWidth - 1));
+        this.cellStartBlockX = WorldgenCoordinate.addLow(this.originXHi, this.originXLo, local);
+        this.cellStartBlockXHi = WorldgenCoordinate.addHigh(this.originXHi, this.originXLo, local);
+    }
+
+    private void setCellZ(long offset) {
+        long local = offset * this.cellWidth - (this.originZLo & (this.cellWidth - 1));
+        this.cellStartBlockZ = WorldgenCoordinate.addLow(this.originZHi, this.originZLo, local);
+        this.cellStartBlockZHi = WorldgenCoordinate.addHigh(this.originZHi, this.originZLo, local);
     }
 
     public int preliminarySurfaceLevel(long pX, long pZ) {
         long i = QuartPos.toBlock(QuartPos.fromBlock(pX));
         long j = QuartPos.toBlock(QuartPos.fromBlock(pZ));
         if (FarlandsMode.usesPreciseCoordinates()) {
-            // ChunkPos clamps to the chunk domain; these are block-column keys.
+            // Precise sampling uses unclamped block-column keys.
             return this.exactPreliminarySurfaceLevel.computeIfAbsent(new ColumnPos(i, j),
-                    (ToIntFunction<ColumnPos>) column -> this.computePreliminarySurfaceLevel(column.x(), column.z()));
+                    (ToIntFunction<ColumnPos>) column -> this.computePreliminarySurfaceLevel(column.x().lo(), column.z().lo()));
         }
-        return this.preliminarySurfaceLevel.computeIfAbsent(new ChunkPos(i, j), (ToIntFunction<ChunkPos>) this::computePreliminarySurfaceLevel);
+        return this.preliminarySurfaceLevel.computeIfAbsent(legacyNoiseColumnKey(i, j), (ToIntFunction<ChunkPos>) this::computePreliminarySurfaceLevel);
+    }
+
+    public int preliminarySurfaceLevel(long xHi, long xLo, long zHi, long zLo) {
+        if (WorldgenCoordinate.fitsLong(xHi, xLo) && WorldgenCoordinate.fitsLong(zHi, zLo))
+            return preliminarySurfaceLevel(xLo, zLo);
+        xLo &= -4L;
+        zLo &= -4L;
+        return this.exactPreliminarySurfaceLevel.computeIfAbsent(new ColumnPos(Int128.of(xHi, xLo), Int128.of(zHi, zLo)),
+                (ToIntFunction<ColumnPos>) column -> this.computePreliminarySurfaceLevel(column.x().hi(), column.x().lo(), column.z().hi(), column.z().lo()));
+    }
+
+    private int computePreliminarySurfaceLevel(long xHi, long xLo, long zHi, long zLo) {
+        int min = this.noiseSettings.minY();
+        for (int y = min + this.noiseSettings.height(); y >= min; y -= this.cellHeight) {
+            if (this.initialDensityNoJaggedness.compute(new DensityFunction.SinglePointContext(xHi, xLo, y, zHi, zLo)) > 0.390625D)
+                return y;
+        }
+        return Integer.MAX_VALUE;
+    }
+
+    /** Preserve the pre-Int128 cache domain for legacy sampling, not world chunk identity. */
+    private static ChunkPos legacyNoiseColumnKey(long x, long z) {
+        long min = Long.MIN_VALUE >> 4;
+        long max = Long.MAX_VALUE >> 4;
+        return new ChunkPos(Math.max(min, Math.min(max, x)), Math.max(min, Math.min(max, z)));
     }
 
     private int computePreliminarySurfaceLevel(ChunkPos p_198250_) {
-        return this.computePreliminarySurfaceLevel(p_198250_.x, p_198250_.z);
+        return this.computePreliminarySurfaceLevel(p_198250_.xLo(), p_198250_.zLo());
     }
 
     private int computePreliminarySurfaceLevel(long i, long j) {
@@ -200,11 +265,13 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
 
     private void fillSlice(boolean pIsSlice0, long pStart) {
         this.cellStartBlockX = cellToBlock(pStart, this.cellWidth);
+        if (this.fullWidth) this.setCellX(pStart - this.firstCellX);
         this.inCellX = 0;
 
         for (int i = 0; i < this.cellCountXZ + 1; ++i) {
             long j = WorldBounds.addBlockOffset(this.firstCellZ, i);
             this.cellStartBlockZ = cellToBlock(j, this.cellWidth);
+            if (this.fullWidth) this.setCellZ(i);
             this.inCellZ = 0;
             ++this.arrayInterpolationCounter;
 
@@ -228,16 +295,17 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     }
 
     public void advanceCellX(int pIncrement) {
-        this.fillSlice(false, WorldBounds.addBlockOffset(this.firstCellX, (long) pIncrement + 1L));
+        this.fillSlice(false, this.fullWidth ? this.firstCellX + pIncrement + 1L : WorldBounds.addBlockOffset(this.firstCellX, (long) pIncrement + 1L));
         this.cellStartBlockX = cellToBlock(WorldBounds.addBlockOffset(this.firstCellX, pIncrement), this.cellWidth);
+        if (this.fullWidth) this.setCellX(pIncrement);
     }
 
     /** Cell widths are positive powers of two, so the minimum block is cell-aligned. */
     private static long cellToBlock(long cell, int width) {
-        if (cell > WorldBounds.MAX_BLOCK / width)
-            return WorldBounds.MAX_BLOCK;
-        if (cell < WorldBounds.MIN_BLOCK / width)
-            return WorldBounds.MIN_BLOCK;
+        if (cell > Long.MAX_VALUE / width)
+            return Long.MAX_VALUE;
+        if (cell < Long.MIN_VALUE / width)
+            return Long.MIN_VALUE;
         return cell * width;
     }
 
@@ -277,6 +345,7 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
         this.fillingCell = true;
         this.cellStartBlockY = (pY + this.cellNoiseMinY) * this.cellHeight;
         this.cellStartBlockZ = cellToBlock(WorldBounds.addBlockOffset(this.firstCellZ, pZ), this.cellWidth);
+        if (this.fullWidth) this.setCellZ(pZ);
         ++this.arrayInterpolationCounter;
 
         for (NoiseChunk.CacheAllInCell noisechunk$cacheallincell : this.cellCaches) {
@@ -295,14 +364,14 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     }
 
     public void updateForX(long p_209231_, double p_209232_) {
-        this.inCellX = WorldBounds.subtractBlockOffset(p_209231_, this.cellStartBlockX);
+        this.inCellX = this.fullWidth ? p_209231_ - this.cellStartBlockX : WorldBounds.subtractBlockOffset(p_209231_, this.cellStartBlockX);
         this.interpolators.forEach((p_209229_) -> {
             p_209229_.updateForX(p_209232_);
         });
     }
 
     public void updateForZ(long p_209242_, double p_209243_) {
-        this.inCellZ = WorldBounds.subtractBlockOffset(p_209242_, this.cellStartBlockZ);
+        this.inCellZ = this.fullWidth ? p_209242_ - this.cellStartBlockZ : WorldBounds.subtractBlockOffset(p_209242_, this.cellStartBlockZ);
         ++this.interpolationCounter;
         this.interpolators.forEach((p_209188_) -> {
             p_209188_.updateForZ(p_209243_);
@@ -464,8 +533,10 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
 
     static class Cache2D implements DensityFunctions.MarkerOrMarked, NoiseChunk.NoiseChunkDensityFunction {
         private final DensityFunction function;
-        private ChunkPos lastPos2D = ChunkPos.INVALID_CHUNK_POS;
-        private ColumnPos lastExactPos2D;
+        private long lastX, lastZ;
+        private long lastExactX, lastExactZ;
+        private long lastExactXHi, lastExactZHi;
+        private boolean hasLastPos2D, hasLastExactPos2D;
         private double lastExactValue;
         private double lastValue;
 
@@ -476,19 +547,25 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
         public double compute(DensityFunction.FunctionContext pContext) {
             long i = pContext.blockX();
             long j = pContext.blockZ();
-            if (FarlandsMode.usesPreciseCoordinates()) {
-                ColumnPos column = new ColumnPos(i, j);
-                if (!column.equals(this.lastExactPos2D)) {
-                    this.lastExactPos2D = column;
+            if (FarlandsMode.usesPreciseCoordinates() || !WorldgenCoordinate.fitsLong(pContext.blockXHi(), i) || !WorldgenCoordinate.fitsLong(pContext.blockZHi(), j)) {
+                if (!this.hasLastExactPos2D || i != this.lastExactX || j != this.lastExactZ || pContext.blockXHi() != this.lastExactXHi || pContext.blockZHi() != this.lastExactZHi) {
+                    this.hasLastExactPos2D = true;
+                    this.lastExactX = i;
+                    this.lastExactZ = j;
+                    this.lastExactXHi = pContext.blockXHi();
+                    this.lastExactZHi = pContext.blockZHi();
                     this.lastExactValue = this.function.compute(pContext);
                 }
                 return this.lastExactValue;
             }
-            ChunkPos k = new ChunkPos(i, j);
-            if (k.equals(lastPos2D)) {
+            long x = Math.max(Long.MIN_VALUE >> 4, Math.min(Long.MAX_VALUE >> 4, i));
+            long z = Math.max(Long.MIN_VALUE >> 4, Math.min(Long.MAX_VALUE >> 4, j));
+            if (this.hasLastPos2D && x == this.lastX && z == this.lastZ) {
                 return this.lastValue;
             } else {
-                this.lastPos2D = k;
+                this.hasLastPos2D = true;
+                this.lastX = x;
+                this.lastZ = z;
                 double d0 = this.function.compute(pContext);
                 this.lastValue = d0;
                 return d0;
@@ -610,13 +687,29 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
                     for (int l = 0; l <= NoiseChunk.this.noiseSizeXZ; ++l) {
                         long i1 = WorldBounds.addBlockOffset(NoiseChunk.this.firstNoiseZ, l);
                         long j1 = cellToBlock(i1, 4);
-                        this.values[i][l] = p_209330_.compute(new DensityFunction.SinglePointContext(k, 0, j1));
+                        if (NoiseChunk.this.fullWidth) {
+                            long ox = (long) i * 4 - (NoiseChunk.this.originXLo & 3L);
+                            long oz = (long) l * 4 - (NoiseChunk.this.originZLo & 3L);
+                            this.values[i][l] = p_209330_.compute(new DensityFunction.SinglePointContext(
+                                    WorldgenCoordinate.addHigh(NoiseChunk.this.originXHi, NoiseChunk.this.originXLo, ox), WorldgenCoordinate.addLow(NoiseChunk.this.originXHi, NoiseChunk.this.originXLo, ox), 0,
+                                    WorldgenCoordinate.addHigh(NoiseChunk.this.originZHi, NoiseChunk.this.originZLo, oz), WorldgenCoordinate.addLow(NoiseChunk.this.originZHi, NoiseChunk.this.originZLo, oz)));
+                        } else this.values[i][l] = p_209330_.compute(new DensityFunction.SinglePointContext(k, 0, j1));
                     }
                 }
             }
         }
 
         public double compute(DensityFunction.FunctionContext p_209333_) {
+            if (NoiseChunk.this.fullWidth) {
+                long xHi = WorldgenCoordinate.shiftHigh(p_209333_.blockXHi(), 2);
+                long xLo = WorldgenCoordinate.shiftLow(p_209333_.blockXHi(), p_209333_.blockX(), 2);
+                long zHi = WorldgenCoordinate.shiftHigh(p_209333_.blockZHi(), 2);
+                long zLo = WorldgenCoordinate.shiftLow(p_209333_.blockZHi(), p_209333_.blockZ(), 2);
+                double dx = WorldgenCoordinate.difference(xHi, xLo, WorldgenCoordinate.shiftHigh(NoiseChunk.this.originXHi, 2), NoiseChunk.this.firstNoiseX);
+                double dz = WorldgenCoordinate.difference(zHi, zLo, WorldgenCoordinate.shiftHigh(NoiseChunk.this.originZHi, 2), NoiseChunk.this.firstNoiseZ);
+                return dx >= 0 && dz >= 0 && dx < this.values.length && dz < this.values.length
+                        ? this.values[(int) dx][(int) dz] : this.noiseFiller.compute(p_209333_);
+            }
             long i = QuartPos.fromBlock(p_209333_.blockX());
             long j = QuartPos.fromBlock(p_209333_.blockZ());
             long k = WorldBounds.subtractBlockOffset(i, NoiseChunk.this.firstNoiseX);

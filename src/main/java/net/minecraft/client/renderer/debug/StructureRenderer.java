@@ -33,12 +33,13 @@ public class StructureRenderer implements DebugRenderer.SimpleDebugRenderer {
         Camera camera = this.minecraft.gameRenderer.getMainCamera();
         LevelAccessor levelaccessor = this.minecraft.level;
         DimensionType dimensiontype = levelaccessor.dimensionType();
-        BlockPos blockpos = new BlockPos(camera.getPosition().x, 0.0D, camera.getPosition().z);
+        BlockPos blockpos = camera.getBlockPosition().atY(0);
+        var relative = DebugRenderer.cameraPosition();
         VertexConsumer vertexconsumer = pBufferSource.getBuffer(RenderType.lines());
         if (this.postMainBoxes.containsKey(dimensiontype)) {
             for (BoundingBox boundingbox : this.postMainBoxes.get(dimensiontype).values()) {
                 if (blockpos.closerThan(boundingbox.getCenter(), 500.0D)) {
-                    LevelRenderer.renderLineBox(pPoseStack, vertexconsumer, (double) boundingbox.minX() - pCamX, (double) boundingbox.minY() - pCamY, (double) boundingbox.minZ() - pCamZ, (double) (boundingbox.maxX() + 1) - pCamX, (double) (boundingbox.maxY() + 1) - pCamY, (double) (boundingbox.maxZ() + 1) - pCamZ, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F);
+                    LevelRenderer.renderLineBox(pPoseStack, vertexconsumer, relative.relativeX(boundingbox.minX()), relative.relativeY(boundingbox.minY()), relative.relativeZ(boundingbox.minZ()), relative.relativeX(boundingbox.maxX()) + 1, relative.relativeY(boundingbox.maxY()) + 1, relative.relativeZ(boundingbox.maxZ()) + 1, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F);
                 }
             }
         }
@@ -50,9 +51,9 @@ public class StructureRenderer implements DebugRenderer.SimpleDebugRenderer {
                 Boolean obool = this.startPiecesMap.get(dimensiontype).get(s);
                 if (blockpos.closerThan(boundingbox1.getCenter(), 500.0D)) {
                     if (obool) {
-                        LevelRenderer.renderLineBox(pPoseStack, vertexconsumer, (double) boundingbox1.minX() - pCamX, (double) boundingbox1.minY() - pCamY, (double) boundingbox1.minZ() - pCamZ, (double) (boundingbox1.maxX() + 1) - pCamX, (double) (boundingbox1.maxY() + 1) - pCamY, (double) (boundingbox1.maxZ() + 1) - pCamZ, 0.0F, 1.0F, 0.0F, 1.0F, 0.0F, 1.0F, 0.0F);
+                        LevelRenderer.renderLineBox(pPoseStack, vertexconsumer, relative.relativeX(boundingbox1.minX()), relative.relativeY(boundingbox1.minY()), relative.relativeZ(boundingbox1.minZ()), relative.relativeX(boundingbox1.maxX()) + 1, relative.relativeY(boundingbox1.maxY()) + 1, relative.relativeZ(boundingbox1.maxZ()) + 1, 0.0F, 1.0F, 0.0F, 1.0F, 0.0F, 1.0F, 0.0F);
                     } else {
-                        LevelRenderer.renderLineBox(pPoseStack, vertexconsumer, (double) boundingbox1.minX() - pCamX, (double) boundingbox1.minY() - pCamY, (double) boundingbox1.minZ() - pCamZ, (double) (boundingbox1.maxX() + 1) - pCamX, (double) (boundingbox1.maxY() + 1) - pCamY, (double) (boundingbox1.maxZ() + 1) - pCamZ, 0.0F, 0.0F, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F);
+                        LevelRenderer.renderLineBox(pPoseStack, vertexconsumer, relative.relativeX(boundingbox1.minX()), relative.relativeY(boundingbox1.minY()), relative.relativeZ(boundingbox1.minZ()), relative.relativeX(boundingbox1.maxX()) + 1, relative.relativeY(boundingbox1.maxY()) + 1, relative.relativeZ(boundingbox1.maxZ()) + 1, 0.0F, 0.0F, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F);
                     }
                 }
             }

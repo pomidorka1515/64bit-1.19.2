@@ -1,15 +1,15 @@
 package net.minecraft.server.level.progress;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-
 import javax.annotation.Nullable;
+import net.minecraft.core.Int128Math;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.ChunkPosMap;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.chunk.ChunkStatus;
 
 public class StoringChunkProgressListener implements ChunkProgressListener {
     private final LoggerChunkProgressListener delegate;
-    private final Object2ObjectOpenHashMap<ChunkPos, ChunkStatus> statuses;
+    private final ChunkPosMap<ChunkStatus> statuses;
     private ChunkPos spawnPos = new ChunkPos(0, 0);
     private final int fullDiameter;
     private final int radius;
@@ -21,7 +21,7 @@ public class StoringChunkProgressListener implements ChunkProgressListener {
         this.fullDiameter = pRadius * 2 + 1;
         this.radius = pRadius + ChunkStatus.maxDistance();
         this.diameter = this.radius * 2 + 1;
-        this.statuses = new Object2ObjectOpenHashMap<>();
+        this.statuses = new ChunkPosMap<>();
     }
 
     public void updateSpawnPos(ChunkPos pCenter) {
@@ -67,6 +67,28 @@ public class StoringChunkProgressListener implements ChunkProgressListener {
 
     @Nullable
     public ChunkStatus getStatus(int pX, int pZ) {
-        return this.statuses.get(new ChunkPos(pX + this.spawnPos.x - this.radius, pZ + this.spawnPos.z - this.radius));
+        long dx = (long) pX - this.radius;
+        long dz = (long) pZ - this.radius;
+        long xLo = this.spawnPos.xLo() + dx;
+        long xHi = this.spawnPos.xHi() + (dx >> 63) + Int128Math.addCarry(this.spawnPos.xLo(), dx, xLo);
+        long zLo = this.spawnPos.zLo() + dz;
+        long zHi = this.spawnPos.zHi() + (dz >> 63) + Int128Math.addCarry(this.spawnPos.zLo(), dz, zLo);
+        // Match ChunkPos's chunk-domain saturation, without materializing offset keys.
+        // Both chunk limits end on a complete low-limb interval, so high limbs suffice.
+        if (xHi < WorldBounds.MIN_CHUNK.hi()) {
+            xHi = WorldBounds.MIN_CHUNK.hi();
+            xLo = WorldBounds.MIN_CHUNK.lo();
+        } else if (xHi > WorldBounds.MAX_CHUNK.hi()) {
+            xHi = WorldBounds.MAX_CHUNK.hi();
+            xLo = WorldBounds.MAX_CHUNK.lo();
+        }
+        if (zHi < WorldBounds.MIN_CHUNK.hi()) {
+            zHi = WorldBounds.MIN_CHUNK.hi();
+            zLo = WorldBounds.MIN_CHUNK.lo();
+        } else if (zHi > WorldBounds.MAX_CHUNK.hi()) {
+            zHi = WorldBounds.MAX_CHUNK.hi();
+            zLo = WorldBounds.MAX_CHUNK.lo();
+        }
+        return this.statuses.get(xHi, xLo, zHi, zLo);
     }
 }

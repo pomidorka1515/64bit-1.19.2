@@ -28,7 +28,6 @@ public class RegionFile implements AutoCloseable {
     private static final int CHUNK_HEADER_SIZE = 5;
     private static final int HEADER_OFFSET = 0;
     private static final ByteBuffer PADDING_BUFFER = ByteBuffer.allocateDirect(1);
-    private static final String EXTERNAL_FILE_EXTENSION = ".mcc";
     private static final int EXTERNAL_STREAM_FLAG = 128;
     private static final int EXTERNAL_CHUNK_THRESHOLD = 256;
     private static final int CHUNK_NOT_PRESENT = 0;
@@ -95,8 +94,7 @@ public class RegionFile implements AutoCloseable {
     }
 
     private Path getExternalChunkPath(ChunkPos pChunkPos) {
-        String s = "c." + pChunkPos.x + "." + pChunkPos.z + ".mcc";
-        return this.externalFileDir.resolve(s);
+        return this.externalFileDir.resolve(RegionFileNames.externalChunkFileName(pChunkPos.x(), pChunkPos.z()));
     }
 
     @Nullable

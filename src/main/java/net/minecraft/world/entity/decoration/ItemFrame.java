@@ -123,7 +123,7 @@ public class ItemFrame extends HangingEntity {
             return false;
         } else {
             BlockState blockstate = this.level.getBlockState(this.pos.relative(this.direction.getOpposite()));
-            return blockstate.getMaterial().isSolid() || this.direction.getAxis().isHorizontal() && DiodeBlock.isDiode(blockstate) ? this.level.getEntities(this, this.getBoundingBox(), HANGING_ENTITY).isEmpty() : false;
+            return blockstate.getMaterial().isSolid() || this.direction.getAxis().isHorizontal() && DiodeBlock.isDiode(blockstate) ? this.level.getEntities(this, this.exactBoundingBox(), HANGING_ENTITY).isEmpty() : false;
         }
     }
 

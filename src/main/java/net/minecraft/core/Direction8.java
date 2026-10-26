@@ -22,7 +22,7 @@ public enum Direction8 {
         this.step = new Vec3i(0, 0, 0);
 
         for (Direction direction : p_122592_) {
-            this.step.setX(this.step.getX() + direction.getStepX()).setY(this.step.getY() + direction.getStepY()).setZ(this.step.getZ() + direction.getStepZ());
+            this.step.setX(this.step.getXLo() + direction.getStepX()).setY(this.step.getY() + direction.getStepY()).setZ(this.step.getZLo() + direction.getStepZ());
         }
     }
 
@@ -31,10 +31,10 @@ public enum Direction8 {
     }
 
     public long getStepX() {
-        return this.step.getX();
+        return this.step.getXLo();
     }
 
     public long getStepZ() {
-        return this.step.getZ();
+        return this.step.getZLo();
     }
 }

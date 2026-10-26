@@ -42,7 +42,7 @@ public class EntityDamageSource extends DamageSource {
 
     @Nullable
     public Vec3 getSourcePosition() {
-        return this.entity.position();
+        return this.entity.exactPositionVector();
     }
 
     public String toString() {

@@ -69,9 +69,13 @@ public interface DensityFunction {
     public interface FunctionContext {
         long blockX();
 
+        default long blockXHi() { return blockX() >> 63; }
+
         int blockY();
 
         long blockZ();
+
+        default long blockZHi() { return blockZ() >> 63; }
 
         default Blender getBlender() {
             return Blender.empty();
@@ -114,6 +118,18 @@ public interface DensityFunction {
         public double maxValue() {
             return this.noise == null ? 2.0D : this.noise.maxValue();
         }
+
+        public double getValueScaled(long xHi, long xLo, double scale, long y, double yScale, long zHi, long zLo) {
+            return this.noise == null ? 0.0D : this.noise.getValueScaled(xHi, xLo, scale, y, yScale, zHi, zLo);
+        }
+
+        public double getValueScaledShifted(long xHi, long xLo, double scale, double shiftX, double y, long zHi, long zLo, double shiftZ) {
+            return this.noise == null ? 0.0D : this.noise.getValueScaledShifted(xHi, xLo, scale, shiftX, y, zHi, zLo, shiftZ);
+        }
+
+        public double getValueScaledAxes(long xHi, long xLo, long yHi, long yLo, long zHi, long zLo, double scale) {
+            return this.noise == null ? 0.0D : this.noise.getValueScaledAxes(xHi, xLo, yHi, yLo, zHi, zLo, scale);
+        }
     }
 
     public interface SimpleFunction extends DensityFunction {
@@ -126,7 +142,14 @@ public interface DensityFunction {
         }
     }
 
-    public static record SinglePointContext(long blockX, int blockY, long blockZ) implements DensityFunction.FunctionContext {
+    public static record SinglePointContext(long blockXHi, long blockX, int blockY, long blockZHi, long blockZ) implements DensityFunction.FunctionContext {
+        public SinglePointContext(long x, int y, long z) {
+            this(x >> 63, x, y, z >> 63, z);
+        }
+
+        public SinglePointContext(net.minecraft.core.Int128 x, int y, net.minecraft.core.Int128 z) {
+            this(x.hi(), x.lo(), y, z.hi(), z.lo());
+        }
         public long blockX() {
             return this.blockX;
         }

@@ -9,7 +9,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.chunk.DataLayer;
 import net.minecraft.world.level.chunk.LightChunkGetter;
 
@@ -45,7 +44,7 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
                 sectionPos = sectionPos.offset(Direction.UP);
                 layer = this.getDataLayer(data, sectionPos);
             }
-            return layer.get(SectionPos.sectionRelative(currentPos.getX()), SectionPos.sectionRelative(currentPos.getY()), SectionPos.sectionRelative(currentPos.getZ()));
+            return layer.get(SectionPos.sectionRelative(currentPos.getXLo()), SectionPos.sectionRelative(currentPos.getY()), SectionPos.sectionRelative(currentPos.getZLo()));
         }
         return updating && !this.lightOnInSection(sectionPos) ? 0 : 15;
     }
@@ -111,9 +110,6 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
     }
 
     protected void enableLightSources(SectionPos column, boolean enabled) {
-        if (!WorldBounds.isValidChunk(column.x(), column.z()))
-            return;
-
         this.runAllUpdates();
         if (enabled && this.columnsWithSkySources.add(column)) {
             int topSection = this.updatingSectionData.topSections.getOrDefault(column, this.updatingSectionData.currentLowestY);
@@ -170,9 +166,7 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
                         this.updatingSectionData.copyDataLayer(sectionPos);
                     Arrays.fill(this.getDataLayer(sectionPos, true).getData(), (byte) -1);
 
-                    long x = SectionPos.sectionToBlockCoord(sectionPos.x());
-                    int y = SectionPos.sectionToBlockCoord(sectionPos.y());
-                    long z = SectionPos.sectionToBlockCoord(sectionPos.z());
+                    BlockPos origin = sectionPos.origin();
                     for (Direction direction : HORIZONTALS) {
                         SectionPos neighbor = sectionPos.offset(direction);
                         if (!neighbor.equals(sectionPos) && (this.sectionsToRemoveSourcesFrom.contains(neighbor) || (!this.sectionsWithSources.contains(neighbor) && !this.sectionsToAddSourcesTo.contains(neighbor))) && this.storingLightForSection(neighbor)) {
@@ -182,21 +176,18 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
                                     BlockPos to;
                                     switch (direction) {
                                         case NORTH:
-                                            from = new BlockPos(x + first, y + second, z);
-                                            to = new BlockPos(x + first, y + second, z - 1);
+                                            from = origin.offset(first, second, 0);
                                             break;
                                         case SOUTH:
-                                            from = new BlockPos(x + first, y + second, z + 15);
-                                            to = new BlockPos(x + first, y + second, z + 16);
+                                            from = origin.offset(first, second, 15);
                                             break;
                                         case WEST:
-                                            from = new BlockPos(x, y + first, z + second);
-                                            to = new BlockPos(x - 1, y + first, z + second);
+                                            from = origin.offset(0, first, second);
                                             break;
                                         default:
-                                            from = new BlockPos(x + 15, y + first, z + second);
-                                            to = new BlockPos(x + 16, y + first, z + second);
+                                            from = origin.offset(15, first, second);
                                     }
+                                    to = from.relative(direction);
                                     engine.checkEdge(from, to, engine.computeLevelFromNeighbor(from, to, 0), true);
                                 }
                             }
@@ -252,16 +243,16 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
 
     protected static final class SkyDataLayerStorageMap extends DataLayerStorageMap<SkyDataLayerStorageMap> {
         int currentLowestY;
-        final Map<SectionPos, Integer> topSections;
+        final LightStorageMap<SectionPos, Integer> topSections;
 
         SkyDataLayerStorageMap(Map<SectionPos, DataLayer> layers, Map<SectionPos, Integer> topSections, int currentLowestY) {
             super(layers);
-            this.topSections = topSections;
+            this.topSections = topSections instanceof LightStorageMap ? (LightStorageMap<SectionPos, Integer>) topSections : new LightStorageMap<>(topSections);
             this.currentLowestY = currentLowestY;
         }
 
         public SkyDataLayerStorageMap copy() {
-            return new SkyDataLayerStorageMap(new HashMap<>(this.map), new HashMap<>(this.topSections), this.currentLowestY);
+            return new SkyDataLayerStorageMap(this.map.copy(), this.topSections.copy(), this.currentLowestY);
         }
     }
 }

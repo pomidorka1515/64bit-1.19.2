@@ -10,9 +10,11 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
@@ -25,6 +27,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.WorldBounds;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.slf4j.Logger;
@@ -35,8 +39,8 @@ public class MapItemSavedData extends SavedData {
     private static final int HALF_MAP_SIZE = 64;
     public static final int MAX_SCALE = 4;
     public static final int TRACKED_DECORATION_LIMIT = 256;
-    public final int x;
-    public final int z;
+    public final Int128 x;
+    public final Int128 z;
     public final ResourceKey<Level> dimension;
     private final boolean trackingPosition;
     private final boolean unlimitedTracking;
@@ -50,7 +54,7 @@ public class MapItemSavedData extends SavedData {
     private final Map<String, MapFrame> frameMarkers = Maps.newHashMap();
     private int trackedDecorationCount;
 
-    private MapItemSavedData(int pX, int pZ, byte pScale, boolean pTrackingPosition, boolean pUnlimitedTracking, boolean pLocked, ResourceKey<Level> pDimension) {
+    private MapItemSavedData(Int128 pX, Int128 pZ, byte pScale, boolean pTrackingPosition, boolean pUnlimitedTracking, boolean pLocked, ResourceKey<Level> pDimension) {
         this.scale = pScale;
         this.x = pX;
         this.z = pZ;
@@ -62,24 +66,34 @@ public class MapItemSavedData extends SavedData {
     }
 
     public static MapItemSavedData createFresh(double pX, double pZ, byte pScale, boolean pTrackingPosition, boolean pUnlimitedTracking, ResourceKey<Level> pDimension) {
-        int i = 128 * (1 << pScale);
-        int j = Mth.floor((pX + 64.0D) / (double) i);
-        int k = Mth.floor((pZ + 64.0D) / (double) i);
-        int l = j * i + i / 2 - 64;
-        int i1 = k * i + i / 2 - 64;
+        return createFresh(Int128.fromDoubleFloorSaturated(pX), Int128.fromDoubleFloorSaturated(pZ), pScale, pTrackingPosition, pUnlimitedTracking, pDimension);
+    }
+
+    public static MapItemSavedData createFresh(Int128 pX, Int128 pZ, byte pScale, boolean pTrackingPosition, boolean pUnlimitedTracking, ResourceKey<Level> pDimension) {
+        pScale = (byte) Mth.clamp(pScale, 0, MAX_SCALE);
+        Int128 l = alignCenter(pX, pScale);
+        Int128 i1 = alignCenter(pZ, pScale);
         return new MapItemSavedData(l, i1, pScale, pTrackingPosition, pUnlimitedTracking, false, pDimension);
     }
 
+    private static Int128 alignCenter(Int128 coordinate, int scale) {
+        int shift = 7 + scale;
+        int size = 1 << shift;
+        // Align using the low remainder, avoiding overflow in coordinate + 64.
+        int remainder = (int) ((coordinate.lo() + 64L) & (size - 1));
+        return WorldBounds.addBlockOffset(coordinate, size / 2L - remainder);
+    }
+
     public static MapItemSavedData createForClient(byte pScale, boolean pLocked, ResourceKey<Level> pDimension) {
-        return new MapItemSavedData(0, 0, pScale, false, false, pLocked, pDimension);
+        return new MapItemSavedData(Int128.ZERO, Int128.ZERO, pScale, false, false, pLocked, pDimension);
     }
 
     public static MapItemSavedData load(CompoundTag pCompoundTag) {
         ResourceKey<Level> resourcekey = DimensionType.parseLegacy(new Dynamic<>(NbtOps.INSTANCE, pCompoundTag.get("dimension"))).resultOrPartial(LOGGER::error).orElseThrow(() -> {
             return new IllegalArgumentException("Invalid map dimension: " + pCompoundTag.get("dimension"));
         });
-        int i = pCompoundTag.getInt("xCenter");
-        int j = pCompoundTag.getInt("zCenter");
+        Int128 i = NbtUtils.readInt128(pCompoundTag, "xCenter");
+        Int128 j = NbtUtils.readInt128(pCompoundTag, "zCenter");
         byte b0 = (byte) Mth.clamp(pCompoundTag.getByte("scale"), 0, 4);
         boolean flag = !pCompoundTag.contains("trackingPosition", 1) || pCompoundTag.getBoolean("trackingPosition");
         boolean flag1 = pCompoundTag.getBoolean("unlimitedTracking");
@@ -95,7 +109,7 @@ public class MapItemSavedData extends SavedData {
         for (int k = 0; k < listtag.size(); ++k) {
             MapBanner mapbanner = MapBanner.load(listtag.getCompound(k));
             mapitemsaveddata.bannerMarkers.put(mapbanner.getId(), mapbanner);
-            mapitemsaveddata.addDecoration(mapbanner.getDecoration(), (LevelAccessor) null, mapbanner.getId(), (double) mapbanner.getPos().getX(), (double) mapbanner.getPos().getZ(), 180.0D, mapbanner.getName());
+            mapitemsaveddata.addDecoration(mapbanner.getDecoration(), (LevelAccessor) null, mapbanner.getId(), mapbanner.getPos().getX(), mapbanner.getPos().getZ(), 180.0D, mapbanner.getName());
         }
 
         ListTag listtag1 = pCompoundTag.getList("frames", 10);
@@ -103,7 +117,7 @@ public class MapItemSavedData extends SavedData {
         for (int l = 0; l < listtag1.size(); ++l) {
             MapFrame mapframe = MapFrame.load(listtag1.getCompound(l));
             mapitemsaveddata.frameMarkers.put(mapframe.getId(), mapframe);
-            mapitemsaveddata.addDecoration(MapDecoration.Type.FRAME, (LevelAccessor) null, "frame-" + mapframe.getEntityId(), (double) mapframe.getPos().getX(), (double) mapframe.getPos().getZ(), (double) mapframe.getRotation(), (Component) null);
+            mapitemsaveddata.addDecoration(MapDecoration.Type.FRAME, (LevelAccessor) null, "frame-" + mapframe.getEntityId(), mapframe.getPos().getX(), mapframe.getPos().getZ(), (double) mapframe.getRotation(), (Component) null);
         }
 
         return mapitemsaveddata;
@@ -113,8 +127,8 @@ public class MapItemSavedData extends SavedData {
         ResourceLocation.CODEC.encodeStart(NbtOps.INSTANCE, this.dimension.location()).resultOrPartial(LOGGER::error).ifPresent((p_77954_) -> {
             pCompound.put("dimension", p_77954_);
         });
-        pCompound.putInt("xCenter", this.x);
-        pCompound.putInt("zCenter", this.z);
+        NbtUtils.writeInt128(pCompound, "xCenter", this.x);
+        NbtUtils.writeInt128(pCompound, "zCenter", this.z);
         pCompound.putByte("scale", this.scale);
         pCompound.putByteArray("colors", this.colors);
         pCompound.putBoolean("trackingPosition", this.trackingPosition);
@@ -148,7 +162,7 @@ public class MapItemSavedData extends SavedData {
     }
 
     public MapItemSavedData scaled(int pScalar) {
-        return createFresh((double) this.x, (double) this.z, (byte) Mth.clamp(this.scale + pScalar, 0, 4), this.trackingPosition, this.unlimitedTracking, this.dimension);
+        return createFresh(this.x, this.z, (byte) Mth.clamp(this.scale + pScalar, 0, 4), this.trackingPosition, this.unlimitedTracking, this.dimension);
     }
 
     public void tickCarriedBy(Player pPlayer, ItemStack pMapStack) {
@@ -167,7 +181,8 @@ public class MapItemSavedData extends SavedData {
             String s = mapitemsaveddata$holdingplayer1.player.getName().getString();
             if (!mapitemsaveddata$holdingplayer1.player.isRemoved() && (mapitemsaveddata$holdingplayer1.player.getInventory().contains(pMapStack) || pMapStack.isFramed())) {
                 if (!pMapStack.isFramed() && mapitemsaveddata$holdingplayer1.player.level.dimension() == this.dimension && this.trackingPosition) {
-                    this.addDecoration(MapDecoration.Type.PLAYER, mapitemsaveddata$holdingplayer1.player.level, s, mapitemsaveddata$holdingplayer1.player.getX(), mapitemsaveddata$holdingplayer1.player.getZ(), (double) mapitemsaveddata$holdingplayer1.player.getYRot(), (Component) null);
+                    SectorVec3 position = mapitemsaveddata$holdingplayer1.player.sectorPosition();
+                    this.addDecorationRelative(MapDecoration.Type.PLAYER, mapitemsaveddata$holdingplayer1.player.level, s, WorldBounds.signedDifference(position.blockX(), this.x) + position.subX(), WorldBounds.signedDifference(position.blockZ(), this.z) + position.subZ(), (double) mapitemsaveddata$holdingplayer1.player.getYRot(), (Component) null);
                 }
             } else {
                 this.carriedByPlayers.remove(mapitemsaveddata$holdingplayer1.player);
@@ -185,7 +200,7 @@ public class MapItemSavedData extends SavedData {
             }
 
             MapFrame mapframe = new MapFrame(blockpos, itemframe.getDirection().get2DDataValue() * 90, itemframe.getId());
-            this.addDecoration(MapDecoration.Type.FRAME, pPlayer.level, "frame-" + itemframe.getId(), (double) blockpos.getX(), (double) blockpos.getZ(), (double) (itemframe.getDirection().get2DDataValue() * 90), (Component) null);
+            this.addDecoration(MapDecoration.Type.FRAME, pPlayer.level, "frame-" + itemframe.getId(), blockpos.getX(), blockpos.getZ(), (double) (itemframe.getDirection().get2DDataValue() * 90), (Component) null);
             this.frameMarkers.put(mapframe.getId(), mapframe);
         }
 
@@ -196,7 +211,7 @@ public class MapItemSavedData extends SavedData {
             for (int j = 0; j < listtag.size(); ++j) {
                 CompoundTag compoundtag1 = listtag.getCompound(j);
                 if (!this.decorations.containsKey(compoundtag1.getString("id"))) {
-                    this.addDecoration(MapDecoration.Type.byIcon(compoundtag1.getByte("type")), pPlayer.level, compoundtag1.getString("id"), compoundtag1.getDouble("x"), compoundtag1.getDouble("z"), compoundtag1.getDouble("rot"), (Component) null);
+                    this.addDecoration(MapDecoration.Type.byIcon(compoundtag1.getByte("type")), pPlayer.level, compoundtag1.getString("id"), NbtUtils.readInt128(compoundtag1, "x"), NbtUtils.readInt128(compoundtag1, "z"), compoundtag1.getDouble("rot"), (Component) null);
                 }
             }
         }
@@ -223,8 +238,8 @@ public class MapItemSavedData extends SavedData {
         CompoundTag compoundtag = new CompoundTag();
         compoundtag.putByte("type", pType.getIcon());
         compoundtag.putString("id", pDecorationName);
-        compoundtag.putDouble("x", (double) pTarget.getX());
-        compoundtag.putDouble("z", (double) pTarget.getZ());
+        NbtUtils.writeInt128(compoundtag, "x", pTarget.getX());
+        NbtUtils.writeInt128(compoundtag, "z", pTarget.getZ());
         compoundtag.putDouble("rot", 180.0D);
         listtag.add(compoundtag);
         if (pType.hasMapColor()) {
@@ -233,10 +248,14 @@ public class MapItemSavedData extends SavedData {
         }
     }
 
-    private void addDecoration(MapDecoration.Type pType, @Nullable LevelAccessor pLevel, String pDecorationName, double pLevelX, double pLevelZ, double pRotation, @Nullable Component pName) {
+    private void addDecoration(MapDecoration.Type pType, @Nullable LevelAccessor pLevel, String pDecorationName, Int128 pLevelX, Int128 pLevelZ, double pRotation, @Nullable Component pName) {
+        this.addDecorationRelative(pType, pLevel, pDecorationName, WorldBounds.signedDifference(pLevelX, this.x), WorldBounds.signedDifference(pLevelZ, this.z), pRotation, pName);
+    }
+
+    private void addDecorationRelative(MapDecoration.Type pType, @Nullable LevelAccessor pLevel, String pDecorationName, double relativeX, double relativeZ, double pRotation, @Nullable Component pName) {
         int i = 1 << this.scale;
-        float f = (float) (pLevelX - (double) this.x) / (float) i;
-        float f1 = (float) (pLevelZ - (double) this.z) / (float) i;
+        float f = (float) relativeX / (float) i;
+        float f1 = (float) relativeZ / (float) i;
         byte b0 = (byte) ((int) ((double) (f * 2.0F) + 0.5D));
         byte b1 = (byte) ((int) ((double) (f1 * 2.0F) + 0.5D));
         int j = 63;
@@ -330,11 +349,11 @@ public class MapItemSavedData extends SavedData {
     }
 
     public boolean toggleBanner(LevelAccessor pAccessor, BlockPos pPos) {
-        double d0 = (double) pPos.getX() + 0.5D;
-        double d1 = (double) pPos.getZ() + 0.5D;
+        double d0 = WorldBounds.signedDifference(pPos.getX(), this.x) + 0.5D;
+        double d1 = WorldBounds.signedDifference(pPos.getZ(), this.z) + 0.5D;
         int i = 1 << this.scale;
-        double d2 = (d0 - (double) this.x) / (double) i;
-        double d3 = (d1 - (double) this.z) / (double) i;
+        double d2 = d0 / (double) i;
+        double d3 = d1 / (double) i;
         int j = 63;
         if (d2 >= -63.0D && d3 >= -63.0D && d2 <= 63.0D && d3 <= 63.0D) {
             MapBanner mapbanner = MapBanner.fromWorld(pAccessor, pPos);
@@ -349,7 +368,7 @@ public class MapItemSavedData extends SavedData {
 
             if (!this.isTrackedCountOverLimit(256)) {
                 this.bannerMarkers.put(mapbanner.getId(), mapbanner);
-                this.addDecoration(mapbanner.getDecoration(), pAccessor, mapbanner.getId(), d0, d1, 180.0D, mapbanner.getName());
+                this.addDecorationRelative(mapbanner.getDecoration(), pAccessor, mapbanner.getId(), d0, d1, 180.0D, mapbanner.getName());
                 return true;
             }
         }
@@ -358,11 +377,15 @@ public class MapItemSavedData extends SavedData {
     }
 
     public void checkBanners(BlockGetter pReader, long pX, long pZ) {
+        this.checkBanners(pReader, Int128.fromLong(pX), Int128.fromLong(pZ));
+    }
+
+    public void checkBanners(BlockGetter pReader, Int128 pX, Int128 pZ) {
         Iterator<MapBanner> iterator = this.bannerMarkers.values().iterator();
 
         while (iterator.hasNext()) {
             MapBanner mapbanner = iterator.next();
-            if (mapbanner.getPos().getX() == pX && mapbanner.getPos().getZ() == pZ) {
+            if (mapbanner.getPos().getX().equals(pX) && mapbanner.getPos().getZ().equals(pZ)) {
                 MapBanner mapbanner1 = MapBanner.fromWorld(pReader, mapbanner.getPos());
                 if (!mapbanner.equals(mapbanner1)) {
                     iterator.remove();

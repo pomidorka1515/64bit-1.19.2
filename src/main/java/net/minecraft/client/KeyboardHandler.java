@@ -36,6 +36,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -132,7 +133,7 @@ public class KeyboardHandler {
                         }
 
                         this.debugFeedbackTranslated("debug.copy_location.message");
-                        this.setClipboard(String.format(Locale.ROOT, "/execute in %s run tp @s %.2f %.2f %.2f %.2f %.2f", this.minecraft.player.level.dimension().location(), this.minecraft.player.getX(), this.minecraft.player.getY(), this.minecraft.player.getZ(), this.minecraft.player.getYRot(), this.minecraft.player.getXRot()));
+                        this.setClipboard(formatDebugTeleportCommand(this.minecraft.player.level.dimension().location(), this.minecraft.player.sectorPosition(), this.minecraft.player.getYRot(), this.minecraft.player.getXRot()));
                         return true;
                     }
                 case 68:
@@ -243,16 +244,16 @@ public class KeyboardHandler {
                     if (pPrivileged) {
                         if (pAskServer) {
                             this.minecraft.player.connection.getDebugQueryHandler().queryEntityTag(entity.getId(), (p_90921_) -> {
-                                this.copyCreateEntityCommand(resourcelocation, entity.position(), p_90921_);
+                                this.copyCreateEntityCommand(resourcelocation, entity.exactPositionVector(), p_90921_);
                                 this.debugFeedbackTranslated("debug.inspect.server.entity");
                             });
                         } else {
                             CompoundTag compoundtag = entity.saveWithoutId(new CompoundTag());
-                            this.copyCreateEntityCommand(resourcelocation, entity.position(), compoundtag);
+                            this.copyCreateEntityCommand(resourcelocation, entity.exactPositionVector(), compoundtag);
                             this.debugFeedbackTranslated("debug.inspect.client.entity");
                         }
                     } else {
-                        this.copyCreateEntityCommand(resourcelocation, entity.position(), (CompoundTag) null);
+                        this.copyCreateEntityCommand(resourcelocation, entity.exactPositionVector(), (CompoundTag) null);
                         this.debugFeedbackTranslated("debug.inspect.client.entity");
                     }
             }
@@ -270,15 +271,16 @@ public class KeyboardHandler {
     }
 
     private void copyCreateEntityCommand(ResourceLocation pEntityId, Vec3 pPos, @Nullable CompoundTag pCompound) {
+        SectorVec3 position = SectorVec3.fromApproximate(pPos);
         String s;
         if (pCompound != null) {
             pCompound.remove("UUID");
             pCompound.remove("Pos");
             pCompound.remove("Dimension");
             String s1 = NbtUtils.toPrettyComponent(pCompound).getString();
-            s = String.format(Locale.ROOT, "/summon %s %.2f %.2f %.2f %s", pEntityId.toString(), pPos.x, pPos.y, pPos.z, s1);
+            s = String.format(Locale.ROOT, "/summon %s %s %.2f %s %s", pEntityId.toString(), position.formatX(2), position.y(), position.formatZ(2), s1);
         } else {
-            s = String.format(Locale.ROOT, "/summon %s %.2f %.2f %.2f", pEntityId.toString(), pPos.x, pPos.y, pPos.z);
+            s = String.format(Locale.ROOT, "/summon %s %s %.2f %s", pEntityId.toString(), position.formatX(2), position.y(), position.formatZ(2));
         }
 
         this.setClipboard(s);
@@ -426,6 +428,11 @@ public class KeyboardHandler {
                                                                                                                 }); }, (p_90935_, p_90936_, p_90937_) -> { this.minecraft.execute(() -> {
                                                                                                                                                                                                                                                                this.charTyped(p_90935_, p_90936_, p_90937_);
                                                                                                                                                                                                                                                            }); });
+    }
+
+    static String formatDebugTeleportCommand(ResourceLocation dimension, SectorVec3 position, float yaw, float pitch) {
+        return String.format(Locale.ROOT, "/execute in %s run tp @s %s %.2f %s %.2f %.2f",
+                dimension, position.formatX(2), position.y(), position.formatZ(2), yaw, pitch);
     }
 
     public String getClipboard() {

@@ -96,20 +96,8 @@ public class ServerLoginPacketListenerImpl implements TickablePacketListener, Se
     }
 
     public void handleAcceptedLogin() {
-        ProfilePublicKey profilepublickey = null;
         if (!this.gameProfile.isComplete()) {
             this.gameProfile = this.createFakeProfile(this.gameProfile);
-        } else {
-            try {
-                SignatureValidator signaturevalidator = this.server.getServiceSignatureValidator();
-                profilepublickey = validatePublicKey(this.profilePublicKeyData, this.gameProfile.getId(), signaturevalidator, this.server.enforceSecureProfile());
-            } catch (ProfilePublicKey.ValidationException profilepublickey$validationexception) {
-                LOGGER.error("Failed to validate profile key: {}", (Object) profilepublickey$validationexception.getMessage());
-                if (!this.connection.isMemoryConnection()) {
-                    this.disconnect(profilepublickey$validationexception.getComponent());
-                    return;
-                }
-            }
         }
 
         Component component1 = this.server.getPlayerList().canPlayerLogin(this.connection.getRemoteAddress(), this.gameProfile);
@@ -127,7 +115,7 @@ public class ServerLoginPacketListenerImpl implements TickablePacketListener, Se
             ServerPlayer serverplayer = this.server.getPlayerList().getPlayer(this.gameProfile.getId());
 
             try {
-                ServerPlayer serverplayer1 = this.server.getPlayerList().getPlayerForLogin(this.gameProfile, profilepublickey);
+                ServerPlayer serverplayer1 = this.server.getPlayerList().getPlayerForLogin(this.gameProfile, null);
                 if (serverplayer != null) {
                     this.state = ServerLoginPacketListenerImpl.State.DELAY_ACCEPT;
                     this.delayedAcceptPlayer = serverplayer1;
@@ -153,19 +141,6 @@ public class ServerLoginPacketListenerImpl implements TickablePacketListener, Se
 
     public String getUserName() {
         return this.gameProfile != null ? this.gameProfile + " (" + this.connection.getRemoteAddress() + ")" : String.valueOf((Object) this.connection.getRemoteAddress());
-    }
-
-    @Nullable
-    private static ProfilePublicKey validatePublicKey(@Nullable ProfilePublicKey.Data pProfilePublicKeyData, UUID pProfileId, SignatureValidator pSignatureValidator, boolean pEnforceSecureProfile) throws ProfilePublicKey.ValidationException {
-        if (pProfilePublicKeyData == null) {
-            if (pEnforceSecureProfile) {
-                throw new ProfilePublicKey.ValidationException(ProfilePublicKey.MISSING_PROFILE_PUBLIC_KEY);
-            } else {
-                return null;
-            }
-        } else {
-            return ProfilePublicKey.createValidated(pSignatureValidator, pProfileId, pProfilePublicKeyData, Duration.ZERO);
-        }
     }
 
     public void handleHello(ServerboundHelloPacket pPacket) {

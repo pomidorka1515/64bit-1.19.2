@@ -361,16 +361,13 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
         }
     }
 
-    public double getLevelX() {
-        return (double) this.worldPosition.getX() + 0.5D;
+    public net.minecraft.world.phys.SectorVec3 getExactHopperPosition() {
+        return net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(this.worldPosition.getX(), 0.5D,
+                this.getLevelY(), this.worldPosition.getZ(), 0.5D);
     }
 
     public double getLevelY() {
         return (double) this.worldPosition.getY() + 0.5D;
-    }
-
-    public double getLevelZ() {
-        return (double) this.worldPosition.getZ() + 0.5D;
     }
 
     private void setCooldown(int pCooldownTime) {
@@ -394,7 +391,8 @@ public class HopperBlockEntity extends RandomizableContainerBlockEntity implemen
     }
 
     public static void entityInside(Level pLevel, BlockPos pPos, BlockState pState, Entity pEntity, HopperBlockEntity pBlockEntity) {
-        if (pEntity instanceof ItemEntity && Shapes.joinIsNotEmpty(Shapes.create(pEntity.getBoundingBox().move((double) (-pPos.getX()), (double) (-pPos.getY()), (double) (-pPos.getZ()))), pBlockEntity.getSuckShape(), BooleanOp.AND)) {
+        if (pEntity instanceof ItemEntity && Shapes.joinIsNotEmpty(Shapes.create(pEntity.getSectorBoundingBox().toLocalAABB(
+                new net.minecraft.world.phys.SectorPhysicsOrigin(pPos.getX(), pPos.getY(), pPos.getZ()))), pBlockEntity.getSuckShape(), BooleanOp.AND)) {
             tryMoveItems(pLevel, pPos, pState, pBlockEntity, () -> {
                 return addItem(pBlockEntity, (ItemEntity) pEntity);
             });

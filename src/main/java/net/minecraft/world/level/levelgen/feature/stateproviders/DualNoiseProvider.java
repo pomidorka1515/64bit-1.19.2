@@ -60,12 +60,13 @@ public class DualNoiseProvider extends NoiseProvider {
     }
 
     protected double getSlowNoiseValue(BlockPos pPos) {
-        long blockX = pPos.getX();
-        long blockZ = pPos.getZ();
-        if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))) {
-            return this.slowNoise.getValueScaled(blockX, this.slowScale, pPos.getY(), this.slowScale, blockZ);
+        // Keep high limbs until the mode-specific sampling boundary.
+        long blockX = pPos.getXLo();
+        long blockZ = pPos.getZLo();
+        if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(pPos.getXHi(), blockX) || PreciseNoiseCoordinate.needsPrecisePath(pPos.getZHi(), blockZ))) {
+            return this.slowNoise.getValueScaled(pPos.getXHi(), blockX, this.slowScale, pPos.getY(), this.slowScale, pPos.getZHi(), blockZ);
         }
 
-        return this.slowNoise.getValue(FarlandsMode.scaledNoiseCoordinate(blockX, this.slowScale), (double) ((float) pPos.getY() * this.slowScale), FarlandsMode.scaledNoiseCoordinate(blockZ, this.slowScale));
+        return this.slowNoise.getValue(FarlandsMode.scaledNoiseCoordinate(pPos.getXHi(), blockX, this.slowScale), (double) ((float) pPos.getY() * this.slowScale), FarlandsMode.scaledNoiseCoordinate(pPos.getZHi(), blockZ, this.slowScale));
     }
 }

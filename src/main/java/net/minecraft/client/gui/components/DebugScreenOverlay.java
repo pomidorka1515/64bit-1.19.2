@@ -13,24 +13,20 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.datafixers.DataFixUtils;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Transformation;
-import it.unimi.dsi.fastutil.longs.LongSet;
-import it.unimi.dsi.fastutil.longs.LongSets;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import it.unimi.dsi.fastutil.objects.ObjectSets;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
-import java.util.EnumMap;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
@@ -40,41 +36,29 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Int128;
+import net.minecraft.core.Int128Math;
 import net.minecraft.core.Registry;
-import net.minecraft.core.SectionPos;
 import net.minecraft.network.Connection;
-import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.FrameTimer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.biome.BiomeSource;
-import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.level.levelgen.EndRingsMode;
-import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.levelgen.RandomState;
-import net.minecraft.world.level.levelgen.synth.BlendedNoise;
-import net.minecraft.world.level.levelgen.synth.FarlandsMode;
-import net.minecraft.world.level.levelgen.synth.ImprovedNoise;
-import net.minecraft.world.level.levelgen.synth.SimplexNoise;
+import net.minecraft.world.level.chunk.storage.RegionFileNames;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -88,14 +72,6 @@ public class DebugScreenOverlay extends GuiComponent {
     private static final int MARGIN_RIGHT = 2;
     private static final int MARGIN_LEFT = 2;
     private static final int MARGIN_TOP = 2;
-    private static final Map<Heightmap.Types, String> HEIGHTMAP_NAMES = Util.make(new EnumMap<>(Heightmap.Types.class), (p_94070_) -> {
-        p_94070_.put(Heightmap.Types.WORLD_SURFACE_WG, "SW");
-        p_94070_.put(Heightmap.Types.WORLD_SURFACE, "S");
-        p_94070_.put(Heightmap.Types.OCEAN_FLOOR_WG, "OW");
-        p_94070_.put(Heightmap.Types.OCEAN_FLOOR, "O");
-        p_94070_.put(Heightmap.Types.MOTION_BLOCKING, "M");
-        p_94070_.put(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, "ML");
-    });
     private final Minecraft minecraft;
     private final DebugScreenOverlay.AllocationRateCalculator allocationRateCalculator;
     private final Font font;
@@ -103,6 +79,19 @@ public class DebugScreenOverlay extends GuiComponent {
     private HitResult liquid;
     @Nullable
     private ChunkPos lastPos;
+    private final RegionDisplayCache regionDisplay = new RegionDisplayCache();
+    private final PositionDisplayCache positionDisplay = new PositionDisplayCache();
+    private final MemoryDisplayCache memoryDisplay = new MemoryDisplayCache();
+    private int precisionBits = Integer.MIN_VALUE;
+    private String precisionLine;
+    private String chunkXLine;
+    private String chunkZLine;
+    private List<String> hardwareInformation;
+    private int displayWidth = -1;
+    private int displayHeight = -1;
+    private String displayLine;
+    // DecimalFormat is mutable; keep separate instances for callers on other threads.
+    private static final ThreadLocal<NumberFormats> NUMBER_FORMATS = ThreadLocal.withInitial(NumberFormats::new);
     @Nullable
     private LevelChunk clientChunk;
     @Nullable
@@ -146,42 +135,60 @@ public class DebugScreenOverlay extends GuiComponent {
         list.add("");
         boolean flag = this.minecraft.getSingleplayerServer() != null;
         list.add("Debug: Pie [shift]: " + (this.minecraft.options.renderDebugCharts ? "visible" : "hidden") + (flag ? " FPS + TPS" : " FPS") + " [alt]: " + (this.minecraft.options.renderFpsChart ? "visible" : "hidden"));
-        list.add("For help: press F3 + Q");
 
-        for (int i = 0; i < list.size(); ++i) {
-            String s = list.get(i);
-            if (!Strings.isNullOrEmpty(s)) {
-                int j = 9;
-                int k = this.font.width(s);
-                int l = 2;
-                int i1 = 2 + j * i;
-                fill(pPoseStack, 1, i1 - 1, 2 + k + 1, i1 + j - 1, -1873784752);
-                this.font.draw(pPoseStack, s, 2.0F, (float) i1, 14737632);
+        drawInformation(pPoseStack, list, false);
+    }
+
+    private void drawInformation(PoseStack pPoseStack, List<String> lines, boolean right) {
+        var window = this.minecraft.getWindow();
+        int divider = informationDivider(window.getWidth());
+        if (!right) {
+            int widestLine = 0;
+            for (String line : lines) widestLine = Math.max(widestLine, this.font.width(line));
+            float pixelScale = DebugInformationLayout.singleColumnScale(widestLine, lines.size(),
+                    divider, window.getHeight(), window.getGuiScale());
+            float scale = (float) (pixelScale / window.getGuiScale());
+            pPoseStack.pushPose();
+            // Scale the actual Minecraft font equally on both axes; never split lines or glyphs.
+            pPoseStack.scale(scale, scale, 1.0F);
+            for (int i = 0; i < lines.size(); ++i) {
+                String text = lines.get(i);
+                int textWidth = this.font.width(text);
+                int y = 2 + i * 9;
+                if (textWidth == 0) continue;
+                fill(pPoseStack, 1, y - 1, textWidth + 3, y + 8, -1873784752);
+                this.font.draw(pPoseStack, text, 2.0F, (float) y, COLOR_GREY);
             }
+            pPoseStack.popPose();
+            return;
         }
+        int origin = right ? divider : 0;
+        int width = right ? window.getWidth() - divider : divider;
+        var layout = DebugInformationLayout.arrange(lines, width, window.getHeight(),
+                (int) window.getGuiScale(), (text, wrapWidth) -> text.isEmpty()
+                        ? List.of(net.minecraft.util.FormattedCharSequence.EMPTY)
+                        : this.font.split(net.minecraft.network.chat.Component.literal(text), wrapWidth));
+        float scale = (float) (layout.pixelScale() / window.getGuiScale());
+        pPoseStack.pushPose();
+        pPoseStack.scale(scale, scale, 1.0F);
+        for (int i = 0; i < layout.lines().size(); ++i) {
+            var text = layout.lines().get(i);
+            int textWidth = this.font.width(text);
+            int x = origin / layout.pixelScale() + layout.textX(i, textWidth, right);
+            int y = 2 + (i % layout.rows()) * 9;
+            if (textWidth == 0) continue;
+            fill(pPoseStack, x - 1, y - 1, x + textWidth + 1, y + 8, -1873784752);
+            this.font.draw(pPoseStack, text, (float) x, (float) y, 14737632);
+        }
+        pPoseStack.popPose();
+    }
+
+    static int informationDivider(int framebufferWidth) {
+        return framebufferWidth * 7 / 10;
     }
 
     protected void drawSystemInformation(PoseStack pPoseStack) {
-        List<String> list = this.getSystemInformation();
-
-        for (int i = 0; i < list.size(); ++i) {
-            String s = list.get(i);
-            if (!Strings.isNullOrEmpty(s)) {
-                int j = 9;
-                int k = this.font.width(s);
-                int l = this.minecraft.getWindow().getGuiScaledWidth() - 2 - k;
-                int i1 = 2 + j * i;
-                fill(pPoseStack, l - 1, i1 - 1, l + k + 1, i1 + j - 1, -1873784752);
-                this.font.draw(pPoseStack, s, (float) l, (float) i1, 14737632);
-            }
-        }
-    }
-
-    private char getColorCodeFromPrecision(double precision) {
-        if (precision <= 0.03125D /* 1/32 */)
-            return 'a';
-        else
-            return precision > 0.25 /* 1/2 */ ? 'c' : 'e';
+        drawInformation(pPoseStack, this.getSystemInformation(), true);
     }
 
     protected List<String> getGameInformation() {
@@ -191,14 +198,14 @@ public class DebugScreenOverlay extends GuiComponent {
         float f1 = connection.getAverageReceivedPackets();
         String s;
         if (integratedserver != null) {
-            s = String.format(Locale.ROOT, "Integrated server @ %.0f ms ticks, %.0f tx, %.0f rx", integratedserver.getAverageTickTime(), f, f1);
+            s = "Integrated server @ " + fixed(integratedserver.getAverageTickTime(), 0) + " ms ticks, " + fixed(f, 0) + " tx, " + fixed(f1, 0) + " rx";
         } else {
-            s = String.format(Locale.ROOT, "\"%s\" server, %.0f tx, %.0f rx", this.minecraft.player.getServerBrand(), f, f1);
+            s = "\"" + this.minecraft.player.getServerBrand() + "\" server, " + fixed(f, 0) + " tx, " + fixed(f1, 0) + " rx";
         }
 
         BlockPos blockpos = this.minecraft.getCameraEntity().blockPosition();
         if (this.minecraft.showOnlyReducedInfo()) {
-            return Lists.newArrayList("Minecraft " + SharedConstants.getCurrentVersion().getName() + " (" + this.minecraft.getLaunchedVersion() + "/" + ClientBrandRetriever.getClientModName() + ")", this.minecraft.fpsString, s, this.minecraft.levelRenderer.getChunkStatistics(), this.minecraft.levelRenderer.getEntityStatistics(), "P: " + this.minecraft.particleEngine.countParticles() + ". T: " + this.minecraft.level.getEntityCount(), this.minecraft.level.gatherChunkSourceStats(), "", String.format(Locale.ROOT, "Chunk-relative: %d %d %d", blockpos.getX() & 15, blockpos.getY() & 15, blockpos.getZ() & 15));
+            return Lists.newArrayList("Minecraft " + SharedConstants.getCurrentVersion().getName() + " (" + this.minecraft.getLaunchedVersion() + "/" + ClientBrandRetriever.getClientModName() + ")", this.minecraft.fpsString, s, this.minecraft.levelRenderer.getChunkStatistics(), this.minecraft.levelRenderer.getEntityStatistics(), "P: " + this.minecraft.particleEngine.countParticles() + ". T: " + this.minecraft.level.getEntityCount(), "", "Chunk-relative: " + (blockpos.getXLo() & 15) + " " + (blockpos.getY() & 15) + " " + (blockpos.getZLo() & 15));
         } else {
             Entity entity = this.minecraft.getCameraEntity();
             Direction direction = entity.getDirection();
@@ -220,46 +227,45 @@ public class DebugScreenOverlay extends GuiComponent {
                     s1 = "Invalid";
             }
 
-            ChunkPos chunkpos = new ChunkPos(blockpos);
-            if (!Objects.equals(this.lastPos, chunkpos)) {
-                this.lastPos = chunkpos;
+            if (!containsBlock(this.lastPos, blockpos)) {
+                this.lastPos = new ChunkPos(blockpos);
+                this.chunkXLine = "Chunk X: " + this.lastPos.x();
+                this.chunkZLine = "Chunk Z: " + this.lastPos.z();
                 this.clearChunkCache();
             }
 
             Level level = this.getLevel();
             ObjectSet<ChunkPos> longset = (level instanceof ServerLevel ? ((ServerLevel) level).getForcedChunks() : ObjectSets.EMPTY_SET);
-            List<String> list = Lists.newArrayList("Minecraft " + SharedConstants.getCurrentVersion().getName() + " (" + this.minecraft.getLaunchedVersion() + "/" + ClientBrandRetriever.getClientModName() + ("release".equalsIgnoreCase(this.minecraft.getVersionType()) ? "" : "/" + this.minecraft.getVersionType()) + ")", this.minecraft.fpsString, s, this.minecraft.levelRenderer.getChunkStatistics(), this.minecraft.levelRenderer.getEntityStatistics(), "P: " + this.minecraft.particleEngine.countParticles() + ". T: " + this.minecraft.level.getEntityCount(), this.minecraft.level.gatherChunkSourceStats());
-            String s2 = this.getServerChunkStats();
-            if (s2 != null) {
-                list.add(s2);
-            }
-
+            List<String> list = Lists.newArrayList("Minecraft " + SharedConstants.getCurrentVersion().getName() + " (" + this.minecraft.getLaunchedVersion() + "/" + ClientBrandRetriever.getClientModName() + ("release".equalsIgnoreCase(this.minecraft.getVersionType()) ? "" : "/" + this.minecraft.getVersionType()) + ")", this.minecraft.fpsString, s, this.minecraft.levelRenderer.getChunkStatistics(), this.minecraft.levelRenderer.getEntityStatistics(), "P: " + this.minecraft.particleEngine.countParticles() + ". T: " + this.minecraft.level.getEntityCount());
             list.add(this.minecraft.level.dimension().location() + " FC: " + longset.size());
-            list.add("Frustum: " + (Frustum.isEnabled() ? "\247aenabled" : "\247cdisabled") + "\247r");
 
             list.add("");
             SectorVec3 exact = entity.exactPosition();
-            if (exact != null) {
-                list.add(String.format(Locale.ROOT, "XYZ: %s / %.5f / %s", exact.formatX(3), exact.y(), exact.formatZ(3)));
-            } else {
-                list.add(String.format(Locale.ROOT, "XYZ: %.3f / %.5f / %.3f", entity.getX(), entity.getY(), entity.getZ()));
-            }
-            list.add(String.format(Locale.ROOT, "Block: %d %d %d [%d %d %d]", blockpos.getX(), blockpos.getY(), blockpos.getZ(), blockpos.getX() & 15, blockpos.getY() & 15, blockpos.getZ() & 15));
-            list.add(String.format(Locale.ROOT, "Chunk: %d %d %d", chunkpos.x, SectionPos.blockToSectionCoord(blockpos.getY()), chunkpos.z));
-            list.add(String.format(Locale.ROOT, "Region: %d %d in r.%d.%d.mca", chunkpos.getRegionLocalX(), chunkpos.getRegionLocalZ(), chunkpos.getRegionX(), chunkpos.getRegionZ()));
+            this.positionDisplay.update(exact != null ? exact : entity.sectorPosition());
+            list.add(this.positionDisplay.xLine);
+            list.add(this.positionDisplay.yLine);
+            list.add(this.positionDisplay.zLine);
+            list.add(this.positionDisplay.halvesLine);
+            list.add("Block: [" + (blockpos.getXLo() & 15) + " " + (blockpos.getY() & 15) + " " + (blockpos.getZLo() & 15) + "]");
+            this.regionDisplay.update(this.minecraft.gameRenderer.getMainCamera().getBlockPosition());
+            list.add(this.chunkXLine);
+            list.add(this.chunkZLine);
+            list.add(this.regionDisplay.firstLine);
+            list.add(this.regionDisplay.secondLine);
+            list.add(this.regionDisplay.thirdLine);
 
             if (exact != null) {
-                list.add(String.format(Locale.ROOT, "Sector: [X: %d, Y: %d, Z: %d]", exact.sectorX(), exact.sectorY(), exact.sectorZ()));
-                list.add(String.format(Locale.ROOT, "SubPos: [X: %+.5f, Y: %+.5f, Z: %+.5f]", exact.subX(), exact.subY(), exact.subZ()));
+                list.add(this.positionDisplay.subLine);
             }
-            list.add(String.format(Locale.ROOT, "Facing: %s (%s) (%.1f / %.1f)", direction, s1, Mth.wrapDegrees(entity.getYRot()), Mth.wrapDegrees(entity.getXRot())));
-            long maxPosition = (long) Math.max(Math.abs(this.minecraft.getCameraEntity().getX()), Math.max(Math.abs(this.minecraft.getCameraEntity().getY()), Math.abs(this.minecraft.getCameraEntity().getZ())));
-            int maxBit = Long.SIZE - Long.numberOfLeadingZeros(maxPosition);
+            list.add("Facing: " + direction + " (" + s1 + ") (" + fixed(Mth.wrapDegrees(entity.getYRot()), 1) + " / " + fixed(Mth.wrapDegrees(entity.getXRot()), 1) + ")");
+            int maxBit = Math.max(magnitudeBits(blockpos.getX()), magnitudeBits(blockpos.getZ()));
+            maxBit = Math.max(maxBit, Math.getExponent(Math.abs(entity.getY())) + 1);
 
-            double doublePrecision = Math.pow(2, (maxBit - 53)),
-                   floatPrecision = Math.pow(2, (maxBit - 24));
-
-            list.add("Current precision: \247" + this.getColorCodeFromPrecision(doublePrecision) + doublePrecision + "\247r (float: \247" + this.getColorCodeFromPrecision(floatPrecision) + floatPrecision + "\247r)");
+            if (this.precisionBits != maxBit) {
+                this.precisionBits = maxBit;
+                this.precisionLine = formatPrecision(Math.scalb(1.0, maxBit - 53), Math.scalb(1.0, maxBit - 24));
+            }
+            list.add(this.precisionLine);
 
             LevelChunk levelchunk = this.getClientChunk();
             if (levelchunk.isEmpty()) {
@@ -270,30 +276,6 @@ public class DebugScreenOverlay extends GuiComponent {
                 int k = this.minecraft.level.getBrightness(LightLayer.BLOCK, blockpos);
                 list.add("Client Light: " + i + " (" + j + " sky, " + k + " block)");
                 LevelChunk levelchunk1 = this.getServerChunk();
-                StringBuilder stringbuilder = new StringBuilder("CH");
-
-                for (Heightmap.Types heightmap$types : Heightmap.Types.values()) {
-                    if (heightmap$types.sendToClient()) {
-                        stringbuilder.append(" ").append(HEIGHTMAP_NAMES.get(heightmap$types)).append(": ").append(levelchunk.getHeight(heightmap$types, blockpos.getX(), blockpos.getZ()));
-                    }
-                }
-
-                list.add(stringbuilder.toString());
-                stringbuilder.setLength(0);
-                stringbuilder.append("SH");
-
-                for (Heightmap.Types heightmap$types1 : Heightmap.Types.values()) {
-                    if (heightmap$types1.keepAfterWorldgen()) {
-                        stringbuilder.append(" ").append(HEIGHTMAP_NAMES.get(heightmap$types1)).append(": ");
-                        if (levelchunk1 != null) {
-                            stringbuilder.append(levelchunk1.getHeight(heightmap$types1, blockpos.getX(), blockpos.getZ()));
-                        } else {
-                            stringbuilder.append("??");
-                        }
-                    }
-                }
-
-                list.add(stringbuilder.toString());
                 if (blockpos.getY() >= this.minecraft.level.getMinBuildHeight() && blockpos.getY() < this.minecraft.level.getMaxBuildHeight()) {
                     list.add("Biome: " + printBiome(this.minecraft.level.getBiome(blockpos)));
                     long l = 0L;
@@ -304,33 +286,11 @@ public class DebugScreenOverlay extends GuiComponent {
                     }
 
                     DifficultyInstance difficultyinstance = new DifficultyInstance(level.getDifficulty(), level.getDayTime(), l, f2);
-                    list.add(String.format(Locale.ROOT, "Local Difficulty: %.2f // %.2f (Day %d)", difficultyinstance.getEffectiveDifficulty(), difficultyinstance.getSpecialMultiplier(), this.minecraft.level.getDayTime() / 24000L));
+                    list.add("Local Difficulty: " + fixed(difficultyinstance.getEffectiveDifficulty(), 2) + " // " + fixed(difficultyinstance.getSpecialMultiplier(), 2) + " (Day " + this.minecraft.level.getDayTime() / 24000L + ")");
                 }
 
                 if (levelchunk1 != null && levelchunk1.isOldNoiseGeneration()) {
                     list.add("Blending: Old");
-                }
-            }
-
-            ServerLevel serverlevel = this.getServerLevel();
-            if (serverlevel != null) {
-                ServerChunkCache serverchunkcache = serverlevel.getChunkSource();
-                ChunkGenerator chunkgenerator = serverchunkcache.getGenerator();
-                RandomState randomstate = serverchunkcache.randomState();
-
-                Climate.Sampler climate$sampler = randomstate.sampler();
-                BiomeSource biomesource = chunkgenerator.getBiomeSource();
-                biomesource.addDebugInfo(list, blockpos, climate$sampler);
-                NaturalSpawner.SpawnState naturalspawner$spawnstate = serverchunkcache.getLastSpawnState();
-                if (naturalspawner$spawnstate != null) {
-                    Object2IntMap<MobCategory> object2intmap = naturalspawner$spawnstate.getMobCategoryCounts();
-                    int i1 = naturalspawner$spawnstate.getSpawnableChunkCount();
-                    list.add("SC: " + i1 + ", " + (String) Stream.of(MobCategory.values()).map((p_94068_) -> {
-                                                                                              return Character.toUpperCase(p_94068_.getName().charAt(0)) + ": " + object2intmap.getInt(p_94068_);
-                                                                                          })
-                                     .collect(Collectors.joining(", ")));
-                } else {
-                    list.add("SC: N/A");
                 }
             }
 
@@ -339,7 +299,6 @@ public class DebugScreenOverlay extends GuiComponent {
                 list.add("Shader: " + postchain.getName());
             }
 
-            list.add(this.minecraft.getSoundManager().getDebugString() + String.format(Locale.ROOT, " (Mood %d%%)", Math.round(this.minecraft.player.getCurrentMood() * 100.0F)));
             list.add("");
             List<String> diagnostics = this.minecraft.getConnection().getWorldgenDebugLines();
             if (diagnostics.isEmpty()) list.add("Worldgen debug: awaiting server data");
@@ -352,16 +311,195 @@ public class DebugScreenOverlay extends GuiComponent {
         return pBiomeHolder.unwrap().map((p_205377_) -> { return p_205377_.location().toString(); }, (p_205367_) -> { return "[unregistered " + p_205367_ + "]"; });
     }
 
+    static String formatPrecision(double doublePrecision, double floatPrecision) {
+        NumberFormats formats = NUMBER_FORMATS.get();
+        return "Precision double: " + formats.doublePrecision.format(doublePrecision).replace('E', 'e')
+                + " float: " + formats.floatPrecision.format(floatPrecision).replace('E', 'e');
+    }
+
+    static void addExactPositionLines(List<String> list, SectorVec3 exact) {
+        list.add("X: " + formatCoordinate(exact.blockX(), exact.subX()));
+        list.add("Y: " + fixed(exact.y(), 5));
+        list.add("Z: " + formatCoordinate(exact.blockZ(), exact.subZ()));
+    }
+
+    static String formatCoordinateHalves(String axis, Int128 coordinate) {
+        return axis + "Lo/Hi: " + Long.toHexString(coordinate.lo()) + " / " + Long.toHexString(coordinate.hi());
+    }
+
+    static String formatSubPosition(SectorVec3 exact) {
+        return "SubPos: [X: " + signedFraction(exact.subX()) + ", Y: " + signedFraction(exact.subY()) + ", Z: " + signedFraction(exact.subZ()) + "]";
+    }
+
+    private static String fixed(double value, int digits) {
+        return NUMBER_FORMATS.get().fixed[digits].format(value);
+    }
+
+    private static String signedFraction(double value) {
+        return (Double.doubleToRawLongBits(value) < 0 ? "" : "+") + fixed(value, 7);
+    }
+
+    static String formatCoordinate(Int128 block, double fraction) {
+        // SectorVec3 stores a floor block and a nonnegative fraction. Round the
+        // decimal fraction separately, never converting the full coordinate to double.
+        boolean negative = block.hi() < 0;
+        int rounded = roundedThousandths(fraction, !negative);
+        String integer;
+        if (negative) {
+            // Complementing the limbs gives abs(block) - 1, including Int128.MIN.
+            Int128 magnitude = Int128.of(~block.hi(), ~block.lo());
+            if (rounded == 0) {
+                integer = block.toDecimalString();
+            } else {
+                integer = "-" + magnitude.toDecimalString();
+                rounded = 1000 - rounded;
+            }
+        } else if (rounded == 1000) {
+            // MAX + 1 is a valid display result even though it is not a signed Int128.
+            integer = block.equals(Int128.MAX) ? "170141183460469231731687303715884105728" : block.add(Int128.ONE).toDecimalString();
+            rounded = 0;
+        } else {
+            integer = block.toDecimalString();
+        }
+        // BigDecimal's historical display did not retain a negative zero.
+        if (integer.equals("-0") && rounded == 0) integer = "0";
+        return integer + "." + padded(rounded, 3);
+    }
+
+    private static int roundedThousandths(double fraction, boolean roundTieUp) {
+        if (fraction == 0.0) return 0;
+        String decimal = Double.toString(fraction);
+        int exponentAt = decimal.indexOf('E');
+        int exponent = exponentAt < 0 ? 0 : Integer.parseInt(decimal.substring(exponentAt + 1));
+        int end = exponentAt < 0 ? decimal.length() : exponentAt;
+        int point = decimal.indexOf('.');
+        int position = point + exponent;
+        int scaled = 0;
+        int next = 0;
+        boolean remainder = false;
+        int digitIndex = 0;
+        for (int i = 0; i < end; i++) {
+            char c = decimal.charAt(i);
+            if (c == '.') continue;
+            int place = position - digitIndex++;
+            int digit = c - '0';
+            if (place >= -2 && place <= 1) {
+                int multiplier = place == 1 ? 1000 : place == 0 ? 100 : place == -1 ? 10 : 1;
+                scaled += digit * multiplier;
+            } else if (place == -3) {
+                next = digit;
+            } else if (place < -3 && digit != 0) {
+                remainder = true;
+            }
+        }
+        return scaled + (next > 5 || next == 5 && (roundTieUp || remainder) ? 1 : 0);
+    }
+
+    static String padded(long value, int width) {
+        String text = Long.toString(value);
+        return "0".repeat(Math.max(0, width - text.length())) + text;
+    }
+
+    private static boolean containsBlock(@Nullable ChunkPos chunk, BlockPos block) {
+        return chunk != null && chunk.equals(block.xHi() >> 4, Int128Math.rightShiftLo(block.xHi(), block.xLo(), 4),
+                block.zHi() >> 4, Int128Math.rightShiftLo(block.zHi(), block.zLo(), 4));
+    }
+
+    private static final class NumberFormats {
+        final DecimalFormat[] fixed = new DecimalFormat[8];
+        final DecimalFormat doublePrecision = create("0.0000000000E0");
+        final DecimalFormat floatPrecision = create("0.000000E0");
+
+        NumberFormats() {
+            for (int i = 0; i < this.fixed.length; i++) {
+                this.fixed[i] = create(i == 0 ? "0" : "0." + "0".repeat(i));
+            }
+        }
+
+        private static DecimalFormat create(String pattern) {
+            DecimalFormat format = new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(Locale.ROOT));
+            format.setRoundingMode(RoundingMode.HALF_UP);
+            return format;
+        }
+    }
+
+    static final class PositionDisplayCache {
+        private Int128 x;
+        private Int128 z;
+        private double subX = Double.NaN;
+        private double subZ = Double.NaN;
+        private double y = Double.NaN;
+        String xLine, yLine, zLine, xHalves, zHalves, subLine;
+        String halvesLine;
+
+        void update(SectorVec3 position) {
+            boolean xChanged = !position.blockX().equals(this.x);
+            boolean zChanged = !position.blockZ().equals(this.z);
+            boolean xFractionChanged = Double.doubleToLongBits(position.subX()) != Double.doubleToLongBits(this.subX);
+            boolean zFractionChanged = Double.doubleToLongBits(position.subZ()) != Double.doubleToLongBits(this.subZ);
+            boolean yChanged = Double.doubleToLongBits(position.y()) != Double.doubleToLongBits(this.y);
+            boolean fractionsChanged = xFractionChanged || zFractionChanged || yChanged;
+            if (xChanged) {
+                this.x = position.blockX();
+                this.xHalves = formatCoordinateHalves("x", this.x);
+            }
+            if (zChanged) {
+                this.z = position.blockZ();
+                this.zHalves = formatCoordinateHalves("z", this.z);
+            }
+            if (xChanged || zChanged) {
+                this.halvesLine = this.xHalves + " | " + this.zHalves;
+            }
+            if (xChanged || xFractionChanged) this.xLine = "X: " + formatCoordinate(this.x, position.subX());
+            if (zChanged || zFractionChanged) this.zLine = "Z: " + formatCoordinate(this.z, position.subZ());
+            if (yChanged) this.yLine = "Y: " + fixed(position.y(), 5);
+            if (fractionsChanged) this.subLine = formatSubPosition(position);
+            this.subX = position.subX();
+            this.subZ = position.subZ();
+            this.y = position.y();
+        }
+    }
+
+    private static int magnitudeBits(Int128 value) {
+        // Unsigned magnitude also preserves the extra bit of Int128.MIN.
+        long lo = value.hi() < 0 ? -value.lo() : value.lo();
+        long hi = value.hi() < 0 ? ~value.hi() + (value.lo() == 0 ? 1 : 0) : value.hi();
+        return hi != 0 ? 128 - Long.numberOfLeadingZeros(hi) : 64 - Long.numberOfLeadingZeros(lo);
+    }
+
+    static final class RegionDisplayCache {
+        private ChunkPos chunk;
+        private Int128 regionX;
+        private Int128 regionZ;
+        String firstLine;
+        String secondLine;
+        String thirdLine;
+
+        void update(BlockPos block) {
+            if (containsBlock(this.chunk, block)) return;
+            this.chunk = new ChunkPos(block);
+            this.update(this.chunk);
+        }
+
+        void update(ChunkPos chunk) {
+            Int128 x = chunk.getRegionX();
+            Int128 z = chunk.getRegionZ();
+            if (!x.equals(this.regionX) || !z.equals(this.regionZ)) {
+                this.regionX = x;
+                this.regionZ = z;
+                String decimalX = x.toDecimalString();
+                String decimalZ = z.toDecimalString();
+                this.firstLine = "Region X: " + decimalX;
+                this.secondLine = "Region Z: " + decimalZ;
+                this.thirdLine = " in " + RegionFileNames.regionFileName(x, z);
+            }
+        }
+    }
+
     @Nullable
     private ServerLevel getServerLevel() {
         IntegratedServer integratedserver = this.minecraft.getSingleplayerServer();
         return integratedserver != null ? integratedserver.getLevel(this.minecraft.level.dimension()) : null;
-    }
-
-    @Nullable
-    private String getServerChunkStats() {
-        ServerLevel serverlevel = this.getServerLevel();
-        return serverlevel != null ? serverlevel.gatherChunkSourceStats() : null;
     }
 
     private Level getLevel() {
@@ -376,7 +514,7 @@ public class DebugScreenOverlay extends GuiComponent {
         if (this.serverChunk == null) {
             ServerLevel serverlevel = this.getServerLevel();
             if (serverlevel != null) {
-                this.serverChunk = serverlevel.getChunkSource().getChunkFuture(this.lastPos.x, this.lastPos.z, ChunkStatus.FULL, false).thenApply((p_205369_) -> {
+                this.serverChunk = serverlevel.getChunkSource().getChunkFuture(this.lastPos.x(), this.lastPos.z(), ChunkStatus.FULL, false).thenApply((p_205369_) -> {
                     return p_205369_.map((p_205371_) -> { return (LevelChunk) p_205371_; }, (p_205363_) -> { return null; });
                 });
             }
@@ -391,7 +529,7 @@ public class DebugScreenOverlay extends GuiComponent {
 
     private LevelChunk getClientChunk() {
         if (this.clientChunk == null) {
-            this.clientChunk = this.minecraft.level.getChunk(this.lastPos.x, this.lastPos.z);
+            this.clientChunk = this.minecraft.level.getChunk(this.lastPos.x(), this.lastPos.z());
         }
 
         return this.clientChunk;
@@ -402,7 +540,21 @@ public class DebugScreenOverlay extends GuiComponent {
         long j = Runtime.getRuntime().totalMemory();
         long k = Runtime.getRuntime().freeMemory();
         long l = j - k;
-        List<String> list = Lists.newArrayList(String.format(Locale.ROOT, "Java: %s %dbit", System.getProperty("java.version"), this.minecraft.is64Bit() ? 64 : 32), String.format(Locale.ROOT, "Mem: % 2d%% %03d/%03dMB", l * 100L / i, bytesToMegabytes(l), bytesToMegabytes(i)), String.format(Locale.ROOT, "Allocation rate: %03dMB /s", bytesToMegabytes(this.allocationRateCalculator.bytesAllocatedPerSecond(l))), String.format(Locale.ROOT, "Allocated: % 2d%% %03dMB", j * 100L / i, bytesToMegabytes(j)), "", String.format(Locale.ROOT, "CPU: %s", GlUtil.getCpuInfo()), "", String.format(Locale.ROOT, "Display: %dx%d (%s)", Minecraft.getInstance().getWindow().getWidth(), Minecraft.getInstance().getWindow().getHeight(), GlUtil.getVendor()), GlUtil.getRenderer(), GlUtil.getOpenGLVersion());
+        this.memoryDisplay.update(l, j, i, this.allocationRateCalculator.bytesAllocatedPerSecond(l));
+        if (this.hardwareInformation == null) {
+            this.hardwareInformation = List.of("Java: " + System.getProperty("java.version") + " " + (this.minecraft.is64Bit() ? 64 : 32) + "bit",
+                    "CPU: " + GlUtil.getCpuInfo(), GlUtil.getRenderer(), GlUtil.getOpenGLVersion());
+        }
+        int width = this.minecraft.getWindow().getWidth();
+        int height = this.minecraft.getWindow().getHeight();
+        if (width != this.displayWidth || height != this.displayHeight) {
+            this.displayWidth = width;
+            this.displayHeight = height;
+            this.displayLine = "Display: " + width + "x" + height + " (" + GlUtil.getVendor() + ")";
+        }
+        List<String> list = Lists.newArrayList(this.hardwareInformation.get(0),
+                this.memoryDisplay.memoryLine, this.memoryDisplay.rateLine, this.memoryDisplay.allocatedLine, "",
+                this.hardwareInformation.get(1), "", this.displayLine, this.hardwareInformation.get(2), this.hardwareInformation.get(3));
         if (this.minecraft.showOnlyReducedInfo()) {
             return list;
         } else {
@@ -410,7 +562,10 @@ public class DebugScreenOverlay extends GuiComponent {
                 BlockPos blockpos = ((BlockHitResult) this.block).getBlockPos();
                 BlockState blockstate = this.minecraft.level.getBlockState(blockpos);
                 list.add("");
-                list.add(ChatFormatting.UNDERLINE + "Targeted Block: " + blockpos.getX() + ", " + blockpos.getY() + ", " + blockpos.getZ());
+                list.add(ChatFormatting.UNDERLINE + "Targeted Block");
+                list.add("X: " + blockpos.getX());
+                list.add("Y: " + blockpos.getY());
+                list.add("Z: " + blockpos.getZ());
                 list.add(String.valueOf((Object) Registry.BLOCK.getKey(blockstate.getBlock())));
 
                 for (Map.Entry<Property<?>, Comparable<?>> entry : blockstate.getValues().entrySet()) {
@@ -426,18 +581,23 @@ public class DebugScreenOverlay extends GuiComponent {
             if (this.liquid.getType() == HitResult.Type.BLOCK) {
                 BlockPos blockpos1 = ((BlockHitResult) this.liquid).getBlockPos();
                 FluidState fluidstate = this.minecraft.level.getFluidState(blockpos1);
-                list.add("");
-                list.add(ChatFormatting.UNDERLINE + "Targeted Fluid: " + blockpos1.getX() + ", " + blockpos1.getY() + ", " + blockpos1.getZ());
-                list.add(String.valueOf((Object) Registry.FLUID.getKey(fluidstate.getType())));
+                if (!fluidstate.isEmpty()) {
+                    list.add("");
+                    list.add(ChatFormatting.UNDERLINE + "Targeted Fluid");
+                    list.add("X: " + blockpos1.getX());
+                    list.add("Y: " + blockpos1.getY());
+                    list.add("Z: " + blockpos1.getZ());
+                    list.add(String.valueOf((Object) Registry.FLUID.getKey(fluidstate.getType())));
 
-                for (Map.Entry<Property<?>, Comparable<?>> entry1 : fluidstate.getValues().entrySet()) {
-                    list.add(this.getPropertyValueString(entry1));
+                    for (Map.Entry<Property<?>, Comparable<?>> entry1 : fluidstate.getValues().entrySet()) {
+                        list.add(this.getPropertyValueString(entry1));
+                    }
+
+                    fluidstate.getTags().map((p_205365_) -> {
+                                            return "#" + p_205365_.location();
+                                        })
+                            .forEach(list::add);
                 }
-
-                fluidstate.getTags().map((p_205365_) -> {
-                                        return "#" + p_205365_.location();
-                                    })
-                        .forEach(list::add);
             }
 
             Entity entity = this.minecraft.crosshairPickEntity;
@@ -563,6 +723,38 @@ public class DebugScreenOverlay extends GuiComponent {
 
     private static long bytesToMegabytes(long pBytes) {
         return pBytes / 1024L / 1024L;
+    }
+
+    private static String memoryPercent(long percent) {
+        return (percent < 10 ? "  " : " ") + percent;
+    }
+
+    static final class MemoryDisplayCache {
+        private long usedMb = -1, totalMb = -1, maxMb = -1, rateMb = -1;
+        private long usedPercent = -1, totalPercent = -1;
+        String memoryLine, rateLine, allocatedLine;
+
+        void update(long used, long total, long max, long rate) {
+            long usedMb = bytesToMegabytes(used);
+            long totalMb = bytesToMegabytes(total);
+            long maxMb = bytesToMegabytes(max);
+            long rateMb = bytesToMegabytes(rate);
+            long usedPercent = used * 100L / max;
+            long totalPercent = total * 100L / max;
+            if (usedMb != this.usedMb || maxMb != this.maxMb || usedPercent != this.usedPercent) {
+                this.memoryLine = "Mem: " + memoryPercent(usedPercent) + "% " + padded(usedMb, 3) + "/" + padded(maxMb, 3) + "MB";
+            }
+            if (totalMb != this.totalMb || totalPercent != this.totalPercent) {
+                this.allocatedLine = "Allocated: " + memoryPercent(totalPercent) + "% " + padded(totalMb, 3) + "MB";
+            }
+            if (rateMb != this.rateMb) this.rateLine = "Allocation rate: " + padded(rateMb, 3) + "MB /s";
+            this.usedMb = usedMb;
+            this.totalMb = totalMb;
+            this.maxMb = maxMb;
+            this.rateMb = rateMb;
+            this.usedPercent = usedPercent;
+            this.totalPercent = totalPercent;
+        }
     }
 
     @OnlyIn(Dist.CLIENT)

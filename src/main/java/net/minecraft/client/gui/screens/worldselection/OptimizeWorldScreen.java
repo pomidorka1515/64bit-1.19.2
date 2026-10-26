@@ -1,7 +1,6 @@
 package net.minecraft.client.gui.screens.worldselection;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -39,7 +38,7 @@ public class OptimizeWorldScreen extends Screen {
     private final WorldUpgrader upgrader;
 
     @Nullable
-    public static OptimizeWorldScreen create(Minecraft pMinecraft, BooleanConsumer pCallback, DataFixer pDataFixer, LevelStorageSource.LevelStorageAccess pLevelStorage, boolean pEraseCache) {
+    public static OptimizeWorldScreen create(Minecraft pMinecraft, BooleanConsumer pCallback, LevelStorageSource.LevelStorageAccess pLevelStorage, boolean pEraseCache) {
         try {
             WorldStem worldstem = pMinecraft.createWorldOpenFlows().loadWorldStem(pLevelStorage, false);
 
@@ -47,7 +46,7 @@ public class OptimizeWorldScreen extends Screen {
             try {
                 WorldData worlddata = worldstem.worldData();
                 pLevelStorage.saveDataTag(worldstem.registryAccess(), worlddata);
-                optimizeworldscreen = new OptimizeWorldScreen(pCallback, pDataFixer, pLevelStorage, worlddata.getLevelSettings(), pEraseCache, worlddata.worldGenSettings());
+                optimizeworldscreen = new OptimizeWorldScreen(pCallback, pLevelStorage, worlddata.getLevelSettings(), pEraseCache, worlddata.worldGenSettings());
             } catch (Throwable throwable1) {
                 if (worldstem != null) {
                     try {
@@ -71,10 +70,10 @@ public class OptimizeWorldScreen extends Screen {
         }
     }
 
-    private OptimizeWorldScreen(BooleanConsumer pCallback, DataFixer pDataFixer, LevelStorageSource.LevelStorageAccess pLevelStorage, LevelSettings pLevelSettings, boolean pEraseCache, WorldGenSettings pLevels) {
+    private OptimizeWorldScreen(BooleanConsumer pCallback, LevelStorageSource.LevelStorageAccess pLevelStorage, LevelSettings pLevelSettings, boolean pEraseCache, WorldGenSettings pLevels) {
         super(Component.translatable("optimizeWorld.title", pLevelSettings.levelName()));
         this.callback = pCallback;
-        this.upgrader = new WorldUpgrader(pLevelStorage, pDataFixer, pLevels, pEraseCache);
+        this.upgrader = new WorldUpgrader(pLevelStorage, pLevels, pEraseCache);
     }
 
     protected void init() {

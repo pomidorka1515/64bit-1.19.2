@@ -91,16 +91,16 @@ public class PathFinder {
                 for (int l = 0; l < k; ++l) {
                     Node node1 = this.neighbors[l];
                     float f = this.distance(node, node1);
-                    node1.walkedDistance = node.walkedDistance + f;
-                    float f1 = node.g + f + node1.costMalus;
+                    node1.walkedDistance = Node.saturatedCost((double) node.walkedDistance + f);
+                    float f1 = Node.saturatedCost((double) node.g + f + node1.costMalus);
                     if (node1.walkedDistance < pMaxRange && (!node1.inOpenSet() || f1 < node1.g)) {
                         node1.cameFrom = node;
                         node1.g = f1;
-                        node1.h = this.getBestH(node1, set) * 1.5F;
+                        node1.h = Node.saturatedCost((double) this.getBestH(node1, set) * 1.5D);
                         if (node1.inOpenSet()) {
-                            this.openSet.changeCost(node1, node1.g + node1.h);
+                            this.openSet.changeCost(node1, Node.saturatedCost((double) node1.g + node1.h));
                         } else {
-                            node1.f = node1.g + node1.h;
+                            node1.f = Node.saturatedCost((double) node1.g + node1.h);
                             this.openSet.insert(node1);
                         }
                     }

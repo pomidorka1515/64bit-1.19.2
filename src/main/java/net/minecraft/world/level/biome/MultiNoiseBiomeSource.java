@@ -14,9 +14,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.QuartPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.resources.RegistryOps;
@@ -24,8 +23,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.VisibleForDebug;
-import net.minecraft.world.level.levelgen.NoiseRouterData;
-
 public class MultiNoiseBiomeSource extends BiomeSource {
     public static final MapCodec<MultiNoiseBiomeSource> DIRECT_CODEC = RecordCodecBuilder.mapCodec((p_187070_) -> {
         return p_187070_.group(ExtraCodecs.<Pair<Climate.ParameterPoint, Holder<Biome>>>nonEmptyList(RecordCodecBuilder.<Pair<Climate.ParameterPoint, Holder<Biome>>>create((p_187078_) -> {
@@ -71,24 +68,14 @@ public class MultiNoiseBiomeSource extends BiomeSource {
         return this.getNoiseBiome(pSampler.sample(pX, pY, pZ));
     }
 
+    @Override
+    public Holder<Biome> getNoiseBiome(Int128 pX, int pY, Int128 pZ, Climate.Sampler pSampler) {
+        return this.getNoiseBiome(pSampler.sample(pX, pY, pZ));
+    }
+
     @VisibleForDebug
     public Holder<Biome> getNoiseBiome(Climate.TargetPoint pTargetPoint) {
         return this.parameters.findValue(pTargetPoint);
-    }
-
-    public void addDebugInfo(List<String> pInfo, BlockPos pPos, Climate.Sampler pSampler) {
-        long i = QuartPos.fromBlock(pPos.getX());
-        int j = QuartPos.fromBlock(pPos.getY());
-        long k = QuartPos.fromBlock(pPos.getZ());
-        Climate.TargetPoint climate$targetpoint = pSampler.sample(i, j, k);
-        float f = Climate.unquantizeCoord(climate$targetpoint.continentalness());
-        float f1 = Climate.unquantizeCoord(climate$targetpoint.erosion());
-        float f2 = Climate.unquantizeCoord(climate$targetpoint.temperature());
-        float f3 = Climate.unquantizeCoord(climate$targetpoint.humidity());
-        float f4 = Climate.unquantizeCoord(climate$targetpoint.weirdness());
-        double d0 = (double) NoiseRouterData.peaksAndValleys(f4);
-        OverworldBiomeBuilder overworldbiomebuilder = new OverworldBiomeBuilder();
-        pInfo.add("Biome builder PV: " + OverworldBiomeBuilder.getDebugStringForPeaksAndValleys(d0) + " C: " + overworldbiomebuilder.getDebugStringForContinentalness((double) f) + " E: " + overworldbiomebuilder.getDebugStringForErosion((double) f1) + " T: " + overworldbiomebuilder.getDebugStringForTemperature((double) f2) + " H: " + overworldbiomebuilder.getDebugStringForHumidity((double) f3));
     }
 
     public static class Preset {

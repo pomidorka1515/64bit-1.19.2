@@ -67,7 +67,7 @@ public class RamTarget extends Behavior<Goat> {
     }
 
     protected void tick(ServerLevel pLevel, Goat pOwner, long pGameTime) {
-        List<LivingEntity> list = pLevel.getNearbyEntities(LivingEntity.class, this.ramTargeting, pOwner, pOwner.getBoundingBox());
+        List<LivingEntity> list = pLevel.getNearbyEntities(LivingEntity.class, this.ramTargeting, pOwner, pOwner.exactBoundingBox());
         Brain<?> brain = pOwner.getBrain();
         if (!list.isEmpty()) {
             LivingEntity livingentity = list.get(0);

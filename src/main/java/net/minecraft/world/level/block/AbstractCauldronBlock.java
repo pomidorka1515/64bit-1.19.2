@@ -44,7 +44,7 @@ public abstract class AbstractCauldronBlock extends Block {
     }
 
     protected boolean isEntityInsideContent(BlockState pState, BlockPos pPos, Entity pEntity) {
-        return pEntity.getY() < (double) pPos.getY() + this.getContentHeight(pState) && pEntity.getBoundingBox().maxY > (double) pPos.getY() + 0.25D;
+        return pEntity.getY() < (double) pPos.getY() + this.getContentHeight(pState) && pEntity.exactBoundingBox().maxY > (double) pPos.getY() + 0.25D;
     }
 
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {

@@ -83,7 +83,7 @@ public class BeehiveBlockEntity extends BlockEntity {
             for (Entity entity : list) {
                 if (entity instanceof Bee) {
                     Bee bee = (Bee) entity;
-                    if (pPlayer.position().distanceToSqr(entity.position()) <= 16.0D) {
+                    if (pPlayer.distanceToSqr(entity) <= 16.0D) {
                         if (!this.isSedated()) {
                             bee.setTarget(pPlayer);
                         } else {
@@ -141,7 +141,7 @@ public class BeehiveBlockEntity extends BlockEntity {
                 }
 
                 BlockPos blockpos = this.getBlockPos();
-                this.level.playSound((Player) null, (double) blockpos.getX(), (double) blockpos.getY(), (double) blockpos.getZ(), SoundEvents.BEEHIVE_ENTER, SoundSource.BLOCKS, 1.0F, 1.0F);
+                this.level.playSound((Player) null, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.0D, blockpos.getY(), blockpos.getZ(), 0.0D), SoundEvents.BEEHIVE_ENTER, SoundSource.BLOCKS, 1.0F, 1.0F);
                 this.level.gameEvent(GameEvent.BLOCK_CHANGE, blockpos, GameEvent.Context.of(pOccupant, this.getBlockState()));
             }
 
@@ -160,6 +160,7 @@ public class BeehiveBlockEntity extends BlockEntity {
         } else {
             CompoundTag compoundtag = pData.entityData.copy();
             removeIgnoredBeeTags(compoundtag);
+            setReleasePosition(compoundtag, pPos);
             compoundtag.put("HivePos", NbtUtils.writeBlockPos(pPos));
             compoundtag.putBoolean("NoGravity", true);
             Direction direction = pState.getValue(BeehiveBlock.FACING);
@@ -205,10 +206,10 @@ public class BeehiveBlockEntity extends BlockEntity {
 
                             float f = entity.getBbWidth();
                             double d3 = flag ? 0.0D : 0.55D + (double) (f / 2.0F);
-                            double d0 = (double) pPos.getX() + 0.5D + d3 * (double) direction.getStepX();
+                            double d0 = 0.5D + d3 * (double) direction.getStepX();
                             double d1 = (double) pPos.getY() + 0.5D - (double) (entity.getBbHeight() / 2.0F);
-                            double d2 = (double) pPos.getZ() + 0.5D + d3 * (double) direction.getStepZ();
-                            entity.moveTo(d0, d1, d2, entity.getYRot(), entity.getXRot());
+                            double d2 = 0.5D + d3 * (double) direction.getStepZ();
+                            entity.moveTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), d0, d1, pPos.getZ(), d2), entity.getYRot(), entity.getXRot());
                         }
 
                         pLevel.playSound((Player) null, pPos, SoundEvents.BEEHIVE_EXIT, SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -220,6 +221,19 @@ public class BeehiveBlockEntity extends BlockEntity {
                 }
             }
         }
+    }
+
+    // Hive occupants are templates (worldgen bees have no position at all).
+    // Supply the current hive anchor before the strict entity loader runs;
+    // the exit offset is applied after loading, without narrowing X/Z.
+    static void setReleasePosition(CompoundTag tag, BlockPos pos) {
+        CompoundTag exact = new CompoundTag();
+        NbtUtils.writeInt128(exact, "BlockX", pos.getX());
+        NbtUtils.writeInt128(exact, "BlockZ", pos.getZ());
+        exact.putDouble("SubX", 0.5D);
+        exact.putDouble("SubZ", 0.5D);
+        exact.putDouble("Y", (double) pos.getY());
+        tag.put("ExactPos", exact);
     }
 
     static void removeIgnoredBeeTags(CompoundTag pTag) {
@@ -266,10 +280,10 @@ public class BeehiveBlockEntity extends BlockEntity {
     public static void serverTick(Level pLevel, BlockPos pPos, BlockState pState, BeehiveBlockEntity pBeehive) {
         tickOccupants(pLevel, pPos, pState, pBeehive.stored, pBeehive.savedFlowerPos);
         if (!pBeehive.stored.isEmpty() && pLevel.getRandom().nextDouble() < 0.005D) {
-            double d0 = (double) pPos.getX() + 0.5D;
+            double d0 = 0.5D;
             double d1 = (double) pPos.getY();
-            double d2 = (double) pPos.getZ() + 0.5D;
-            pLevel.playSound((Player) null, d0, d1, d2, SoundEvents.BEEHIVE_WORK, SoundSource.BLOCKS, 1.0F, 1.0F);
+            double d2 = 0.5D;
+            pLevel.playSound((Player) null, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), d0, d1, pPos.getZ(), d2), SoundEvents.BEEHIVE_WORK, SoundSource.BLOCKS, 1.0F, 1.0F);
         }
 
         DebugPackets.sendHiveInfo(pLevel, pPos, pState, pBeehive);

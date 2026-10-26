@@ -13,7 +13,6 @@ import java.io.File;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -158,7 +157,7 @@ public abstract class PlayerList {
             s1 = pNetManager.getRemoteAddress().toString();
         }
 
-        LOGGER.info("{}[{}] logged in with entity id {} at ({}, {}, {})", pPlayer.getName().getString(), s1, pPlayer.getId(), pPlayer.getX(), pPlayer.getY(), pPlayer.getZ());
+        LOGGER.info("{}[{}] logged in with entity id {} at ({}, {}, {})", pPlayer.getName().getString(), s1, pPlayer.getId(), pPlayer.sectorPosition().formatX(3), pPlayer.getY(), pPlayer.sectorPosition().formatZ(3));
         LevelData leveldata = serverlevel1.getLevelData();
         pPlayer.loadGameTypes(compoundtag);
         ServerGamePacketListenerImpl servergamepacketlistenerimpl = new ServerGamePacketListenerImpl(this.server, pNetManager, pPlayer);
@@ -185,11 +184,7 @@ public abstract class PlayerList {
         }
 
         this.broadcastSystemMessage(mutablecomponent.withStyle(ChatFormatting.YELLOW), false);
-        if (pPlayer.hasSectorPosition()) {
-            servergamepacketlistenerimpl.teleportExact(pPlayer.sectorPosition(), pPlayer.getYRot(), pPlayer.getXRot());
-        } else {
-            servergamepacketlistenerimpl.teleport(pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), pPlayer.getYRot(), pPlayer.getXRot());
-        }
+        servergamepacketlistenerimpl.teleportExact(pPlayer.sectorPosition(), pPlayer.getYRot(), pPlayer.getXRot());
         this.players.add(pPlayer);
         this.playersByUUID.put(pPlayer.getUUID(), pPlayer);
         this.broadcastAll(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, pPlayer));
@@ -277,7 +272,7 @@ public abstract class PlayerList {
                 PlayerList.this.broadcastAll(new ClientboundSetBorderLerpSizePacket(p_11328_));
             }
 
-            public void onBorderCenterSet(WorldBorder p_11324_, double p_11325_, double p_11326_) {
+            public void onBorderCenterSet(WorldBorder p_11324_, net.minecraft.world.phys.SectorVec3 center) {
                 PlayerList.this.broadcastAll(new ClientboundSetBorderCenterPacket(p_11324_));
             }
 
@@ -326,6 +321,7 @@ public abstract class PlayerList {
     }
 
     public void remove(ServerPlayer pPlayer) {
+        net.minecraft.server.commands.GeneratorCommand.clear(this.server, pPlayer.getUUID());
         ServerLevel serverlevel = pPlayer.getLevel();
         pPlayer.awardStat(Stats.LEAVE_GAME);
         this.save(pPlayer);
@@ -450,16 +446,12 @@ public abstract class PlayerList {
         }
 
         while (!serverlevel1.noCollision(serverplayer) && serverplayer.getY() < (double) serverlevel1.getMaxBuildHeight()) {
-            serverplayer.setPos(serverplayer.getX(), serverplayer.getY() + 1.0D, serverplayer.getZ());
+            serverplayer.applyExactPosition(serverplayer.sectorPosition().add(0.0D, 1.0D, 0.0D));
         }
 
         LevelData leveldata = serverplayer.level.getLevelData();
         serverplayer.connection.send(new ClientboundRespawnPacket(serverplayer.level.dimensionTypeId(), serverplayer.level.dimension(), BiomeManager.obfuscateSeed(serverplayer.getLevel().getSeed()), serverplayer.gameMode.getGameModeForPlayer(), serverplayer.gameMode.getPreviousGameModeForPlayer(), serverplayer.getLevel().isDebug(), serverplayer.getLevel().isFlat(), pKeepEverything, serverplayer.getLastDeathLocation()));
-        if (serverplayer.hasSectorPosition()) {
-            serverplayer.connection.teleportExact(serverplayer.sectorPosition(), serverplayer.getYRot(), serverplayer.getXRot());
-        } else {
-            serverplayer.connection.teleport(serverplayer.getX(), serverplayer.getY(), serverplayer.getZ(), serverplayer.getYRot(), serverplayer.getXRot());
-        }
+        serverplayer.connection.teleportExact(serverplayer.sectorPosition(), serverplayer.getYRot(), serverplayer.getXRot());
         serverplayer.connection.send(new ClientboundSetDefaultSpawnPositionPacket(serverlevel1.getSharedSpawnPos(), serverlevel1.getSharedSpawnAngle()));
         serverplayer.connection.send(new ClientboundChangeDifficultyPacket(leveldata.getDifficulty(), leveldata.isDifficultyLocked()));
         serverplayer.connection.send(new ClientboundSetExperiencePacket(serverplayer.experienceProgress, serverplayer.totalExperience, serverplayer.experienceLevel));
@@ -613,19 +605,11 @@ public abstract class PlayerList {
         for (int i = 0; i < this.players.size(); ++i) {
             ServerPlayer player = this.players.get(i);
             if (player != excluded && player.level.dimension() == dimension) {
-                SectorVec3 playerPosition = player.exactPosition();
-                double distanceSquared;
-                if (playerPosition != null) {
-                    double dx = position.relativeX(playerPosition);
-                    double dy = position.relativeY(playerPosition);
-                    double dz = position.relativeZ(playerPosition);
-                    distanceSquared = dx * dx + dy * dy + dz * dz;
-                } else {
-                    double dx = ((double) position.blockX() + position.subX()) - player.getX();
-                    double dy = position.y() - player.getY();
-                    double dz = ((double) position.blockZ() + position.subZ()) - player.getZ();
-                    distanceSquared = dx * dx + dy * dy + dz * dz;
-                }
+                SectorVec3 playerPosition = player.sectorPosition();
+                double dx = position.relativeX(playerPosition);
+                double dy = position.relativeY(playerPosition);
+                double dz = position.relativeZ(playerPosition);
+                double distanceSquared = dx * dx + dy * dy + dz * dz;
                 if (distanceSquared < radiusSquared) {
                     player.connection.send(packet);
                 }
@@ -757,8 +741,7 @@ public abstract class PlayerList {
     }
 
     private void broadcastChatMessage(PlayerChatMessage pMessage, Predicate<ServerPlayer> pShouldFilterMessageTo, @Nullable ServerPlayer pSenderPlayer, ChatSender pChatSender, ChatType.Bound pBoundChatType) {
-        boolean flag = this.verifyChatTrusted(pMessage, pChatSender);
-        this.server.logChatMessage(pMessage.serverContent(), pBoundChatType, flag ? null : "Not Secure");
+        this.server.logChatMessage(pMessage.serverContent(), pBoundChatType, null);
         OutgoingPlayerChatMessage outgoingplayerchatmessage = OutgoingPlayerChatMessage.create(pMessage);
         boolean flag1 = pMessage.isFullyFiltered();
         boolean flag2 = false;
@@ -788,10 +771,6 @@ public abstract class PlayerList {
         }
     }
 
-    private boolean verifyChatTrusted(PlayerChatMessage pMessage, ChatSender pSender) {
-        return !pMessage.hasExpiredServer(Instant.now()) && pMessage.verify(pSender);
-    }
-
     public ServerStatsCounter getPlayerStats(Player pPlayer) {
         UUID uuid = pPlayer.getUUID();
         ServerStatsCounter serverstatscounter = this.stats.get(uuid);
@@ -819,7 +798,7 @@ public abstract class PlayerList {
         if (playeradvancements == null) {
             File file1 = this.server.getWorldPath(LevelResource.PLAYER_ADVANCEMENTS_DIR).toFile();
             File file2 = new File(file1, uuid + ".json");
-            playeradvancements = new PlayerAdvancements(this.server.getFixerUpper(), this, this.server.getAdvancements(), file2, pPlayer);
+            playeradvancements = new PlayerAdvancements(this, this.server.getAdvancements(), file2, pPlayer);
             this.advancements.put(uuid, playeradvancements);
         }
 

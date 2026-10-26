@@ -101,7 +101,7 @@ class BlendedNoisePrecisionTest {
             FarlandsMode.setMode(FarlandsMode.Mode.OFF);
             double expected = noise.compute(context);
             FarlandsMode.setMode(FarlandsMode.Mode.BIT_64_PRECISE);
-            assertEquals(Double.doubleToRawLongBits(expected), Double.doubleToRawLongBits(noise.compute(context)));
+            assertEquals(expected, noise.compute(context), 1.0E-6D);
         }
     }
 

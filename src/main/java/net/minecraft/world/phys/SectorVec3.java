@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.math.BigInteger;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
+import net.minecraft.core.Int128Math;
 import net.minecraft.world.level.WorldBounds;
 
 /**
@@ -11,19 +13,26 @@ import net.minecraft.world.level.WorldBounds;
  *
  * <p>{@link Vec3} remains the ordinary (and deliberately inexact at very large
  * coordinates) vector type.  This type must be used whenever a player's exact
- * world X/Z coordinates participate in physics.  {@link #toApproximateVec3()}
- * is explicitly a lossy compatibility conversion.</p>
+ * world X/Z coordinates participate in physics. {@link #toExactVec3()}
+ * retains the split position when crossing a Vec3 API boundary.</p>
  */
 public final class SectorVec3 {
+    public static final com.mojang.serialization.Codec<SectorVec3> CODEC = com.mojang.serialization.codecs.RecordCodecBuilder.create(instance -> instance.group(
+            Int128.CODEC.fieldOf("block_x").forGetter(SectorVec3::blockX),
+            com.mojang.serialization.Codec.DOUBLE.fieldOf("sub_x").forGetter(SectorVec3::subX),
+            com.mojang.serialization.Codec.DOUBLE.fieldOf("y").forGetter(SectorVec3::y),
+            Int128.CODEC.fieldOf("block_z").forGetter(SectorVec3::blockZ),
+            com.mojang.serialization.Codec.DOUBLE.fieldOf("sub_z").forGetter(SectorVec3::subZ)
+    ).apply(instance, SectorVec3::fromBlockAndFraction));
     private static final double TWO_TO_THE_63 = 0x1.0p63;
 
-    private final long blockX;
+    private final Int128 blockX;
     private final double subX;
     private final double y;
-    private final long blockZ;
+    private final Int128 blockZ;
     private final double subZ;
 
-    private SectorVec3(long blockX, double subX, double y, long blockZ, double subZ) {
+    private SectorVec3(Int128 blockX, double subX, double y, Int128 blockZ, double subZ) {
         this.blockX = blockX;
         this.subX = subX;
         this.y = y;
@@ -32,6 +41,19 @@ public final class SectorVec3 {
     }
 
     public static SectorVec3 fromBlockAndFraction(long blockX, double subX, double y, long blockZ, double subZ) {
+        return fromRaw(blockX >> 63, blockX, subX, y, blockZ >> 63, blockZ, subZ);
+    }
+
+    public static SectorVec3 fromBlockAndFraction(Int128 blockX, double subX, double y, Int128 blockZ, double subZ) {
+        return fromRaw(blockX.hi(), blockX.lo(), subX, y, blockZ.hi(), blockZ.lo(), subZ);
+    }
+
+    /**
+     * Allocation-free core of {@link #fromBlockAndFraction(long, double, double, long, double)}.
+     * The only heap objects produced are the finished value and its two {@link Int128}
+     * halves; every intermediate stays in the caller's locals.
+     */
+    private static SectorVec3 fromRaw(long blockXHi, long blockXLo, double subX, double y, long blockZHi, long blockZLo, double subZ) {
         // Fractions are produced by ray/voxel arithmetic and can become non-finite
         // at a degenerate boundary.  A malformed fraction must not take down the
         // render thread; treating it as the beginning of the supplied block is the
@@ -40,50 +62,93 @@ public final class SectorVec3 {
         double fractionZ = finiteFractionOrZero(subZ);
         double normalizedY = Double.isFinite(y) ? y : 0.0D;
 
-        double carryXDouble = Math.floor(fractionX);
-        long normalizedBlockX;
+        double carryX = Math.floor(fractionX);
+        double carryZ = Math.floor(fractionZ);
+
+        // Cold exit: a carry at or beyond the 128-bit span can cancel a large
+        // opposite block, so saturation alone is not exact; the wide path
+        // keeps the historical BigDecimal arithmetic.
+        if (!carryIn128Bits(carryX) || !carryIn128Bits(carryZ)) {
+            return fromRawCold(Int128.of(blockXHi, blockXLo), fractionX, normalizedY,
+                    Int128.of(blockZHi, blockZLo), fractionZ);
+        }
+
+        long deltaXHi = Int128Math.doubleFloorHi(carryX);
+        long deltaXLo = Int128Math.doubleFloorLo(carryX);
+        long deltaYHi = Int128Math.doubleFloorHi(carryZ);
+        long deltaYLo = Int128Math.doubleFloorLo(carryZ);
+
+        long sumXLo = blockXLo + deltaXLo;
+        long carryOutX = Int128Math.addCarry(blockXLo, deltaXLo, sumXLo);
+        long sumXHi = blockXHi + deltaXHi + carryOutX;
+        long normalizedBlockXHi;
+        long normalizedBlockXLo;
         double normalizedFractionX;
-        if (carryXDouble < -0x1.0p63) {
+        if (Int128Math.addOverflowed(blockXHi, deltaXHi, carryOutX, sumXHi)) {
+            // Int128.addSaturated clamps at the edge in the direction of the delta sign.
+            boolean upwardX = Int128Math.compare(deltaXHi, deltaXLo, 0L, 0L) > 0;
+            normalizedBlockXHi = upwardX ? WorldBounds.MAX_BLOCK.hi() : WorldBounds.MIN_BLOCK.hi();
+            normalizedBlockXLo = upwardX ? WorldBounds.MAX_BLOCK.lo() : WorldBounds.MIN_BLOCK.lo();
+            normalizedFractionX = upwardX ? Math.nextDown(1.0D) : 0.0D;
+        } else {
+            normalizedBlockXHi = sumXHi;
+            normalizedBlockXLo = sumXLo;
+            normalizedFractionX = clampFraction(fractionX - carryX);
+        }
+
+        long sumZLo = blockZLo + deltaYLo;
+        long carryOutZ = Int128Math.addCarry(blockZLo, deltaYLo, sumZLo);
+        long sumZHi = blockZHi + deltaYHi + carryOutZ;
+        long normalizedBlockZHi;
+        long normalizedBlockZLo;
+        double normalizedFractionZ;
+        if (Int128Math.addOverflowed(blockZHi, deltaYHi, carryOutZ, sumZHi)) {
+            boolean upwardZ = Int128Math.compare(deltaYHi, deltaYLo, 0L, 0L) > 0;
+            normalizedBlockZHi = upwardZ ? WorldBounds.MAX_BLOCK.hi() : WorldBounds.MIN_BLOCK.hi();
+            normalizedBlockZLo = upwardZ ? WorldBounds.MAX_BLOCK.lo() : WorldBounds.MIN_BLOCK.lo();
+            normalizedFractionZ = upwardZ ? Math.nextDown(1.0D) : 0.0D;
+        } else {
+            normalizedBlockZHi = sumZHi;
+            normalizedBlockZLo = sumZLo;
+            normalizedFractionZ = clampFraction(fractionZ - carryZ);
+        }
+
+        return new SectorVec3(Int128.of(normalizedBlockXHi, normalizedBlockXLo), normalizedFractionX, normalizedY,
+                Int128.of(normalizedBlockZHi, normalizedBlockZLo), normalizedFractionZ);
+    }
+
+    private static boolean carryIn128Bits(double carry) {
+        return carry >= -0x1.0p127 && carry < 0x1.0p127;
+    }
+
+    /** Historical exact path for carries beyond the 128-bit span. Cold by contract. */
+    private static SectorVec3 fromRawCold(Int128 blockX, double fractionX, double normalizedY, Int128 blockZ, double fractionZ) {
+        double carryX = Math.floor(fractionX);
+        Int128 normalizedBlockX;
+        double normalizedFractionX;
+        if (overflows(blockX, carryX, false)) {
             normalizedBlockX = WorldBounds.MIN_BLOCK;
             normalizedFractionX = 0.0D;
-        } else if (carryXDouble >= 0x1.0p63) {
+        } else if (overflows(blockX, carryX, true)) {
             normalizedBlockX = WorldBounds.MAX_BLOCK;
             normalizedFractionX = Math.nextDown(1.0D);
         } else {
-            long carryX = (long) carryXDouble;
-            normalizedBlockX = WorldBounds.addBlockOffset(blockX, carryX);
-            if (carryX > 0L && normalizedBlockX <= blockX) {
-                normalizedBlockX = WorldBounds.MAX_BLOCK;
-                normalizedFractionX = Math.nextDown(1.0D);
-            } else if (carryX < 0L && normalizedBlockX >= blockX) {
-                normalizedBlockX = WorldBounds.MIN_BLOCK;
-                normalizedFractionX = 0.0D;
-            } else {
-                normalizedFractionX = clampFraction(fractionX - carryXDouble);
-            }
+            normalizedBlockX = addCarry(blockX, carryX);
+            normalizedFractionX = clampFraction(fractionX - carryX);
         }
 
-        double carryZDouble = Math.floor(fractionZ);
-        long normalizedBlockZ;
+        double carryZ = Math.floor(fractionZ);
+        Int128 normalizedBlockZ;
         double normalizedFractionZ;
-        if (carryZDouble < -0x1.0p63) {
+        if (overflows(blockZ, carryZ, false)) {
             normalizedBlockZ = WorldBounds.MIN_BLOCK;
             normalizedFractionZ = 0.0D;
-        } else if (carryZDouble >= 0x1.0p63) {
+        } else if (overflows(blockZ, carryZ, true)) {
             normalizedBlockZ = WorldBounds.MAX_BLOCK;
             normalizedFractionZ = Math.nextDown(1.0D);
         } else {
-            long carryZ = (long) carryZDouble;
-            normalizedBlockZ = WorldBounds.addBlockOffset(blockZ, carryZ);
-            if (carryZ > 0L && normalizedBlockZ <= blockZ) {
-                normalizedBlockZ = WorldBounds.MAX_BLOCK;
-                normalizedFractionZ = Math.nextDown(1.0D);
-            } else if (carryZ < 0L && normalizedBlockZ >= blockZ) {
-                normalizedBlockZ = WorldBounds.MIN_BLOCK;
-                normalizedFractionZ = 0.0D;
-            } else {
-                normalizedFractionZ = clampFraction(fractionZ - carryZDouble);
-            }
+            normalizedBlockZ = addCarry(blockZ, carryZ);
+            normalizedFractionZ = clampFraction(fractionZ - carryZ);
         }
 
         return new SectorVec3(normalizedBlockX, normalizedFractionX, normalizedY,
@@ -92,6 +157,34 @@ public final class SectorVec3 {
 
     private static double finiteFractionOrZero(double fraction) {
         return Double.isNaN(fraction) || Double.isInfinite(fraction) ? 0.0D : fraction;
+    }
+
+    private static boolean overflows(Int128 block, double carry, boolean upper) {
+        if (carry >= -0x1.0p127 && carry < 0x1.0p127) {
+            Int128 delta = Int128.fromDoubleFloorSaturated(carry);
+            return upper ? delta.compareTo(Int128.ZERO) > 0 && block.compareTo(Int128.MAX.subtract(delta)) > 0
+                    : delta.compareTo(Int128.ZERO) < 0 && block.compareTo(Int128.MIN.subtract(delta)) < 0;
+        }
+        // Outside the signed domain a carry can still cancel the opposite block.
+        // Detect overflow in an unsigned 128-bit magnitude; never allocate decimal arithmetic.
+        if (carry >= 0x1.0p128) return upper;
+        if (carry <= -0x1.0p128) return !upper;
+        if (carry >= 0x1.0p127) {
+            if (!upper) return false;
+            if (block.hi() >= 0L) return true;
+            Int128 shifted = Int128.of(block.hi() ^ Long.MIN_VALUE, block.lo());
+            Int128 remainder = Int128.fromDoubleFloorSaturated(carry - 0x1.0p127);
+            return shifted.compareTo(Int128.MAX.subtract(remainder)) > 0;
+        }
+        if (upper) return false;
+        if (block.hi() < 0L) return true;
+        Int128 shifted = Int128.of(block.hi() ^ Long.MIN_VALUE, block.lo());
+        Int128 remainder = Int128.fromDoubleFloorSaturated(carry + 0x1.0p127);
+        return shifted.compareTo(Int128.MIN.subtract(remainder)) < 0;
+    }
+
+    private static Int128 addCarry(Int128 block, double carry) {
+        return Int128Math.addDoubleBlockOffset(block.hi(), block.lo(), carry);
     }
 
     /** Keeps round-off at a voxel boundary from escaping the split-coordinate invariant. */
@@ -118,10 +211,10 @@ public final class SectorVec3 {
     }
 
     private static final class DecimalCoordinate {
-        private final long block;
+        private final Int128 block;
         private final double fraction;
 
-        private DecimalCoordinate(long block, double fraction) {
+        private DecimalCoordinate(Int128 block, double fraction) {
             this.block = block;
             this.fraction = fraction;
         }
@@ -130,7 +223,7 @@ public final class SectorVec3 {
             try {
                 BigDecimal value = new BigDecimal(text);
                 BigInteger floor = value.setScale(0, RoundingMode.FLOOR).toBigIntegerExact();
-                long block = floor.longValueExact();
+                Int128 block = Int128.parseDecimal(floor.toString());
                 double fraction = value.subtract(new BigDecimal(floor)).doubleValue();
                 if (!Double.isFinite(fraction) || fraction < 0.0D || fraction >= 1.0D) {
                     throw new IllegalArgumentException("coordinate fraction is not representable: " + text);
@@ -154,8 +247,8 @@ public final class SectorVec3 {
         requireFinite(x, "x");
         requireFinite(y, "y");
         requireFinite(z, "z");
-        return fromBlockAndFraction(approximateBlock(x), approximateFraction(x), y,
-                approximateBlock(z), approximateFraction(z));
+        return fromRaw(Int128Math.doubleFloorHi(x), Int128Math.doubleFloorLo(x), approximateFraction(x), y,
+                Int128Math.doubleFloorHi(z), Int128Math.doubleFloorLo(z), approximateFraction(z));
     }
 
     /**
@@ -164,33 +257,23 @@ public final class SectorVec3 {
     * a finite coordinate here can crash the render thread before it can use the
     * exact sector-relative path.
     */
-    private static long approximateBlock(double coordinate) {
-        double clamped = WorldBounds.clampAbsoluteDouble(coordinate);
-        return (long) Math.floor(clamped);
-    }
-
     private static double approximateFraction(double coordinate) {
         double clamped = WorldBounds.clampAbsoluteDouble(coordinate);
         return clamped - Math.floor(clamped);
     }
 
-    public long blockX() {
+    public Int128 blockX() {
         return this.blockX;
     }
 
-    /** Alias for the split-coordinate name used by debug and network displays. */
-    public long sectorX() {
-        return this.blockX;
-    }
-
-    public long blockZ() {
+    public Int128 blockZ() {
         return this.blockZ;
     }
 
-    /** Alias for the split-coordinate name used by debug and network displays. */
-    public long sectorZ() {
-        return this.blockZ;
-    }
+    public long blockXHi() { return this.blockX.hi(); }
+    public long blockXLo() { return this.blockX.lo(); }
+    public long blockZHi() { return this.blockZ.hi(); }
+    public long blockZLo() { return this.blockZ.lo(); }
 
     /** The integral block component of the ordinary Y coordinate. */
     public long sectorY() {
@@ -215,13 +298,17 @@ public final class SectorVec3 {
     * This is important for coordinates beyond the 53-bit precision of doubles.
     */
     public static String formatCoordinate(long sector, double sub, int fractionalDigits) {
+        return formatCoordinate(Int128.fromLong(sector), sub, fractionalDigits);
+    }
+
+    public static String formatCoordinate(Int128 sector, double sub, int fractionalDigits) {
         if (!Double.isFinite(sub)) {
             throw new IllegalArgumentException("sub-coordinate must be finite: " + sub);
         }
         if (fractionalDigits < 0) {
             throw new IllegalArgumentException("fractionalDigits must not be negative");
         }
-        BigDecimal coordinate = BigDecimal.valueOf(sector).add(BigDecimal.valueOf(sub));
+        BigDecimal coordinate = new BigDecimal(sector.toString()).add(BigDecimal.valueOf(sub));
         return coordinate.setScale(fractionalDigits, RoundingMode.HALF_UP).toPlainString();
     }
 
@@ -269,7 +356,7 @@ public final class SectorVec3 {
     }
 
     /**
-     * Render-only displacement. Retains any displacement beyond the long world
+     * Render-only displacement. Retains any displacement beyond the 128-bit world
      * edge in the local component; never use this to move an entity.
      */
     public SectorVec3 offsetCamera(double dx, double dy, double dz) {
@@ -287,6 +374,10 @@ public final class SectorVec3 {
 
     /** Returns this position with an independently supplied normalized X component. */
     public SectorVec3 withX(long blockX, double subX) {
+        return this.withX(Int128.fromLong(blockX), subX);
+    }
+
+    public SectorVec3 withX(Int128 blockX, double subX) {
         SectorVec3 normalized = fromBlockAndFraction(blockX, subX, this.y, this.blockZ, this.subZ);
         return new SectorVec3(normalized.blockX, normalized.subX, this.y, this.blockZ, this.subZ);
     }
@@ -299,6 +390,10 @@ public final class SectorVec3 {
 
     /** Returns this position with an independently supplied normalized Z component. */
     public SectorVec3 withZ(long blockZ, double subZ) {
+        return this.withZ(Int128.fromLong(blockZ), subZ);
+    }
+
+    public SectorVec3 withZ(Int128 blockZ, double subZ) {
         SectorVec3 normalized = fromBlockAndFraction(this.blockX, this.subX, this.y, blockZ, subZ);
         return new SectorVec3(this.blockX, this.subX, this.y, normalized.blockZ, normalized.subZ);
     }
@@ -348,25 +443,31 @@ public final class SectorVec3 {
 
     /** Converts an exact position to a local physics frame. Integer subtraction precedes conversion to double. */
     public Vec3 toLocal(long originBlockX, int originBlockY, long originBlockZ) {
+        return this.toLocal(Int128.fromLong(originBlockX), originBlockY, Int128.fromLong(originBlockZ));
+    }
+
+    public Vec3 toLocal(Int128 originBlockX, int originBlockY, Int128 originBlockZ) {
         return new Vec3(signedDifference(this.blockX, originBlockX) + this.subX,
                 this.y - (double) originBlockY, signedDifference(this.blockZ, originBlockZ) + this.subZ);
     }
 
-    /** Lossy conversion for legacy/render/network compatibility only; never use this for exact physics. */
-    public Vec3 toApproximateVec3() {
-        // A double cannot represent Long.MAX_VALUE as a finite value below 2^63.
-        // Keep this compatibility mirror finite and on the legal side of the edge;
-        // exact callers must continue to use this SectorVec3 directly.
-        return new Vec3(approximateCoordinate(this.blockX, this.subX), this.y,
-                approximateCoordinate(this.blockZ, this.subZ));
+    /** Compatibility carrier that retains the authoritative split position. */
+    public Vec3 toExactVec3() {
+        return new ExactVec3(this);
     }
 
-    private static double approximateCoordinate(long block, double fraction) {
-        return WorldBounds.clampAbsoluteDouble((double) block + fraction);
-    }
-
-    private static double signedDifference(long value, long origin) {
+    private static double signedDifference(Int128 value, Int128 origin) {
         return WorldBounds.signedDifference(value, origin);
+    }
+
+    /** Precision guard for local physics; the shared limit is span-based, not high-word-based. */
+    public boolean localSpanExceeds(SectorVec3 other) {
+        return WorldBounds.localSpanExceeds(this.blockX, other.blockX)
+                || WorldBounds.localSpanExceeds(this.blockZ, other.blockZ);
+    }
+
+    public boolean isLocalTo(SectorVec3 other) {
+        return !this.localSpanExceeds(other);
     }
 
     public boolean isFinite() {
@@ -386,17 +487,17 @@ public final class SectorVec3 {
         if (!(object instanceof SectorVec3))
             return false;
         SectorVec3 other = (SectorVec3) object;
-        return this.blockX == other.blockX && Double.compare(this.subX, other.subX) == 0
-                && Double.compare(this.y, other.y) == 0 && this.blockZ == other.blockZ
+        return this.blockX.equals(other.blockX) && Double.compare(this.subX, other.subX) == 0
+                && Double.compare(this.y, other.y) == 0 && this.blockZ.equals(other.blockZ)
                 && Double.compare(this.subZ, other.subZ) == 0;
     }
 
     @Override
     public int hashCode() {
-        int result = Long.hashCode(this.blockX);
+        int result = this.blockX.hashCode();
         result = 31 * result + Double.hashCode(this.subX);
         result = 31 * result + Double.hashCode(this.y);
-        result = 31 * result + Long.hashCode(this.blockZ);
+        result = 31 * result + this.blockZ.hashCode();
         return 31 * result + Double.hashCode(this.subZ);
     }
 

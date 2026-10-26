@@ -16,6 +16,8 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.SectorVec3;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
@@ -81,12 +83,12 @@ public class EndCrystalRenderer extends EntityRenderer<EndCrystal> {
         pMatrixStack.popPose();
         BlockPos blockpos = pEntity.getBeamTarget();
         if (blockpos != null) {
-            float f3 = (float) blockpos.getX() + 0.5F;
-            float f4 = (float) blockpos.getY() + 0.5F;
-            float f5 = (float) blockpos.getZ() + 0.5F;
-            float f6 = (float) ((double) f3 - pEntity.getX());
-            float f7 = (float) ((double) f4 - pEntity.getY());
-            float f8 = (float) ((double) f5 - pEntity.getZ());
+            Vec3 delta = SectorVec3.fromBlockAndFraction(
+                    blockpos.getX(), 0.5D, blockpos.getY() + 0.5D, blockpos.getZ(), 0.5D)
+                    .relativeTo(pEntity.interpolatedExactPosition(pPartialTicks));
+            float f6 = (float) delta.x;
+            float f7 = (float) delta.y;
+            float f8 = (float) delta.z;
             pMatrixStack.translate((double) f6, (double) f7, (double) f8);
             EnderDragonRenderer.renderCrystalBeams(-f6, -f7 + f, -f8, pPartialTicks, pEntity.time, pMatrixStack, pBuffer, pPackedLight);
         }

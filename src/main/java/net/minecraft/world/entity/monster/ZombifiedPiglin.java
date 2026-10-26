@@ -168,7 +168,7 @@ public class ZombifiedPiglin extends Zombie implements NeutralMob {
     }
 
     public boolean checkSpawnObstruction(LevelReader pLevel) {
-        return pLevel.isUnobstructed(this) && !pLevel.containsAnyLiquid(this.getBoundingBox());
+        return pLevel.isUnobstructed(this) && !pLevel.containsAnyLiquid(this.exactBoundingBox());
     }
 
     public void addAdditionalSaveData(CompoundTag pCompound) {

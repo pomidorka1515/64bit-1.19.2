@@ -46,7 +46,8 @@ public class WorldGenAttemptRenderer implements DebugRenderer.SimpleDebugRendere
             BlockPos blockpos = this.toRender.get(i);
             Float f = this.scales.get(i);
             float f1 = f / 2.0F;
-            LevelRenderer.addChainedFilledBoxVertices(bufferbuilder, (double) ((float) blockpos.getX() + 0.5F - f1) - pCamX, (double) ((float) blockpos.getY() + 0.5F - f1) - pCamY, (double) ((float) blockpos.getZ() + 0.5F - f1) - pCamZ, (double) ((float) blockpos.getX() + 0.5F + f1) - pCamX, (double) ((float) blockpos.getY() + 0.5F + f1) - pCamY, (double) ((float) blockpos.getZ() + 0.5F + f1) - pCamZ, this.reds.get(i), this.greens.get(i), this.blues.get(i), this.alphas.get(i));
+            var local = DebugRenderer.localPosition(blockpos, 0.5D, 0.5D, 0.5D);
+            LevelRenderer.addChainedFilledBoxVertices(bufferbuilder, local.x - f1, local.y - f1, local.z - f1, local.x + f1, local.y + f1, local.z + f1, this.reds.get(i), this.greens.get(i), this.blues.get(i), this.alphas.get(i));
         }
 
         tesselator.end();

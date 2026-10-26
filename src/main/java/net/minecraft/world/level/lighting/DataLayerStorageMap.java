@@ -2,6 +2,7 @@ package net.minecraft.world.level.lighting;
 
 import java.util.Map;
 import javax.annotation.Nullable;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.chunk.DataLayer;
 
@@ -10,10 +11,10 @@ public abstract class DataLayerStorageMap<M extends DataLayerStorageMap<M>> {
     private final SectionPos[] lastSectionKeys = new SectionPos[2];
     private final DataLayer[] lastSections = new DataLayer[2];
     private boolean cacheEnabled;
-    protected final Map<SectionPos, DataLayer> map;
+    protected final LightStorageMap<SectionPos, DataLayer> map;
 
     protected DataLayerStorageMap(Map<SectionPos, DataLayer> pMap) {
-        this.map = pMap;
+        this.map = pMap instanceof LightStorageMap ? (LightStorageMap<SectionPos, DataLayer>) pMap : new LightStorageMap<>(pMap);
         this.clearCache();
         this.cacheEnabled = true;
     }
@@ -27,6 +28,16 @@ public abstract class DataLayerStorageMap<M extends DataLayerStorageMap<M>> {
 
     public boolean hasLayer(SectionPos pSectionPos) {
         return this.map.containsKey(pSectionPos);
+    }
+
+    /** Reuse cached immutable keys for the overwhelmingly section-local propagation path. */
+    public SectionPos sectionForBlock(BlockPos pos) {
+        if (this.cacheEnabled) {
+            for (SectionPos key : this.lastSectionKeys) {
+                if (key != null && key.contains(pos)) return key;
+            }
+        }
+        return SectionPos.of(pos);
     }
 
     @Nullable

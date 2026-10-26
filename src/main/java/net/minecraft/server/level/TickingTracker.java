@@ -1,13 +1,8 @@
 package net.minecraft.server.level;
 
 import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.longs.Long2ByteMap;
-import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,11 +10,12 @@ import java.util.Map.Entry;
 
 import net.minecraft.util.SortedArraySet;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.ChunkPosMap;
 
 public class TickingTracker extends ChunkTracker {
     private static final int INITIAL_TICKET_LIST_CAPACITY = 4;
     protected final Object2ByteMap<ChunkPos> chunks = new Object2ByteOpenHashMap<>();
-    private final Object2ObjectOpenHashMap<ChunkPos, SortedArraySet<Ticket<?>>> tickets = new Object2ObjectOpenHashMap<>();
+    private final ChunkPosMap<SortedArraySet<Ticket<?>>> tickets = new ChunkPosMap<>();
 
     public TickingTracker() {
         super(34, 16, 256);
@@ -27,6 +23,10 @@ public class TickingTracker extends ChunkTracker {
     }
 
     private SortedArraySet<Ticket<?>> getTickets(ChunkPos pChunkPos) {
+        SortedArraySet<Ticket<?>> cached = this.tickets.get(pChunkPos.xHi(), pChunkPos.xLo(), pChunkPos.zHi(), pChunkPos.zLo());
+        if (cached != null) {
+            return cached;
+        }
         return this.tickets.computeIfAbsent(pChunkPos, (p_184180_) -> {
             return SortedArraySet.create(4);
         });
@@ -85,7 +85,7 @@ public class TickingTracker extends ChunkTracker {
     }
 
     protected int getLevelFromSource(ChunkPos pPos) {
-        SortedArraySet<Ticket<?>> sortedarrayset = this.tickets.get(pPos);
+        SortedArraySet<Ticket<?>> sortedarrayset = this.tickets.get(pPos.xHi(), pPos.xLo(), pPos.zHi(), pPos.zLo());
         return sortedarrayset != null && !sortedarrayset.isEmpty() ? sortedarrayset.first().getTicketLevel() : Integer.MAX_VALUE;
     }
 
@@ -106,7 +106,7 @@ public class TickingTracker extends ChunkTracker {
     }
 
     public String getTicketDebugString(ChunkPos p_184176_) {
-        SortedArraySet<Ticket<?>> sortedarrayset = this.tickets.get(p_184176_);
+        SortedArraySet<Ticket<?>> sortedarrayset = this.tickets.get(p_184176_.xHi(), p_184176_.xLo(), p_184176_.zHi(), p_184176_.zLo());
         return sortedarrayset != null && !sortedarrayset.isEmpty() ? sortedarrayset.first().toString() : "no_ticket";
     }
 }

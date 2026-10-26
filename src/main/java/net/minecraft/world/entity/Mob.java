@@ -1,5 +1,9 @@
 package net.minecraft.world.entity;
 
+import net.minecraft.world.level.WorldBounds;
+
+import net.minecraft.core.Int128;
+
 import net.minecraft.world.phys.SectorAABB;
 
 import com.google.common.collect.ImmutableSet;
@@ -384,9 +388,7 @@ public abstract class Mob extends LivingEntity {
                 compoundtag2.putUUID("UUID", uuid);
             } else if (this.leashHolder instanceof HangingEntity) {
                 BlockPos blockpos = ((HangingEntity) this.leashHolder).getPos();
-                compoundtag2.putInt("X", blockpos.getX());
-                compoundtag2.putInt("Y", blockpos.getY());
-                compoundtag2.putInt("Z", blockpos.getZ());
+                compoundtag2 = NbtUtils.writeBlockPos(blockpos);
             }
 
             pCompound.put("Leash", compoundtag2);
@@ -499,7 +501,7 @@ public abstract class Mob extends LivingEntity {
         if (!this.level.isClientSide && this.canPickUpLoot() && this.isAlive() && !this.dead && this.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
             Vec3i vec3i = this.getPickupReach();
 
-            for (ItemEntity itementity : this.level.getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate((double) vec3i.getX(), (double) vec3i.getY(), (double) vec3i.getZ()))) {
+            for (ItemEntity itementity : this.level.getEntitiesOfClass(ItemEntity.class, this.exactBoundingBox().inflate(WorldBounds.signedDifference(vec3i.getX(), Int128.ZERO), (double) vec3i.getY(), WorldBounds.signedDifference(vec3i.getZ(), Int128.ZERO)))) {
                 if (!itementity.isRemoved() && !itementity.getItem().isEmpty() && !itementity.hasPickUpDelay() && this.wantsToPickUp(itementity.getItem())) {
                     this.pickUpItem(itementity);
                 }
@@ -741,7 +743,7 @@ public abstract class Mob extends LivingEntity {
         if (pEntity instanceof LivingEntity livingentity) {
             d1 = livingentity.getEyeY() - this.getEyeY();
         } else {
-            d1 = (pEntity.getBoundingBox().minY + pEntity.getBoundingBox().maxY) / 2.0D - this.getEyeY();
+            d1 = (pEntity.exactBoundingBox().minY + pEntity.exactBoundingBox().maxY) / 2.0D - this.getEyeY();
         }
 
         double d3 = Math.sqrt(d0 * d0 + d2 * d2);
@@ -774,7 +776,7 @@ public abstract class Mob extends LivingEntity {
     }
 
     public boolean checkSpawnObstruction(LevelReader pLevel) {
-        return !pLevel.containsAnyLiquid(this.getBoundingBox()) && pLevel.isUnobstructed(this);
+        return !pLevel.containsAnyLiquid(this.exactBoundingBox()) && pLevel.isUnobstructed(this);
     }
 
     public int getMaxSpawnClusterSize() {
@@ -1387,10 +1389,10 @@ public abstract class Mob extends LivingEntity {
 
     public Iterable<BlockPos> iteratePathfindingStartNodeCandidatePositions() {
         SectorAABB box = this.getSectorBoundingBox();
-        long minX = box.minBlockXForRange();
-        long maxX = box.maxBlockXForRangeInclusive();
-        long minZ = box.minBlockZForRange();
-        long maxZ = box.maxBlockZForRangeInclusive();
+        Int128 minX = box.minBlockXForRange();
+        Int128 maxX = box.maxBlockXForRangeInclusive();
+        Int128 minZ = box.minBlockZForRange();
+        Int128 maxZ = box.maxBlockZForRangeInclusive();
         return ImmutableSet.of(
                 new BlockPos(minX, this.getBlockY(), minZ),
                 new BlockPos(minX, this.getBlockY(), maxZ),

@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.BlockGetter;
@@ -40,7 +41,7 @@ public abstract class NodeEvaluator {
     }
 
     @Nullable
-    protected Node getNode(long pX, int pY, long pZ) {
+    protected Node getNode(Int128 pX, int pY, Int128 pZ) {
         return this.getNodeUnchecked(pX, pY, pZ);
     }
 
@@ -49,7 +50,7 @@ public abstract class NodeEvaluator {
     * filtering override. Goals are allowed to be blocked; the search still needs
     * a non-null target node so it can find the closest reachable position.
     */
-    protected final Node getNodeUnchecked(long x, int y, long z) {
+    protected final Node getNodeUnchecked(Int128 x, int y, Int128 z) {
         return this.nodes.computeIfAbsent(new Node.NodeKey(x, y, z), key -> new Node(x, y, z));
     }
 
@@ -70,9 +71,9 @@ public abstract class NodeEvaluator {
 
     public abstract int getNeighbors(Node[] p_77353_, Node p_77354_);
 
-    public abstract BlockPathTypes getBlockPathType(BlockGetter pBlockaccess, long pX, int pY, long pZ, Mob pEntityliving, int pXSize, int pYSize, int pZSize, boolean pCanBreakDoors, boolean pCanEnterDoors);
+    public abstract BlockPathTypes getBlockPathType(BlockGetter pBlockaccess, Int128 pX, int pY, Int128 pZ, Mob pEntityliving, int pXSize, int pYSize, int pZSize, boolean pCanBreakDoors, boolean pCanEnterDoors);
 
-    public abstract BlockPathTypes getBlockPathType(BlockGetter pLevel, long pX, int pY, long pZ);
+    public abstract BlockPathTypes getBlockPathType(BlockGetter pLevel, Int128 pX, int pY, Int128 pZ);
 
     public void setCanPassDoors(boolean pCanEnterDoors) {
         this.canPassDoors = pCanEnterDoors;

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Vec3i;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.StructureManager;
@@ -37,18 +38,25 @@ public class ListPoolElement extends StructurePoolElement {
     }
 
     public Vec3i getSize(StructureTemplateManager pStructureTemplateManager, Rotation pRotation) {
-        long i = 0;
+        int i = 0;
         int j = 0;
-        long k = 0;
+        int k = 0;
 
         for (StructurePoolElement structurepoolelement : this.elements) {
             Vec3i vec3i = structurepoolelement.getSize(pStructureTemplateManager, pRotation);
-            i = Math.max(i, vec3i.getX());
+            i = Math.max(i, localSize(vec3i.getX()));
             j = Math.max(j, vec3i.getY());
-            k = Math.max(k, vec3i.getZ());
+            k = Math.max(k, localSize(vec3i.getZ()));
         }
 
         return new Vec3i(i, j, k);
+    }
+
+    private static int localSize(Int128 value) {
+        if (value.compareTo(Int128.ZERO) < 0 || value.compareTo(Int128.fromLong(Integer.MAX_VALUE)) > 0) {
+            throw new IllegalArgumentException("Pool element size does not fit a non-negative int");
+        }
+        return (int) value.lo();
     }
 
     public List<StructureTemplate.StructureBlockInfo> getShuffledJigsawBlocks(StructureTemplateManager p_227290_, BlockPos p_227291_, Rotation p_227292_, RandomSource p_227293_) {

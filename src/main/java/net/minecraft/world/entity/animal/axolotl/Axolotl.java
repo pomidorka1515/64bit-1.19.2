@@ -353,7 +353,7 @@ public class Axolotl extends Animal implements LerpingModel, Bucketable {
                 Entity entity = damagesource.getEntity();
                 if (entity != null && entity.getType() == EntityType.PLAYER) {
                     Player player = (Player) entity;
-                    List<Player> list = level.getEntitiesOfClass(Player.class, pAxolotl.getBoundingBox().inflate(20.0D));
+                    List<Player> list = level.getEntitiesOfClass(Player.class, pAxolotl.exactBoundingBox().inflate(20.0D));
                     if (list.contains(player)) {
                         pAxolotl.applySupportingEffects(player);
                     }

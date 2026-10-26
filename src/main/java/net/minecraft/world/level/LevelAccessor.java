@@ -77,6 +77,10 @@ public interface LevelAccessor extends CommonLevelAccessor, LevelTimeAccess {
         return this.getChunkSource().hasChunk(pChunkX, pChunkZ);
     }
 
+    default boolean hasChunk(net.minecraft.core.Int128 pChunkX, net.minecraft.core.Int128 pChunkZ) {
+        return this.getChunkSource().hasChunk(pChunkX, pChunkZ);
+    }
+
     RandomSource getRandom();
 
     default void blockUpdated(BlockPos pPos, Block pBlock) {
@@ -88,13 +92,8 @@ public interface LevelAccessor extends CommonLevelAccessor, LevelTimeAccess {
 
     void playSound(@Nullable Player pPlayer, BlockPos pPos, SoundEvent pSound, SoundSource pCategory, float pVolume, float pPitch);
 
-    void addParticle(ParticleOptions pParticleData, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed);
-
     /** Exact particle origin for callers that already have split world coordinates. */
-    default void addParticle(ParticleOptions options, SectorVec3 position, double xd, double yd, double zd) {
-        this.addParticle(options, position.toApproximateVec3().x, position.y(), position.toApproximateVec3().z,
-                xd, yd, zd);
-    }
+    void addParticle(ParticleOptions options, SectorVec3 position, double xd, double yd, double zd);
 
     void levelEvent(@Nullable Player pPlayer, int pType, BlockPos pPos, int pData);
 
@@ -106,7 +105,7 @@ public interface LevelAccessor extends CommonLevelAccessor, LevelTimeAccess {
 
     /** Exact game-event origin for precision-sensitive callers. */
     default void gameEvent(GameEvent event, SectorVec3 position, GameEvent.Context context) {
-        this.gameEvent(event, position.toApproximateVec3(), context);
+        this.gameEvent(event, position.toExactVec3(), context);
     }
 
     default void gameEvent(@Nullable Entity pEntity, GameEvent pEvent, Vec3 pPosition) {

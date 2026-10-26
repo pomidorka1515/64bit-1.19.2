@@ -34,7 +34,7 @@ public final class OreVeinifier {
                 if (d1 + d2 < (double) 0.4F) {
                     return blockstate;
                 } else {
-                    RandomSource randomsource = p_209671_.at(p_209666_.blockX(), i, p_209666_.blockZ());
+                    RandomSource randomsource = p_209671_.at(p_209666_.blockXHi(), p_209666_.blockX(), i, p_209666_.blockZHi(), p_209666_.blockZ());
                     if (randomsource.nextFloat() > 0.7F) {
                         return blockstate;
                     } else if (p_209669_.compute(p_209666_) >= 0.0D) {

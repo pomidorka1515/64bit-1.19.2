@@ -88,16 +88,16 @@ public class ChestBlockEntity extends RandomizableContainerBlockEntity implement
     static void playSound(Level pLevel, BlockPos pPos, BlockState pState, SoundEvent pSound) {
         ChestType chesttype = pState.getValue(ChestBlock.TYPE);
         if (chesttype != ChestType.LEFT) {
-            double d0 = (double) pPos.getX() + 0.5D;
+            double d0 = 0.5D;
             double d1 = (double) pPos.getY() + 0.5D;
-            double d2 = (double) pPos.getZ() + 0.5D;
+            double d2 = 0.5D;
             if (chesttype == ChestType.RIGHT) {
                 Direction direction = ChestBlock.getConnectedDirection(pState);
                 d0 += (double) direction.getStepX() * 0.5D;
                 d2 += (double) direction.getStepZ() * 0.5D;
             }
 
-            pLevel.playSound((Player) null, d0, d1, d2, pSound, SoundSource.BLOCKS, 0.5F, pLevel.random.nextFloat() * 0.1F + 0.9F);
+            pLevel.playSound((Player) null, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), d0, d1, pPos.getZ(), d2), pSound, SoundSource.BLOCKS, 0.5F, pLevel.random.nextFloat() * 0.1F + 0.9F);
         }
     }
 

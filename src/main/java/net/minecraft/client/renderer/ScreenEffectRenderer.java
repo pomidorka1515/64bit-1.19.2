@@ -79,10 +79,10 @@ public class ScreenEffectRenderer {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
         for (int i = 0; i < 8; ++i) {
-            double d0 = pPlayer.getX() + (double) (((float) ((i >> 0) % 2) - 0.5F) * pPlayer.getBbWidth() * 0.8F);
+            double d0 = (double) (((float) ((i >> 0) % 2) - 0.5F) * pPlayer.getBbWidth() * 0.8F);
             double d1 = pPlayer.getEyeY() + (double) (((float) ((i >> 1) % 2) - 0.5F) * 0.1F);
-            double d2 = pPlayer.getZ() + (double) (((float) ((i >> 2) % 2) - 0.5F) * pPlayer.getBbWidth() * 0.8F);
-            blockpos$mutableblockpos.set(d0, d1, d2);
+            double d2 = (double) (((float) ((i >> 2) % 2) - 0.5F) * pPlayer.getBbWidth() * 0.8F);
+            blockpos$mutableblockpos.set(pPlayer.sectorPosition().add(d0, 0.0D, d2).withY(d1).blockPosition());
             BlockState blockstate = pPlayer.level.getBlockState(blockpos$mutableblockpos);
             if (blockstate.getRenderShape() != RenderShape.INVISIBLE && blockstate.isViewBlocking(pPlayer.level, blockpos$mutableblockpos)) {
                 return blockstate;
@@ -120,7 +120,7 @@ public class ScreenEffectRenderer {
         RenderSystem.enableTexture();
         RenderSystem.setShaderTexture(0, UNDERWATER_LOCATION);
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
-        BlockPos blockpos = new BlockPos(pMinecraft.player.getX(), pMinecraft.player.getEyeY(), pMinecraft.player.getZ());
+        BlockPos blockpos = pMinecraft.player.exactEyePosition().blockPosition();
         float f = LightTexture.getBrightness(pMinecraft.player.level.dimensionType(), pMinecraft.player.level.getMaxLocalRawBrightness(blockpos));
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();

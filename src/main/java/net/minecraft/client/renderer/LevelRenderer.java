@@ -27,8 +27,6 @@ import com.mojang.math.Vector3f;
 import com.mojang.math.Vector4f;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -79,6 +77,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -212,12 +211,12 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
     private RenderTarget cloudsTarget;
     @Nullable
     private PostChain transparencyChain;
-    private long lastCameraChunkX = Integer.MIN_VALUE;
+    private Int128 lastCameraChunkX;
     private int lastCameraChunkY = Integer.MIN_VALUE;
-    private long lastCameraChunkZ = Integer.MIN_VALUE;
-    private long prevCamX = Long.MIN_VALUE;
+    private Int128 lastCameraChunkZ;
+    private Int128 prevCamX;
     private int prevCamY = Integer.MIN_VALUE;
-    private long prevCamZ = Long.MIN_VALUE;
+    private Int128 prevCamZ;
     private double prevCamRotX = Double.MIN_VALUE;
     private double prevCamRotY = Double.MIN_VALUE;
     private int prevCloudX = Integer.MIN_VALUE;
@@ -237,9 +236,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
     private Frustum capturedFrustum;
     private final Vector4f[] frustumPoints = new Vector4f[8];
     private SectorVec3 exactFrustumPosition;
-    private double xTransparentOld;
-    private double yTransparentOld;
-    private double zTransparentOld;
+    private SectorVec3 transparentCameraOld;
     private boolean needsFullRenderChunkUpdate = true;
     private final AtomicLong nextFullUpdateMillis = new AtomicLong(0L);
     private final AtomicBoolean needsFrustumUpdate = new AtomicBoolean(false);
@@ -275,9 +272,9 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             SectorVec3 exactCamera = this.minecraft.gameRenderer.getMainCamera().exactPosition();
             CameraRelativePosition weatherCamera = CameraRelativePosition.of(exactCamera != null
                     ? exactCamera : SectorVec3.fromApproximate(pCamX, pCamY, pCamZ));
-            long i = weatherCamera.baseX();
+            Int128 i = weatherCamera.baseX();
             int j = weatherCamera.baseY();
-            long k = weatherCamera.baseZ();
+            Int128 k = weatherCamera.baseZ();
             Tesselator tesselator = Tesselator.getInstance();
             BufferBuilder bufferbuilder = tesselator.getBuilder();
             RenderSystem.disableCull();
@@ -297,9 +294,9 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
             for (int zOffset = -l; zOffset <= l; ++zOffset) {
-                long j1 = WorldBounds.addBlockOffset(k, zOffset);
+                Int128 j1 = WorldBounds.addBlockOffset(k, zOffset);
                 for (int xOffset = -l; xOffset <= l; ++xOffset) {
-                    long k1 = WorldBounds.addBlockOffset(i, xOffset);
+                    Int128 k1 = WorldBounds.addBlockOffset(i, xOffset);
                     // Subtract integral coordinates before converting to floating point.
                     double relativeX = weatherCamera.relativeX(k1) + 0.5D;
                     double relativeZ = weatherCamera.relativeZ(j1) + 0.5D;
@@ -326,8 +323,8 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                         }
 
                         if (j2 != k2) {
-                            int seedX = (int) k1;
-                            int seedZ = (int) j1;
+                            int seedX = (int) k1.lo();
+                            int seedZ = (int) j1.lo();
                             RandomSource randomsource = RandomSource.create((long) (seedX * seedX * 3121 + seedX * 45238971 ^ seedZ * seedZ * 418711 + seedZ * 13761));
                             blockpos$mutableblockpos.set(k1, j2, j1);
                             if (biome.warmEnoughToRain(blockpos$mutableblockpos)) {
@@ -655,9 +652,10 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
     }
 
     public void setLevel(@Nullable ClientLevel pLevel) {
-        this.lastCameraChunkX = Integer.MIN_VALUE;
+        this.lastCameraChunkX = null;
         this.lastCameraChunkY = Integer.MIN_VALUE;
-        this.lastCameraChunkZ = Integer.MIN_VALUE;
+        this.lastCameraChunkZ = null;
+        this.transparentCameraOld = null;
         this.entityRenderDispatcher.setLevel(pLevel);
         this.level = pLevel;
         if (pLevel != null) {
@@ -725,7 +723,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             this.renderChunksInFrustum.clear();
             Entity entity = this.minecraft.getCameraEntity();
             if (entity != null) {
-                this.viewArea.repositionCamera(entity.getX(), entity.getZ());
+                this.viewArea.repositionCamera(entity.exactPosition());
             }
         }
     }
@@ -784,13 +782,13 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         this.level.getProfiler().push("camera");
         SectorVec3 camExact = pCamera.exactPosition();
         if (camExact != null) {
-            long camBlockX = camExact.blockX();
+            Int128 camBlockX = camExact.blockX();
             int camBlockY = camExact.blockPosition().getY();
-            long camBlockZ = camExact.blockZ();
-            long i = Math.floorDiv(camBlockX, 16L);
+            Int128 camBlockZ = camExact.blockZ();
+            Int128 i = camBlockX.shiftRight(4);
             int j = SectionPos.blockToSectionCoord(camBlockY);
-            long k = Math.floorDiv(camBlockZ, 16L);
-            if (this.lastCameraChunkX != i || this.lastCameraChunkY != j || this.lastCameraChunkZ != k) {
+            Int128 k = camBlockZ.shiftRight(4);
+            if (!i.equals(this.lastCameraChunkX) || this.lastCameraChunkY != j || !k.equals(this.lastCameraChunkZ)) {
                 this.lastCameraChunkX = i;
                 this.lastCameraChunkY = j;
                 this.lastCameraChunkZ = k;
@@ -798,10 +796,10 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             }
             this.chunkRenderDispatcher.setCamera(camExact);
         } else {
-            long i = SectionPos.blockToSectionCoord(Mth.lfloor(vec3.x));
+            Int128 i = Int128.fromDoubleFloorSaturated(vec3.x).shiftRight(4);
             int j = SectionPos.blockToSectionCoord(Mth.floor(vec3.y));
-            long k = SectionPos.blockToSectionCoord(Mth.lfloor(vec3.z));
-            if (this.lastCameraChunkX != i || this.lastCameraChunkY != j || this.lastCameraChunkZ != k) {
+            Int128 k = Int128.fromDoubleFloorSaturated(vec3.z).shiftRight(4);
+            if (!i.equals(this.lastCameraChunkX) || this.lastCameraChunkY != j || !k.equals(this.lastCameraChunkZ)) {
                 this.lastCameraChunkX = i;
                 this.lastCameraChunkY = j;
                 this.lastCameraChunkZ = k;
@@ -812,19 +810,19 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         this.level.getProfiler().popPush("cull");
         this.minecraft.getProfiler().popPush("culling");
         BlockPos blockpos = pCamera.getBlockPosition();
-        long d3;
+        Int128 d3;
         int d4;
-        long d5;
+        Int128 d5;
         if (camExact != null) {
-            d3 = Math.floorDiv(camExact.blockX(), 8L);
+            d3 = camExact.blockX().shiftRight(3);
             d4 = Math.floorDiv(camExact.blockPosition().getY(), 8);
-            d5 = Math.floorDiv(camExact.blockZ(), 8L);
+            d5 = camExact.blockZ().shiftRight(3);
         } else {
-            d3 = Math.floorDiv(Mth.lfloor(vec3.x), 8L);
+            d3 = Int128.fromDoubleFloorSaturated(vec3.x).shiftRight(3);
             d4 = Math.floorDiv(Mth.floor(vec3.y), 8);
-            d5 = Math.floorDiv(Mth.lfloor(vec3.z), 8L);
+            d5 = Int128.fromDoubleFloorSaturated(vec3.z).shiftRight(3);
         }
-        this.needsFullRenderChunkUpdate = this.needsFullRenderChunkUpdate || d3 != this.prevCamX || d4 != this.prevCamY || d5 != this.prevCamZ;
+        this.needsFullRenderChunkUpdate = this.needsFullRenderChunkUpdate || !d3.equals(this.prevCamX) || d4 != this.prevCamY || !d5.equals(this.prevCamZ);
         this.nextFullUpdateMillis.updateAndGet((p_234309_) -> {
             if (p_234309_ > 0L && System.currentTimeMillis() > p_234309_) {
                 this.needsFullRenderChunkUpdate = true;
@@ -921,10 +919,10 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             for (ChunkRenderDispatcher.RenderChunk chunk : this.viewArea.chunks) {
                 BlockPos origin = chunk.getOrigin();
                 Direction inward = null;
-                if (camExact.subX() < 0.0D && origin.getX() == Long.MIN_VALUE) inward = Direction.EAST;
-                if (camExact.subX() >= 1.0D && origin.getX() == Long.MAX_VALUE - 15L) inward = Direction.WEST;
-                if (camExact.subZ() < 0.0D && origin.getZ() == Long.MIN_VALUE) inward = Direction.SOUTH;
-                if (camExact.subZ() >= 1.0D && origin.getZ() == Long.MAX_VALUE - 15L) inward = Direction.NORTH;
+                if (camExact.subX() < 0.0D && origin.getX().equals(Int128.MIN)) inward = Direction.EAST;
+                if (camExact.subX() >= 1.0D && origin.getX().equals(WorldBounds.chunkToBlock(WorldBounds.MAX_CHUNK))) inward = Direction.WEST;
+                if (camExact.subZ() < 0.0D && origin.getZ().equals(Int128.MIN)) inward = Direction.SOUTH;
+                if (camExact.subZ() >= 1.0D && origin.getZ().equals(WorldBounds.chunkToBlock(WorldBounds.MAX_CHUNK))) inward = Direction.NORTH;
                 if (inward != null) {
                     pInfoQueue.add(new LevelRenderer.RenderChunkInfo(chunk, inward, 0));
                 }
@@ -935,10 +933,10 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         if (chunkrenderdispatcher$renderchunk == null) {
             boolean flag = blockpos.getY() > this.level.getMinBuildHeight();
             int j = flag ? this.level.getMaxBuildHeight() - 8 : this.level.getMinBuildHeight() + 8;
-            long cameraBlockX = camExact != null ? camExact.blockX() : Mth.lfloor(vec3.x);
-            long cameraBlockZ = camExact != null ? camExact.blockZ() : Mth.lfloor(vec3.z);
-            long k = cameraBlockX - Math.floorMod(cameraBlockX, 16L);
-            long l = cameraBlockZ - Math.floorMod(cameraBlockZ, 16L);
+            Int128 cameraBlockX = camExact != null ? camExact.blockX() : Int128.fromDoubleFloorSaturated(vec3.x);
+            Int128 cameraBlockZ = camExact != null ? camExact.blockZ() : Int128.fromDoubleFloorSaturated(vec3.z);
+            Int128 k = cameraBlockX.shiftRight(4).shiftLeftSaturated(4);
+            Int128 l = cameraBlockZ.shiftRight(4).shiftLeftSaturated(4);
             List<LevelRenderer.RenderChunkInfo> list = Lists.newArrayList();
 
             for (long i1 = -this.lastViewDistance; i1 <= this.lastViewDistance; ++i1) {
@@ -969,12 +967,12 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
 
     private void updateRenderChunks(LinkedHashSet<LevelRenderer.RenderChunkInfo> pChunkInfos, LevelRenderer.RenderInfoMap pInfoMap, SectorVec3 camExact, Vec3 pViewVector, Queue<LevelRenderer.RenderChunkInfo> pInfoQueue, boolean pShouldCull) {
         int i = 16;
-        long cameraBlockX = camExact != null ? camExact.blockX() : Mth.lfloor(pViewVector.x);
+        Int128 cameraBlockX = camExact != null ? camExact.blockX() : Int128.fromDoubleFloorSaturated(pViewVector.x);
         int cameraBlockY = camExact != null ? camExact.blockPosition().getY() : Mth.floor(pViewVector.y);
-        long cameraBlockZ = camExact != null ? camExact.blockZ() : Mth.lfloor(pViewVector.z);
-        long cameraSectionX = cameraBlockX - Math.floorMod(cameraBlockX, 16L);
+        Int128 cameraBlockZ = camExact != null ? camExact.blockZ() : Int128.fromDoubleFloorSaturated(pViewVector.z);
+        Int128 cameraSectionX = cameraBlockX.shiftRight(4).shiftLeftSaturated(4);
         int cameraSectionY = cameraBlockY - Math.floorMod(cameraBlockY, 16);
-        long cameraSectionZ = cameraBlockZ - Math.floorMod(cameraBlockZ, 16L);
+        Int128 cameraSectionZ = cameraBlockZ.shiftRight(4).shiftLeftSaturated(4);
         BlockPos blockpos = new BlockPos(cameraSectionX, cameraSectionY, cameraSectionZ);
         BlockPos blockpos1 = blockpos.offset(8, 8, 8);
         Entity.setViewScale(Mth.clamp((double) this.minecraft.options.getEffectiveRenderDistance() / 8.0D, 1.0D, 2.5D) * this.minecraft.options.entityDistanceScaling().get());
@@ -1013,10 +1011,10 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                     label125: {
                         blockpos2 = chunkrenderdispatcher$renderchunk1.getOrigin();
                         if (direction.getAxis() == Direction.Axis.X) {
-                            if (blockpos1.getX() > blockpos2.getX()) {
+                            if (blockpos1.getX().compareTo(blockpos2.getX()) > 0) {
                                 break label125;
                             }
-                        } else if (blockpos1.getX() < blockpos2.getX()) {
+                        } else if (blockpos1.getX().compareTo(blockpos2.getX()) < 0) {
                             break label125;
                         }
 
@@ -1049,10 +1047,10 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                     label110: {
                     label109: {
                         if (direction.getAxis() == Direction.Axis.Z) {
-                            if (blockpos1.getZ() > blockpos2.getZ()) {
+                            if (blockpos1.getZ().compareTo(blockpos2.getZ()) > 0) {
                                 break label109;
                             }
-                        } else if (blockpos1.getZ() < blockpos2.getZ()) {
+                        } else if (blockpos1.getZ().compareTo(blockpos2.getZ()) < 0) {
                             break label109;
                         }
 
@@ -1123,11 +1121,11 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
     }
 
     private boolean closeToBorder(BlockPos pPos, ChunkRenderDispatcher.RenderChunk pChunk) {
-        long i = SectionPos.blockToSectionCoord(pPos.getX());
-        long j = SectionPos.blockToSectionCoord(pPos.getZ());
+        Int128 i = SectionPos.blockToSectionCoord(pPos.getX());
+        Int128 j = SectionPos.blockToSectionCoord(pPos.getZ());
         BlockPos blockpos = pChunk.getOrigin();
-        long k = SectionPos.blockToSectionCoord(blockpos.getX());
-        long l = SectionPos.blockToSectionCoord(blockpos.getZ());
+        Int128 k = SectionPos.blockToSectionCoord(blockpos.getX());
+        Int128 l = SectionPos.blockToSectionCoord(blockpos.getZ());
         return !ChunkMap.isChunkInRange(k, l, i, j, this.lastViewDistance - 2);
     }
 
@@ -1258,9 +1256,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                 if ((this.level.isOutsideBuildHeight(blockpos.getY()) || this.isChunkCompiled(blockpos)) && (entity != pCamera.getEntity() || pCamera.isDetached() || pCamera.getEntity() instanceof LivingEntity && ((LivingEntity) pCamera.getEntity()).isSleeping()) && (!(entity instanceof LocalPlayer) || pCamera.getEntity() == entity)) {
                     ++this.renderedEntities;
                     if (entity.tickCount == 0) {
-                        entity.xOld = entity.getX();
-                        entity.yOld = entity.getY();
-                        entity.zOld = entity.getZ();
+                        entity.setOldExactPosition(entity.sectorPosition());
                     }
 
                     MultiBufferSource multibuffersource;
@@ -1356,9 +1352,9 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                 d4 = this.exactRenderCamera.relativeY(blockpos2.getY());
                 d5 = this.exactRenderCamera.relativeZ(blockpos2.getZ());
             } else {
-                d3 = (double) blockpos2.getX() - d0;
+                d3 = CameraRelativePosition.of(SectorVec3.fromApproximate(d0, d1, d2)).relativeX(blockpos2.getX());
                 d4 = (double) blockpos2.getY() - d1;
-                d5 = (double) blockpos2.getZ() - d2;
+                d5 = CameraRelativePosition.of(SectorVec3.fromApproximate(d0, d1, d2)).relativeZ(blockpos2.getZ());
             }
             if (!(d3 * d3 + d4 * d4 + d5 * d5 > 1024.0D)) {
                 SortedSet<BlockDestructionProgress> sortedset1 = entry.getValue();
@@ -1485,7 +1481,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
     /**
     * Rebases a block entity's integral world position before it reaches the
     * float-backed pose stack.  Unlike ordinary entities, block entities have
-    * an exact {@link BlockPos}; retaining those long X/Z components until this
+    * an exact {@link BlockPos}; retaining those Int128 X/Z components until this
     * subtraction keeps models aligned with their intact hitboxes.
     */
     private void translateBlockEntityToCamera(PoseStack p_109514_, BlockPos pSoundEvent, double pPos, double p_109517_, double pEntity) {
@@ -1494,25 +1490,18 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                     this.exactRenderCamera.relativeY(pSoundEvent.getY()),
                     this.exactRenderCamera.relativeZ(pSoundEvent.getZ()));
         } else {
-            p_109514_.translate((double) pSoundEvent.getX() - pPos, (double) pSoundEvent.getY() - p_109517_,
-                    (double) pSoundEvent.getZ() - pEntity);
+            CameraRelativePosition camera = CameraRelativePosition.of(SectorVec3.fromApproximate(pPos, p_109517_, pEntity));
+            p_109514_.translate(camera.relativeX(pSoundEvent.getX()), camera.relativeY(pSoundEvent.getY()),
+                    camera.relativeZ(pSoundEvent.getZ()));
         }
     }
 
     private void renderEntity(Entity pEntity, double pCamX, double pCamY, double pCamZ, float pPartialTick, PoseStack pPoseStack, MultiBufferSource pBufferSource) {
         SectorVec3 exact = pEntity.interpolatedExactPosition(pPartialTick);
         SectorVec3 camera = this.exactRenderCameraPosition;
-        if (exact != null && camera != null) {
-            Vec3 local = exact.relativeTo(camera);
-            float f = Mth.lerp(pPartialTick, pEntity.yRotO, pEntity.getYRot());
-            this.entityRenderDispatcher.render(pEntity, local.x, local.y, local.z, f, pPartialTick, pPoseStack, pBufferSource, this.entityRenderDispatcher.getPackedLightCoords(pEntity, pPartialTick));
-            return;
-        }
-        double d0 = Mth.lerp((double) pPartialTick, pEntity.xOld, pEntity.getX());
-        double d1 = Mth.lerp((double) pPartialTick, pEntity.yOld, pEntity.getY());
-        double d2 = Mth.lerp((double) pPartialTick, pEntity.zOld, pEntity.getZ());
+        Vec3 local = exact.relativeTo(java.util.Objects.requireNonNull(camera, "exact render camera"));
         float f = Mth.lerp(pPartialTick, pEntity.yRotO, pEntity.getYRot());
-        this.entityRenderDispatcher.render(pEntity, d0 - pCamX, d1 - pCamY, d2 - pCamZ, f, pPartialTick, pPoseStack, pBufferSource, this.entityRenderDispatcher.getPackedLightCoords(pEntity, pPartialTick));
+        this.entityRenderDispatcher.render(pEntity, local.x, local.y, local.z, f, pPartialTick, pPoseStack, pBufferSource, this.entityRenderDispatcher.getPackedLightCoords(pEntity, pPartialTick));
     }
 
     private void renderChunkLayer(RenderType pRenderType, PoseStack pPoseStack, double pCamX, double pCamY, double pCamZ, Matrix4f pProjectionMatrix) {
@@ -1520,13 +1509,11 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         pRenderType.setupRenderState();
         if (pRenderType == RenderType.translucent()) {
             this.minecraft.getProfiler().push("translucent_sort");
-            double d0 = pCamX - this.xTransparentOld;
-            double d1 = pCamY - this.yTransparentOld;
-            double d2 = pCamZ - this.zTransparentOld;
-            if (d0 * d0 + d1 * d1 + d2 * d2 > 1.0D) {
-                this.xTransparentOld = pCamX;
-                this.yTransparentOld = pCamY;
-                this.zTransparentOld = pCamZ;
+            SectorVec3 camera = this.exactRenderCameraPosition != null ? this.exactRenderCameraPosition
+                    : SectorVec3.fromApproximate(pCamX, pCamY, pCamZ);
+            Vec3 movement = this.transparentCameraOld == null ? Vec3.ZERO : camera.relativeTo(this.transparentCameraOld);
+            if (this.transparentCameraOld == null || movement.lengthSqr() > 1.0D) {
+                this.transparentCameraOld = camera;
                 int j = 0;
 
                 for (LevelRenderer.RenderChunkInfo levelrenderer$renderchunkinfo : this.renderChunksInFrustum) {
@@ -1906,7 +1893,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                     VertexBuffer.unbind();
                 } else if (this.level.effects().skyType() == DimensionSpecialEffects.SkyType.NORMAL) {
                     RenderSystem.disableTexture();
-                    Vec3 vec3 = this.level.getSkyColor(p_202427_.getPosition(), p_202426_);
+                    Vec3 vec3 = this.level.getSkyColor(p_202427_.exactPosition(), p_202426_);
                     float f = (float) vec3.x;
                     float f1 = (float) vec3.y;
                     float f2 = (float) vec3.z;
@@ -2046,8 +2033,8 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             double d4;
             if (exactCamera != null) {
                 // Keep cloud coordinates local to the camera. Only the bounded periodic phase is retained, so the large world coordinate never reaches the floating-point render transform.
-                double cloudX = (double) Math.floorMod(exactCamera.blockX(), 24576L) + exactCamera.subX();
-                double cloudZ = (double) Math.floorMod(exactCamera.blockZ(), 24576L) + exactCamera.subZ();
+                double cloudX = (double) ViewArea.floorMod(exactCamera.blockX(), 24576) + exactCamera.subX();
+                double cloudZ = (double) ViewArea.floorMod(exactCamera.blockZ(), 24576) + exactCamera.subZ();
                 d2 = getCloudPhase(cloudX, d1, 0.0D);
                 d3 = (double) f - exactCamera.y() + 0.33D;
                 d4 = getCloudPhase(cloudZ, 0.0D, 0.33D);
@@ -2229,7 +2216,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         for (LevelRenderer.RenderChunkInfo levelrenderer$renderchunkinfo : this.renderChunksInFrustum) {
             ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk = levelrenderer$renderchunkinfo.chunk;
             ChunkPos chunkpos = new ChunkPos(chunkrenderdispatcher$renderchunk.getOrigin());
-            if (chunkrenderdispatcher$renderchunk.isDirty() && this.level.getChunk(chunkpos.x, chunkpos.z).isClientLightReady()) {
+            if (chunkrenderdispatcher$renderchunk.isDirty() && this.level.getChunk(chunkpos.x(), chunkpos.z()).isClientLightReady()) {
                 boolean flag = false;
                 if (this.minecraft.options.prioritizeChunkUpdates().get() != PrioritizeChunkUpdates.NEARBY) {
                     if (this.minecraft.options.prioritizeChunkUpdates().get() == PrioritizeChunkUpdates.PLAYER_AFFECTED) {
@@ -2264,15 +2251,23 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
     }
 
     private void renderWorldBorder(Camera pCamera) {
+        // Disabled borders have no geometry; never consult approximate camera X/Z.
+        if (Double.isInfinite(this.level.getWorldBorder().getDistanceToBorder(pCamera.exactPosition())))
+            return;
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
         WorldBorder worldborder = this.level.getWorldBorder();
         double d0 = (double) (this.minecraft.options.getEffectiveRenderDistance() * 16);
-        if (!(pCamera.getPosition().x < worldborder.getMaxX() - d0) || !(pCamera.getPosition().x > worldborder.getMinX() + d0) || !(pCamera.getPosition().z < worldborder.getMaxZ() - d0) || !(pCamera.getPosition().z > worldborder.getMinZ() + d0)) {
-            double d1 = 1.0D - worldborder.getDistanceToBorder(pCamera.getPosition().x, pCamera.getPosition().z) / d0;
+        Vec3 center = worldborder.getExactCenter().relativeTo(pCamera.exactPosition());
+        double minX = center.x - worldborder.getSize() / 2.0D;
+        double maxX = center.x + worldborder.getSize() / 2.0D;
+        double minZ = center.z - worldborder.getSize() / 2.0D;
+        double maxZ = center.z + worldborder.getSize() / 2.0D;
+        if (maxX <= d0 || minX >= -d0 || maxZ <= d0 || minZ >= -d0) {
+            double d1 = 1.0D - worldborder.getDistanceToBorder(pCamera.exactPosition()) / d0;
             d1 = Math.pow(d1, 4.0D);
             d1 = Mth.clamp(d1, 0.0D, 1.0D);
-            double d2 = pCamera.getPosition().x;
-            double d3 = pCamera.getPosition().z;
+            double d2 = 0.0D;
+            double d3 = 0.0D;
             double d4 = (double) this.minecraft.gameRenderer.getDepthFar();
             RenderSystem.enableBlend();
             RenderSystem.enableDepthTest();
@@ -2296,62 +2291,62 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             float f5 = 0.0F;
             float f6 = (float) (d4 - Mth.frac(pCamera.getPosition().y));
             bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-            double d5 = Math.max((double) Mth.floor(d3 - d0), worldborder.getMinZ());
-            double d6 = Math.min((double) Mth.ceil(d3 + d0), worldborder.getMaxZ());
-            if (d2 > worldborder.getMaxX() - d0) {
+            double d5 = Math.max(Math.floor(-d0 + pCamera.exactPosition().subZ()) - pCamera.exactPosition().subZ(), minZ);
+            double d6 = Math.min(Math.ceil(d0 + pCamera.exactPosition().subZ()) - pCamera.exactPosition().subZ(), maxZ);
+            if (d2 > maxX - d0) {
                 float f7 = 0.0F;
 
                 for (double d7 = d5; d7 < d6; f7 += 0.5F) {
                     double d8 = Math.min(1.0D, d6 - d7);
                     float f8 = (float) d8 * 0.5F;
-                    bufferbuilder.vertex(worldborder.getMaxX() - d2, -d4, d7 - d3).uv(f3 - f7, f3 + f6).endVertex();
-                    bufferbuilder.vertex(worldborder.getMaxX() - d2, -d4, d7 + d8 - d3).uv(f3 - (f8 + f7), f3 + f6).endVertex();
-                    bufferbuilder.vertex(worldborder.getMaxX() - d2, d4, d7 + d8 - d3).uv(f3 - (f8 + f7), f3 + 0.0F).endVertex();
-                    bufferbuilder.vertex(worldborder.getMaxX() - d2, d4, d7 - d3).uv(f3 - f7, f3 + 0.0F).endVertex();
+                    bufferbuilder.vertex(maxX, -d4, d7 - d3).uv(f3 - f7, f3 + f6).endVertex();
+                    bufferbuilder.vertex(maxX, -d4, d7 + d8 - d3).uv(f3 - (f8 + f7), f3 + f6).endVertex();
+                    bufferbuilder.vertex(maxX, d4, d7 + d8 - d3).uv(f3 - (f8 + f7), f3 + 0.0F).endVertex();
+                    bufferbuilder.vertex(maxX, d4, d7 - d3).uv(f3 - f7, f3 + 0.0F).endVertex();
                     ++d7;
                 }
             }
 
-            if (d2 < worldborder.getMinX() + d0) {
+            if (d2 < minX + d0) {
                 float f9 = 0.0F;
 
                 for (double d9 = d5; d9 < d6; f9 += 0.5F) {
                     double d12 = Math.min(1.0D, d6 - d9);
                     float f12 = (float) d12 * 0.5F;
-                    bufferbuilder.vertex(worldborder.getMinX() - d2, -d4, d9 - d3).uv(f3 + f9, f3 + f6).endVertex();
-                    bufferbuilder.vertex(worldborder.getMinX() - d2, -d4, d9 + d12 - d3).uv(f3 + f12 + f9, f3 + f6).endVertex();
-                    bufferbuilder.vertex(worldborder.getMinX() - d2, d4, d9 + d12 - d3).uv(f3 + f12 + f9, f3 + 0.0F).endVertex();
-                    bufferbuilder.vertex(worldborder.getMinX() - d2, d4, d9 - d3).uv(f3 + f9, f3 + 0.0F).endVertex();
+                    bufferbuilder.vertex(minX, -d4, d9 - d3).uv(f3 + f9, f3 + f6).endVertex();
+                    bufferbuilder.vertex(minX, -d4, d9 + d12 - d3).uv(f3 + f12 + f9, f3 + f6).endVertex();
+                    bufferbuilder.vertex(minX, d4, d9 + d12 - d3).uv(f3 + f12 + f9, f3 + 0.0F).endVertex();
+                    bufferbuilder.vertex(minX, d4, d9 - d3).uv(f3 + f9, f3 + 0.0F).endVertex();
                     ++d9;
                 }
             }
 
-            d5 = Math.max((double) Mth.floor(d2 - d0), worldborder.getMinX());
-            d6 = Math.min((double) Mth.ceil(d2 + d0), worldborder.getMaxX());
-            if (d3 > worldborder.getMaxZ() - d0) {
+            d5 = Math.max(Math.floor(-d0 + pCamera.exactPosition().subX()) - pCamera.exactPosition().subX(), minX);
+            d6 = Math.min(Math.ceil(d0 + pCamera.exactPosition().subX()) - pCamera.exactPosition().subX(), maxX);
+            if (d3 > maxZ - d0) {
                 float f10 = 0.0F;
 
                 for (double d10 = d5; d10 < d6; f10 += 0.5F) {
                     double d13 = Math.min(1.0D, d6 - d10);
                     float f13 = (float) d13 * 0.5F;
-                    bufferbuilder.vertex(d10 - d2, -d4, worldborder.getMaxZ() - d3).uv(f3 + f10, f3 + f6).endVertex();
-                    bufferbuilder.vertex(d10 + d13 - d2, -d4, worldborder.getMaxZ() - d3).uv(f3 + f13 + f10, f3 + f6).endVertex();
-                    bufferbuilder.vertex(d10 + d13 - d2, d4, worldborder.getMaxZ() - d3).uv(f3 + f13 + f10, f3 + 0.0F).endVertex();
-                    bufferbuilder.vertex(d10 - d2, d4, worldborder.getMaxZ() - d3).uv(f3 + f10, f3 + 0.0F).endVertex();
+                    bufferbuilder.vertex(d10 - d2, -d4, maxZ).uv(f3 + f10, f3 + f6).endVertex();
+                    bufferbuilder.vertex(d10 + d13 - d2, -d4, maxZ).uv(f3 + f13 + f10, f3 + f6).endVertex();
+                    bufferbuilder.vertex(d10 + d13 - d2, d4, maxZ).uv(f3 + f13 + f10, f3 + 0.0F).endVertex();
+                    bufferbuilder.vertex(d10 - d2, d4, maxZ).uv(f3 + f10, f3 + 0.0F).endVertex();
                     ++d10;
                 }
             }
 
-            if (d3 < worldborder.getMinZ() + d0) {
+            if (d3 < minZ + d0) {
                 float f11 = 0.0F;
 
                 for (double d11 = d5; d11 < d6; f11 += 0.5F) {
                     double d14 = Math.min(1.0D, d6 - d11);
                     float f14 = (float) d14 * 0.5F;
-                    bufferbuilder.vertex(d11 - d2, -d4, worldborder.getMinZ() - d3).uv(f3 - f11, f3 + f6).endVertex();
-                    bufferbuilder.vertex(d11 + d14 - d2, -d4, worldborder.getMinZ() - d3).uv(f3 - (f14 + f11), f3 + f6).endVertex();
-                    bufferbuilder.vertex(d11 + d14 - d2, d4, worldborder.getMinZ() - d3).uv(f3 - (f14 + f11), f3 + 0.0F).endVertex();
-                    bufferbuilder.vertex(d11 - d2, d4, worldborder.getMinZ() - d3).uv(f3 - f11, f3 + 0.0F).endVertex();
+                    bufferbuilder.vertex(d11 - d2, -d4, minZ).uv(f3 - f11, f3 + f6).endVertex();
+                    bufferbuilder.vertex(d11 + d14 - d2, -d4, minZ).uv(f3 - (f14 + f11), f3 + f6).endVertex();
+                    bufferbuilder.vertex(d11 + d14 - d2, d4, minZ).uv(f3 - (f14 + f11), f3 + 0.0F).endVertex();
+                    bufferbuilder.vertex(d11 - d2, d4, minZ).uv(f3 - f11, f3 + 0.0F).endVertex();
                     ++d11;
                 }
             }
@@ -2379,9 +2374,9 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
             y = this.exactRenderCamera.relativeY(pPos.getY());
             z = this.exactRenderCamera.relativeZ(pPos.getZ());
         } else {
-            x = (double) pPos.getX() - pCamX;
+            x = CameraRelativePosition.of(SectorVec3.fromApproximate(pCamX, pCamY, pCamZ)).relativeX(pPos.getX());
             y = (double) pPos.getY() - pCamY;
-            z = (double) pPos.getZ() - pCamZ;
+            z = CameraRelativePosition.of(SectorVec3.fromApproximate(pCamX, pCamY, pCamZ)).relativeZ(pPos.getZ());
         }
         renderShape(pPoseStack, pConsumer, pState.getShape(this.level, pPos, CollisionContext.of(pEntity)),
                 x, y, z, 0.0F, 0.0F, 0.0F, 0.4F);
@@ -2507,29 +2502,32 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
     }
 
     public void setBlocksDirty(long pMinX, int pMinY, long pMinZ, long pMaxX, int pMaxY, long pMaxZ) {
+        this.setBlocksDirty(Int128.fromLong(pMinX), pMinY, Int128.fromLong(pMinZ), Int128.fromLong(pMaxX), pMaxY, Int128.fromLong(pMaxZ));
+    }
+
+    public void setBlocksDirty(Int128 pMinX, int pMinY, Int128 pMinZ, Int128 pMaxX, int pMaxY, Int128 pMaxZ) {
         this.setBlocksDirty(pMinX, pMinY, pMinZ, pMaxX, pMaxY, pMaxZ, false);
     }
 
-    private void setBlocksDirty(long pMinX, int pMinY, long pMinZ, long pMaxX, int pMaxY, long pMaxZ, boolean pReRenderOnMainThread) {
-        // Do not express this as `for (x = min; x <= max; ++x)`: at MAX_VALUE,
-        // ++ wraps to MIN_VALUE and the render thread never exits the loop.
-        long minZ = WorldBounds.addBlockOffset(Math.min(pMinZ, pMaxZ), -1L);
-        long maxZ = WorldBounds.addBlockOffset(Math.max(pMinZ, pMaxZ), 1L);
-        long minX = WorldBounds.addBlockOffset(Math.min(pMinX, pMaxX), -1L);
-        long maxX = WorldBounds.addBlockOffset(Math.max(pMinX, pMaxX), 1L);
-        int minY = Math.min(pMinY, pMaxY) - 1;
-        int maxY = Math.max(pMinY, pMaxY) + 1;
-
-        for (long z = minZ;; z = WorldBounds.addBlockOffset(z, 1L)) {
-            for (long x = minX;; x = WorldBounds.addBlockOffset(x, 1L)) {
-                for (int y = minY; y <= maxY; ++y) {
-                    this.setSectionDirty(SectionPos.blockToSectionCoord(x), SectionPos.blockToSectionCoord(y), SectionPos.blockToSectionCoord(z), pReRenderOnMainThread);
-                }
-                if (x == maxX)
-                    break;
-            }
-            if (z == maxZ)
-                break;
+    private void setBlocksDirty(Int128 pMinX, int pMinY, Int128 pMinZ, Int128 pMaxX, int pMaxY, Int128 pMaxZ, boolean pReRenderOnMainThread) {
+        Int128 minX = WorldBounds.addBlockOffset(pMinX.compareTo(pMaxX) <= 0 ? pMinX : pMaxX, -1).shiftRight(4);
+        Int128 maxX = WorldBounds.addBlockOffset(pMinX.compareTo(pMaxX) >= 0 ? pMinX : pMaxX, 1).shiftRight(4);
+        Int128 minZ = WorldBounds.addBlockOffset(pMinZ.compareTo(pMaxZ) <= 0 ? pMinZ : pMaxZ, -1).shiftRight(4);
+        Int128 maxZ = WorldBounds.addBlockOffset(pMinZ.compareTo(pMaxZ) >= 0 ? pMinZ : pMaxZ, 1).shiftRight(4);
+        long minY = (long) Math.min(pMinY, pMaxY) - 1L;
+        long maxY = (long) Math.max(pMinY, pMaxY) + 1L;
+        if (this.viewArea == null)
+            return;
+        if (this.viewArea.trySetDirtyRange(minX, minY >> 4, minZ, maxX, maxY >> 4, maxZ, pReRenderOnMainThread))
+            return;
+        // Work is bounded by the allocated view, even for a world-sized invalidation.
+        for (ChunkRenderDispatcher.RenderChunk chunk : this.viewArea.chunks) {
+            BlockPos origin = chunk.getOrigin();
+            Int128 x = origin.getX().shiftRight(4);
+            Int128 z = origin.getZ().shiftRight(4);
+            if (x.compareTo(minX) >= 0 && x.compareTo(maxX) <= 0 && z.compareTo(minZ) >= 0 && z.compareTo(maxZ) <= 0
+                    && ((long) origin.getY() >> 4) >= (minY >> 4) && ((long) origin.getY() >> 4) <= (maxY >> 4))
+                chunk.setDirty(pReRenderOnMainThread);
         }
     }
 
@@ -2540,28 +2538,38 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
     }
 
     public void setSectionDirtyWithNeighbors(long pSectionX, int pSectionY, long pSectionZ) {
+        this.setSectionDirtyWithNeighbors(Int128.fromLong(pSectionX), pSectionY, Int128.fromLong(pSectionZ));
+    }
+
+    public void setSectionDirtyWithNeighbors(Int128 pSectionX, int pSectionY, Int128 pSectionZ) {
         for (long zOffset = -1L; zOffset <= 1L; ++zOffset) {
-            Long sectionZ = WorldBounds.tryAddChunkOffset(pSectionZ, zOffset);
+            Int128 sectionZ = WorldBounds.tryAddChunkOffset(pSectionZ, zOffset);
             if (sectionZ == null)
                 continue;
 
             for (long xOffset = -1L; xOffset <= 1L; ++xOffset) {
-                Long sectionX = WorldBounds.tryAddChunkOffset(pSectionX, xOffset);
+                Int128 sectionX = WorldBounds.tryAddChunkOffset(pSectionX, xOffset);
                 if (sectionX == null)
                     continue;
 
-                for (int sectionY = pSectionY - 1; sectionY <= pSectionY + 1; ++sectionY) {
-                    this.setSectionDirty(sectionX, sectionY, sectionZ);
+                for (int yOffset = -1; yOffset <= 1; ++yOffset) {
+                    long sectionY = (long) pSectionY + yOffset;
+                    if (sectionY >= Integer.MIN_VALUE && sectionY <= Integer.MAX_VALUE)
+                        this.setSectionDirty(sectionX, (int) sectionY, sectionZ);
                 }
             }
         }
     }
 
     public void setSectionDirty(long pSectionX, int pSectionY, long pSectionZ) {
+        this.setSectionDirty(Int128.fromLong(pSectionX), pSectionY, Int128.fromLong(pSectionZ));
+    }
+
+    public void setSectionDirty(Int128 pSectionX, int pSectionY, Int128 pSectionZ) {
         this.setSectionDirty(pSectionX, pSectionY, pSectionZ, false);
     }
 
-    private void setSectionDirty(long pSectionX, int pSectionY, long pSectionZ, boolean pReRenderOnMainThread) {
+    private void setSectionDirty(Int128 pSectionX, int pSectionY, Int128 pSectionZ, boolean pReRenderOnMainThread) {
         this.viewArea.setDirty(pSectionX, pSectionY, pSectionZ, pReRenderOnMainThread);
     }
 
@@ -2590,20 +2598,6 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         for (LivingEntity livingentity : pLevel.getEntitiesOfClass(LivingEntity.class, (new AABB(pPos)).inflate(3.0D))) {
             livingentity.setRecordPlayingNearby(pPos, pPlaying);
         }
-    }
-
-    /** Legacy double entry point; exact callers use the SectorVec3 overload. */
-    private <T extends ParticleOptions> void addParticle(T options, double x, double y, double z, double xd, double yd, double zd) {
-        this.addParticle(options, SectorVec3.fromApproximate(x, y, z), xd, yd, zd);
-    }
-
-    public void addParticle(ParticleOptions options, boolean force, double x, double y, double z, double xd, double yd, double zd) {
-        this.addParticle(options, force, false, SectorVec3.fromApproximate(x, y, z), xd, yd, zd);
-    }
-
-    public void addParticle(ParticleOptions options, boolean force, boolean alwaysVisible,
-            double x, double y, double z, double xd, double yd, double zd) {
-        this.addParticle(options, force, alwaysVisible, SectorVec3.fromApproximate(x, y, z), xd, yd, zd);
     }
 
     /** Adds a particle without flattening its horizontal world origin to doubles. */
@@ -3097,7 +3091,7 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
                 this.removeProgress(blockdestructionprogress1);
             }
 
-            if (blockdestructionprogress1 == null || blockdestructionprogress1.getPos().getX() != pPos.getX() || blockdestructionprogress1.getPos().getY() != pPos.getY() || blockdestructionprogress1.getPos().getZ() != pPos.getZ()) {
+            if (blockdestructionprogress1 == null || !blockdestructionprogress1.getPos().equals(pPos)) {
                 blockdestructionprogress1 = new BlockDestructionProgress(pBreakerId, pPos);
                 this.destroyingBlocks.put(pBreakerId, blockdestructionprogress1);
             }

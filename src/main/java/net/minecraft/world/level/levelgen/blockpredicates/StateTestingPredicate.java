@@ -11,7 +11,7 @@ public abstract class StateTestingPredicate implements BlockPredicate {
     protected final Vec3i offset;
 
     protected static <P extends StateTestingPredicate> Products.P1<RecordCodecBuilder.Mu<P>, Vec3i> stateTestingCodec(RecordCodecBuilder.Instance<P> p_190547_) {
-        return p_190547_.group(Vec3i.offsetCodec(16).optionalFieldOf("offset", Vec3i.ZERO).forGetter((p_190549_) -> {
+        return p_190547_.group(net.minecraft.world.level.levelgen.WorldgenPlacementCodecs.optionalField(Vec3i.offsetCodec(16), "offset", Vec3i.ZERO).forGetter((p_190549_) -> {
             return p_190549_.offset;
         }));
     }

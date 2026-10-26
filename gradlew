@@ -88,6 +88,16 @@ APP_BASE_NAME=${0##*/}
 # Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
 DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
 
+# Termux uses Android's libc, so Gradle's Linux native services cannot load.
+# Keep these defaults local to Android; ordinary desktop builds are unaffected.
+if [ -n "$TERMUX_VERSION" ] || [ "${PREFIX:-}" = /data/data/com.termux/files/usr ]; then
+    if [ -z "$JAVA_HOME" ] && [ -x "$HOME/jdk17/bin/java" ]; then
+        JAVA_HOME="$HOME/jdk17"
+        export JAVA_HOME
+    fi
+    DEFAULT_JVM_OPTS="$DEFAULT_JVM_OPTS"' "-Dorg.gradle.native=false" "-Dorg.gradle.vfs.watch=false" "-Dorg.gradle.workers.max=2" "-Dorg.gradle.jvmargs=-Xmx1536m -XX:+UseG1GC"'
+fi
+
 # Use the maximum available, or set MAX_FD != -1 to use that value.
 MAX_FD=maximum
 

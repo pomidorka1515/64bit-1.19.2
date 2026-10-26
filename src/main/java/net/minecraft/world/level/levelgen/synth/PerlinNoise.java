@@ -200,6 +200,26 @@ public class PerlinNoise {
         return this.edgeValue(p_210644_ + 2.0D);
     }
 
+    /** Full-width inputs are scaled at each octave before reducing the lattice. */
+    public double getValueScaled(long xHi, long xLo, double scale, double shiftX,
+                                 long yHi, long yLo, double yScale, double shiftY,
+                                 long zHi, long zLo, double shiftZ) {
+        double value = 0.0D;
+        double valueFactor = this.lowestFreqValueFactor;
+        PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
+        for (int i = 0; i < this.noiseLevels.length; ++i) {
+            ImprovedNoise noise = this.noiseLevels[i];
+            int power = this.firstOctave + i;
+            if (noise != null) {
+                value += this.amplitudes.getDouble(i) * NoiseSampling.sample(noise,
+                        xHi, xLo, scale, shiftX, yHi, yLo, yScale, shiftY,
+                        zHi, zLo, scale, shiftZ, power, 0.0D, 0.0D) * valueFactor;
+            }
+            valueFactor /= 2.0D;
+        }
+        return value;
+    }
+
     private double edgeValue(double p_210650_) {
         double d0 = 0.0D;
         double d1 = this.lowestFreqValueFactor;

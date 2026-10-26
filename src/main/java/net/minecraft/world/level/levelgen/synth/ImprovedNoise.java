@@ -58,6 +58,7 @@ public final class ImprovedNoise {
         double d5 = d2 - (double) k;
         if (Thread.currentThread() == debugCaptureThread) {
             debugSamplePoint = d0;
+            debugSplitSample = false;
             debugGridIndex = i;
             debugCellOffset = d3;
             debugSmoothedOffset = Mth.smoothstep(d3);
@@ -84,6 +85,22 @@ public final class ImprovedNoise {
         return this.noise(cellX, fracX, cellY, fracY, cellZ, fracZ, 0.0D, 0.0D);
     }
 
+    double sampleRouted(PreciseNoiseCoordinate.Split x, PreciseNoiseCoordinate.Split y, PreciseNoiseCoordinate.Split z, double smearScale, double smearOffset) {
+        double smear = 0.0D;
+        if (smearScale != 0.0D) {
+            double input = smearOffset >= 0.0D && smearOffset < y.fraction ? smearOffset : y.fraction;
+            smear = (double) Mth.floor(input / smearScale + (double) SHIFT_UP_EPSILON) * smearScale;
+        }
+        if (Thread.currentThread() == debugCaptureThread) {
+            debugSamplePoint = x.fraction;
+            debugSplitSample = true;
+            debugGridIndex = x.lattice;
+            debugCellOffset = x.fraction;
+            debugSmoothedOffset = Mth.smoothstep(x.fraction);
+        }
+        return sampleAndLerp(x.lattice, y.lattice, z.lattice, x.fraction, y.fraction - smear, z.fraction, y.fraction);
+    }
+
     /** Precise split-coordinate variant retaining the legacy vertical smear operation. */
     public double noise(long cellX, double fracX, long cellY, double fracY, long cellZ, double fracZ, double smearScale, double smearOffset) {
         double x = fracX + this.xo;
@@ -96,7 +113,8 @@ public final class ImprovedNoise {
         double fy = y - Math.floor(y);
         double fz = z - Math.floor(z);
         if (Thread.currentThread() == debugCaptureThread) {
-            debugSamplePoint = (double) xCell + fx;
+            debugSamplePoint = fx;
+            debugSplitSample = true;
             debugGridIndex = xCell;
             debugCellOffset = fx;
             debugSmoothedOffset = Mth.smoothstep(fx);
@@ -124,6 +142,7 @@ public final class ImprovedNoise {
     }
 
     public static void beginDebugCapture() {
+        debugSplitSample = false;
         debugSamplePoint = Double.NaN;
         debugCellOffset = Double.NaN;
         debugSmoothedOffset = Double.NaN;
@@ -135,13 +154,20 @@ public final class ImprovedNoise {
         debugCaptureThread = null;
     }
 
+    private static boolean debugSplitSample;
+
     public static String getDebugString() {
         if (Double.isNaN(debugSamplePoint)) return "Not evaluated at this position";
-        return String.format(Locale.ROOT, "Sample Point: %.3f Grid Index: %d", debugSamplePoint, debugGridIndex);
+        String gridIndex = Long.toString(debugGridIndex);
+        if (debugGridIndex < -1_000_000_000L || debugGridIndex > 1_000_000_000L)
+            gridIndex = "\247c" + gridIndex + "\247r";
+        String sample = debugSplitSample ? BlendedNoise.formatSplitDebugValue(debugGridIndex, debugSamplePoint, 2)
+                : BlendedNoise.formatDebugValue(debugSamplePoint);
+        return String.format(Locale.ROOT, "Grid Sample point: %s index: %s", sample, gridIndex);
     }
 
     public static String getDebugString2() {
-        return String.format(Locale.ROOT, "Cell Offset: %.3f Smoothed Offset: %.3f", debugCellOffset, debugSmoothedOffset);
+        return String.format(Locale.ROOT, "Cell Offset raw: %s smoothed: %s", BlendedNoise.formatDebugValue(debugCellOffset), BlendedNoise.formatDebugValue(debugSmoothedOffset));
     }
 
     private static double gradDot(int pGradIndex, double pXFactor, double pYFactor, double pZFactor) {
@@ -153,6 +179,7 @@ public final class ImprovedNoise {
     }
 
     private double sampleAndLerp(long pGridX, long pGridY, long pGridZ, double pDeltaX, double pWeirdDeltaY, double pDeltaZ, double pDeltaY) {
+        NoiseSampling.observeFractions(pDeltaX, pDeltaY, pDeltaZ);
         int i = this.p(pGridX);
         int j = this.p(pGridX + 1);
         int k = this.p(i + pGridY);

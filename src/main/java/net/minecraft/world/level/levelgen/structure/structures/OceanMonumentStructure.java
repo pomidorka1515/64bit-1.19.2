@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.Optional;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Int128;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldBounds;
@@ -28,8 +29,8 @@ public class OceanMonumentStructure extends Structure {
     }
 
     public Optional<Structure.GenerationStub> findGenerationPoint(Structure.GenerationContext p_228964_) {
-        long i = p_228964_.chunkPos().getBlockX(9);
-        long j = p_228964_.chunkPos().getBlockZ(9);
+        Int128 i = p_228964_.chunkPos().getBlockX(9);
+        Int128 j = p_228964_.chunkPos().getBlockZ(9);
 
         for (Holder<Biome> holder : p_228964_.biomeSource().getBiomesWithin(i, p_228964_.chunkGenerator().getSeaLevel(), j, 29, p_228964_.randomState().sampler())) {
             if (!holder.is(BiomeTags.REQUIRED_OCEAN_MONUMENT_SURROUNDING)) {
@@ -43,8 +44,8 @@ public class OceanMonumentStructure extends Structure {
     }
 
     private static StructurePiece createTopPiece(ChunkPos p_228961_, WorldgenRandom p_228962_) {
-        long i = WorldBounds.subtractBlockOffset(p_228961_.getMinBlockX(), 29L);
-        long j = WorldBounds.subtractBlockOffset(p_228961_.getMinBlockZ(), 29L);
+        Int128 i = WorldBounds.subtractBlockOffset(p_228961_.getMinBlockX(), 29L);
+        Int128 j = WorldBounds.subtractBlockOffset(p_228961_.getMinBlockZ(), 29L);
         Direction direction = Direction.Plane.HORIZONTAL.getRandomDirection(p_228962_);
         return new OceanMonumentPieces.MonumentBuilding(p_228962_, i, j, direction);
     }
@@ -58,11 +59,11 @@ public class OceanMonumentStructure extends Structure {
             return p_228959_;
         } else {
             WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(RandomSupport.generateUniqueSeed()));
-            worldgenrandom.setLargeFeatureSeed(p_228958_, p_228957_.x, p_228957_.z);
+            worldgenrandom.setLargeFeatureSeed(p_228958_, p_228957_.x(), p_228957_.z());
             StructurePiece structurepiece = p_228959_.pieces().get(0);
             BoundingBox boundingbox = structurepiece.getBoundingBox();
-            long i = boundingbox.minX();
-            long j = boundingbox.minZ();
+            Int128 i = boundingbox.minX();
+            Int128 j = boundingbox.minZ();
             Direction direction = Direction.Plane.HORIZONTAL.getRandomDirection(worldgenrandom);
             Direction direction1 = Objects.requireNonNullElse(structurepiece.getOrientation(), direction);
             StructurePiece structurepiece1 = new OceanMonumentPieces.MonumentBuilding(worldgenrandom, i, j, direction1);

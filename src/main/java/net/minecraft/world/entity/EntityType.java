@@ -18,6 +18,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -25,7 +26,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
-import net.minecraft.util.datafix.fixes.References;
 import net.minecraft.world.entity.ambient.Bat;
 import net.minecraft.world.entity.animal.Bee;
 import net.minecraft.world.entity.animal.Cat;
@@ -385,12 +385,12 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
     * entity-collision semantics.</p>
     */
     private static double getExactYOffset(LevelReader level, BlockPos position, boolean canSpawnBelow, Entity entity) {
-        long probeMaxX = position.getX() == Long.MAX_VALUE ? Long.MAX_VALUE : WorldBounds.addBlockOffset(position.getX(), 1L);
-        long probeMaxZ = position.getZ() == Long.MAX_VALUE ? Long.MAX_VALUE : WorldBounds.addBlockOffset(position.getZ(), 1L);
+        net.minecraft.core.Int128 probeMaxX = WorldBounds.addBlockOffset(position.getX(), 1L);
+        net.minecraft.core.Int128 probeMaxZ = WorldBounds.addBlockOffset(position.getZ(), 1L);
         SectorAABB exactProbe = new SectorAABB(position.getX(), 0.0D, (double) position.getY(),
-                position.getZ(), 0.0D, probeMaxX, probeMaxX == position.getX() ? Math.nextDown(1.0D) : 0.0D,
+                position.getZ(), 0.0D, probeMaxX, probeMaxX.equals(position.getX()) ? Math.nextDown(1.0D) : 0.0D,
                 (double) position.getY() + 1.0D, probeMaxZ,
-                probeMaxZ == position.getZ() ? Math.nextDown(1.0D) : 0.0D);
+                probeMaxZ.equals(position.getZ()) ? Math.nextDown(1.0D) : 0.0D);
         if (canSpawnBelow) {
             exactProbe = exactProbe.expandTowards(0.0D, -1.0D, 0.0D);
         }
@@ -521,6 +521,29 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
 
     public static Optional<EntityType<?>> by(CompoundTag pCompound) {
         return Registry.ENTITY_TYPE.getOptional(new ResourceLocation(pCompound.getString("id")));
+    }
+
+    @Nullable
+    public static Entity loadEntityRecursive(CompoundTag tag, Level level, SectorVec3 spawnPosition, Function<Entity, Entity> entityFunction) {
+        // Spawn templates are not saved entities: commands and spawners commonly
+        // supply only an id. Seed the exact position before Entity.load(), not in
+        // its post-load callback. Do not relax the persisted-entity decoder.
+        CompoundTag spawnTag = tag.copy();
+        setSpawnPosition(spawnTag, spawnPosition);
+        return loadEntityRecursive(spawnTag, level, entityFunction);
+    }
+
+    private static void setSpawnPosition(CompoundTag tag, SectorVec3 position) {
+        CompoundTag exactTag = new CompoundTag();
+        NbtUtils.writeInt128(exactTag, "BlockX", position.blockX());
+        NbtUtils.writeInt128(exactTag, "BlockZ", position.blockZ());
+        exactTag.putDouble("SubX", position.subX());
+        exactTag.putDouble("SubZ", position.subZ());
+        exactTag.putDouble("Y", position.y());
+        tag.put("ExactPos", exactTag);
+        for (Tag passenger : tag.getList("Passengers", 10)) {
+            setSpawnPosition((CompoundTag) passenger, position);
+        }
     }
 
     @Nullable
@@ -677,10 +700,6 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
         }
 
         public EntityType<T> build(String pKey) {
-            if (this.serialize) {
-                Util.fetchChoiceType(References.ENTITY_TREE, pKey);
-            }
-
             return new EntityType<>(this.factory, this.category, this.serialize, this.summon, this.fireImmune, this.canSpawnFarFromPlayer, this.immuneTo, this.dimensions, this.clientTrackingRange, this.updateInterval);
         }
     }

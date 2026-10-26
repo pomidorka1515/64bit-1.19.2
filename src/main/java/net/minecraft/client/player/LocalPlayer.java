@@ -119,9 +119,7 @@ public class LocalPlayer extends AbstractClientPlayer {
     private final ClientRecipeBook recipeBook;
     private final List<AmbientSoundHandler> ambientSoundHandlers = Lists.newArrayList();
     private int permissionLevel = 0;
-    private double xLast;
     private double yLast1;
-    private double zLast;
     @Nullable
     private SectorVec3 sectorLastPosition;
     private float yRotLast;
@@ -157,7 +155,7 @@ public class LocalPlayer extends AbstractClientPlayer {
     private boolean showDeathScreen = true;
 
     public LocalPlayer(Minecraft pMinecraft, ClientLevel pClientLevel, ClientPacketListener pConnection, StatsCounter pStats, ClientRecipeBook pRecipeBook, boolean pWasShiftKeyDown, boolean pWasSprinting) {
-        super(pClientLevel, pConnection.getLocalGameProfile(), pMinecraft.getProfileKeyPairManager().profilePublicKey().orElse((ProfilePublicKey) null));
+        super(pClientLevel, pConnection.getLocalGameProfile(), null);
         this.minecraft = pMinecraft;
         this.connection = pConnection;
         this.stats = pStats;
@@ -252,12 +250,11 @@ public class LocalPlayer extends AbstractClientPlayer {
         }
 
         if (this.isControlledCamera()) {
-            Vec3 exactDelta = this.hasSectorPosition() && this.sectorLastPosition != null
-                    ? this.sectorPosition().relativeTo(this.sectorLastPosition)
-                    : null;
-            double d4 = exactDelta != null ? exactDelta.x : this.getX() - this.xLast;
-            double d0 = exactDelta != null ? exactDelta.y : this.getY() - this.yLast1;
-            double d1 = exactDelta != null ? exactDelta.z : this.getZ() - this.zLast;
+            Vec3 exactDelta = this.sectorPosition().relativeTo(this.sectorLastPosition != null
+                    ? this.sectorLastPosition : SectorVec3.fromApproximate(0.0D, this.yLast1, 0.0D));
+            double d4 = exactDelta.x;
+            double d0 = exactDelta.y;
+            double d1 = exactDelta.z;
             double d2 = (double) (this.getYRot() - this.yRotLast);
             double d3 = (double) (this.getXRot() - this.xRotLast);
             ++this.positionReminder;
@@ -268,17 +265,9 @@ public class LocalPlayer extends AbstractClientPlayer {
                 this.connection.send(new ServerboundMovePlayerPacket.PosRot(vec3.x, -999.0D, vec3.z, this.getYRot(), this.getXRot(), this.onGround));
                 flag1 = false;
             } else if (flag1 && flag2) {
-                if (this.hasSectorPosition()) {
-                    this.connection.send(new ServerboundMovePlayerPacket.PosRot(this.sectorPosition(), this.getYRot(), this.getXRot(), this.onGround));
-                } else {
-                    this.connection.send(new ServerboundMovePlayerPacket.PosRot(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot(), this.onGround));
-                }
+                this.connection.send(new ServerboundMovePlayerPacket.PosRot(this.sectorPosition(), this.getYRot(), this.getXRot(), this.onGround));
             } else if (flag1) {
-                if (this.hasSectorPosition()) {
-                    this.connection.send(new ServerboundMovePlayerPacket.Pos(this.sectorPosition(), this.onGround));
-                } else {
-                    this.connection.send(new ServerboundMovePlayerPacket.Pos(this.getX(), this.getY(), this.getZ(), this.onGround));
-                }
+                this.connection.send(new ServerboundMovePlayerPacket.Pos(this.sectorPosition(), this.onGround));
             } else if (flag2) {
                 this.connection.send(new ServerboundMovePlayerPacket.Rot(this.getYRot(), this.getXRot(), this.onGround));
             } else if (this.lastOnGround != this.onGround) {
@@ -286,10 +275,8 @@ public class LocalPlayer extends AbstractClientPlayer {
             }
 
             if (flag1) {
-                this.xLast = this.getX();
                 this.yLast1 = this.getY();
-                this.zLast = this.getZ();
-                this.sectorLastPosition = this.hasSectorPosition() ? this.sectorPosition() : null;
+                this.sectorLastPosition = this.sectorPosition();
                 this.positionReminder = 0;
             }
 
@@ -337,46 +324,15 @@ public class LocalPlayer extends AbstractClientPlayer {
         ChatMessageContent chatmessagecontent = this.buildSignedContent(pPlain, pDecorated);
         MessageSigner messagesigner = this.createMessageSigner();
         LastSeenMessages.Update lastseenmessages$update = this.connection.generateMessageAcknowledgements();
-        MessageSignature messagesignature = this.signMessage(messagesigner, chatmessagecontent, lastseenmessages$update.lastSeen());
+        MessageSignature messagesignature = MessageSignature.EMPTY;
         this.connection.send(new ServerboundChatPacket(chatmessagecontent.plain(), messagesigner.timeStamp(), messagesigner.salt(), messagesignature, chatmessagecontent.isDecorated(), lastseenmessages$update));
     }
 
-    private MessageSignature signMessage(MessageSigner pSigner, ChatMessageContent pMessageContent, LastSeenMessages pLastSeenMessages) {
-        try {
-            Signer signer = this.minecraft.getProfileKeyPairManager().signer();
-            if (signer != null) {
-                return this.connection.signedMessageEncoder().pack(signer, pSigner, pMessageContent, pLastSeenMessages).signature();
-            }
-        } catch (Exception exception) {
-            LOGGER.error("Failed to sign chat message: '{}'", pMessageContent.plain(), exception);
-        }
-
-        return MessageSignature.EMPTY;
-    }
-
     private void sendCommand(String pPlain, @Nullable Component pDecorated) {
-        ParseResults<SharedSuggestionProvider> parseresults = this.connection.getCommands().parse(pPlain, this.connection.getSuggestionsProvider());
         MessageSigner messagesigner = this.createMessageSigner();
         LastSeenMessages.Update lastseenmessages$update = this.connection.generateMessageAcknowledgements();
-        ArgumentSignatures argumentsignatures = this.signCommandArguments(messagesigner, parseresults, pDecorated, lastseenmessages$update.lastSeen());
+        ArgumentSignatures argumentsignatures = ArgumentSignatures.EMPTY;
         this.connection.send(new ServerboundChatCommandPacket(pPlain, messagesigner.timeStamp(), messagesigner.salt(), argumentsignatures, pDecorated != null, lastseenmessages$update));
-    }
-
-    private ArgumentSignatures signCommandArguments(MessageSigner p_242336_, ParseResults<SharedSuggestionProvider> p_242251_, @Nullable Component p_242373_, LastSeenMessages p_242435_) {
-        Signer signer = this.minecraft.getProfileKeyPairManager().signer();
-        if (signer == null) {
-            return ArgumentSignatures.EMPTY;
-        } else {
-            try {
-                return ArgumentSignatures.signCommand(PreviewableCommand.of(p_242251_), (p_243155_, p_243156_) -> {
-                    ChatMessageContent chatmessagecontent = this.buildSignedContent(p_243156_, p_242373_);
-                    return this.connection.signedMessageEncoder().pack(signer, p_242336_, chatmessagecontent, p_242435_).signature();
-                });
-            } catch (Exception exception) {
-                LOGGER.error("Failed to sign command arguments", (Throwable) exception);
-                return ArgumentSignatures.EMPTY;
-            }
-        }
     }
 
     private ChatMessageContent buildSignedContent(String pPlain, @Nullable Component pDecorated) {
@@ -501,8 +457,8 @@ public class LocalPlayer extends AbstractClientPlayer {
     private void moveTowardsClosestSpace(double pX, double pZ) {
         BlockPos blockpos = new BlockPos(pX, this.getY(), pZ);
         if (this.suffocatesAt(blockpos)) {
-            double d0 = pX - (double) blockpos.getX();
-            double d1 = pZ - (double) blockpos.getZ();
+            double d0 = pX - Math.floor(pX);
+            double d1 = pZ - Math.floor(pZ);
             Direction direction = null;
             double d2 = Double.MAX_VALUE;
             Direction[] adirection = new Direction[] {Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH};
@@ -557,15 +513,13 @@ public class LocalPlayer extends AbstractClientPlayer {
     private boolean suffocatesAtSector(BlockPos blockPos) {
         SectorAABB playerBox = SectorAABB.around(this.sectorPosition(), this.getBbWidth(), this.getBbHeight());
         SectorAABB column = new SectorAABB(blockPos.getX(), 0.0D, playerBox.minY(), blockPos.getZ(), 0.0D,
-                Math.addExact(blockPos.getX(), 1L), 0.0D, playerBox.maxY(), Math.addExact(blockPos.getZ(), 1L), 0.0D)
+                blockPos.getX(), 1.0D, playerBox.maxY(), blockPos.getZ(), 1.0D)
                                     .inflate(-1.0E-7D, -1.0E-7D, -1.0E-7D);
         return this.sectorCollidesWithSuffocatingBlock(column);
     }
 
     private boolean suffocatesAt(BlockPos pPos) {
-        AABB aabb = this.getBoundingBox();
-        AABB aabb1 = (new AABB((double) pPos.getX(), aabb.minY, (double) pPos.getZ(), (double) pPos.getX() + 1.0D, aabb.maxY, (double) pPos.getZ() + 1.0D)).deflate(1.0E-7D);
-        return this.level.collidesWithSuffocatingBlock(this, aabb1);
+        return this.suffocatesAtSector(pPos);
     }
 
     public void setSprinting(boolean pSprinting) {
@@ -600,11 +554,11 @@ public class LocalPlayer extends AbstractClientPlayer {
     }
 
     public void playSound(SoundEvent pSound, float pVolume, float pPitch) {
-        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), pSound, this.getSoundSource(), pVolume, pPitch, false);
+        this.level.playLocalSound(this.sectorPosition(), pSound, this.getSoundSource(), pVolume, pPitch, false);
     }
 
     public void playNotifySound(SoundEvent pSound, SoundSource pSource, float pVolume, float pPitch) {
-        this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), pSound, pSource, pVolume, pPitch, false);
+        this.level.playLocalSound(this.sectorPosition(), pSound, pSource, pVolume, pPitch, false);
     }
 
     public boolean isEffectiveAi() {
@@ -769,18 +723,8 @@ public class LocalPlayer extends AbstractClientPlayer {
             this.input.jumping = true;
         }
 
-        if (!this.noPhysics) {
-            if (!this.hasSectorPosition()) {
-                // Sector collision resolution is exact and prevents entering a block at the
-                // movement boundary.  Vanilla's corner-based recovery applies an arbitrary
-                // velocity whenever a sampled corner is in a solid block; at sector
-                // coordinates that turns harmless boundary contact into visible pushback.
-                this.moveTowardsClosestSpace(this.getX() - (double) this.getBbWidth() * 0.35D, this.getZ() + (double) this.getBbWidth() * 0.35D);
-                this.moveTowardsClosestSpace(this.getX() - (double) this.getBbWidth() * 0.35D, this.getZ() - (double) this.getBbWidth() * 0.35D);
-                this.moveTowardsClosestSpace(this.getX() + (double) this.getBbWidth() * 0.35D, this.getZ() - (double) this.getBbWidth() * 0.35D);
-                this.moveTowardsClosestSpace(this.getX() + (double) this.getBbWidth() * 0.35D, this.getZ() + (double) this.getBbWidth() * 0.35D);
-            }
-        }
+        // Exact collision resolution handles boundary contact without the legacy
+        // corner recovery, which would introduce arbitrary pushback here.
 
         if (flag1) {
             this.sprintTriggerTime = 0;
@@ -977,16 +921,10 @@ public class LocalPlayer extends AbstractClientPlayer {
     }
 
     public void move(MoverType pType, Vec3 pPos) {
-        SectorVec3 old = this.hasSectorPosition() ? this.sectorPosition() : null;
-        double d0 = this.getX();
-        double d1 = this.getZ();
+        SectorVec3 old = this.sectorPosition();
         super.move(pType, pPos);
-        if (old != null) {
-            Vec3 displacement = this.sectorPosition().relativeTo(old);
-            this.updateAutoJump((float) displacement.x, (float) displacement.z);
-        } else {
-            this.updateAutoJump((float) (this.getX() - d0), (float) (this.getZ() - d1));
-        }
+        Vec3 displacement = this.sectorPosition().relativeTo(old);
+        this.updateAutoJump((float) displacement.x, (float) displacement.z);
     }
 
     public boolean isAutoJumpEnabled() {
@@ -997,10 +935,9 @@ public class LocalPlayer extends AbstractClientPlayer {
         if (this.canAutoJump()) {
             // Auto-jump geometry is local physics geometry for sector players. The legacy
             // position() value is intentionally not used as a collision coordinate here.
-            SectorPhysicsOrigin autoJumpOrigin = this.hasSectorPosition() ? this.sectorPhysicsOrigin() : null;
-            Vec3 vec3 = autoJumpOrigin != null ? this.sectorPosition().toLocal(autoJumpOrigin.originBlockX(),
-                                                         autoJumpOrigin.originBlockY(), autoJumpOrigin.originBlockZ())
-                                               : this.position();
+            SectorPhysicsOrigin autoJumpOrigin = this.sectorPhysicsOrigin();
+            Vec3 vec3 = this.sectorPosition().toLocal(autoJumpOrigin.originBlockX(),
+                    autoJumpOrigin.originBlockY(), autoJumpOrigin.originBlockZ());
             Vec3 vec31 = vec3.add((double) pMovementX, 0.0D, (double) pMovementZ);
             Vec3 vec32 = new Vec3((double) pMovementX, 0.0D, (double) pMovementZ);
             float f = this.getSpeed();
@@ -1024,9 +961,7 @@ public class LocalPlayer extends AbstractClientPlayer {
             float f13 = (float) (vec313.x * vec312.x + vec313.z * vec312.z);
             if (!(f13 < -0.15F)) {
                 CollisionContext collisioncontext = CollisionContext.of(this);
-                BlockPos blockpos = this.hasSectorPosition()
-                        ? new BlockPos(this.sectorPosition().blockX(), Mth.floor(this.getBoundingBox().maxY), this.sectorPosition().blockZ())
-                        : new BlockPos(this.getX(), this.getBoundingBox().maxY, this.getZ());
+                BlockPos blockpos = this.sectorPosition().withY(this.getSectorBoundingBox().maxY()).blockPosition();
                 BlockState blockstate = this.level.getBlockState(blockpos);
                 if (blockstate.getCollisionShape(this.level, blockpos, collisioncontext).isEmpty()) {
                     blockpos = blockpos.above();
@@ -1169,12 +1104,12 @@ public class LocalPlayer extends AbstractClientPlayer {
             return this.wasUnderwater;
         } else {
             if (!flag && flag1) {
-                this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.AMBIENT_UNDERWATER_ENTER, SoundSource.AMBIENT, 1.0F, 1.0F, false);
+                this.level.playLocalSound(this.sectorPosition(), SoundEvents.AMBIENT_UNDERWATER_ENTER, SoundSource.AMBIENT, 1.0F, 1.0F, false);
                 this.minecraft.getSoundManager().play(new UnderwaterAmbientSoundInstances.UnderwaterAmbientSoundInstance(this));
             }
 
             if (flag && !flag1) {
-                this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.AMBIENT_UNDERWATER_EXIT, SoundSource.AMBIENT, 1.0F, 1.0F, false);
+                this.level.playLocalSound(this.sectorPosition(), SoundEvents.AMBIENT_UNDERWATER_EXIT, SoundSource.AMBIENT, 1.0F, 1.0F, false);
             }
 
             return this.wasUnderwater;
@@ -1187,7 +1122,9 @@ public class LocalPlayer extends AbstractClientPlayer {
             float f1 = Mth.lerp(pPartialTick * 0.5F, this.getXRot(), this.xRotO) * ((float) Math.PI / 180F);
             double d0 = this.getMainArm() == HumanoidArm.RIGHT ? -1.0D : 1.0D;
             Vec3 vec3 = new Vec3(0.39D * d0, -0.6D, 0.3D);
-            return vec3.xRot(-f1).yRot(-f).add(this.getEyePosition(pPartialTick));
+            Vec3 offset = vec3.xRot(-f1).yRot(-f);
+            return this.interpolatedExactPosition(pPartialTick).add(offset.x,
+                    this.getEyeHeight() + offset.y, offset.z).toExactVec3();
         } else {
             return super.getRopeHoldPosition(pPartialTick);
         }

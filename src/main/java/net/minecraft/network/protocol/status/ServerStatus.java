@@ -27,7 +27,6 @@ public class ServerStatus {
     @Nullable
     private String favicon;
     private boolean previewsChat;
-    private boolean enforcesSecureChat;
 
     @Nullable
     public Component getDescription() {
@@ -71,14 +70,6 @@ public class ServerStatus {
 
     public boolean previewsChat() {
         return this.previewsChat;
-    }
-
-    public void setEnforcesSecureChat(boolean p_242968_) {
-        this.enforcesSecureChat = p_242968_;
-    }
-
-    public boolean enforcesSecureChat() {
-        return this.enforcesSecureChat;
     }
 
     public static class Players {
@@ -179,9 +170,6 @@ public class ServerStatus {
                 serverstatus.setPreviewsChat(GsonHelper.getAsBoolean(jsonobject, "previewsChat"));
             }
 
-            if (jsonobject.has("enforcesSecureChat")) {
-                serverstatus.setEnforcesSecureChat(GsonHelper.getAsBoolean(jsonobject, "enforcesSecureChat"));
-            }
 
             return serverstatus;
         }
@@ -189,7 +177,6 @@ public class ServerStatus {
         public JsonElement serialize(ServerStatus p_134951_, Type p_134952_, JsonSerializationContext p_134953_) {
             JsonObject jsonobject = new JsonObject();
             jsonobject.addProperty("previewsChat", p_134951_.previewsChat());
-            jsonobject.addProperty("enforcesSecureChat", p_134951_.enforcesSecureChat());
             if (p_134951_.getDescription() != null) {
                 jsonobject.add("description", p_134953_.serialize(p_134951_.getDescription()));
             }

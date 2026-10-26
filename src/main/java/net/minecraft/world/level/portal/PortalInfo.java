@@ -11,12 +11,12 @@ public class PortalInfo {
     public final float xRot;
 
     public PortalInfo(Vec3 pPos, Vec3 pSpeed, float pYRot, float pXRot) {
-        this(SectorVec3.fromApproximate(pPos), pSpeed, pYRot, pXRot);
+        this(net.minecraft.world.phys.ExactVec3.position(pPos), pSpeed, pYRot, pXRot);
     }
 
     public PortalInfo(SectorVec3 pPos, Vec3 pSpeed, float pYRot, float pXRot) {
         this.exactPos = pPos;
-        this.pos = pPos.toApproximateVec3();
+        this.pos = pPos.toExactVec3();
         this.speed = pSpeed;
         this.yRot = pYRot;
         this.xRot = pXRot;

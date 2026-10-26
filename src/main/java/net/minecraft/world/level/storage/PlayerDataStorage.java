@@ -1,24 +1,19 @@
 package net.minecraft.world.level.storage;
 
-import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
 import java.io.File;
 import javax.annotation.Nullable;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.entity.player.Player;
 import org.slf4j.Logger;
 
 public class PlayerDataStorage {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final File playerDir;
-    protected final DataFixer fixerUpper;
 
-    public PlayerDataStorage(LevelStorageSource.LevelStorageAccess pLevelStorageAccess, DataFixer pFixerUpper) {
-        this.fixerUpper = pFixerUpper;
+    public PlayerDataStorage(LevelStorageSource.LevelStorageAccess pLevelStorageAccess) {
         this.playerDir = pLevelStorageAccess.getLevelPath(LevelResource.PLAYER_DATA_DIR).toFile();
         this.playerDir.mkdirs();
     }
@@ -50,8 +45,7 @@ public class PlayerDataStorage {
         }
 
         if (compoundtag != null) {
-            int i = compoundtag.contains("DataVersion", 3) ? compoundtag.getInt("DataVersion") : -1;
-            pPlayer.load(NbtUtils.update(this.fixerUpper, DataFixTypes.PLAYER, compoundtag, i));
+            pPlayer.load(compoundtag);
         }
 
         return compoundtag;

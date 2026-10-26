@@ -36,7 +36,7 @@ public class ChestBoat extends Boat implements HasCustomInventoryScreen, Contain
 
     public ChestBoat(Level pLevel, double pX, double pY, double pZ) {
         this(EntityType.CHEST_BOAT, pLevel);
-        this.setPos(pX, pY, pZ);
+        this.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromApproximate(pX, pY, pZ));
         this.setOldPosAndRot();
     }
 

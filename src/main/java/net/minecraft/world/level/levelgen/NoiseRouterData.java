@@ -183,7 +183,22 @@ public class NoiseRouterData {
         return DensityFunctions.max(densityfunction6, densityfunction5).clamp(-1.0D, 1.0D);
     }
 
+    static java.util.Map<String, DensityFunction> debugCaves(ResourceKey<DensityFunction> slopedCheese) {
+        Registry<DensityFunction> registry = BuiltinRegistries.DENSITY_FUNCTION;
+        var nodes = new java.util.LinkedHashMap<String, DensityFunction>();
+        DensityFunction sloped = getFunction(registry, slopedCheese);
+        DensityFunction underground = underground(registry, sloped, nodes);
+        nodes.put("underground", underground);
+        nodes.put("selected", selectCaves(registry, sloped, underground));
+        return nodes;
+    }
+
     private static DensityFunction underground(Registry<DensityFunction> p_224472_, DensityFunction p_224473_) {
+        return underground(p_224472_, p_224473_, null);
+    }
+
+    private static DensityFunction underground(Registry<DensityFunction> p_224472_, DensityFunction p_224473_,
+                                               @javax.annotation.Nullable java.util.Map<String, DensityFunction> debug) {
         DensityFunction densityfunction = getFunction(p_224472_, SPAGHETTI_2D);
         DensityFunction densityfunction1 = getFunction(p_224472_, SPAGHETTI_ROUGHNESS_FUNCTION);
         DensityFunction densityfunction2 = DensityFunctions.noise(getNoise(Noises.CAVE_LAYER), 8.0D);
@@ -194,7 +209,17 @@ public class NoiseRouterData {
         DensityFunction densityfunction7 = DensityFunctions.min(DensityFunctions.min(densityfunction6, getFunction(p_224472_, ENTRANCES)), DensityFunctions.add(densityfunction, densityfunction1));
         DensityFunction densityfunction8 = getFunction(p_224472_, PILLARS);
         DensityFunction densityfunction9 = DensityFunctions.rangeChoice(densityfunction8, -1000000.0D, 0.03D, DensityFunctions.constant(-1000000.0D), densityfunction8);
+        if (debug != null) {
+            debug.put("cheese_layer", densityfunction6);
+            debug.put("candidate", densityfunction7);
+            debug.put("gated_pillars", densityfunction9);
+        }
         return DensityFunctions.max(densityfunction7, densityfunction9);
+    }
+
+    private static DensityFunction selectCaves(Registry<DensityFunction> registry, DensityFunction sloped, DensityFunction underground) {
+        DensityFunction surface = DensityFunctions.min(sloped, DensityFunctions.mul(DensityFunctions.constant(5.0D), getFunction(registry, ENTRANCES)));
+        return DensityFunctions.rangeChoice(sloped, -1000000.0D, 1.5625D, surface, underground);
     }
 
     private static DensityFunction postProcess(DensityFunction p_224493_) {
@@ -215,8 +240,7 @@ public class NoiseRouterData {
         DensityFunction densityfunction9 = getFunction(p_224486_, p_224487_ ? DEPTH_LARGE : (p_224488_ ? DEPTH_AMPLIFIED : DEPTH));
         DensityFunction densityfunction10 = noiseGradientDensity(DensityFunctions.cache2d(densityfunction8), densityfunction9);
         DensityFunction densityfunction11 = getFunction(p_224486_, p_224487_ ? SLOPED_CHEESE_LARGE : (p_224488_ ? SLOPED_CHEESE_AMPLIFIED : SLOPED_CHEESE));
-        DensityFunction densityfunction12 = DensityFunctions.min(densityfunction11, DensityFunctions.mul(DensityFunctions.constant(5.0D), getFunction(p_224486_, ENTRANCES)));
-        DensityFunction densityfunction13 = DensityFunctions.rangeChoice(densityfunction11, -1000000.0D, 1.5625D, densityfunction12, underground(p_224486_, densityfunction11));
+        DensityFunction densityfunction13 = selectCaves(p_224486_, densityfunction11, underground(p_224486_, densityfunction11));
         DensityFunction densityfunction14 = DensityFunctions.min(postProcess(slideOverworld(p_224488_, densityfunction13)), getFunction(p_224486_, NOODLE));
         DensityFunction densityfunction15 = getFunction(p_224486_, Y);
         int i = Stream.of(OreVeinifier.VeinType.values()).mapToInt((p_224495_) -> {

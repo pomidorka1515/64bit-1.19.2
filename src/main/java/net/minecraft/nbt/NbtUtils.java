@@ -7,9 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
-import com.mojang.serialization.Dynamic;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.Collections;
@@ -22,14 +20,13 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringUtil;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -212,15 +209,32 @@ public final class NbtUtils {
         }
     }
 
+    /** Reads a required pair of LONG tags; low-only and numeric coercions are rejected. */
+    public static Int128 readInt128(CompoundTag pTag, String pKey) {
+        String highKey = pKey + "Hi";
+        if (!pTag.contains(pKey, Tag.TAG_LONG)) {
+            throw new IllegalArgumentException("Expected required LONG tag: " + pKey);
+        }
+        if (!pTag.contains(highKey, Tag.TAG_LONG)) {
+            throw new IllegalArgumentException("Expected required LONG tag: " + highKey);
+        }
+        return Int128.of(pTag.getLong(highKey), pTag.getLong(pKey));
+    }
+
+    public static void writeInt128(CompoundTag pTag, String pKey, Int128 pValue) {
+        pTag.putLong(pKey, pValue.lo());
+        pTag.putLong(pKey + "Hi", pValue.hi());
+    }
+
     public static BlockPos readBlockPos(CompoundTag pTag) {
-        return new BlockPos(pTag.getLong("X"), pTag.getInt("Y"), pTag.getLong("Z"));
+        return new BlockPos(readInt128(pTag, "X"), pTag.getInt("Y"), readInt128(pTag, "Z"));
     }
 
     public static CompoundTag writeBlockPos(BlockPos pPos) {
         CompoundTag compoundtag = new CompoundTag();
-        compoundtag.putInt("X", pPos.getX());
+        writeInt128(compoundtag, "X", pPos.getX());
         compoundtag.putInt("Y", pPos.getY());
-        compoundtag.putInt("Z", pPos.getZ());
+        writeInt128(compoundtag, "Z", pPos.getZ());
         return compoundtag;
     }
 
@@ -492,14 +506,6 @@ public final class NbtUtils {
         }
 
         return pStringBuilder;
-    }
-
-    public static CompoundTag update(DataFixer pDataFixer, DataFixTypes pType, CompoundTag pCompoundTag, int pVersion) {
-        return update(pDataFixer, pType, pCompoundTag, pVersion, SharedConstants.getCurrentVersion().getWorldVersion());
-    }
-
-    public static CompoundTag update(DataFixer pDataFixer, DataFixTypes pType, CompoundTag pCompoundTag, int pVersion, int pNewVersion) {
-        return (CompoundTag) pDataFixer.update(pType.getType(), new Dynamic<>(NbtOps.INSTANCE, pCompoundTag), pVersion, pNewVersion).getValue();
     }
 
     public static Component toPrettyComponent(Tag pTag) {

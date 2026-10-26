@@ -104,9 +104,9 @@ public class BeaconBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     public static void tick(Level pLevel, BlockPos pPos, BlockState pState, BeaconBlockEntity pBlockEntity) {
-        long i = pPos.getX();
+        net.minecraft.core.Int128 i = pPos.getX();
         int j = pPos.getY();
-        long k = pPos.getZ();
+        net.minecraft.core.Int128 k = pPos.getZ();
         BlockPos blockpos;
         if (pBlockEntity.lastCheckY < j) {
             blockpos = pPos;
@@ -170,7 +170,7 @@ public class BeaconBlockEntity extends BlockEntity implements MenuProvider {
                 if (!flag && flag1) {
                     playSound(pLevel, pPos, SoundEvents.BEACON_ACTIVATE);
 
-                    for (ServerPlayer serverplayer : pLevel.getEntitiesOfClass(ServerPlayer.class, (new AABB((double) i, (double) j, (double) k, (double) i, (double) (j - 4), (double) k)).inflate(10.0D, 5.0D, 10.0D))) {
+                    for (ServerPlayer serverplayer : pLevel.getEntitiesOfClass(ServerPlayer.class, (new AABB(pPos.below(4), pPos)).inflate(10.0D, 5.0D, 10.0D))) {
                         CriteriaTriggers.CONSTRUCT_BEACON.trigger(serverplayer, pBlockEntity.levels);
                     }
                 } else if (flag && !flag1) {
@@ -180,7 +180,7 @@ public class BeaconBlockEntity extends BlockEntity implements MenuProvider {
         }
     }
 
-    private static int updateBase(Level pLevel, long pX, int pY, long pZ) {
+    private static int updateBase(Level pLevel, net.minecraft.core.Int128 pX, int pY, net.minecraft.core.Int128 pZ) {
         int i = 0;
 
         for (int j = 1; j <= 4; i = j++) {
@@ -191,18 +191,18 @@ public class BeaconBlockEntity extends BlockEntity implements MenuProvider {
 
             boolean flag = true;
 
-            long maxX = WorldBounds.addBlockOffset(pX, j);
-            long maxZ = WorldBounds.addBlockOffset(pZ, j);
-            for (long l = WorldBounds.addBlockOffset(pX, -j); flag; l = WorldBounds.addBlockOffset(l, 1L)) {
-                for (long i1 = WorldBounds.addBlockOffset(pZ, -j);; i1 = WorldBounds.addBlockOffset(i1, 1L)) {
+            net.minecraft.core.Int128 maxX = WorldBounds.addBlockOffset(pX, j);
+            net.minecraft.core.Int128 maxZ = WorldBounds.addBlockOffset(pZ, j);
+            for (net.minecraft.core.Int128 l = WorldBounds.addBlockOffset(pX, -j); flag; l = WorldBounds.addBlockOffset(l, 1L)) {
+                for (net.minecraft.core.Int128 i1 = WorldBounds.addBlockOffset(pZ, -j);; i1 = WorldBounds.addBlockOffset(i1, 1L)) {
                     if (!pLevel.getBlockState(new BlockPos(l, k, i1)).is(BlockTags.BEACON_BASE_BLOCKS)) {
                         flag = false;
                         break;
                     }
-                    if (i1 == maxZ)
+                    if (i1.equals(maxZ))
                         break;
                 }
-                if (l == maxX)
+                if (l.equals(maxX))
                     break;
             }
 

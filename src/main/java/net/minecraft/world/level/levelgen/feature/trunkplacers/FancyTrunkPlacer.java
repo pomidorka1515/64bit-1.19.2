@@ -89,11 +89,20 @@ public class FancyTrunkPlacer extends TrunkPlacer {
         if (!p_226113_ && Objects.equals(p_226111_, p_226112_)) {
             return true;
         } else {
-            BlockPos blockpos = p_226112_.subtract(p_226111_);
-            long i = this.getSteps(blockpos);
-            float f = (float) blockpos.getX() / (float) i;
-            float f1 = (float) blockpos.getY() / (float) i;
-            float f2 = (float) blockpos.getZ() / (float) i;
+            double dx = WorldBounds.signedDifference(p_226112_.getX(), p_226111_.getX());
+            double dy = (double) p_226112_.getY() - p_226111_.getY();
+            double dz = WorldBounds.signedDifference(p_226112_.getZ(), p_226111_.getZ());
+            double steps = Math.max(Math.abs(dx), Math.max(Math.abs(dy), Math.abs(dz)));
+            if (steps > WorldBounds.MAX_SAFE_LOCAL_SPAN) {
+                return false;
+            }
+            long i = (long) steps;
+            if (i == 0L) {
+                return !p_226113_ || this.placeLog(p_226108_, p_226109_, p_226110_, p_226111_, p_226114_);
+            }
+            float f = (float) dx / (float) i;
+            float f1 = (float) dy / (float) i;
+            float f2 = (float) dz / (float) i;
 
             for (long j = 0; ; ++j) {
                 BlockPos blockpos1 = offsetLocal(p_226111_, (double) (0.5F + (float) j * f), (double) (0.5F + (float) j * f1), (double) (0.5F + (float) j * f2));
@@ -119,13 +128,6 @@ public class FancyTrunkPlacer extends TrunkPlacer {
         } else {
             return origin.offset(dx, dy, dz);
         }
-    }
-
-    private long getSteps(BlockPos pPos) {
-        long i = pPos.getX() == Long.MIN_VALUE ? Long.MAX_VALUE : Math.abs(pPos.getX());
-        long j = Math.abs((long) pPos.getY());
-        long k = pPos.getZ() == Long.MIN_VALUE ? Long.MAX_VALUE : Math.abs(pPos.getZ());
-        return Math.max(i, Math.max(j, k));
     }
 
     private Direction.Axis getLogAxis(BlockPos pPos, BlockPos pOtherPos) {

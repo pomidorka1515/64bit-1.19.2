@@ -149,7 +149,7 @@ public class MushroomCow extends Cow implements Shearable {
     public void shear(SoundSource pCategory) {
         this.level.playSound((Player) null, this, SoundEvents.MOOSHROOM_SHEAR, pCategory, 1.0F, 1.0F);
         if (!this.level.isClientSide()) {
-            ((ServerLevel) this.level).sendParticles(ParticleTypes.EXPLOSION, this.getX(), this.getY(0.5D), this.getZ(), 1, 0.0D, 0.0D, 0.0D, 0.0D);
+            ((ServerLevel) this.level).sendParticles(ParticleTypes.EXPLOSION, this.sectorPosition().withY(this.getY(0.5D)), 1, 0.0D, 0.0D, 0.0D, 0.0D);
             this.discard();
             Cow cow = EntityType.COW.create(this.level);
             cow.moveTo(this.sectorPosition(), this.getYRot(), this.getXRot());

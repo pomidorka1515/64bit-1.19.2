@@ -92,7 +92,7 @@ public class GameTestHelper {
         }
 
         Vec3 vec3 = this.absoluteVec(pPos);
-        e.moveTo(vec3.x, vec3.y, vec3.z, e.getYRot(), e.getXRot());
+        e.moveTo(vec3.exactPosition(), e.getYRot(), e.getXRot());
         serverlevel.addFreshEntity(e);
         return e;
     }
@@ -393,7 +393,7 @@ public class GameTestHelper {
         Vec3 vec3 = new Vec3(pX, pY, pZ);
         Vec3 vec31 = this.absoluteVec(vec3);
         Predicate<? super Entity> predicate = (p_177346_) -> {
-            return p_177346_.getBoundingBox().intersects(vec31, vec31);
+            return p_177346_.getSectorBoundingBox().toLocalAABB(vec31.exactPosition()).intersects(Vec3.ZERO, Vec3.ZERO);
         };
         List<? extends Entity> list = this.getLevel().getEntities(pType, this.getBounds(), predicate);
         if (list.isEmpty()) {
@@ -405,7 +405,7 @@ public class GameTestHelper {
         Vec3 vec3 = new Vec3(pX, pY, pZ);
         Vec3 vec31 = this.absoluteVec(vec3);
         Predicate<? super Entity> predicate = (p_177231_) -> {
-            return !p_177231_.getBoundingBox().intersects(vec31, vec31);
+            return !p_177231_.getSectorBoundingBox().toLocalAABB(vec31.exactPosition()).intersects(Vec3.ZERO, Vec3.ZERO);
         };
         List<? extends Entity> list = this.getLevel().getEntities(pType, this.getBounds(), predicate);
         if (list.isEmpty()) {
@@ -452,7 +452,7 @@ public class GameTestHelper {
 
     public void assertSameBlockStates(BoundingBox pBoundingBox, BlockPos pPos) {
         BlockPos.betweenClosedStream(pBoundingBox).forEach((p_177267_) -> {
-            BlockPos blockpos = pPos.offset(p_177267_.getX() - pBoundingBox.minX(), p_177267_.getY() - pBoundingBox.minY(), p_177267_.getZ() - pBoundingBox.minZ());
+            BlockPos blockpos = pPos.offset(p_177267_.getX().subtractSaturated(pBoundingBox.minX()), p_177267_.getY() - pBoundingBox.minY(), p_177267_.getZ().subtractSaturated(pBoundingBox.minZ()));
             this.assertSameBlockState(p_177267_, blockpos);
         });
     }
@@ -604,8 +604,8 @@ public class GameTestHelper {
     }
 
     public Vec3 absoluteVec(Vec3 pRelativeVec3) {
-        Vec3 vec3 = Vec3.atLowerCornerOf(this.testInfo.getStructureBlockPos());
-        return StructureTemplate.transform(vec3.add(pRelativeVec3), Mirror.NONE, this.testInfo.getRotation(), this.testInfo.getStructureBlockPos());
+        Vec3 local = StructureTemplate.transform(pRelativeVec3, Mirror.NONE, this.testInfo.getRotation(), BlockPos.ZERO);
+        return Vec3.atLowerCornerOf(this.testInfo.getStructureBlockPos()).add(local);
     }
 
     public long getTick() {

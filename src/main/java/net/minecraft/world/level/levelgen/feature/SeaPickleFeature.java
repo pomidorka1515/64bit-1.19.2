@@ -2,6 +2,7 @@ package net.minecraft.world.level.levelgen.feature;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
@@ -26,8 +27,8 @@ public class SeaPickleFeature extends Feature<CountConfiguration> {
         for (int k = 0; k < j; ++k) {
             int l = randomsource.nextInt(8) - randomsource.nextInt(8);
             int i1 = randomsource.nextInt(8) - randomsource.nextInt(8);
-            long j1 = WorldBounds.addBlockOffset(blockpos.getX(), l);
-            long k1 = WorldBounds.addBlockOffset(blockpos.getZ(), i1);
+            Int128 j1 = WorldBounds.addBlockOffset(blockpos.getX(), l);
+            Int128 k1 = WorldBounds.addBlockOffset(blockpos.getZ(), i1);
             int l1 = worldgenlevel.getHeight(Heightmap.Types.OCEAN_FLOOR, j1, k1);
             BlockPos blockpos1 = new BlockPos(j1, l1, k1);
             BlockState blockstate = Blocks.SEA_PICKLE.defaultBlockState().setValue(SeaPickleBlock.PICKLES, Integer.valueOf(randomsource.nextInt(4) + 1));

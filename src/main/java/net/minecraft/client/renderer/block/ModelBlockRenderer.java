@@ -119,10 +119,10 @@ public class ModelBlockRenderer {
 
     private void putQuadData(BlockAndTintGetter pLevel, BlockState pState, BlockPos pPos, VertexConsumer pConsumer, PoseStack.Pose pPose, BakedQuad pQuad, float pBrightness0, float pBrightness1, float pBrightness2, float pBrightness3, int pLightmap0, int pLightmap1, int pLightmap2, int pLightmap3, int pPackedOverlay) {
         Direction face = pQuad.getDirection();
-        if ((face == Direction.WEST && pPos.getX() == Long.MIN_VALUE)
-                || (face == Direction.EAST && pPos.getX() == Long.MAX_VALUE)
-                || (face == Direction.NORTH && pPos.getZ() == Long.MIN_VALUE)
-                || (face == Direction.SOUTH && pPos.getZ() == Long.MAX_VALUE)) {
+        if ((face == Direction.WEST && pPos.getX().equals(net.minecraft.core.Int128.MIN))
+                || (face == Direction.EAST && pPos.getX().equals(net.minecraft.core.Int128.MAX))
+                || (face == Direction.NORTH && pPos.getZ().equals(net.minecraft.core.Int128.MIN))
+                || (face == Direction.SOUTH && pPos.getZ().equals(net.minecraft.core.Int128.MAX))) {
             // The exterior is open void, but saturated neighbor coordinates
             // sample the opaque edge block. Avoid that false occlusion and
             // light only the outward surface at level 15.

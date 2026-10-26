@@ -39,7 +39,6 @@ public class RealmsConnect {
         minecraft.setConnectedToRealms(true);
         minecraft.prepareForMultiplayer();
         minecraft.getNarrator().sayNow(Component.translatable("mco.connect.success"));
-        final CompletableFuture<Optional<ProfilePublicKey.Data>> completablefuture = minecraft.getProfileKeyPairManager().preparePublicKey();
         final String s = pAddress.getHost();
         final int i = pAddress.getPort();
         (new Thread("Realms-connect-task") {
@@ -69,7 +68,7 @@ public class RealmsConnect {
 
                     String s1 = minecraft.getUser().getName();
                     UUID uuid = minecraft.getUser().getProfileId();
-                    RealmsConnect.this.connection.send(new ServerboundHelloPacket(s1, completablefuture.join(), Optional.ofNullable(uuid)));
+                    RealmsConnect.this.connection.send(new ServerboundHelloPacket(s1, Optional.empty(), Optional.ofNullable(uuid)));
                     minecraft.setCurrentServer(pServer, s);
                 } catch (Exception exception) {
                     minecraft.getClientPackSource().clearServerPack();

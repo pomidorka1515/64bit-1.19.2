@@ -23,9 +23,9 @@ public class CanyonWorldCarver extends WorldCarver<CanyonCarverConfiguration> {
 
     public boolean carve(CarvingContext pContext, CanyonCarverConfiguration pConfig, ChunkAccess pChunk, Function<BlockPos, Holder<Biome>> pBiomeAccessor, RandomSource pRandom, Aquifer pAquifer, ChunkPos pChunkPos, CarvingMask pCarvingMask) {
         int i = (this.getRange() * 2 - 1) * 16;
-        double d0 = (double) pChunkPos.getBlockX(pRandom.nextInt(16));
+        double d0 = startCoordinate(pChunkPos, pChunk.getPos(), pRandom.nextInt(16), true);
         int j = pConfig.y.sample(pRandom, pContext);
-        double d1 = (double) pChunkPos.getBlockZ(pRandom.nextInt(16));
+        double d1 = startCoordinate(pChunkPos, pChunk.getPos(), pRandom.nextInt(16), false);
         float f = pRandom.nextFloat() * ((float) Math.PI * 2F);
         float f1 = pConfig.verticalRotation.sample(pRandom);
         double d2 = (double) pConfig.yScale.sample(pRandom);

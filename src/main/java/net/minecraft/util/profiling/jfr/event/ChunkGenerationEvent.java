@@ -23,16 +23,16 @@ public class ChunkGenerationEvent extends Event {
     public static final EventType TYPE = EventType.getEventType(ChunkGenerationEvent.class);
     @Name("worldPosX")
     @Label("First Block X World Position")
-    public final long worldPosX;
+    public final String worldPosX;
     @Name("worldPosZ")
     @Label("First Block Z World Position")
-    public final long worldPosZ;
+    public final String worldPosZ;
     @Name("chunkPosX")
     @Label("Chunk X Position")
-    public final long chunkPosX;
+    public final String chunkPosX;
     @Name("chunkPosZ")
     @Label("Chunk Z Position")
-    public final long chunkPosZ;
+    public final String chunkPosZ;
     @Name("status")
     @Label("Status")
     public final String targetStatus;
@@ -43,10 +43,10 @@ public class ChunkGenerationEvent extends Event {
     public ChunkGenerationEvent(ChunkPos pChunkPos, ResourceKey<Level> pLevel, String pTargetStatus) {
         this.targetStatus = pTargetStatus;
         this.level = pLevel.toString();
-        this.chunkPosX = pChunkPos.x;
-        this.chunkPosZ = pChunkPos.z;
-        this.worldPosX = pChunkPos.getMinBlockX();
-        this.worldPosZ = pChunkPos.getMinBlockZ();
+        this.chunkPosX = pChunkPos.x().toDecimalString();
+        this.chunkPosZ = pChunkPos.z().toDecimalString();
+        this.worldPosX = pChunkPos.getMinBlockX().toDecimalString();
+        this.worldPosZ = pChunkPos.getMinBlockZ().toDecimalString();
     }
 
     public static class Fields {

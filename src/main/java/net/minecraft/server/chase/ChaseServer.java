@@ -136,13 +136,13 @@ public class ChaseServer {
         } else {
             ServerPlayer serverplayer = list.get(0);
             String s = ChaseCommand.DIMENSION_NAMES.inverse().get(serverplayer.getLevel().dimension());
-            return s == null ? null : new ChaseServer.PlayerPosition(s, serverplayer.getX(), serverplayer.getY(), serverplayer.getZ(), serverplayer.getYRot(), serverplayer.getXRot());
+            return s == null ? null : new ChaseServer.PlayerPosition(s, serverplayer.sectorPosition().formatX(2), serverplayer.getY(), serverplayer.sectorPosition().formatZ(2), serverplayer.getYRot(), serverplayer.getXRot());
         }
     }
 
-    static record PlayerPosition(String dimensionName, double x, double y, double z, float yRot, float xRot) {
+    static record PlayerPosition(String dimensionName, String x, double y, String z, float yRot, float xRot) {
         String format() {
-            return String.format(Locale.ROOT, "t %s %.2f %.2f %.2f %.2f %.2f\n", this.dimensionName, this.x, this.y, this.z, this.yRot, this.xRot);
+            return String.format(Locale.ROOT, "t %s %s %.2f %s %.2f %.2f\n", this.dimensionName, this.x, this.y, this.z, this.yRot, this.xRot);
         }
     }
 }

@@ -9,6 +9,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Int128;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.SectionTracker;
 import net.minecraft.world.level.LightLayer;
@@ -46,29 +47,22 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
         this.visibleSectionData.disableCache();
     }
 
-    private static boolean isValidSection(SectionPos sectionPos) {
-        return WorldBounds.isValidChunk(sectionPos.x(), sectionPos.z());
-    }
-
     protected boolean storingLightForSection(SectionPos pSectionPos) {
-        return isValidSection(pSectionPos) && this.getDataLayer(pSectionPos, true) != null;
+        return this.getDataLayer(pSectionPos, true) != null;
     }
 
     @Nullable
     protected DataLayer getDataLayer(SectionPos pSectionPos, boolean pCached) {
-        return isValidSection(pSectionPos) ? this.getDataLayer((M) (pCached ? this.updatingSectionData : this.visibleSectionData), pSectionPos) : null;
+        return this.getDataLayer((M) (pCached ? this.updatingSectionData : this.visibleSectionData), pSectionPos);
     }
 
     @Nullable
     protected DataLayer getDataLayer(M pMap, SectionPos pSectionPos) {
-        return isValidSection(pSectionPos) ? pMap.getLayer(pSectionPos) : null;
+        return pMap.getLayer(pSectionPos);
     }
 
     @Nullable
     public DataLayer getDataLayerData(SectionPos pSectionPos) {
-        if (!isValidSection(pSectionPos))
-            return null;
-
         DataLayer datalayer = this.queuedSections.get(pSectionPos);
         return datalayer != null ? datalayer : this.getDataLayer(pSectionPos, false);
     }
@@ -76,26 +70,26 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
     protected abstract int getLightValue(BlockPos pLevelPos);
 
     protected int getStoredLevel(BlockPos pLevelPos) {
-        SectionPos i = SectionPos.of(pLevelPos);
+        SectionPos i = this.updatingSectionData.sectionForBlock(pLevelPos);
         DataLayer datalayer = this.getDataLayer(i, true);
         // Unloaded edge sections legitimately have no data layer.  Treat them as
         // unlit rather than allowing a render/light query to throw an NPE.
-        return datalayer == null ? 0 : datalayer.get(SectionPos.sectionRelative(pLevelPos.getX()), SectionPos.sectionRelative(pLevelPos.getY()), SectionPos.sectionRelative(pLevelPos.getZ()));
+        return datalayer == null ? 0 : datalayer.get(SectionPos.sectionRelative(pLevelPos.getXLo()), SectionPos.sectionRelative(pLevelPos.getY()), SectionPos.sectionRelative(pLevelPos.getZLo()));
     }
 
     protected void setStoredLevel(BlockPos pLevelPos, int pLightLevel) {
-        SectionPos i = SectionPos.of(pLevelPos);
+        SectionPos i = this.updatingSectionData.sectionForBlock(pLevelPos);
         if (this.changedSections.add(i)) {
             this.updatingSectionData.copyDataLayer(i);
         }
 
         DataLayer datalayer = this.getDataLayer(i, true);
-        datalayer.set(SectionPos.sectionRelative(pLevelPos.getX()), SectionPos.sectionRelative(pLevelPos.getY()), SectionPos.sectionRelative(pLevelPos.getZ()), pLightLevel);
+        datalayer.set(SectionPos.sectionRelative(pLevelPos.getXLo()), SectionPos.sectionRelative(pLevelPos.getY()), SectionPos.sectionRelative(pLevelPos.getZLo()), pLightLevel);
         SectionPos.aroundAndAtBlockPos(pLevelPos, this.sectionsAffectedByLightUpdates::add);
     }
 
     protected int getLevel(SectionPos pSectionPos) {
-        if (pSectionPos == null || !isValidSection(pSectionPos)) {
+        if (pSectionPos == null) {
             return 2;
         } else if (this.dataSectionSet.contains(pSectionPos)) {
             return 0;
@@ -105,9 +99,7 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
     }
 
     protected int getLevelFromSource(SectionPos pPos) {
-        if (!isValidSection(pPos)) {
-            return 2;
-        } else if (this.toMarkNoData.contains(pPos)) {
+        if (this.toMarkNoData.contains(pPos)) {
             return 2;
         } else {
             return !this.dataSectionSet.contains(pPos) && !this.toMarkData.contains(pPos) ? 2 : 0;
@@ -115,9 +107,6 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
     }
 
     protected void setLevel(SectionPos pSectionPos, int pLevel) {
-        if (!isValidSection(pSectionPos))
-            return;
-
         int i = this.getLevel(pSectionPos);
         if (i != 0 && pLevel == 0) {
             this.dataSectionSet.add(pSectionPos);
@@ -136,17 +125,17 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
                 this.updatingSectionData.setLayer(pSectionPos, this.createDataLayer(pSectionPos));
                 this.changedSections.add(pSectionPos);
                 this.onNodeAdded(pSectionPos);
-                long j = pSectionPos.x();
+                Int128 j = pSectionPos.x();
                 int k = pSectionPos.y();
-                long l = pSectionPos.z();
+                Int128 l = pSectionPos.z();
 
                 for (int i1 = -1; i1 <= 1; ++i1) {
-                    Long affectedZ = WorldBounds.tryAddChunkOffset(l, i1);
+                    Int128 affectedZ = WorldBounds.tryAddChunkOffset(l, i1);
                     if (affectedZ == null)
                         continue;
 
                     for (int j1 = -1; j1 <= 1; ++j1) {
-                        Long affectedX = WorldBounds.tryAddChunkOffset(j, j1);
+                        Int128 affectedX = WorldBounds.tryAddChunkOffset(j, j1);
                         if (affectedX == null)
                             continue;
 
@@ -174,17 +163,17 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
         if (pEngine.getQueueSize() != 0) {
             if (pEngine.getQueueSize() < 8192) {
                 pEngine.removeIf((p_75753_) -> {
-                    return SectionPos.of(p_75753_).equals(pSectionPos);
+                    return pSectionPos.contains(p_75753_);
                 });
             } else {
-                long i = SectionPos.sectionToBlockCoord(pSectionPos.x());
+                Int128 i = SectionPos.sectionToBlockCoord(pSectionPos.x());
                 int j = SectionPos.sectionToBlockCoord(pSectionPos.y());
-                long k = SectionPos.sectionToBlockCoord(pSectionPos.z());
+                Int128 k = SectionPos.sectionToBlockCoord(pSectionPos.z());
 
                 for (int l = 0; l < 16; ++l) {
                     for (int i1 = 0; i1 < 16; ++i1) {
                         for (int j1 = 0; j1 < 16; ++j1) {
-                            BlockPos k1 = new BlockPos(i + l, j + i1, k + j1);
+                            BlockPos k1 = new BlockPos(WorldBounds.addBlockOffset(i, l), j + i1, WorldBounds.addBlockOffset(k, j1));
                             pEngine.removeFromQueue(k1);
                         }
                     }
@@ -257,13 +246,11 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
         if (!this.storingLightForSection(sectionPos))
             return;
 
-        long x = SectionPos.sectionToBlockCoord(sectionPos.x());
-        int y = SectionPos.sectionToBlockCoord(sectionPos.y());
-        long z = SectionPos.sectionToBlockCoord(sectionPos.z());
+        BlockPos origin = sectionPos.origin();
         for (Direction direction : DIRECTIONS) {
             SectionPos neighborSection = sectionPos.offset(direction);
             // Section offsets saturate at the world edge. There is no adjacent
-            // section there; constructing its block face would wrap long X/Z.
+            // section there; do not reconnect the boundary face to itself.
             if (neighborSection.equals(sectionPos) || this.queuedSections.containsKey(neighborSection) || !this.storingLightForSection(neighborSection))
                 continue;
 
@@ -273,29 +260,24 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
                     BlockPos to;
                     switch (direction) {
                         case DOWN:
-                            from = new BlockPos(x + second, y, z + first);
-                            to = new BlockPos(x + second, y - 1, z + first);
+                            from = origin.offset(second, 0, first);
                             break;
                         case UP:
-                            from = new BlockPos(x + second, y + 15, z + first);
-                            to = new BlockPos(x + second, y + 16, z + first);
+                            from = origin.offset(second, 15, first);
                             break;
                         case NORTH:
-                            from = new BlockPos(x + first, y + second, z);
-                            to = new BlockPos(x + first, y + second, z - 1);
+                            from = origin.offset(first, second, 0);
                             break;
                         case SOUTH:
-                            from = new BlockPos(x + first, y + second, z + 15);
-                            to = new BlockPos(x + first, y + second, z + 16);
+                            from = origin.offset(first, second, 15);
                             break;
                         case WEST:
-                            from = new BlockPos(x, y + first, z + second);
-                            to = new BlockPos(x - 1, y + first, z + second);
+                            from = origin.offset(0, first, second);
                             break;
                         default:
-                            from = new BlockPos(x + 15, y + first, z + second);
-                            to = new BlockPos(x + 16, y + first, z + second);
+                            from = origin.offset(15, first, second);
                     }
+                    to = from.relative(direction);
                     engine.checkEdge(from, to, engine.computeLevelFromNeighbor(from, to, engine.getLevel(from)), false);
                     engine.checkEdge(to, from, engine.computeLevelFromNeighbor(to, from, engine.getLevel(to)), false);
                 }
@@ -313,9 +295,6 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
     }
 
     public void retainData(SectionPos pSectionColumnPos, boolean pRetain) {
-        if (!isValidSection(pSectionColumnPos))
-            return;
-
         if (pRetain) {
             this.columnsToRetainQueuedDataFor.add(pSectionColumnPos);
         } else {
@@ -324,9 +303,6 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
     }
 
     protected void queueSectionData(SectionPos pSectionPos, @Nullable DataLayer pArray, boolean pIsTrusted) {
-        if (!isValidSection(pSectionPos))
-            return;
-
         if (pArray != null) {
             this.queuedSections.put(pSectionPos, pArray);
             if (!pIsTrusted) {
@@ -338,9 +314,6 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
     }
 
     protected void updateSectionStatus(SectionPos pSectionPos, boolean pIsEmpty) {
-        if (!isValidSection(pSectionPos))
-            return;
-
         boolean flag = this.dataSectionSet.contains(pSectionPos);
         if (!flag && !pIsEmpty) {
             this.toMarkData.add(pSectionPos);

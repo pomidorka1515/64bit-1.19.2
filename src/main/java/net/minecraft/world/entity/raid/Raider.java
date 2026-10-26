@@ -292,7 +292,7 @@ public abstract class Raider extends PatrollingMonster {
             super.start();
             this.mob.getNavigation().stop();
 
-            for (Raider raider : this.mob.level.getNearbyEntities(Raider.class, this.shoutTargeting, this.mob, this.mob.getBoundingBox().inflate(8.0D, 8.0D, 8.0D))) {
+            for (Raider raider : this.mob.level.getNearbyEntities(Raider.class, this.shoutTargeting, this.mob, this.mob.exactBoundingBox().inflate(8.0D, 8.0D, 8.0D))) {
                 raider.setTarget(this.mob.getTarget());
             }
         }
@@ -301,7 +301,7 @@ public abstract class Raider extends PatrollingMonster {
             super.stop();
             LivingEntity livingentity = this.mob.getTarget();
             if (livingentity != null) {
-                for (Raider raider : this.mob.level.getNearbyEntities(Raider.class, this.shoutTargeting, this.mob, this.mob.getBoundingBox().inflate(8.0D, 8.0D, 8.0D))) {
+                for (Raider raider : this.mob.level.getNearbyEntities(Raider.class, this.shoutTargeting, this.mob, this.mob.exactBoundingBox().inflate(8.0D, 8.0D, 8.0D))) {
                     raider.setTarget(livingentity);
                     raider.setAggressive(true);
                 }
@@ -344,7 +344,7 @@ public abstract class Raider extends PatrollingMonster {
             if (this.mob.hasActiveRaid() && !this.mob.getCurrentRaid().isOver() && this.mob.canBeLeader() && !ItemStack.matches(this.mob.getItemBySlot(EquipmentSlot.HEAD), Raid.getLeaderBannerInstance())) {
                 Raider raider = raid.getLeader(this.mob.getWave());
                 if (raider == null || !raider.isAlive()) {
-                    List<ItemEntity> list = this.mob.level.getEntitiesOfClass(ItemEntity.class, this.mob.getBoundingBox().inflate(16.0D, 8.0D, 16.0D), Raider.ALLOWED_ITEMS);
+                    List<ItemEntity> list = this.mob.level.getEntitiesOfClass(ItemEntity.class, this.mob.exactBoundingBox().inflate(16.0D, 8.0D, 16.0D), Raider.ALLOWED_ITEMS);
                     if (!list.isEmpty()) {
                         return this.mob.getNavigation().moveTo(list.get(0), (double) 1.15F);
                     }
@@ -358,7 +358,7 @@ public abstract class Raider extends PatrollingMonster {
 
         public void tick() {
             if (this.mob.getNavigation().getTargetPos().closerToCenterThan(this.mob.sectorPosition(), 1.414D)) {
-                List<ItemEntity> list = this.mob.level.getEntitiesOfClass(ItemEntity.class, this.mob.getBoundingBox().inflate(4.0D, 4.0D, 4.0D), Raider.ALLOWED_ITEMS);
+                List<ItemEntity> list = this.mob.level.getEntitiesOfClass(ItemEntity.class, this.mob.exactBoundingBox().inflate(4.0D, 4.0D, 4.0D), Raider.ALLOWED_ITEMS);
                 if (!list.isEmpty()) {
                     this.mob.pickUpItem(list.get(0));
                 }

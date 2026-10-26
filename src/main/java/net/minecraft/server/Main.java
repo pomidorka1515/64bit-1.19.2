@@ -2,7 +2,6 @@ package net.minecraft.server;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.DynamicOps;
@@ -40,7 +39,6 @@ import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.server.packs.repository.ServerPacksSource;
 import net.minecraft.util.Mth;
-import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.util.profiling.jfr.Environment;
 import net.minecraft.util.profiling.jfr.JvmProfiler;
 import net.minecraft.util.worldupdate.WorldUpgrader;
@@ -172,14 +170,14 @@ public class Main {
             dedicatedserversettings.getProperties().getWorldGenSettings(registryaccess$frozen);
             WorldData worlddata = worldstem.worldData();
             if (optionset.has(optionspec4)) {
-                forceUpgrade(levelstoragesource$levelstorageaccess, DataFixers.getDataFixer(), optionset.has(optionspec5), () -> {
+                forceUpgrade(levelstoragesource$levelstorageaccess, optionset.has(optionspec5), () -> {
                     return true;
                 }, worlddata.worldGenSettings());
             }
 
             levelstoragesource$levelstorageaccess.saveDataTag(registryaccess$frozen, worlddata);
             final DedicatedServer dedicatedserver = MinecraftServer.spin((p_236710_) -> {
-                DedicatedServer dedicatedserver1 = new DedicatedServer(p_236710_, levelstoragesource$levelstorageaccess, packrepository, worldstem, dedicatedserversettings, DataFixers.getDataFixer(), services, LoggerChunkProgressListener::new);
+                DedicatedServer dedicatedserver1 = new DedicatedServer(p_236710_, levelstoragesource$levelstorageaccess, packrepository, worldstem, dedicatedserversettings, services, LoggerChunkProgressListener::new);
                 dedicatedserver1.setSingleplayerProfile(optionset.has(optionspec8) ? new GameProfile((UUID) null, optionset.valueOf(optionspec8)) : null);
                 dedicatedserver1.setPort(optionset.valueOf(optionspec11));
                 dedicatedserver1.setDemo(optionset.has(optionspec2));
@@ -203,9 +201,9 @@ public class Main {
         }
     }
 
-    private static void forceUpgrade(LevelStorageSource.LevelStorageAccess p_195489_, DataFixer p_195490_, boolean p_195491_, BooleanSupplier p_195492_, WorldGenSettings p_195493_) {
+    private static void forceUpgrade(LevelStorageSource.LevelStorageAccess p_195489_, boolean p_195491_, BooleanSupplier p_195492_, WorldGenSettings p_195493_) {
         LOGGER.info("Forcing world upgrade!");
-        WorldUpgrader worldupgrader = new WorldUpgrader(p_195489_, p_195490_, p_195493_, p_195491_);
+        WorldUpgrader worldupgrader = new WorldUpgrader(p_195489_, p_195493_, p_195491_);
         Component component = null;
 
         while (!worldupgrader.isFinished()) {

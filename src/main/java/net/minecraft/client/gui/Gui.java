@@ -99,7 +99,6 @@ public class Gui extends GuiComponent {
     private Component overlayMessageString;
     private int overlayMessageTime;
     private boolean animateOverlayMessageColor;
-    private boolean chatDisabledByPlayerShown;
     public float vignetteBrightness = 1.0F;
     private int toolHighlightTimer;
     private ItemStack lastToolHighlight = ItemStack.EMPTY;
@@ -999,7 +998,7 @@ public class Gui extends GuiComponent {
 
     private void updateVignetteBrightness(Entity pEntity) {
         if (pEntity != null) {
-            BlockPos blockpos = new BlockPos(pEntity.getX(), pEntity.getEyeY(), pEntity.getZ());
+            BlockPos blockpos = pEntity.exactEyePosition().blockPosition();
             float f = LightTexture.getBrightness(pEntity.level.dimensionType(), pEntity.level.getMaxLocalRawBrightness(blockpos));
             float f1 = Mth.clamp(1.0F - f, 0.0F, 1.0F);
             this.vignetteBrightness += (f1 - this.vignetteBrightness) * 0.01F;
@@ -1156,18 +1155,9 @@ public class Gui extends GuiComponent {
     }
 
     public void setOverlayMessage(Component pComponent, boolean pAnimateColor) {
-        this.setChatDisabledByPlayerShown(false);
         this.overlayMessageString = pComponent;
         this.overlayMessageTime = 60;
         this.animateOverlayMessageColor = pAnimateColor;
-    }
-
-    public void setChatDisabledByPlayerShown(boolean p_238398_) {
-        this.chatDisabledByPlayerShown = p_238398_;
-    }
-
-    public boolean isShowingChatDisabledByPlayer() {
-        return this.chatDisabledByPlayerShown && this.overlayMessageTime > 0;
     }
 
     public void setTimes(int pTitleFadeInTime, int pTitleStayTime, int pTitleFadeOutTime) {

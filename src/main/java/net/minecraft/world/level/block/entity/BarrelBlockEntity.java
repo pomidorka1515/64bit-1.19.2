@@ -108,9 +108,9 @@ public class BarrelBlockEntity extends RandomizableContainerBlockEntity {
 
     void playSound(BlockState pState, SoundEvent pSound) {
         Vec3i vec3i = pState.getValue(BarrelBlock.FACING).getNormal();
-        double d0 = (double) this.worldPosition.getX() + 0.5D + (double) vec3i.getX() / 2.0D;
+        double d0 = 0.5D + (double) vec3i.getX().lo() / 2.0D;
         double d1 = (double) this.worldPosition.getY() + 0.5D + (double) vec3i.getY() / 2.0D;
-        double d2 = (double) this.worldPosition.getZ() + 0.5D + (double) vec3i.getZ() / 2.0D;
-        this.level.playSound((Player) null, d0, d1, d2, pSound, SoundSource.BLOCKS, 0.5F, this.level.random.nextFloat() * 0.1F + 0.9F);
+        double d2 = 0.5D + (double) vec3i.getZ().lo() / 2.0D;
+        this.level.playSound((Player) null, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(this.worldPosition.getX(), d0, d1, this.worldPosition.getZ(), d2), pSound, SoundSource.BLOCKS, 0.5F, this.level.random.nextFloat() * 0.1F + 0.9F);
     }
 }

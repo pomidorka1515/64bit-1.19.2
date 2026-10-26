@@ -69,8 +69,8 @@ public class HoneyBlock extends HalfTransparentBlock {
         } else if (pEntity.getDeltaMovement().y >= -0.08D) {
             return false;
         } else {
-            double d0 = Math.abs((double) pPos.getX() + 0.5D - pEntity.getX());
-            double d1 = Math.abs((double) pPos.getZ() + 0.5D - pEntity.getZ());
+            double d0 = Math.abs(net.minecraft.world.level.WorldBounds.signedDifference(pPos.getX(), pEntity.sectorPosition().blockX()) + 0.5D - pEntity.sectorPosition().subX());
+            double d1 = Math.abs(net.minecraft.world.level.WorldBounds.signedDifference(pPos.getZ(), pEntity.sectorPosition().blockZ()) + 0.5D - pEntity.sectorPosition().subZ());
             double d2 = 0.4375D + (double) (pEntity.getBbWidth() / 2.0F);
             return d0 + 1.0E-7D > d2 || d1 + 1.0E-7D > d2;
         }

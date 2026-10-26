@@ -10,7 +10,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -77,16 +76,8 @@ public class PlayerSocialManager {
             this.discoveredNamesToUUID.put(gameprofile.getName(), gameprofile.getId());
         }
 
-        Screen screen = this.minecraft.screen;
-        if (screen instanceof SocialInteractionsScreen socialinteractionsscreen) {
-            socialinteractionsscreen.onAddPlayer(pPlayerInfo);
-        }
     }
 
     public void removePlayer(UUID pId) {
-        Screen screen = this.minecraft.screen;
-        if (screen instanceof SocialInteractionsScreen socialinteractionsscreen) {
-            socialinteractionsscreen.onRemovePlayer(pId);
-        }
     }
 }

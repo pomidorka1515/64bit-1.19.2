@@ -77,7 +77,7 @@ public class PlacedBlockTrigger extends SimpleCriterionTrigger<PlacedBlockTrigge
                 return false;
             } else if (!this.state.matches(pState)) {
                 return false;
-            } else if (!this.location.matches(pLevel, (double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ())) {
+            } else if (!this.location.matches(pLevel, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.0D, pPos.getY(), pPos.getZ(), 0.0D))) {
                 return false;
             } else {
                 return this.item.matches(pItem);

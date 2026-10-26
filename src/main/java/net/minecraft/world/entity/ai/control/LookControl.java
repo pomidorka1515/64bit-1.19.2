@@ -13,9 +13,7 @@ public class LookControl implements Control {
     protected float yMaxRotSpeed;
     protected float xMaxRotAngle;
     protected int lookAtCooldown;
-    protected double wantedX;
     protected double wantedY;
-    protected double wantedZ;
     private SectorVec3 exactWantedPosition;
 
     public LookControl(Mob pMob) {
@@ -41,9 +39,7 @@ public class LookControl implements Control {
 
     public void setLookAt(double pX, double pY, double pZ, float pDeltaYaw, float pDeltaPitch) {
         this.exactWantedPosition = SectorVec3.fromApproximate(pX, pY, pZ);
-        this.wantedX = pX;
         this.wantedY = pY;
-        this.wantedZ = pZ;
         this.yMaxRotSpeed = pDeltaYaw;
         this.xMaxRotAngle = pDeltaPitch;
         this.lookAtCooldown = 2;
@@ -51,10 +47,7 @@ public class LookControl implements Control {
 
     public void setLookAtExact(SectorVec3 position, float yMaxRotSpeed, float xMaxRotAngle) {
         this.exactWantedPosition = position;
-        Vec3 approximate = position.toApproximateVec3();
-        this.wantedX = approximate.x;
         this.wantedY = position.y();
-        this.wantedZ = approximate.z;
         this.yMaxRotSpeed = yMaxRotSpeed;
         this.xMaxRotAngle = xMaxRotAngle;
         this.lookAtCooldown = 2;
@@ -94,21 +87,12 @@ public class LookControl implements Control {
         return this.lookAtCooldown > 0;
     }
 
-    public double getWantedX() {
-        return this.wantedX;
-    }
-
     public double getWantedY() {
         return this.wantedY;
     }
 
-    public double getWantedZ() {
-        return this.wantedZ;
-    }
-
     public SectorVec3 getExactWantedPosition() {
-        return this.exactWantedPosition != null ? this.exactWantedPosition
-                                                : SectorVec3.fromApproximate(this.wantedX, this.wantedY, this.wantedZ);
+        return this.exactWantedPosition != null ? this.exactWantedPosition : this.mob.sectorPosition();
     }
 
     protected final Vec3 wantedDelta(double originY) {
@@ -138,6 +122,6 @@ public class LookControl implements Control {
     }
 
     private static double getWantedY(Entity pEntity) {
-        return pEntity instanceof LivingEntity ? pEntity.getEyeY() : (pEntity.getBoundingBox().minY + pEntity.getBoundingBox().maxY) / 2.0D;
+        return pEntity instanceof LivingEntity ? pEntity.getEyeY() : (pEntity.exactBoundingBox().minY + pEntity.exactBoundingBox().maxY) / 2.0D;
     }
 }

@@ -271,7 +271,7 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
                             this.setAlternativeTarget(i, 0);
                         }
                     } else {
-                        List<LivingEntity> list = this.level.getNearbyEntities(LivingEntity.class, TARGETING_CONDITIONS, this, this.getBoundingBox().inflate(20.0D, 8.0D, 20.0D));
+                        List<LivingEntity> list = this.level.getNearbyEntities(LivingEntity.class, TARGETING_CONDITIONS, this, this.exactBoundingBox().inflate(20.0D, 8.0D, 20.0D));
                         if (!list.isEmpty()) {
                             LivingEntity livingentity1 = list.get(this.random.nextInt(list.size()));
                             this.setAlternativeTarget(i, livingentity1.getId());

@@ -7,9 +7,6 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
 public interface Coordinates {
-    /** Legacy view. Exact command code must use {@link #getExactPosition}. */
-    Vec3 getPosition(CommandSourceStack pSource);
-
     SectorVec3 getExactPosition(CommandSourceStack source);
 
     Vec2 getRotation(CommandSourceStack pSource);

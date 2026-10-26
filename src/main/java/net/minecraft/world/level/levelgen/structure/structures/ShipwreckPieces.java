@@ -75,7 +75,8 @@ public class ShipwreckPieces {
             int j = 0;
             Vec3i vec3i = this.template.getSize();
             Heightmap.Types heightmap$types = this.isBeached ? Heightmap.Types.WORLD_SURFACE_WG : Heightmap.Types.OCEAN_FLOOR_WG;
-            long k = vec3i.getX() * vec3i.getZ();
+            // Template dimensions have already been checked to fit local ints.
+            long k = Math.multiplyExact(vec3i.getX().lo(), vec3i.getZ().lo());
             if (k == 0) {
                 j = pLevel.getHeight(heightmap$types, this.templatePosition.getX(), this.templatePosition.getZ());
             } else {

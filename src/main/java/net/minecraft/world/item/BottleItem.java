@@ -25,15 +25,15 @@ public class BottleItem extends Item {
     }
 
     public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
-        List<AreaEffectCloud> list = pLevel.getEntitiesOfClass(AreaEffectCloud.class, pPlayer.getBoundingBox().inflate(2.0D), (p_40650_) -> {
+        List<AreaEffectCloud> list = pLevel.getEntitiesOfClass(AreaEffectCloud.class, pPlayer.exactBoundingBox().inflate(2.0D), (p_40650_) -> {
             return p_40650_ != null && p_40650_.isAlive() && p_40650_.getOwner() instanceof EnderDragon;
         });
         ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (!list.isEmpty()) {
             AreaEffectCloud areaeffectcloud = list.get(0);
             areaeffectcloud.setRadius(areaeffectcloud.getRadius() - 0.5F);
-            pLevel.playSound((Player) null, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundEvents.BOTTLE_FILL_DRAGONBREATH, SoundSource.NEUTRAL, 1.0F, 1.0F);
-            pLevel.gameEvent(pPlayer, GameEvent.FLUID_PICKUP, pPlayer.position());
+            pLevel.playSound((Player) null, pPlayer.sectorPosition(), SoundEvents.BOTTLE_FILL_DRAGONBREATH, SoundSource.NEUTRAL, 1.0F, 1.0F);
+            pLevel.gameEvent(pPlayer, GameEvent.FLUID_PICKUP, pPlayer.exactPositionVector());
             return InteractionResultHolder.sidedSuccess(this.turnBottleIntoItem(itemstack, pPlayer, new ItemStack(Items.DRAGON_BREATH)), pLevel.isClientSide());
         } else {
             HitResult hitresult = getPlayerPOVHitResult(pLevel, pPlayer, ClipContext.Fluid.SOURCE_ONLY);
@@ -47,7 +47,7 @@ public class BottleItem extends Item {
                     }
 
                     if (pLevel.getFluidState(blockpos).is(FluidTags.WATER)) {
-                        pLevel.playSound(pPlayer, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundEvents.BOTTLE_FILL, SoundSource.NEUTRAL, 1.0F, 1.0F);
+                        pLevel.playSound(pPlayer, pPlayer.sectorPosition(), SoundEvents.BOTTLE_FILL, SoundSource.NEUTRAL, 1.0F, 1.0F);
                         pLevel.gameEvent(pPlayer, GameEvent.FLUID_PICKUP, blockpos);
                         return InteractionResultHolder.sidedSuccess(this.turnBottleIntoItem(itemstack, pPlayer, PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER)), pLevel.isClientSide());
                     }

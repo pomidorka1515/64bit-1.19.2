@@ -39,10 +39,7 @@ public class GameTestDebugRenderer implements DebugRenderer.SimpleDebugRenderer 
         RenderSystem.disableTexture();
         DebugRenderer.renderFilledBox(p_113530_, 0.02F, p_113531_.getR(), p_113531_.getG(), p_113531_.getB(), p_113531_.getA());
         if (!p_113531_.text.isEmpty()) {
-            double d0 = (double) p_113530_.getX() + 0.5D;
-            double d1 = (double) p_113530_.getY() + 1.2D;
-            double d2 = (double) p_113530_.getZ() + 0.5D;
-            DebugRenderer.renderFloatingText(p_113531_.text, d0, d1, d2, -1, 0.01F, true, 0.0F, true);
+            DebugRenderer.renderFloatingText(p_113531_.text, p_113530_, 0.5D, 1.2D, 0.5D, -1, 0.01F, true, 0.0F, true);
         }
 
         RenderSystem.enableTexture();

@@ -274,7 +274,7 @@ public class ChatScreen extends Screen {
         fill(pPoseStack, 2, this.height - 14, this.width - 2, this.height - 2, this.minecraft.options.getBackgroundColor(Integer.MIN_VALUE));
         this.input.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
         super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
-        boolean flag = this.minecraft.getProfileKeyPairManager().signer() != null;
+        boolean flag = false;
         ChatPreviewAnimator.State chatpreviewanimator$state = this.chatPreviewAnimator.get(Util.getMillis(), this.getDisplayedPreviewText());
         if (chatpreviewanimator$state.preview() != null) {
             this.renderChatPreview(pPoseStack, chatpreviewanimator$state.preview(), chatpreviewanimator$state.alpha(), flag);
@@ -291,11 +291,6 @@ public class ChatScreen extends Screen {
         Style style = this.getComponentStyleAt((double) pMouseX, (double) pMouseY);
         if (style != null && style.getHoverEvent() != null) {
             this.renderComponentHoverEffect(pPoseStack, style, pMouseX, pMouseY);
-        } else {
-            GuiMessageTag guimessagetag = this.minecraft.gui.getChat().getMessageTagAt((double) pMouseX, (double) pMouseY);
-            if (guimessagetag != null && guimessagetag.text() != null) {
-                this.renderTooltip(pPoseStack, this.font.split(guimessagetag.text(), 260), pMouseX, pMouseY);
-            }
         }
     }
 

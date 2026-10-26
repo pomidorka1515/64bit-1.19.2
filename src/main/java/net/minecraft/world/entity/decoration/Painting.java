@@ -151,10 +151,6 @@ public class Painting extends HangingEntity {
         this.setPos(pX, pY, pZ);
     }
 
-    public Vec3 trackingPosition() {
-        return Vec3.atLowerCornerOf(this.pos);
-    }
-
     public Packet<?> getAddEntityPacket() {
         return new ClientboundAddEntityPacket(this, this.direction.get3DDataValue(), this.getPos());
     }

@@ -3,10 +3,10 @@ package net.minecraft.network.protocol.game;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.level.border.WorldBorder;
+import net.minecraft.world.phys.SectorVec3;
 
 public class ClientboundInitializeBorderPacket implements Packet<ClientGamePacketListener> {
-    private final double newCenterX;
-    private final double newCenterZ;
+    private final SectorVec3 exactCenter;
     private final double oldSize;
     private final double newSize;
     private final long lerpTime;
@@ -15,8 +15,8 @@ public class ClientboundInitializeBorderPacket implements Packet<ClientGamePacke
     private final int warningTime;
 
     public ClientboundInitializeBorderPacket(FriendlyByteBuf pBuffer) {
-        this.newCenterX = pBuffer.readDouble();
-        this.newCenterZ = pBuffer.readDouble();
+        this.exactCenter = SectorVec3.fromBlockAndFraction(pBuffer.readInt128(), pBuffer.readDouble(),
+                0.0D, pBuffer.readInt128(), pBuffer.readDouble());
         this.oldSize = pBuffer.readDouble();
         this.newSize = pBuffer.readDouble();
         this.lerpTime = pBuffer.readVarLong();
@@ -26,8 +26,7 @@ public class ClientboundInitializeBorderPacket implements Packet<ClientGamePacke
     }
 
     public ClientboundInitializeBorderPacket(WorldBorder pWorldBorder) {
-        this.newCenterX = pWorldBorder.getCenterX();
-        this.newCenterZ = pWorldBorder.getCenterZ();
+        this.exactCenter = pWorldBorder.getExactCenter();
         this.oldSize = pWorldBorder.getSize();
         this.newSize = pWorldBorder.getLerpTarget();
         this.lerpTime = pWorldBorder.getLerpRemainingTime();
@@ -37,8 +36,10 @@ public class ClientboundInitializeBorderPacket implements Packet<ClientGamePacke
     }
 
     public void write(FriendlyByteBuf pBuffer) {
-        pBuffer.writeDouble(this.newCenterX);
-        pBuffer.writeDouble(this.newCenterZ);
+        pBuffer.writeInt128(this.exactCenter.blockX());
+        pBuffer.writeDouble(this.exactCenter.subX());
+        pBuffer.writeInt128(this.exactCenter.blockZ());
+        pBuffer.writeDouble(this.exactCenter.subZ());
         pBuffer.writeDouble(this.oldSize);
         pBuffer.writeDouble(this.newSize);
         pBuffer.writeVarLong(this.lerpTime);
@@ -51,13 +52,13 @@ public class ClientboundInitializeBorderPacket implements Packet<ClientGamePacke
         pHandler.handleInitializeBorder(this);
     }
 
-    public double getNewCenterX() {
-        return this.newCenterX;
+    public SectorVec3 getExactCenter() {
+        return this.exactCenter;
     }
 
-    public double getNewCenterZ() {
-        return this.newCenterZ;
-    }
+    /** Lossy mirror for legacy display callers. */
+
+    /** Lossy mirror for legacy display callers. */
 
     public double getNewSize() {
         return this.newSize;

@@ -100,7 +100,7 @@ public class Boat extends Entity {
 
     public Boat(Level pLevel, double pX, double pY, double pZ) {
         this(EntityType.BOAT, pLevel);
-        this.setPos(pX, pY, pZ);
+        this.applyExactPosition(SectorVec3.fromApproximate(pX, pY, pZ));
         this.setOldPosAndRot();
     }
 
@@ -199,10 +199,10 @@ public class Boat extends Entity {
 
     public void push(Entity pEntity) {
         if (pEntity instanceof Boat) {
-            if (pEntity.getBoundingBox().minY < this.getBoundingBox().maxY) {
+            if (pEntity.exactBoundingBox().minY < this.exactBoundingBox().maxY) {
                 super.push(pEntity);
             }
-        } else if (pEntity.getBoundingBox().minY <= this.getBoundingBox().minY) {
+        } else if (pEntity.exactBoundingBox().minY <= this.exactBoundingBox().minY) {
             super.push(pEntity);
         }
     }
@@ -430,7 +430,7 @@ public class Boat extends Entity {
     private Boat.Status getStatus() {
         Boat.Status boat$status = this.isUnderwater();
         if (boat$status != null) {
-            this.waterLevel = this.getBoundingBox().maxY;
+            this.waterLevel = this.exactBoundingBox().maxY;
             return boat$status;
         } else if (this.checkInWater()) {
             return Boat.Status.IN_WATER;
@@ -690,44 +690,17 @@ public class Boat extends Entity {
     }
 
     public Vec3 getDismountLocationForPassenger(LivingEntity pLivingEntity) {
-        Vec3 vec3 = getCollisionHorizontalEscapeVector((double) (this.getBbWidth() * Mth.SQRT_OF_TWO), (double) pLivingEntity.getBbWidth(), pLivingEntity.getYRot());
-        double d0 = this.getX() + vec3.x;
-        double d1 = this.getZ() + vec3.z;
-        BlockPos blockpos = new BlockPos(d0, this.getBoundingBox().maxY, d1);
-        BlockPos blockpos1 = blockpos.below();
-        if (!this.level.isWaterAt(blockpos1)) {
-            List<Vec3> list = Lists.newArrayList();
-            double d2 = this.level.getBlockFloorHeight(blockpos);
-            if (DismountHelper.isBlockFloorValid(d2)) {
-                list.add(new Vec3(d0, (double) blockpos.getY() + d2, d1));
-            }
-
-            double d3 = this.level.getBlockFloorHeight(blockpos1);
-            if (DismountHelper.isBlockFloorValid(d3)) {
-                list.add(new Vec3(d0, (double) blockpos1.getY() + d3, d1));
-            }
-
-            for (Pose pose : pLivingEntity.getDismountPoses()) {
-                for (Vec3 vec31 : list) {
-                    if (DismountHelper.canDismountTo(this.level, vec31, pLivingEntity, pose)) {
-                        pLivingEntity.setPose(pose);
-                        return vec31;
-                    }
-                }
-            }
-        }
-
-        return super.getDismountLocationForPassenger(pLivingEntity);
+        return this.getExactDismountLocationForPassenger(pLivingEntity).toExactVec3();
     }
 
     /** Exact split-coordinate boat dismount target; local escape offsets never pass through global doubles. */
     public SectorVec3 getExactDismountLocationForPassenger(LivingEntity passenger) {
         SectorVec3 base = this.sectorPosition();
         Vec3 escape = getCollisionHorizontalEscapeVector((double) (this.getBbWidth() * Mth.SQRT_OF_TWO), (double) passenger.getBbWidth(), passenger.getYRot());
-        double maxY = this.getBoundingBox().maxY;
+        double maxY = this.exactBoundingBox().maxY;
         SectorVec3 escaped = base.add(escape.x, 0.0D, escape.z);
-        long blockX = escaped.blockX();
-        long blockZ = escaped.blockZ();
+        var blockX = escaped.blockX();
+        var blockZ = escaped.blockZ();
         double subX = escaped.subX();
         double subZ = escaped.subZ();
         BlockPos blockpos = new BlockPos(blockX, Mth.floor(maxY), blockZ);

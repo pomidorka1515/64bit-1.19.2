@@ -25,8 +25,12 @@ public abstract class AbstractHurtingProjectile extends Projectile {
     }
 
     public AbstractHurtingProjectile(EntityType<? extends AbstractHurtingProjectile> pEntityType, double pX, double pY, double pZ, double pOffsetX, double pOffsetY, double pOffsetZ, Level pLevel) {
+        this(pEntityType, SectorVec3.fromApproximate(pX, pY, pZ), pOffsetX, pOffsetY, pOffsetZ, pLevel);
+    }
+
+    public AbstractHurtingProjectile(EntityType<? extends AbstractHurtingProjectile> pEntityType, SectorVec3 position, double pOffsetX, double pOffsetY, double pOffsetZ, Level pLevel) {
         this(pEntityType, pLevel);
-        this.moveTo(pX, pY, pZ, this.getYRot(), this.getXRot());
+        this.moveTo(position, this.getYRot(), this.getXRot());
         this.reapplyPosition();
         double d0 = Math.sqrt(pOffsetX * pOffsetX + pOffsetY * pOffsetY + pOffsetZ * pOffsetZ);
         if (d0 != 0.0D) {
@@ -37,8 +41,7 @@ public abstract class AbstractHurtingProjectile extends Projectile {
     }
 
     public AbstractHurtingProjectile(EntityType<? extends AbstractHurtingProjectile> pEntityType, LivingEntity pShooter, double pOffsetX, double pOffsetY, double pOffsetZ, Level pLevel) {
-        this(pEntityType, pShooter.getX(), pShooter.getY(), pShooter.getZ(), pOffsetX, pOffsetY, pOffsetZ, pLevel);
-        this.applyExactPosition(pShooter.sectorPosition());
+        this(pEntityType, pShooter.sectorPosition(), pOffsetX, pOffsetY, pOffsetZ, pLevel);
         this.setOwner(pShooter);
         this.setRot(pShooter.getYRot(), pShooter.getXRot());
     }
@@ -47,7 +50,7 @@ public abstract class AbstractHurtingProjectile extends Projectile {
     }
 
     public boolean shouldRenderAtSqrDistance(double pDistance) {
-        double d0 = this.getBoundingBox().getSize() * 4.0D;
+        double d0 = this.exactBoundingBox().getSize() * 4.0D;
         if (Double.isNaN(d0)) {
             d0 = 4.0D;
         }

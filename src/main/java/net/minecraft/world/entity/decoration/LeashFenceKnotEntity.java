@@ -116,9 +116,9 @@ public class LeashFenceKnotEntity extends HangingEntity {
     }
 
     public static LeashFenceKnotEntity getOrCreateKnot(Level pLevel, BlockPos pPos) {
-        long i = pPos.getX();
+        var i = pPos.getX();
         int j = pPos.getY();
-        long k = pPos.getZ();
+        var k = pPos.getZ();
 
         for (LeashFenceKnotEntity leashfenceknotentity : pLevel.getEntitiesOfClass(LeashFenceKnotEntity.class, AABB.fromSectorBounds(net.minecraft.world.phys.SectorAABB.around(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(i, 0.0D, j - 1.0D, k, 0.0D), 2.0D, 2.0D)))) {
             if (leashfenceknotentity.getPos().equals(pPos)) {

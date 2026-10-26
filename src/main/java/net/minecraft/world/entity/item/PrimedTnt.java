@@ -29,8 +29,12 @@ public class PrimedTnt extends Entity {
     }
 
     public PrimedTnt(Level pLevel, double pX, double pY, double pZ, @Nullable LivingEntity pOwner) {
+        this(pLevel, net.minecraft.world.phys.SectorVec3.fromApproximate(pX, pY, pZ), pOwner);
+    }
+
+    public PrimedTnt(Level pLevel, net.minecraft.world.phys.SectorVec3 position, @Nullable LivingEntity pOwner) {
         this(EntityType.TNT, pLevel);
-        this.setPos(pX, pY, pZ);
+        this.moveTo(position, 0.0F, 0.0F);
         double d0 = pLevel.random.nextDouble() * (double) ((float) Math.PI * 2F);
         this.setDeltaMovement(-Math.sin(d0) * 0.02D, (double) 0.2F, -Math.cos(d0) * 0.02D);
         this.setFuse(80);

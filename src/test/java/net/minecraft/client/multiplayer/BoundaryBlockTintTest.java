@@ -1,6 +1,7 @@
 package net.minecraft.client.multiplayer;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,8 +18,8 @@ class BoundaryBlockTintTest {
 
     @Test
     void constantTintIsNotDarkenedByClippedBlendWindow() {
-        for (long x : new long[] {0L, Long.MIN_VALUE, Long.MAX_VALUE}) {
-            for (long z : new long[] {0L, Long.MIN_VALUE, Long.MAX_VALUE}) {
+        for (Int128 x : new Int128[] {Int128.ZERO, Int128.MIN, Int128.MAX, Int128.of(7, -1)}) {
+            for (Int128 z : new Int128[] {Int128.ZERO, Int128.MIN, Int128.MAX, Int128.of(-7, 0)}) {
                 for (int radius : new int[] {0, 1, 7}) {
                     assertEquals(0x91BD59, ClientLevel.calculateBlockTint(new BlockPos(x, 64, z), radius, pos -> 0x91BD59));
                 }
@@ -28,9 +29,9 @@ class BoundaryBlockTintTest {
 
     @Test
     void averagesOnlyRepresentableSamples() {
-        assertEquals(0x202020, ClientLevel.calculateBlockTint(new BlockPos(Long.MAX_VALUE, 64, 0L), 1,
-                pos -> pos.getX() == Long.MAX_VALUE ? 0x303030 : 0x101010));
-        assertEquals(0x202020, ClientLevel.calculateBlockTint(new BlockPos(Long.MIN_VALUE, 64, 0L), 1,
-                pos -> pos.getX() == Long.MIN_VALUE ? 0x303030 : 0x101010));
+        assertEquals(0x202020, ClientLevel.calculateBlockTint(new BlockPos(Int128.MAX, 64, Int128.ZERO), 1,
+                pos -> pos.getX().equals(Int128.MAX) ? 0x303030 : 0x101010));
+        assertEquals(0x202020, ClientLevel.calculateBlockTint(new BlockPos(Int128.MIN, 64, Int128.ZERO), 1,
+                pos -> pos.getX().equals(Int128.MIN) ? 0x303030 : 0x101010));
     }
 }

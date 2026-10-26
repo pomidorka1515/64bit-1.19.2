@@ -50,7 +50,7 @@ public class DynamicGameEventListener<T extends GameEventListener> {
     }
 
     public void move(ServerLevel pLevel) {
-        this.listener.getListenerSource().getPosition(pLevel).map(SectionPos::of).ifPresent((p_223621_) -> {
+        this.listener.getListenerSource().exactPosition(pLevel).map(position -> SectionPos.of(position.blockPosition())).ifPresent((p_223621_) -> {
             if (this.lastSection == null || !this.lastSection.equals(p_223621_)) {
                 ifChunkExists(pLevel, this.lastSection, (p_223637_) -> {
                     p_223637_.unregister(this.listener);

@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction8;
@@ -133,10 +134,10 @@ public class UpgradeData {
             boolean flag3 = set.contains(Direction.NORTH);
             boolean flag4 = set.size() == 1;
             ChunkPos chunkpos = pChunk.getPos();
-            long k = WorldBounds.addBlockOffset(chunkpos.getMinBlockX(), !flag4 || !flag3 && !flag2 ? (flag1 ? 0 : 15) : 1);
-            long l = WorldBounds.addBlockOffset(chunkpos.getMinBlockX(), !flag4 || !flag3 && !flag2 ? (flag1 ? 0 : 15) : 14);
-            long i1 = WorldBounds.addBlockOffset(chunkpos.getMinBlockZ(), !flag4 || !flag && !flag1 ? (flag3 ? 0 : 15) : 1);
-            long j1 = WorldBounds.addBlockOffset(chunkpos.getMinBlockZ(), !flag4 || !flag && !flag1 ? (flag3 ? 0 : 15) : 14);
+            Int128 k = WorldBounds.addBlockOffset(chunkpos.getMinBlockX(), !flag4 || !flag3 && !flag2 ? (flag1 ? 0 : 15) : 1);
+            Int128 l = WorldBounds.addBlockOffset(chunkpos.getMinBlockX(), !flag4 || !flag3 && !flag2 ? (flag1 ? 0 : 15) : 14);
+            Int128 i1 = WorldBounds.addBlockOffset(chunkpos.getMinBlockZ(), !flag4 || !flag && !flag1 ? (flag3 ? 0 : 15) : 1);
+            Int128 j1 = WorldBounds.addBlockOffset(chunkpos.getMinBlockZ(), !flag4 || !flag && !flag1 ? (flag3 ? 0 : 15) : 14);
             Direction[] adirection = Direction.values();
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
@@ -176,13 +177,13 @@ public class UpgradeData {
                     int k = j & 15;
                     int l = j >> 8 & 15;
                     int i1 = j >> 4 & 15;
-                    blockpos$mutableblockpos.set(chunkpos.getMinBlockX() + k, levelchunksection.bottomBlockY() + l, chunkpos.getMinBlockZ() + i1);
+                    blockpos$mutableblockpos.set(chunkpos.getBlockX(k), levelchunksection.bottomBlockY() + l, chunkpos.getBlockZ(i1));
                     BlockState blockstate = palettedcontainer.get(j);
                     BlockState blockstate1 = blockstate;
 
                     for (Direction direction : adirection) {
                         blockpos$mutableblockpos1.setWithOffset(blockpos$mutableblockpos, direction);
-                        if (SectionPos.blockToSectionCoord(blockpos$mutableblockpos.getX()) == chunkpos.x && SectionPos.blockToSectionCoord(blockpos$mutableblockpos.getZ()) == chunkpos.z) {
+                        if (SectionPos.blockToSectionCoord(blockpos$mutableblockpos.getX()).equals(chunkpos.x()) && SectionPos.blockToSectionCoord(blockpos$mutableblockpos.getZ()).equals(chunkpos.z())) {
                             blockstate1 = updateState(blockstate1, direction, levelaccessor, blockpos$mutableblockpos, blockpos$mutableblockpos1);
                         }
                     }
@@ -194,7 +195,7 @@ public class UpgradeData {
 
         for (int j1 = 0; j1 < this.index.length; ++j1) {
             if (this.index[j1] != null) {
-                LOGGER.warn("Discarding update data for section {} for chunk ({} {})", levelaccessor.getSectionYFromSectionIndex(j1), chunkpos.x, chunkpos.z);
+                LOGGER.warn("Discarding update data for section {} for chunk ({} {})", levelaccessor.getSectionYFromSectionIndex(j1), chunkpos.x(), chunkpos.z());
             }
 
             this.index[j1] = null;

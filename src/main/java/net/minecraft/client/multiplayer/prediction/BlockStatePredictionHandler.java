@@ -2,8 +2,6 @@ package net.minecraft.client.multiplayer.prediction;
 
 import java.util.Map.Entry;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import net.minecraft.client.multiplayer.ClientLevel;

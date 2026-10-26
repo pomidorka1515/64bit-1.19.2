@@ -6,7 +6,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunkSection;
@@ -62,8 +61,6 @@ public class ClientboundSectionBlocksUpdatePacket implements Packet<ClientGamePa
     }
 
     public void runUpdates(BiConsumer<BlockPos, BlockState> pConsumer) {
-        if (!WorldBounds.isValidChunk(this.sectionPos.x(), this.sectionPos.z()))
-            return;
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
         for (int i = 0; i < this.positions.length; ++i) {

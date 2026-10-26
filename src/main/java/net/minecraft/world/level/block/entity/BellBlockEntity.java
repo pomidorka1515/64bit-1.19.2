@@ -109,7 +109,7 @@ public class BellBlockEntity extends BlockEntity {
 
         if (!this.level.isClientSide) {
             for (LivingEntity livingentity : this.nearbyEntities) {
-                if (livingentity.isAlive() && !livingentity.isRemoved() && blockpos.closerToCenterThan(livingentity.position(), 32.0D)) {
+                if (livingentity.isAlive() && !livingentity.isRemoved() && blockpos.closerToCenterThan(livingentity.sectorPosition(), 32.0D)) {
                     livingentity.getBrain().setMemory(MemoryModuleType.HEARD_BELL_TIME, this.level.getGameTime());
                 }
             }
@@ -118,7 +118,7 @@ public class BellBlockEntity extends BlockEntity {
 
     private static boolean areRaidersNearby(BlockPos pPos, List<LivingEntity> pRaiders) {
         for (LivingEntity livingentity : pRaiders) {
-            if (livingentity.isAlive() && !livingentity.isRemoved() && pPos.closerToCenterThan(livingentity.position(), 32.0D) && livingentity.getType().is(EntityTypeTags.RAIDERS)) {
+            if (livingentity.isAlive() && !livingentity.isRemoved() && pPos.closerToCenterThan(livingentity.sectorPosition(), 32.0D) && livingentity.getType().is(EntityTypeTags.RAIDERS)) {
                 return true;
             }
         }
@@ -136,7 +136,7 @@ public class BellBlockEntity extends BlockEntity {
     private static void showBellParticles(Level p_155208_, BlockPos p_155209_, List<LivingEntity> p_155210_) {
         MutableInt mutableint = new MutableInt(16700985);
         int i = (int) p_155210_.stream().filter((p_155216_) -> {
-                                            return p_155209_.closerToCenterThan(p_155216_.position(), 48.0D);
+                                            return p_155209_.closerToCenterThan(p_155216_.sectorPosition(), 48.0D);
                                         })
                         .count();
         p_155210_.stream().filter((p_155213_) -> {
@@ -147,18 +147,11 @@ public class BellBlockEntity extends BlockEntity {
                             (double) p_155209_.getY() + 0.5D, p_155209_.getZ(), 0.5D);
                     SectorVec3 raiderPosition = p_155195_.exactPosition();
                     SectorVec3 particlePosition;
-                    if (raiderPosition != null) {
                         net.minecraft.world.phys.Vec3 delta = raiderPosition.relativeTo(bellPosition);
                         double length = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
                         particlePosition = length > 0.0D
                                 ? bellPosition.add(delta.x / length, 0.0D, delta.z / length)
                                 : bellPosition;
-                    } else {
-                        double d0 = Math.sqrt((p_155195_.getX() - (double) p_155209_.getX()) * (p_155195_.getX() - (double) p_155209_.getX())
-                                + (p_155195_.getZ() - (double) p_155209_.getZ()) * (p_155195_.getZ() - (double) p_155209_.getZ()));
-                        particlePosition = SectorVec3.fromBlockAndFraction(p_155209_.getX(), 0.5D + 1.0D / d0 * (p_155195_.getX() - (double) p_155209_.getX()),
-                                (double) p_155209_.getY() + 0.5D, p_155209_.getZ(), 0.5D + 1.0D / d0 * (p_155195_.getZ() - (double) p_155209_.getZ()));
-                    }
 
                     int j = Mth.clamp((i - 21) / -2, 3, 15);
                     for (int k = 0; k < j; ++k) {
@@ -172,7 +165,7 @@ public class BellBlockEntity extends BlockEntity {
     }
 
     private static boolean isRaiderWithinRange(BlockPos pPos, LivingEntity pRaider) {
-        return pRaider.isAlive() && !pRaider.isRemoved() && pPos.closerToCenterThan(pRaider.position(), 48.0D) && pRaider.getType().is(EntityTypeTags.RAIDERS);
+        return pRaider.isAlive() && !pRaider.isRemoved() && pPos.closerToCenterThan(pRaider.sectorPosition(), 48.0D) && pRaider.getType().is(EntityTypeTags.RAIDERS);
     }
 
     private static void glow(LivingEntity p_58841_) {

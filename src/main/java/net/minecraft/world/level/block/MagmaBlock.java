@@ -49,7 +49,7 @@ public class MagmaBlock extends Block {
         BlockPos blockpos = pPos.above();
         if (pLevel.getFluidState(pPos).is(FluidTags.WATER)) {
             pLevel.playSound((Player) null, pPos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.5F, 2.6F + (pLevel.random.nextFloat() - pLevel.random.nextFloat()) * 0.8F);
-            pLevel.sendParticles(ParticleTypes.LARGE_SMOKE, (double) blockpos.getX() + 0.5D, (double) blockpos.getY() + 0.25D, (double) blockpos.getZ() + 0.5D, 8, 0.5D, 0.25D, 0.5D, 0.0D);
+            pLevel.sendParticles(ParticleTypes.LARGE_SMOKE, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, blockpos.getY() + 0.25D, blockpos.getZ(), 0.5D), 8, 0.5D, 0.25D, 0.5D, 0.0D);
         }
     }
 

@@ -48,7 +48,7 @@ public class BiomeAmbientSoundsHandler implements AmbientSoundHandler {
 
     public void tick() {
         this.loopSounds.values().removeIf(AbstractTickableSoundInstance::isStopped);
-        Biome biome = this.biomeManager.getNoiseBiomeAtPosition(this.player.getX(), this.player.getY(), this.player.getZ()).value();
+        Biome biome = this.biomeManager.getNoiseBiomeAtPosition(this.player.blockPosition()).value();
         if (biome != this.previousBiome) {
             this.previousBiome = biome;
             this.moodSettings = biome.getAmbientMood();
@@ -75,7 +75,10 @@ public class BiomeAmbientSoundsHandler implements AmbientSoundHandler {
         this.moodSettings.ifPresent((p_119650_) -> {
             Level level = this.player.level;
             int i = p_119650_.getBlockSearchExtent() * 2 + 1;
-            BlockPos blockpos = new BlockPos(this.player.getX() + (double) this.random.nextInt(i) - (double) p_119650_.getBlockSearchExtent(), this.player.getEyeY() + (double) this.random.nextInt(i) - (double) p_119650_.getBlockSearchExtent(), this.player.getZ() + (double) this.random.nextInt(i) - (double) p_119650_.getBlockSearchExtent());
+            SectorVec3 eye = this.player.exactEyePosition();
+            BlockPos blockpos = moodSample(eye, this.random.nextInt(i) - p_119650_.getBlockSearchExtent(),
+                    this.random.nextInt(i) - p_119650_.getBlockSearchExtent(),
+                    this.random.nextInt(i) - p_119650_.getBlockSearchExtent());
             int j = level.getBrightness(LightLayer.SKY, blockpos);
             if (j > 0) {
                 this.moodiness -= (float) j / (float) level.getMaxLightLevel() * 0.001F;
@@ -86,10 +89,6 @@ public class BiomeAmbientSoundsHandler implements AmbientSoundHandler {
             if (this.moodiness >= 1.0F) {
                 SectorVec3 candidate = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D,
                         (double) blockpos.getY() + 0.5D, blockpos.getZ(), 0.5D);
-                SectorVec3 eye = this.player.exactEyePosition();
-                if (eye == null) {
-                    eye = SectorVec3.fromApproximate(this.player.getX(), this.player.getEyeY(), this.player.getZ());
-                }
                 double d3 = candidate.relativeX(eye);
                 double d4 = candidate.relativeY(eye);
                 double d5 = candidate.relativeZ(eye);
@@ -104,6 +103,10 @@ public class BiomeAmbientSoundsHandler implements AmbientSoundHandler {
                 this.moodiness = Math.max(this.moodiness, 0.0F);
             }
         });
+    }
+
+    static BlockPos moodSample(SectorVec3 eye, int dx, int dy, int dz) {
+        return eye.add(dx, dy, dz).blockPosition();
     }
 
     @OnlyIn(Dist.CLIENT)

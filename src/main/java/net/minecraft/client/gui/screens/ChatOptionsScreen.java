@@ -9,6 +9,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public class ChatOptionsScreen extends SimpleOptionsSubScreen {
     public ChatOptionsScreen(Screen pLastScreen, Options pOptions) {
-        super(pLastScreen, pOptions, Component.translatable("options.chat.title"), new OptionInstance[] {pOptions.chatVisibility(), pOptions.chatColors(), pOptions.chatLinks(), pOptions.chatLinksPrompt(), pOptions.chatOpacity(), pOptions.textBackgroundOpacity(), pOptions.chatScale(), pOptions.chatLineSpacing(), pOptions.chatDelay(), pOptions.chatWidth(), pOptions.chatHeightFocused(), pOptions.chatHeightUnfocused(), pOptions.narrator(), pOptions.autoSuggestions(), pOptions.hideMatchedNames(), pOptions.reducedDebugInfo(), pOptions.chatPreview(), pOptions.onlyShowSecureChat()});
+        super(pLastScreen, pOptions, Component.translatable("options.chat.title"), new OptionInstance[] {pOptions.chatVisibility(), pOptions.chatColors(), pOptions.chatLinks(), pOptions.chatLinksPrompt(), pOptions.chatOpacity(), pOptions.textBackgroundOpacity(), pOptions.chatScale(), pOptions.chatLineSpacing(), pOptions.chatDelay(), pOptions.chatWidth(), pOptions.chatHeightFocused(), pOptions.chatHeightUnfocused(), pOptions.narrator(), pOptions.autoSuggestions(), pOptions.hideMatchedNames(), pOptions.reducedDebugInfo(), pOptions.chatPreview()});
     }
 }

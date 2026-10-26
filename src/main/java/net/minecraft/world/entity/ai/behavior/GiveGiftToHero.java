@@ -110,7 +110,7 @@ public class GiveGiftToHero extends Behavior<Villager> {
             VillagerProfession villagerprofession = pVillager.getVillagerData().getProfession();
             if (GIFTS.containsKey(villagerprofession)) {
                 LootTable loottable = pVillager.level.getServer().getLootTables().get(GIFTS.get(villagerprofession));
-                LootContext.Builder lootcontext$builder = (new LootContext.Builder((ServerLevel) pVillager.level)).withParameter(LootContextParams.ORIGIN, pVillager.position()).withParameter(LootContextParams.THIS_ENTITY, pVillager).withRandom(pVillager.getRandom());
+                LootContext.Builder lootcontext$builder = (new LootContext.Builder((ServerLevel) pVillager.level)).withParameter(LootContextParams.ORIGIN, pVillager.exactPositionVector()).withParameter(LootContextParams.THIS_ENTITY, pVillager).withRandom(pVillager.getRandom());
                 return loottable.getRandomItems(lootcontext$builder.create(LootContextParamSets.GIFT));
             } else {
                 return ImmutableList.of(new ItemStack(Items.WHEAT_SEEDS));

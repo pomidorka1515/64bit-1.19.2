@@ -1,7 +1,6 @@
 package net.minecraft.client.color.block;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 
 import java.util.Arrays;
@@ -9,9 +8,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.ToIntFunction;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -28,18 +29,19 @@ public class BlockTintCache {
     }
 
     public int getColor(BlockPos pPos) {
-        long i = SectionPos.blockToSectionCoord(pPos.getX());
-        long j = SectionPos.blockToSectionCoord(pPos.getZ());
+        Int128 i = SectionPos.blockToSectionCoord(pPos.getX());
+        Int128 j = SectionPos.blockToSectionCoord(pPos.getZ());
         BlockTintCache.LatestCacheInfo blocktintcache$latestcacheinfo = this.latestChunkOnThread.get();
-        if (blocktintcache$latestcacheinfo.x != i || blocktintcache$latestcacheinfo.z != j || blocktintcache$latestcacheinfo.cache == null) {
+        if (!i.equals(blocktintcache$latestcacheinfo.x) || !j.equals(blocktintcache$latestcacheinfo.z)
+                || blocktintcache$latestcacheinfo.cache == null || blocktintcache$latestcacheinfo.cache.invalid) {
             blocktintcache$latestcacheinfo.x = i;
             blocktintcache$latestcacheinfo.z = j;
             blocktintcache$latestcacheinfo.cache = this.findOrCreateChunkCache(i, j);
         }
 
         int[] aint = blocktintcache$latestcacheinfo.cache.getLayer(pPos.getY());
-        int k = (int) (pPos.getX() & 15);
-        int l = (int) (pPos.getZ() & 15);
+        int k = (int) (pPos.getX().lo() & 15);
+        int l = (int) (pPos.getZ().lo() & 15);
         int i1 = l << 4 | k;
         int j1 = aint[i1];
         if (j1 != -1) {
@@ -52,13 +54,22 @@ public class BlockTintCache {
     }
 
     public void invalidateForChunk(long pChunkX, long pChunkZ) {
+        this.invalidateForChunk(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ));
+    }
+
+    public void invalidateForChunk(Int128 pChunkX, Int128 pChunkZ) {
         try {
             this.lock.writeLock().lock();
 
             for (int i = -1; i <= 1; ++i) {
                 for (int j = -1; j <= 1; ++j) {
-                    ChunkPos k = new ChunkPos(pChunkX + i, pChunkZ + j);
-                    this.cache.remove(k);
+                    Int128 x = WorldBounds.tryAddChunkOffset(pChunkX, i);
+                    Int128 z = WorldBounds.tryAddChunkOffset(pChunkZ, j);
+                    if (x != null && z != null) {
+                        CacheData removed = this.cache.remove(new ChunkPos(x, z));
+                        if (removed != null)
+                            removed.invalid = true;
+                    }
                 }
             }
         } finally {
@@ -69,13 +80,14 @@ public class BlockTintCache {
     public void invalidateAll() {
         try {
             this.lock.writeLock().lock();
+            this.cache.values().forEach(data -> data.invalid = true);
             this.cache.clear();
         } finally {
             this.lock.writeLock().unlock();
         }
     }
 
-    private BlockTintCache.CacheData findOrCreateChunkCache(long pChunkX, long pChunkZ) {
+    private BlockTintCache.CacheData findOrCreateChunkCache(Int128 pChunkX, Int128 pChunkZ) {
         ChunkPos i = new ChunkPos(pChunkX, pChunkZ);
         this.lock.readLock().lock();
 
@@ -96,7 +108,7 @@ public class BlockTintCache {
             if (blocktintcache$cachedata1 == null) {
                 blocktintcache$cachedata2 = new BlockTintCache.CacheData();
                 if (this.cache.size() >= 256) {
-                    this.cache.removeFirst();
+                    this.cache.removeFirst().invalid = true;
                 }
 
                 this.cache.put(i, blocktintcache$cachedata2);
@@ -113,6 +125,7 @@ public class BlockTintCache {
 
     @OnlyIn(Dist.CLIENT)
     static class CacheData {
+        volatile boolean invalid;
         private final Int2ObjectArrayMap<int[]> cache = new Int2ObjectArrayMap<>(16);
         private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
         private static final int BLOCKS_PER_LAYER = Mth.square(16);
@@ -152,8 +165,8 @@ public class BlockTintCache {
 
     @OnlyIn(Dist.CLIENT)
     static class LatestCacheInfo {
-        public long x = Integer.MIN_VALUE;
-        public long z = Integer.MIN_VALUE;
+        public Int128 x;
+        public Int128 z;
         @Nullable
         BlockTintCache.CacheData cache;
 

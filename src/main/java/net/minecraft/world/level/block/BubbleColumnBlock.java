@@ -45,8 +45,8 @@ public class BubbleColumnBlock extends Block implements BucketPickup {
                 ServerLevel serverlevel = (ServerLevel) pLevel;
 
                 for (int i = 0; i < 2; ++i) {
-                    serverlevel.sendParticles(ParticleTypes.SPLASH, (double) pPos.getX() + pLevel.random.nextDouble(), (double) (pPos.getY() + 1), (double) pPos.getZ() + pLevel.random.nextDouble(), 1, 0.0D, 0.0D, 0.0D, 1.0D);
-                    serverlevel.sendParticles(ParticleTypes.BUBBLE, (double) pPos.getX() + pLevel.random.nextDouble(), (double) (pPos.getY() + 1), (double) pPos.getZ() + pLevel.random.nextDouble(), 1, 0.0D, 0.01D, 0.0D, 0.2D);
+                    serverlevel.sendParticles(ParticleTypes.SPLASH, SectorVec3.fromBlockAndFraction(pPos.getX(), pLevel.random.nextDouble(), pPos.getY() + 1, pPos.getZ(), pLevel.random.nextDouble()), 1, 0.0D, 0.0D, 0.0D, 1.0D);
+                    serverlevel.sendParticles(ParticleTypes.BUBBLE, SectorVec3.fromBlockAndFraction(pPos.getX(), pLevel.random.nextDouble(), pPos.getY() + 1, pPos.getZ(), pLevel.random.nextDouble()), 1, 0.0D, 0.01D, 0.0D, 0.2D);
                 }
             }
         } else {
@@ -97,19 +97,19 @@ public class BubbleColumnBlock extends Block implements BucketPickup {
     }
 
     public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, RandomSource pRandom) {
-        double d0 = (double) pPos.getX();
+        double d0 = 0.0D;
         double d1 = (double) pPos.getY();
-        double d2 = (double) pPos.getZ();
+        double d2 = 0.0D;
         if (pState.getValue(DRAG_DOWN)) {
             pLevel.addAlwaysVisibleParticle(ParticleTypes.CURRENT_DOWN, SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, d1 + 0.8D, pPos.getZ(), 0.0D), 0.0D, 0.0D, 0.0D);
             if (pRandom.nextInt(200) == 0) {
-                pLevel.playLocalSound(d0, d1, d2, SoundEvents.BUBBLE_COLUMN_WHIRLPOOL_AMBIENT, SoundSource.BLOCKS, 0.2F + pRandom.nextFloat() * 0.2F, 0.9F + pRandom.nextFloat() * 0.15F, false);
+                pLevel.playLocalSound(SectorVec3.fromBlockAndFraction(pPos.getX(), d0, d1, pPos.getZ(), d2), SoundEvents.BUBBLE_COLUMN_WHIRLPOOL_AMBIENT, SoundSource.BLOCKS, 0.2F + pRandom.nextFloat() * 0.2F, 0.9F + pRandom.nextFloat() * 0.15F, false);
             }
         } else {
             pLevel.addAlwaysVisibleParticle(ParticleTypes.BUBBLE_COLUMN_UP, SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, d1, pPos.getZ(), 0.5D), 0.0D, 0.04D, 0.0D);
             pLevel.addAlwaysVisibleParticle(ParticleTypes.BUBBLE_COLUMN_UP, SectorVec3.fromBlockAndFraction(pPos.getX(), (double) pRandom.nextFloat(), d1 + (double) pRandom.nextFloat(), pPos.getZ(), (double) pRandom.nextFloat()), 0.0D, 0.04D, 0.0D);
             if (pRandom.nextInt(200) == 0) {
-                pLevel.playLocalSound(d0, d1, d2, SoundEvents.BUBBLE_COLUMN_UPWARDS_AMBIENT, SoundSource.BLOCKS, 0.2F + pRandom.nextFloat() * 0.2F, 0.9F + pRandom.nextFloat() * 0.15F, false);
+                pLevel.playLocalSound(SectorVec3.fromBlockAndFraction(pPos.getX(), d0, d1, pPos.getZ(), d2), SoundEvents.BUBBLE_COLUMN_UPWARDS_AMBIENT, SoundSource.BLOCKS, 0.2F + pRandom.nextFloat() * 0.2F, 0.9F + pRandom.nextFloat() * 0.15F, false);
             }
         }
     }

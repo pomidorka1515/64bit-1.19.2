@@ -50,9 +50,10 @@ class RenderChunk {
     }
 
     public BlockState getBlockState(BlockPos pPos) {
-        long i = pPos.getX();
+        // Only section-local bits and the legacy debug-world pattern use this projection.
+        long i = pPos.xLo();
         int j = pPos.getY();
-        long k = pPos.getZ();
+        long k = pPos.zLo();
         if (this.debug) {
             BlockState blockstate = null;
             if (j == 60) {
@@ -72,7 +73,7 @@ class RenderChunk {
                 if (l >= 0 && l < this.sections.size()) {
                     PalettedContainer<BlockState> palettedcontainer = this.sections.get(l);
                     if (palettedcontainer != null) {
-                        return palettedcontainer.get(i & 15, j & 15, k & 15);
+                        return palettedcontainer.get((int) (i & 15), j & 15, (int) (k & 15));
                     }
                 }
 
@@ -81,7 +82,7 @@ class RenderChunk {
                 CrashReport crashreport = CrashReport.forThrowable(throwable, "Getting block state");
                 CrashReportCategory crashreportcategory = crashreport.addCategory("Block being got");
                 crashreportcategory.setDetail("Location", () -> {
-                    return CrashReportCategory.formatLocation(this.wrapped, i, j, k);
+                    return CrashReportCategory.formatLocation(this.wrapped, pPos);
                 });
                 throw new ReportedException(crashreport);
             }

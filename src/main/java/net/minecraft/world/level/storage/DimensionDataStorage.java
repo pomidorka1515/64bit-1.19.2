@@ -1,7 +1,6 @@
 package net.minecraft.world.level.storage;
 
 import com.google.common.collect.Maps;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
 import java.io.DataInputStream;
 import java.io.File;
@@ -12,22 +11,17 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
-import net.minecraft.SharedConstants;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.slf4j.Logger;
 
 public class DimensionDataStorage {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final Map<String, SavedData> cache = Maps.newHashMap();
-    private final DataFixer fixerUpper;
     private final File dataFolder;
 
-    public DimensionDataStorage(File pDataFolder, DataFixer pFixerUpper) {
-        this.fixerUpper = pFixerUpper;
+    public DimensionDataStorage(File pDataFolder) {
         this.dataFolder = pDataFolder;
     }
 
@@ -62,7 +56,7 @@ public class DimensionDataStorage {
         try {
             File file1 = this.getDataFile(pName);
             if (file1.exists()) {
-                CompoundTag compoundtag = this.readTagFromDisk(pName, SharedConstants.getCurrentVersion().getWorldVersion());
+                CompoundTag compoundtag = this.readTagFromDisk(pName);
                 return pLoadFunction.apply(compoundtag.getCompound("data"));
             }
         } catch (Exception exception) {
@@ -76,7 +70,7 @@ public class DimensionDataStorage {
         this.cache.put(pName, pSavedData);
     }
 
-    public CompoundTag readTagFromDisk(String pName, int pLevelVersion) throws IOException {
+    public CompoundTag readTagFromDisk(String pName) throws IOException {
         File file1 = this.getDataFile(pName);
         FileInputStream fileinputstream = new FileInputStream(file1);
 
@@ -106,8 +100,7 @@ public class DimensionDataStorage {
                     datainputstream.close();
                 }
 
-                int i = compoundtag.contains("DataVersion", 99) ? compoundtag.getInt("DataVersion") : 1343;
-                compoundtag1 = NbtUtils.update(this.fixerUpper, DataFixTypes.SAVED_DATA, compoundtag, i, pLevelVersion);
+                compoundtag1 = compoundtag;
             } catch (Throwable throwable4) {
                 try {
                     pushbackinputstream.close();

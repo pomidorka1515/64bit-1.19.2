@@ -74,7 +74,7 @@ public class Shulker extends AbstractGolem implements Enemy {
     private static final float PEEK_PER_TICK = 0.05F;
     static final Vector3f FORWARD = Util.make(() -> {
         Vec3i vec3i = Direction.SOUTH.getNormal();
-        return new Vector3f((float) vec3i.getX(), (float) vec3i.getY(), (float) vec3i.getZ());
+        return new Vector3f((float) vec3i.getX().lo(), (float) vec3i.getY(), (float) vec3i.getZ().lo());
     });
     private float currentPeekAmountO;
     private float currentPeekAmount;
@@ -302,7 +302,7 @@ public class Shulker extends AbstractGolem implements Enemy {
     public void setPos(double pX, double pY, double pZ) {
         BlockPos blockpos = this.blockPosition();
         if (this.isPassenger()) {
-            super.setPos(pX, pY, pZ);
+            super.applyExactPosition(SectorVec3.fromApproximate(pX, pY, pZ));
         } else {
             this.applyExactPosition(SectorVec3.fromBlockAndFraction(Mth.lfloor(pX), 0.5D, (double) Mth.floor(pY + 0.5D), Mth.lfloor(pZ), 0.5D));
         }
@@ -315,9 +315,7 @@ public class Shulker extends AbstractGolem implements Enemy {
                 if (this.level.isClientSide && !this.isPassenger() && !blockpos1.equals(this.clientOldAttachPosition)) {
                     this.clientOldAttachPosition = blockpos;
                     this.clientSideTeleportInterpolation = 6;
-                    this.xOld = this.getX();
-                    this.yOld = this.getY();
-                    this.zOld = this.getZ();
+                    this.setOldExactPosition(this.sectorPosition());
                 }
             }
         }
@@ -422,7 +420,7 @@ public class Shulker extends AbstractGolem implements Enemy {
 
     private void hitByShulkerBullet() {
         net.minecraft.world.phys.SectorVec3 vec3 = this.sectorPosition();
-        AABB aabb = this.getBoundingBox();
+        AABB aabb = this.exactBoundingBox();
         if (!this.isClosed() && this.teleportSomewhere()) {
             int i = this.level.getEntities(EntityType.SHULKER, aabb.inflate(8.0D), Entity::isAlive).size();
             float f = (float) (i - 1) / 5.0F;
@@ -607,9 +605,9 @@ public class Shulker extends AbstractGolem implements Enemy {
         protected AABB getTargetSearchArea(double pTargetDistance) {
             Direction direction = ((Shulker) this.mob).getAttachFace();
             if (direction.getAxis() == Direction.Axis.X) {
-                return this.mob.getBoundingBox().inflate(4.0D, pTargetDistance, pTargetDistance);
+                return this.mob.exactBoundingBox().inflate(4.0D, pTargetDistance, pTargetDistance);
             } else {
-                return direction.getAxis() == Direction.Axis.Z ? this.mob.getBoundingBox().inflate(pTargetDistance, pTargetDistance, 4.0D) : this.mob.getBoundingBox().inflate(pTargetDistance, 4.0D, pTargetDistance);
+                return direction.getAxis() == Direction.Axis.Z ? this.mob.exactBoundingBox().inflate(pTargetDistance, pTargetDistance, 4.0D) : this.mob.exactBoundingBox().inflate(pTargetDistance, 4.0D, pTargetDistance);
             }
         }
     }
@@ -627,7 +625,7 @@ public class Shulker extends AbstractGolem implements Enemy {
             Vector3f vector3f = Shulker.FORWARD.copy();
             vector3f.transform(direction.getRotation());
             Vec3i vec3i = direction.getNormal();
-            Vector3f vector3f1 = new Vector3f((float) vec3i.getX(), (float) vec3i.getY(), (float) vec3i.getZ());
+            Vector3f vector3f1 = new Vector3f((float) vec3i.getX().lo(), (float) vec3i.getY(), (float) vec3i.getZ().lo());
             vector3f1.cross(vector3f);
             Vec3 wantedDelta = this.wantedDelta(this.mob.getEyeY());
             double d0 = wantedDelta.x;
@@ -656,9 +654,9 @@ public class Shulker extends AbstractGolem implements Enemy {
         protected AABB getTargetSearchArea(double pTargetDistance) {
             Direction direction = ((Shulker) this.mob).getAttachFace();
             if (direction.getAxis() == Direction.Axis.X) {
-                return this.mob.getBoundingBox().inflate(4.0D, pTargetDistance, pTargetDistance);
+                return this.mob.exactBoundingBox().inflate(4.0D, pTargetDistance, pTargetDistance);
             } else {
-                return direction.getAxis() == Direction.Axis.Z ? this.mob.getBoundingBox().inflate(pTargetDistance, pTargetDistance, 4.0D) : this.mob.getBoundingBox().inflate(pTargetDistance, 4.0D, pTargetDistance);
+                return direction.getAxis() == Direction.Axis.Z ? this.mob.exactBoundingBox().inflate(pTargetDistance, pTargetDistance, 4.0D) : this.mob.exactBoundingBox().inflate(pTargetDistance, 4.0D, pTargetDistance);
             }
         }
     }

@@ -69,15 +69,16 @@ public class DebugLevelSource extends ChunkGenerator {
     public void applyBiomeDecoration(WorldGenLevel pLevel, ChunkAccess pChunk, StructureManager pStructureManager) {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
         ChunkPos chunkpos = pChunk.getPos();
-        long i = chunkpos.x;
-        long j = chunkpos.z;
+        net.minecraft.core.Int128 i = chunkpos.x();
+        net.minecraft.core.Int128 j = chunkpos.z();
 
         for (int k = 0; k < 16; ++k) {
             for (int l = 0; l < 16; ++l) {
-                long i1 = SectionPos.sectionToBlockCoord(i, k);
-                long j1 = SectionPos.sectionToBlockCoord(j, l);
+                net.minecraft.core.Int128 i1 = SectionPos.sectionToBlockCoord(i, k);
+                net.minecraft.core.Int128 j1 = SectionPos.sectionToBlockCoord(j, l);
                 pLevel.setBlock(blockpos$mutableblockpos.set(i1, 60, j1), BARRIER, 2);
-                BlockState blockstate = getBlockStateFor(i1, j1);
+                // Project generated content only; the block write retains its exact anchor.
+                BlockState blockstate = i1.hi() == (i1.lo() >> 63) && j1.hi() == (j1.lo() >> 63) ? getBlockStateFor(i1.lo(), j1.lo()) : AIR;
                 pLevel.setBlock(blockpos$mutableblockpos.set(i1, 70, j1), blockstate, 2);
             }
         }

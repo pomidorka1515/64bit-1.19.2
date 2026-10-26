@@ -13,7 +13,7 @@ public interface EntityAccess {
 
     BlockPos blockPosition();
 
-    AABB getBoundingBox();
+    AABB exactBoundingBox();
 
     void setLevelCallback(EntityInLevelCallback pLevelCallback);
 

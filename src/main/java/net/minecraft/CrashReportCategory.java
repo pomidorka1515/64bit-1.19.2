@@ -23,7 +23,10 @@ public class CrashReportCategory {
     }
 
     public static String formatLocation(LevelHeightAccessor pLevelHeightAccess, BlockPos pPos) {
-        return formatLocation(pLevelHeightAccess, pPos.getX(), pPos.getY(), pPos.getZ());
+        return "World: (" + pPos.getX() + "," + pPos.getY() + "," + pPos.getZ()
+            + "), Section: (" + pPos.getX().shiftRight(4) + "," + SectionPos.blockToSectionCoord(pPos.getY())
+            + "," + pPos.getZ().shiftRight(4) + "), Region: (" + pPos.getX().shiftRight(9)
+            + "," + pPos.getZ().shiftRight(9) + ")";
     }
 
     public static String formatLocation(LevelHeightAccessor pLevelHeightAccess, int pX, int pY, int pZ) {

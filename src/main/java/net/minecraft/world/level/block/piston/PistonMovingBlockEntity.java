@@ -148,7 +148,7 @@ public class PistonMovingBlockEntity extends BlockEntity {
 
                     for (AABB aabb2 : list1) {
                         AABB aabb1 = PistonMath.getMovementArea(moveByPositionAndProgress(p_155912_, aabb2, p_155914_), direction, d0);
-                        AABB aabb3 = entity.getBoundingBox();
+                        AABB aabb3 = entity.exactBoundingBox();
                         if (aabb1.intersects(aabb3)) {
                             d4 = Math.max(d4, getMovement(aabb1, direction, aabb3));
                             if (d4 >= d0) {
@@ -193,7 +193,14 @@ public class PistonMovingBlockEntity extends BlockEntity {
     }
 
     private static boolean matchesStickyCritera(AABB pShape, Entity pEntity) {
-        return pEntity.getPistonPushReaction() == PushReaction.NORMAL && pEntity.isOnGround() && pEntity.getX() >= pShape.minX && pEntity.getX() <= pShape.maxX && pEntity.getZ() >= pShape.minZ && pEntity.getZ() <= pShape.maxZ;
+        var origin = net.minecraft.world.phys.SectorPhysicsOrigin.from(pEntity.sectorPosition());
+        net.minecraft.world.phys.Vec3 position = origin.toLocal(pEntity.sectorPosition());
+        AABB shape = pShape.getSectorBounds() != null ? pShape.getSectorBounds().toLocalAABB(origin)
+                : new AABB(origin.toLocal(net.minecraft.world.phys.SectorVec3.fromApproximate(pShape.minX, pShape.minY, pShape.minZ)),
+                        origin.toLocal(net.minecraft.world.phys.SectorVec3.fromApproximate(pShape.maxX, pShape.maxY, pShape.maxZ)));
+        return pEntity.getPistonPushReaction() == PushReaction.NORMAL && pEntity.isOnGround()
+                && position.x >= shape.minX && position.x <= shape.maxX
+                && position.z >= shape.minZ && position.z <= shape.maxZ;
     }
 
     private boolean isStickyForEntities() {
@@ -224,11 +231,11 @@ public class PistonMovingBlockEntity extends BlockEntity {
 
     private static AABB moveByPositionAndProgress(BlockPos p_155926_, AABB p_155927_, PistonMovingBlockEntity p_155928_) {
         double d0 = (double) p_155928_.getExtendedProgress(p_155928_.progress);
-        return p_155927_.move((double) p_155926_.getX() + d0 * (double) p_155928_.direction.getStepX(), (double) p_155926_.getY() + d0 * (double) p_155928_.direction.getStepY(), (double) p_155926_.getZ() + d0 * (double) p_155928_.direction.getStepZ());
+        return p_155927_.move(p_155926_).move(d0 * (double) p_155928_.direction.getStepX(), d0 * (double) p_155928_.direction.getStepY(), d0 * (double) p_155928_.direction.getStepZ());
     }
 
     private static void fixEntityWithinPistonBase(BlockPos pPos, Entity pEntity, Direction pDir, double pProgress) {
-        AABB aabb = pEntity.getBoundingBox();
+        AABB aabb = pEntity.exactBoundingBox();
         AABB aabb1 = Shapes.block().bounds().move(pPos);
         if (aabb.intersects(aabb1)) {
             Direction direction = pDir.getOpposite();

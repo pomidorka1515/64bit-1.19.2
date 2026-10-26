@@ -37,6 +37,10 @@ public class JungleTemplePiece extends ScatteredFeaturePiece {
     private static final JungleTemplePiece.MossStoneSelector STONE_SELECTOR = new JungleTemplePiece.MossStoneSelector();
 
     public JungleTemplePiece(RandomSource pRandom, long pX, long pZ) {
+        this(pRandom, net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ));
+    }
+
+    public JungleTemplePiece(RandomSource pRandom, net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ) {
         super(StructurePieceType.JUNGLE_PYRAMID_PIECE, pX, 64, pZ, 12, 10, 15, getRandomHorizontalDirection(pRandom));
     }
 

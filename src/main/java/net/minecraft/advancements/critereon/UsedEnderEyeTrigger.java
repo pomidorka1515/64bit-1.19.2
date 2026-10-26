@@ -18,8 +18,8 @@ public class UsedEnderEyeTrigger extends SimpleCriterionTrigger<UsedEnderEyeTrig
     }
 
     public void trigger(ServerPlayer pPlayer, BlockPos pPos) {
-        double d0 = pPlayer.getX() - (double) pPos.getX();
-        double d1 = pPlayer.getZ() - (double) pPos.getZ();
+        double d0 = net.minecraft.world.level.WorldBounds.signedDifference(pPlayer.sectorPosition().blockX(), pPos.getX()) + pPlayer.sectorPosition().subX();
+        double d1 = net.minecraft.world.level.WorldBounds.signedDifference(pPlayer.sectorPosition().blockZ(), pPos.getZ()) + pPlayer.sectorPosition().subZ();
         double d2 = d0 * d0 + d1 * d1;
         this.trigger(pPlayer, (p_73934_) -> {
             return p_73934_.matches(d2);

@@ -57,8 +57,7 @@ public abstract class AbstractCandleBlock extends Block {
         if (f < 0.3F) {
             pLevel.addParticle(ParticleTypes.SMOKE, pOffset, 0.0D, 0.0D, 0.0D);
             if (f < 0.17F) {
-                Vec3 approximate = pOffset.toApproximateVec3();
-                pLevel.playLocalSound(approximate.x + 0.5D, approximate.y + 0.5D, approximate.z + 0.5D,
+                pLevel.playLocalSound(pOffset.add(0.5D, 0.5D, 0.5D),
                         SoundEvents.CANDLE_AMBIENT, SoundSource.BLOCKS, 1.0F + pRandom.nextFloat(),
                         pRandom.nextFloat() * 0.7F + 0.3F, false);
             }

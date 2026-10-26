@@ -92,7 +92,7 @@ public class EuclideanGameEventDispatcher implements GameEventDispatcher {
         } else {
             double d0 = optional.get().relativeTo(p_223689_).lengthSqr();
             int i = p_223690_.getListenerRadius() * p_223690_.getListenerRadius();
-            return d0 > (double) i ? Optional.empty() : optional.map(net.minecraft.world.phys.SectorVec3::toApproximateVec3);
+            return d0 > (double) i ? Optional.empty() : optional.map(net.minecraft.world.phys.SectorVec3::toExactVec3);
         }
     }
 }

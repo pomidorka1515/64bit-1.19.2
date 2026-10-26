@@ -28,10 +28,10 @@ public class DefaultDispenseItemBehavior implements DispenseItemBehavior {
     /** Legacy entry point for custom behaviors that only expose a double Position. */
     public static void spawnItem(Level pLevel, ItemStack pStack, int pSpeed, Direction pFacing, Position pPosition) {
         spawnItem(pLevel, pStack, pSpeed, pFacing,
-                SectorVec3.fromApproximate(pPosition.x(), pPosition.y(), pPosition.z()));
+                pPosition.exactPosition());
     }
 
-    /** Exact dispenser path, anchored by the source block's long coordinates. */
+    /** Exact dispenser path, anchored by the source block's full-width coordinates. */
     public static void spawnItem(Level pLevel, ItemStack pStack, int pSpeed, Direction pFacing, BlockPos source) {
         SectorVec3 position = SectorVec3.fromBlockAndFraction(source.getX(), 0.5D, (double) source.getY() + 0.5D,
                                                 source.getZ(), 0.5D)

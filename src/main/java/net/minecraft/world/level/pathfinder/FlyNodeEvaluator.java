@@ -1,13 +1,12 @@
 package net.minecraft.world.level.pathfinder;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.EnumSet;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.entity.Mob;
@@ -37,11 +36,11 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
         if (this.canFloat() && this.mob.isInWater()) {
             i = this.mob.getBlockY();
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(
-                    this.mob.getBlockX(), i, this.mob.getBlockZ());
+                    this.mob.blockPosition().getX(), i, this.mob.blockPosition().getZ());
 
             for (BlockState blockstate = this.level.getBlockState(blockpos$mutableblockpos); blockstate.is(Blocks.WATER); blockstate = this.level.getBlockState(blockpos$mutableblockpos)) {
                 ++i;
-                blockpos$mutableblockpos.set(this.mob.getBlockX(), i, this.mob.getBlockZ());
+                blockpos$mutableblockpos.set(this.mob.blockPosition().getX(), i, this.mob.blockPosition().getZ());
             }
         } else {
             i = Mth.floor(this.mob.getY() + 0.5D);
@@ -62,7 +61,7 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
     }
 
     public Target getGoal(double pX, double pY, double pZ) {
-        return this.getTargetFromNode(super.getNode(Mth.lfloor(pX), Mth.floor(pY), Mth.lfloor(pZ)));
+        return this.getTargetFromNode(super.getNode(Int128.fromDoubleFloorSaturated(pX), Mth.floor(pY), Int128.fromDoubleFloorSaturated(pZ)));
     }
 
     public int getNeighbors(Node[] p_77266_, Node p_77267_) {
@@ -209,7 +208,7 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
     }
 
     @Nullable
-    protected Node getNode(long pX, int pY, long pZ) {
+    protected Node getNode(Int128 pX, int pY, Int128 pZ) {
         Node node = null;
         BlockPathTypes blockpathtypes = this.getCachedBlockPathType(pX, pY, pZ);
         float f = this.mob.getPathfindingMalus(blockpathtypes);
@@ -227,13 +226,13 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
         return node;
     }
 
-    private BlockPathTypes getCachedBlockPathType(long pX, int pY, long pZ) {
+    private BlockPathTypes getCachedBlockPathType(Int128 pX, int pY, Int128 pZ) {
         return this.pathTypeByPosCache.computeIfAbsent(new BlockPos(pX, pY, pZ), (p_164692_) -> {
             return this.getBlockPathType(this.level, pX, pY, pZ, this.mob, this.entityWidth, this.entityHeight, this.entityDepth, this.canOpenDoors(), this.canPassDoors());
         });
     }
 
-    public BlockPathTypes getBlockPathType(BlockGetter pBlockaccess, long pX, int pY, long pZ, Mob pEntityliving, int pXSize, int pYSize, int pZSize, boolean pCanBreakDoors, boolean pCanEnterDoors) {
+    public BlockPathTypes getBlockPathType(BlockGetter pBlockaccess, Int128 pX, int pY, Int128 pZ, Mob pEntityliving, int pXSize, int pYSize, int pZSize, boolean pCanBreakDoors, boolean pCanEnterDoors) {
         EnumSet<BlockPathTypes> enumset = EnumSet.noneOf(BlockPathTypes.class);
         BlockPathTypes blockpathtypes = BlockPathTypes.BLOCKED;
         BlockPos blockpos = pEntityliving.blockPosition();
@@ -257,7 +256,7 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
         }
     }
 
-    public BlockPathTypes getBlockPathType(BlockGetter pLevel, long pX, int pY, long pZ) {
+    public BlockPathTypes getBlockPathType(BlockGetter pLevel, Int128 pX, int pY, Int128 pZ) {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
         BlockPathTypes blockpathtypes = getBlockPathTypeRaw(pLevel, blockpos$mutableblockpos.set(pX, pY, pZ));
         if (blockpathtypes == BlockPathTypes.OPEN && pY >= pLevel.getMinBuildHeight() + 1) {

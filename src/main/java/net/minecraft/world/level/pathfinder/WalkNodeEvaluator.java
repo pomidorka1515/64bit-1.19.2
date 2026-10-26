@@ -1,7 +1,5 @@
 package net.minecraft.world.level.pathfinder;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
@@ -10,6 +8,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import java.util.EnumSet;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
@@ -65,8 +64,8 @@ public class WalkNodeEvaluator extends NodeEvaluator {
     public Node getStart() {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
         int i = this.mob.getBlockY();
-        long mobX = this.mob.getBlockX();
-        long mobZ = this.mob.getBlockZ();
+        Int128 mobX = this.mob.blockPosition().getX();
+        Int128 mobZ = this.mob.blockPosition().getZ();
         BlockState blockstate = this.level.getBlockState(blockpos$mutableblockpos.set(mobX, i, mobZ));
         if (!this.mob.canStandOnFluid(blockstate.getFluidState())) {
             if (this.canFloat() && this.mob.isInWater()) {
@@ -101,10 +100,10 @@ public class WalkNodeEvaluator extends NodeEvaluator {
         BlockPathTypes blockpathtypes = this.getCachedBlockType(this.mob, blockpos1.getX(), i, blockpos1.getZ());
         if (this.mob.getPathfindingMalus(blockpathtypes) < 0.0F) {
             SectorAABB box = this.mob.getSectorBoundingBox();
-            long minX = box.minBlockXForRange();
-            long maxX = box.maxBlockXForRangeInclusive();
-            long minZ = box.minBlockZForRange();
-            long maxZ = box.maxBlockZForRangeInclusive();
+            Int128 minX = box.minBlockXForRange();
+            Int128 maxX = box.maxBlockXForRangeInclusive();
+            Int128 minZ = box.minBlockZForRange();
+            Int128 maxZ = box.maxBlockZForRangeInclusive();
             if (this.hasPositiveMalus(blockpos$mutableblockpos.set(minX, i, minZ))
                     || this.hasPositiveMalus(blockpos$mutableblockpos.set(minX, i, maxZ))
                     || this.hasPositiveMalus(blockpos$mutableblockpos.set(maxX, i, minZ))
@@ -134,7 +133,7 @@ public class WalkNodeEvaluator extends NodeEvaluator {
 
     @Nullable
     public Target getGoal(double pX, double pY, double pZ) {
-        return this.getTargetFromNode(this.getNode(Mth.lfloor(pX), Mth.floor(pY), Mth.lfloor(pZ)));
+        return this.getTargetFromNode(this.getNode(Int128.fromDoubleFloorSaturated(pX), Mth.floor(pY), Int128.fromDoubleFloorSaturated(pZ)));
     }
 
     public int getNeighbors(Node[] p_77640_, Node p_77641_) {
@@ -219,9 +218,11 @@ public class WalkNodeEvaluator extends NodeEvaluator {
 
     private boolean canReachWithoutCollision(Node p_77625_) {
         SectorAABB box = this.mob.getSectorBoundingBox();
-        Vec3 delta = SectorVec3.fromBlockAndFraction(p_77625_.x, 0.5D,
-                                       (double) p_77625_.y, p_77625_.z, 0.5D)
-                             .relativeTo(this.mob.sectorPosition());
+        SectorVec3 destination = SectorVec3.fromBlockAndFraction(p_77625_.x, 0.5D,
+                (double) p_77625_.y, p_77625_.z, 0.5D);
+        if (destination.localSpanExceeds(this.mob.sectorPosition()))
+            return false;
+        Vec3 delta = destination.relativeTo(this.mob.sectorPosition());
         double boxSize = Math.max((double) this.mob.getBbWidth(), (double) this.mob.getBbHeight());
         int steps = Math.max(1, Mth.ceil(delta.length() / boxSize));
         Vec3 step = delta.scale(1.0D / (double) steps);
@@ -250,7 +251,7 @@ public class WalkNodeEvaluator extends NodeEvaluator {
     }
 
     @Nullable
-    protected Node findAcceptedNode(long p_164726_, int p_164727_, long p_164728_, int p_164729_, double p_164730_, Direction p_164731_, BlockPathTypes p_164732_) {
+    protected Node findAcceptedNode(Int128 p_164726_, int p_164727_, Int128 p_164728_, int p_164729_, double p_164730_, Direction p_164731_, BlockPathTypes p_164732_) {
         Node node = null;
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
         double d0 = this.getFloorLevel(blockpos$mutableblockpos.set(p_164726_, p_164727_, p_164728_));
@@ -272,8 +273,8 @@ public class WalkNodeEvaluator extends NodeEvaluator {
                 if ((node == null || node.costMalus < 0.0F) && p_164729_ > 0 && blockpathtypes != BlockPathTypes.FENCE && blockpathtypes != BlockPathTypes.UNPASSABLE_RAIL && blockpathtypes != BlockPathTypes.TRAPDOOR && blockpathtypes != BlockPathTypes.POWDER_SNOW) {
                     node = this.findAcceptedNode(p_164726_, p_164727_ + 1, p_164728_, p_164729_ - 1, p_164730_, p_164731_, p_164732_);
                     if (node != null && (node.type == BlockPathTypes.OPEN || node.type == BlockPathTypes.WALKABLE) && this.mob.getBbWidth() < 1.0F) {
-                        long previousX = WorldBounds.subtractBlockOffset(p_164726_, p_164731_.getStepX());
-                        long previousZ = WorldBounds.subtractBlockOffset(p_164728_, p_164731_.getStepZ());
+                        Int128 previousX = WorldBounds.subtractBlockOffset(p_164726_, p_164731_.getStepX());
+                        Int128 previousZ = WorldBounds.subtractBlockOffset(p_164728_, p_164731_.getStepZ());
                         double minY = getFloorLevel(this.level,
                                               blockpos$mutableblockpos.set(previousX, p_164727_ + 1, previousZ))
                                 + 0.001D;
@@ -346,7 +347,7 @@ public class WalkNodeEvaluator extends NodeEvaluator {
     }
 
     @Nullable
-    private Node getNodeAndUpdateCostToMax(long p_230620_, int p_230621_, long p_230622_, BlockPathTypes p_230623_, float p_230624_) {
+    private Node getNodeAndUpdateCostToMax(Int128 p_230620_, int p_230621_, Int128 p_230622_, BlockPathTypes p_230623_, float p_230624_) {
         Node node = this.getNode(p_230620_, p_230621_, p_230622_);
         if (node != null) {
             node.type = p_230623_;
@@ -357,7 +358,7 @@ public class WalkNodeEvaluator extends NodeEvaluator {
     }
 
     @Nullable
-    private Node getBlockedNode(long p_230628_, int p_230629_, long p_230630_) {
+    private Node getBlockedNode(Int128 p_230628_, int p_230629_, Int128 p_230630_) {
         Node node = this.getNode(p_230628_, p_230629_, p_230630_);
         if (node != null) {
             node.type = BlockPathTypes.BLOCKED;
@@ -374,6 +375,11 @@ public class WalkNodeEvaluator extends NodeEvaluator {
     /** Evaluates an exact box in a small local frame without reconstructing global doubles. */
     private boolean scanCollisions(SectorAABB box) {
         SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(this.mob.sectorPosition());
+        if (WorldBounds.localSpanExceeds(box.minBlockXForRange(), origin.originBlockX())
+                || WorldBounds.localSpanExceeds(box.maxBlockXForRangeInclusive(), origin.originBlockX())
+                || WorldBounds.localSpanExceeds(box.minBlockZForRange(), origin.originBlockZ())
+                || WorldBounds.localSpanExceeds(box.maxBlockZForRangeInclusive(), origin.originBlockZ()))
+            return true;
         for (VoxelShape shape : this.level.getSectorBlockCollisions(this.mob, box,
                      box.toLocalAABB(origin), origin)) {
             if (!shape.isEmpty())
@@ -385,7 +391,7 @@ public class WalkNodeEvaluator extends NodeEvaluator {
         return false;
     }
 
-    public BlockPathTypes getBlockPathType(BlockGetter pBlockaccess, long pX, int pY, long pZ, Mob pEntityliving, int pXSize, int pYSize, int pZSize, boolean pCanBreakDoors, boolean pCanEnterDoors) {
+    public BlockPathTypes getBlockPathType(BlockGetter pBlockaccess, Int128 pX, int pY, Int128 pZ, Mob pEntityliving, int pXSize, int pYSize, int pZSize, boolean pCanBreakDoors, boolean pCanEnterDoors) {
         EnumSet<BlockPathTypes> enumset = EnumSet.noneOf(BlockPathTypes.class);
         BlockPathTypes blockpathtypes = BlockPathTypes.BLOCKED;
         BlockPos blockpos = pEntityliving.blockPosition();
@@ -411,13 +417,13 @@ public class WalkNodeEvaluator extends NodeEvaluator {
         }
     }
 
-    public BlockPathTypes getBlockPathTypes(BlockGetter pLevel, long pX, int pY, long pZ, int pXSize, int pYSize, int pZSize, boolean pCanOpenDoors, boolean pCanEnterDoors, EnumSet<BlockPathTypes> pNodeTypeEnum, BlockPathTypes pNodeType, BlockPos pPos) {
+    public BlockPathTypes getBlockPathTypes(BlockGetter pLevel, Int128 pX, int pY, Int128 pZ, int pXSize, int pYSize, int pZSize, boolean pCanOpenDoors, boolean pCanEnterDoors, EnumSet<BlockPathTypes> pNodeTypeEnum, BlockPathTypes pNodeType, BlockPos pPos) {
         for (int i = 0; i < pXSize; ++i) {
             for (int j = 0; j < pYSize; ++j) {
                 for (int k = 0; k < pZSize; ++k) {
-                    long l = WorldBounds.addBlockOffset(pX, i);
+                    Int128 l = WorldBounds.addBlockOffset(pX, i);
                     int i1 = j + pY;
-                    long j1 = WorldBounds.addBlockOffset(pZ, k);
+                    Int128 j1 = WorldBounds.addBlockOffset(pZ, k);
                     BlockPathTypes blockpathtypes = this.getBlockPathType(pLevel, l, i1, j1);
                     blockpathtypes = this.evaluateBlockPathType(pLevel, pCanOpenDoors, pCanEnterDoors, pPos, blockpathtypes);
                     if (i == 0 && j == 0 && k == 0) {
@@ -456,20 +462,20 @@ public class WalkNodeEvaluator extends NodeEvaluator {
         return this.getCachedBlockType(pEntityliving, pPos.getX(), pPos.getY(), pPos.getZ());
     }
 
-    protected BlockPathTypes getCachedBlockType(Mob pEntity, long pX, int pY, long pZ) {
+    protected BlockPathTypes getCachedBlockType(Mob pEntity, Int128 pX, int pY, Int128 pZ) {
         return this.pathTypesByPosCache.computeIfAbsent(new BlockPos(pX, pY, pZ), (p_77566_) -> {
             return this.getBlockPathType(this.level, pX, pY, pZ, pEntity, this.entityWidth, this.entityHeight, this.entityDepth, this.canOpenDoors(), this.canPassDoors());
         });
     }
 
-    public BlockPathTypes getBlockPathType(BlockGetter pLevel, long pX, int pY, long pZ) {
+    public BlockPathTypes getBlockPathType(BlockGetter pLevel, Int128 pX, int pY, Int128 pZ) {
         return getBlockPathTypeStatic(pLevel, new BlockPos.MutableBlockPos(pX, pY, pZ));
     }
 
     public static BlockPathTypes getBlockPathTypeStatic(BlockGetter pLevel, BlockPos.MutableBlockPos pPos) {
-        long i = pPos.getX();
+        Int128 i = pPos.getX();
         int j = pPos.getY();
-        long k = pPos.getZ();
+        Int128 k = pPos.getZ();
         BlockPathTypes blockpathtypes = getBlockPathTypeRaw(pLevel, pPos);
         if (blockpathtypes == BlockPathTypes.OPEN && j >= pLevel.getMinBuildHeight() + 1) {
             BlockPathTypes blockpathtypes1 = getBlockPathTypeRaw(pLevel, pPos.set(i, j - 1, k));
@@ -503,9 +509,9 @@ public class WalkNodeEvaluator extends NodeEvaluator {
     }
 
     public static BlockPathTypes checkNeighbourBlocks(BlockGetter pLevel, BlockPos.MutableBlockPos pCenterPos, BlockPathTypes pNodeType) {
-        long i = pCenterPos.getX();
+        Int128 i = pCenterPos.getX();
         int j = pCenterPos.getY();
-        long k = pCenterPos.getZ();
+        Int128 k = pCenterPos.getZ();
 
         for (int l = -1; l <= 1; ++l) {
             for (int i1 = -1; i1 <= 1; ++i1) {

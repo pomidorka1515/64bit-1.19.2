@@ -17,12 +17,12 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.IdMapper;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.LongTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.util.Mth;
@@ -87,13 +87,13 @@ public class StructureTemplate {
     }
 
     public void fillFromWorld(Level pLevel, BlockPos pPos, Vec3i pSize, boolean pWithEntities, @Nullable Block pToIgnore) {
-        if (pSize.getX() >= 1 && pSize.getY() >= 1 && pSize.getZ() >= 1) {
+        if (localInt(pSize.getX()) >= 1 && pSize.getY() >= 1 && localInt(pSize.getZ()) >= 1) {
             BlockPos blockpos = pPos.offset(pSize).offset(-1, -1, -1);
             List<StructureTemplate.StructureBlockInfo> list = Lists.newArrayList();
             List<StructureTemplate.StructureBlockInfo> list1 = Lists.newArrayList();
             List<StructureTemplate.StructureBlockInfo> list2 = Lists.newArrayList();
-            BlockPos blockpos1 = new BlockPos(Math.min(pPos.getX(), blockpos.getX()), Math.min(pPos.getY(), blockpos.getY()), Math.min(pPos.getZ(), blockpos.getZ()));
-            BlockPos blockpos2 = new BlockPos(Math.max(pPos.getX(), blockpos.getX()), Math.max(pPos.getY(), blockpos.getY()), Math.max(pPos.getZ(), blockpos.getZ()));
+            BlockPos blockpos1 = new BlockPos(min(pPos.getX(), blockpos.getX()), Math.min(pPos.getY(), blockpos.getY()), min(pPos.getZ(), blockpos.getZ()));
+            BlockPos blockpos2 = new BlockPos(max(pPos.getX(), blockpos.getX()), Math.max(pPos.getY(), blockpos.getY()), max(pPos.getZ(), blockpos.getZ()));
             this.size = pSize;
 
             for (BlockPos blockpos3 : BlockPos.betweenClosed(blockpos1, blockpos2)) {
@@ -137,10 +137,10 @@ public class StructureTemplate {
         Comparator<StructureTemplate.StructureBlockInfo> comparator = Comparator.<StructureTemplate.StructureBlockInfo>comparingInt((p_74641_) -> {
                                                                                     return p_74641_.pos.getY();
                                                                                 })
-                                                                              .thenComparingLong((p_74637_) -> {
+                                                                              .thenComparing((p_74637_) -> {
                                                                                   return p_74637_.pos.getX();
                                                                               })
-                                                                              .thenComparingLong((p_74572_) -> {
+                                                                              .thenComparing((p_74572_) -> {
                                                                                   return p_74572_.pos.getZ();
                                                                               });
         pNormalBlocks.sort(comparator);
@@ -160,7 +160,11 @@ public class StructureTemplate {
         this.entityInfoList.clear();
 
         for (Entity entity : list) {
-            Vec3 vec3 = new Vec3(entity.getX() - (double) pStartPos.getX(), entity.getY() - (double) pStartPos.getY(), entity.getZ() - (double) pStartPos.getZ());
+            SectorVec3 origin = SectorVec3.fromBlockAndFraction(pStartPos.getX(), 0.0D, pStartPos.getY(), pStartPos.getZ(), 0.0D);
+            if (entity.sectorPosition().localSpanExceeds(origin)) {
+                throw new IllegalArgumentException("Template entity exceeds the safe local span");
+            }
+            Vec3 vec3 = entity.sectorPosition().relativeTo(origin);
             CompoundTag compoundtag = new CompoundTag();
             entity.save(compoundtag);
             BlockPos blockpos;
@@ -210,17 +214,17 @@ public class StructureTemplate {
             return false;
         } else {
             List<StructureTemplate.StructureBlockInfo> list = p_230332_.getRandomPalette(this.palettes, p_230330_).blocks();
-            if ((!list.isEmpty() || !p_230332_.isIgnoreEntities() && !this.entityInfoList.isEmpty()) && this.size.getX() >= 1 && this.size.getY() >= 1 && this.size.getZ() >= 1) {
+            if ((!list.isEmpty() || !p_230332_.isIgnoreEntities() && !this.entityInfoList.isEmpty()) && localInt(this.size.getX()) >= 1 && this.size.getY() >= 1 && localInt(this.size.getZ()) >= 1) {
                 BoundingBox boundingbox = p_230332_.getBoundingBox();
                 List<BlockPos> list1 = Lists.newArrayListWithCapacity(p_230332_.shouldKeepLiquids() ? list.size() : 0);
                 List<BlockPos> list2 = Lists.newArrayListWithCapacity(p_230332_.shouldKeepLiquids() ? list.size() : 0);
                 List<Pair<BlockPos, CompoundTag>> list3 = Lists.newArrayListWithCapacity(list.size());
-                long i = Long.MAX_VALUE;
+                Int128 i = Int128.MAX;
                 int j = Integer.MAX_VALUE;
-                long k = Long.MAX_VALUE;
-                long l = Long.MIN_VALUE;
+                Int128 k = Int128.MAX;
+                Int128 l = Int128.MIN;
                 int i1 = Integer.MIN_VALUE;
-                long j1 = Long.MIN_VALUE;
+                Int128 j1 = Int128.MIN;
 
                 for (StructureTemplate.StructureBlockInfo structuretemplate$structureblockinfo : processBlockInfos(p_230329_, p_230330_, p_230331_, p_230332_, list)) {
                     BlockPos blockpos = structuretemplate$structureblockinfo.pos;
@@ -234,12 +238,12 @@ public class StructureTemplate {
                         }
 
                         if (p_230329_.setBlock(blockpos, blockstate, p_230334_)) {
-                            i = Math.min(i, blockpos.getX());
+                            i = min(i, blockpos.getX());
                             j = Math.min(j, blockpos.getY());
-                            k = Math.min(k, blockpos.getZ());
-                            l = Math.max(l, blockpos.getX());
+                            k = min(k, blockpos.getZ());
+                            l = max(l, blockpos.getX());
                             i1 = Math.max(i1, blockpos.getY());
-                            j1 = Math.max(j1, blockpos.getZ());
+                            j1 = max(j1, blockpos.getZ());
                             list3.add(Pair.of(blockpos, structuretemplate$structureblockinfo.nbt));
                             if (structuretemplate$structureblockinfo.nbt != null) {
                                 BlockEntity blockentity1 = p_230329_.getBlockEntity(blockpos);
@@ -297,16 +301,16 @@ public class StructureTemplate {
                     }
                 }
 
-                if (i <= l) {
+                if (!list3.isEmpty()) {
                     if (!p_230332_.getKnownShape()) {
-                        DiscreteVoxelShape discretevoxelshape = new BitSetDiscreteVoxelShape((int) (l - i + 1), i1 - j + 1, (int) (j1 - k + 1));
-                        long k1 = i;
+                        DiscreteVoxelShape discretevoxelshape = new BitSetDiscreteVoxelShape(localSpan(i, l), i1 - j + 1, localSpan(k, j1));
+                        Int128 k1 = i;
                         int l1 = j;
-                        long j2 = k;
+                        Int128 j2 = k;
 
                         for (Pair<BlockPos, CompoundTag> pair1 : list3) {
                             BlockPos blockpos2 = pair1.getFirst();
-                            discretevoxelshape.fill((int) (WorldBounds.subtractBlockOffset(blockpos2.getX(), k1)), blockpos2.getY() - l1, (int) (WorldBounds.subtractBlockOffset(blockpos2.getZ(), j2)));
+                            discretevoxelshape.fill(localInt(blockpos2.getX().subtract(k1)), blockpos2.getY() - l1, localInt(blockpos2.getZ().subtract(j2)));
                         }
 
                         updateShapeAtEdge(p_230329_, p_230334_, discretevoxelshape, k1, l1, j2);
@@ -345,8 +349,12 @@ public class StructureTemplate {
     }
 
     public static void updateShapeAtEdge(LevelAccessor p_74511_, int p_74512_, DiscreteVoxelShape p_74513_, long p_74514_, int p_74515_, long p_74516_) {
+        updateShapeAtEdge(p_74511_, p_74512_, p_74513_, Int128.fromLong(p_74514_), p_74515_, Int128.fromLong(p_74516_));
+    }
+
+    public static void updateShapeAtEdge(LevelAccessor p_74511_, int p_74512_, DiscreteVoxelShape p_74513_, Int128 p_74514_, int p_74515_, Int128 p_74516_) {
         p_74513_.forAllFaces((p_74494_, p_74495_, p_74496_, p_74497_) -> {
-            BlockPos blockpos = new BlockPos(p_74514_ + p_74495_, p_74515_ + p_74496_, p_74516_ + p_74497_);
+            BlockPos blockpos = new BlockPos(WorldBounds.addBlockOffset(p_74514_, p_74495_), p_74515_ + p_74496_, WorldBounds.addBlockOffset(p_74516_, p_74497_));
             BlockPos blockpos1 = blockpos.relative(p_74494_);
             BlockState blockstate = p_74511_.getBlockState(blockpos);
             BlockState blockstate1 = p_74511_.getBlockState(blockpos1);
@@ -388,12 +396,8 @@ public class StructureTemplate {
                 Vec3 vec3 = transform(structuretemplate$structureentityinfo.pos, p_74526_, p_74527_, p_74528_);
                 SectorVec3 entityPosition = SectorVec3.fromBlockAndFraction(p_74525_.getX(), vec3.x,
                         (double) p_74525_.getY() + vec3.y, p_74525_.getZ(), vec3.z);
-                Vec3 vec31 = entityPosition.toApproximateVec3();
-                ListTag listtag = new ListTag();
-                listtag.add(DoubleTag.valueOf(vec31.x));
-                listtag.add(DoubleTag.valueOf(vec31.y));
-                listtag.add(DoubleTag.valueOf(vec31.z));
-                compoundtag.put("Pos", listtag);
+                compoundtag.remove("Pos");
+                setEntityPosition(compoundtag, entityPosition);
                 compoundtag.remove("UUID");
                 createEntityIgnoreException(p_74524_, compoundtag).ifPresent((p_205061_) -> {
                     float f = p_205061_.rotate(p_74527_);
@@ -419,6 +423,19 @@ public class StructureTemplate {
         }
     }
 
+    private static void setEntityPosition(CompoundTag tag, SectorVec3 position) {
+        CompoundTag exactTag = new CompoundTag();
+        NbtUtils.writeInt128(exactTag, "BlockX", position.blockX());
+        NbtUtils.writeInt128(exactTag, "BlockZ", position.blockZ());
+        exactTag.putDouble("SubX", position.subX());
+        exactTag.putDouble("SubZ", position.subZ());
+        exactTag.putDouble("Y", position.y());
+        tag.put("ExactPos", exactTag);
+        for (net.minecraft.nbt.Tag passenger : tag.getList("Passengers", 10)) {
+            setEntityPosition((CompoundTag) passenger, position);
+        }
+    }
+
     public Vec3i getSize(Rotation pRotation) {
         switch (pRotation) {
             case COUNTERCLOCKWISE_90:
@@ -430,23 +447,23 @@ public class StructureTemplate {
     }
 
     public static BlockPos transform(BlockPos pTargetPos, Mirror pMirror, Rotation pRotation, BlockPos pOffset) {
-        long i = pTargetPos.getX();
+        Int128 i = pTargetPos.getX();
         int j = pTargetPos.getY();
-        long k = pTargetPos.getZ();
+        Int128 k = pTargetPos.getZ();
         boolean flag = true;
         switch (pMirror) {
             case LEFT_RIGHT:
-                k = WorldBounds.subtractBlockOffset(0L, k);
+                k = Int128.ZERO.subtractSaturated(k);
                 break;
             case FRONT_BACK:
-                i = WorldBounds.subtractBlockOffset(0L, i);
+                i = Int128.ZERO.subtractSaturated(i);
                 break;
             default:
                 flag = false;
         }
 
-        long l = pOffset.getX();
-        long i1 = pOffset.getZ();
+        Int128 l = pOffset.getX();
+        Int128 i1 = pOffset.getZ();
         switch (pRotation) {
             case COUNTERCLOCKWISE_90:
                 return new BlockPos(WorldBounds.addSubtract(l, k, i1), j, WorldBounds.addSubtract(l, i1, i));
@@ -475,8 +492,8 @@ public class StructureTemplate {
                 flag = false;
         }
 
-        long i = pCenterOffset.getX();
-        long j = pCenterOffset.getZ();
+        long i = localInt(pCenterOffset.getX());
+        long j = localInt(pCenterOffset.getZ());
         switch (pRotation) {
             case COUNTERCLOCKWISE_90:
                 return new Vec3((double) (i - j) + d2, d1, (double) (i + j + 1) - d0);
@@ -490,7 +507,7 @@ public class StructureTemplate {
     }
 
     public BlockPos getZeroPositionWithTransform(BlockPos pTargetPos, Mirror pMirror, Rotation pRotation) {
-        return getZeroPositionWithTransform(pTargetPos, pMirror, pRotation, this.getSize().getX(), this.getSize().getZ());
+        return getZeroPositionWithTransform(pTargetPos, pMirror, pRotation, localInt(this.getSize().getX()), localInt(this.getSize().getZ()));
     }
 
     public static BlockPos getZeroPositionWithTransform(BlockPos pPos, Mirror pMirror, Rotation pRotation, long pSizeX, long pSizeZ) {
@@ -551,7 +568,7 @@ public class StructureTemplate {
             for (int j = 0; j < list1.size(); ++j) {
                 StructureTemplate.StructureBlockInfo structuretemplate$structureblockinfo = list1.get(j);
                 CompoundTag compoundtag = new CompoundTag();
-                compoundtag.put("pos", this.newLongList(structuretemplate$structureblockinfo.pos.getX(), structuretemplate$structureblockinfo.pos.getY(), structuretemplate$structureblockinfo.pos.getZ()));
+                compoundtag.put("pos", this.newIntegerList(localInt(structuretemplate$structureblockinfo.pos.getX()), structuretemplate$structureblockinfo.pos.getY(), localInt(structuretemplate$structureblockinfo.pos.getZ())));
                 int k = structuretemplate$simplepalette.idFor(structuretemplate$structureblockinfo.state);
                 compoundtag.putInt("state", k);
                 if (structuretemplate$structureblockinfo.nbt != null) {
@@ -597,7 +614,7 @@ public class StructureTemplate {
         for (StructureTemplate.StructureEntityInfo structuretemplate$structureentityinfo : this.entityInfoList) {
             CompoundTag compoundtag1 = new CompoundTag();
             compoundtag1.put("pos", this.newDoubleList(structuretemplate$structureentityinfo.pos.x, structuretemplate$structureentityinfo.pos.y, structuretemplate$structureentityinfo.pos.z));
-            compoundtag1.put("blockPos", this.newLongList(structuretemplate$structureentityinfo.blockPos.getX(), structuretemplate$structureentityinfo.blockPos.getY(), structuretemplate$structureentityinfo.blockPos.getZ()));
+            compoundtag1.put("blockPos", this.newIntegerList(localInt(structuretemplate$structureentityinfo.blockPos.getX()), structuretemplate$structureentityinfo.blockPos.getY(), localInt(structuretemplate$structureentityinfo.blockPos.getZ())));
             if (structuretemplate$structureentityinfo.nbt != null) {
                 compoundtag1.put("nbt", structuretemplate$structureentityinfo.nbt);
             }
@@ -606,7 +623,7 @@ public class StructureTemplate {
         }
 
         pTag.put("entities", listtag);
-        pTag.put("size", this.newLongList(this.size.getX(), this.size.getY(), this.size.getZ()));
+        pTag.put("size", this.newIntegerList(localInt(this.size.getX()), this.size.getY(), localInt(this.size.getZ())));
         pTag.putInt("DataVersion", SharedConstants.getCurrentVersion().getWorldVersion());
         return pTag;
     }
@@ -615,7 +632,7 @@ public class StructureTemplate {
         this.palettes.clear();
         this.entityInfoList.clear();
         ListTag listtag = getLongList(pTag, "size");
-        this.size = new Vec3i(((NumericTag) listtag.get(0)).getAsLong(), ((NumericTag) listtag.get(1)).getAsInt(), ((NumericTag) listtag.get(2)).getAsLong());
+        this.size = new Vec3i(readLocalInt(listtag, 0), readLocalInt(listtag, 1), readLocalInt(listtag, 2));
         ListTag listtag1 = pTag.getList("blocks", 10);
         if (pTag.contains("palettes", 9)) {
             ListTag listtag2 = pTag.getList("palettes", 9);
@@ -634,7 +651,7 @@ public class StructureTemplate {
             ListTag listtag3 = compoundtag.getList("pos", 6);
             Vec3 vec3 = new Vec3(listtag3.getDouble(0), listtag3.getDouble(1), listtag3.getDouble(2));
             ListTag listtag4 = getLongList(compoundtag, "blockPos");
-            BlockPos blockpos = new BlockPos(((NumericTag) listtag4.get(0)).getAsLong(), ((NumericTag) listtag4.get(1)).getAsInt(), ((NumericTag) listtag4.get(2)).getAsLong());
+            BlockPos blockpos = new BlockPos(readLocalInt(listtag4, 0), readLocalInt(listtag4, 1), readLocalInt(listtag4, 2));
             if (compoundtag.contains("nbt")) {
                 CompoundTag compoundtag1 = compoundtag.getCompound("nbt");
                 this.entityInfoList.add(new StructureTemplate.StructureEntityInfo(vec3, blockpos, compoundtag1));
@@ -645,6 +662,10 @@ public class StructureTemplate {
     private static ListTag getLongList(CompoundTag tag, String key) {
         ListTag list = tag.getList(key, 4);
         return list.isEmpty() ? tag.getList(key, 3) : list;
+    }
+
+    private static int readLocalInt(ListTag list, int index) {
+        return Math.toIntExact(((NumericTag) list.get(index)).getAsLong());
     }
 
     private void loadPalette(ListTag pPaletteTag, ListTag pBlocksTag) {
@@ -661,7 +682,7 @@ public class StructureTemplate {
         for (int j = 0; j < pBlocksTag.size(); ++j) {
             CompoundTag compoundtag = pBlocksTag.getCompound(j);
             ListTag listtag = getLongList(compoundtag, "pos");
-            BlockPos blockpos = new BlockPos(((NumericTag) listtag.get(0)).getAsLong(), listtag.getInt(1), ((NumericTag) listtag.get(2)).getAsLong());
+            BlockPos blockpos = new BlockPos(readLocalInt(listtag, 0), readLocalInt(listtag, 1), readLocalInt(listtag, 2));
             BlockState blockstate = structuretemplate$simplepalette.stateFor(compoundtag.getInt("state"));
             CompoundTag compoundtag1;
             if (compoundtag.contains("nbt")) {
@@ -688,14 +709,26 @@ public class StructureTemplate {
         return listtag;
     }
 
-    private ListTag newLongList(long... pValues) {
-        ListTag listtag = new ListTag();
-
-        for (long i : pValues) {
-            listtag.add(LongTag.valueOf(i));
+    private static int localInt(Int128 value) {
+        if (value.compareTo(Int128.fromLong(Integer.MIN_VALUE)) < 0 || value.compareTo(Int128.fromLong(Integer.MAX_VALUE)) > 0) {
+            throw new IllegalArgumentException("Template-local coordinate does not fit an int");
         }
+        return (int) value.lo();
+    }
 
-        return listtag;
+    private static Int128 min(Int128 first, Int128 second) {
+        return first.compareTo(second) <= 0 ? first : second;
+    }
+
+    private static Int128 max(Int128 first, Int128 second) {
+        return first.compareTo(second) >= 0 ? first : second;
+    }
+
+    private static int localSpan(Int128 min, Int128 max) {
+        if (WorldBounds.localSpanExceeds(max, min)) {
+            throw new IllegalArgumentException("Template shape exceeds the safe local span");
+        }
+        return Math.addExact(localInt(max.subtract(min)), 1);
     }
 
     private ListTag newDoubleList(double... pValues) {

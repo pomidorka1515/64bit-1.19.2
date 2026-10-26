@@ -29,6 +29,8 @@ import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.resources.sounds.EntityBoundSoundInstance;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
+import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.core.Cursor3D;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -141,12 +143,7 @@ public class ClientLevel extends Level {
             this.setBlock(p_233648_, p_233649_, 19);
             Player player = this.minecraft.player;
             if (this == player.level && player.isColliding(p_233648_, p_233649_)) {
-                if (player.hasSectorPosition()) {
-                    player.applyExactPosition(p_233650_);
-                } else {
-                    Vec3 vec3 = p_233650_.toApproximateVec3();
-                    player.absMoveTo(vec3.x, vec3.y, vec3.z);
-                }
+                player.applyExactPosition(p_233650_);
             }
         }
     }
@@ -296,7 +293,7 @@ public class ClientLevel extends Level {
 
     public void onChunkLoaded(ChunkPos pChunkPos) {
         this.tintCaches.forEach((p_194154_, p_194155_) -> {
-            p_194155_.invalidateForChunk(pChunkPos.x, pChunkPos.z);
+            p_194155_.invalidateForChunk(pChunkPos.x(), pChunkPos.z());
         });
         this.entityStorage.startTicking(pChunkPos);
     }
@@ -346,6 +343,10 @@ public class ClientLevel extends Level {
     }
 
     public void animateTick(long pPosX, int pPosY, long pPosZ) {
+        this.animateTick(Int128.fromLong(pPosX), pPosY, Int128.fromLong(pPosZ));
+    }
+
+    public void animateTick(Int128 pPosX, int pPosY, Int128 pPosZ) {
         int i = 32;
         RandomSource randomsource = RandomSource.create();
         Block block = this.getMarkerParticleTarget();
@@ -372,9 +373,13 @@ public class ClientLevel extends Level {
     }
 
     public void doAnimateTick(long pPosX, int pPosY, long pPosZ, int pRange, RandomSource pRandom, @Nullable Block pBlock, BlockPos.MutableBlockPos pBlockPos) {
-        long i = pPosX + this.random.nextInt(pRange) - this.random.nextInt(pRange);
+        this.doAnimateTick(Int128.fromLong(pPosX), pPosY, Int128.fromLong(pPosZ), pRange, pRandom, pBlock, pBlockPos);
+    }
+
+    public void doAnimateTick(Int128 pPosX, int pPosY, Int128 pPosZ, int pRange, RandomSource pRandom, @Nullable Block pBlock, BlockPos.MutableBlockPos pBlockPos) {
+        Int128 i = WorldBounds.addBlockOffset(pPosX, this.random.nextInt(pRange) - this.random.nextInt(pRange));
         int j = pPosY + this.random.nextInt(pRange) - this.random.nextInt(pRange);
-        long k = pPosZ + this.random.nextInt(pRange) - this.random.nextInt(pRange);
+        Int128 k = WorldBounds.addBlockOffset(pPosZ, this.random.nextInt(pRange) - this.random.nextInt(pRange));
         pBlockPos.set(i, j, k);
         BlockState blockstate = this.getBlockState(pBlockPos);
         blockstate.getBlock().animateTick(blockstate, this, pBlockPos, pRandom);
@@ -455,12 +460,6 @@ public class ClientLevel extends Level {
         return crashreportcategory;
     }
 
-    public void playSeededSound(@Nullable Player pPlayer, double pX, double pY, double pZ, SoundEvent pSoundEvent, SoundSource pSoundSource, float pVolume, float pPitch, long pSeed) {
-        if (pPlayer == this.minecraft.player) {
-            this.playSound(SectorVec3.fromApproximate(pX, pY, pZ), pSoundEvent, pSoundSource, pVolume, pPitch, false, pSeed);
-        }
-    }
-
     @Override
     public void playSeededSound(@Nullable Player player, SectorVec3 position, SoundEvent sound, SoundSource source,
             float volume, float pitch, long seed) {
@@ -481,34 +480,16 @@ public class ClientLevel extends Level {
                 pSound, pCategory, pVolume, pPitch, pDistanceDelay, this.random.nextLong());
     }
 
-    public void playLocalSound(double pX, double pY, double pZ, SoundEvent pSound, SoundSource pCategory, float pVolume, float pPitch, boolean pDistanceDelay) {
-        this.playSound(pX, pY, pZ, pSound, pCategory, pVolume, pPitch, pDistanceDelay, this.random.nextLong());
-    }
-
     @Override
     public void playLocalSound(SectorVec3 position, SoundEvent sound, SoundSource source, float volume, float pitch,
             boolean distanceDelay) {
         this.playSound(position, sound, source, volume, pitch, distanceDelay, this.random.nextLong());
     }
 
-    private void playSound(double pX, double pY, double pZ, SoundEvent pSoundEvent, SoundSource pSource, float pVolume, float pPitch, boolean pDistanceDelay, long pSeed) {
-        this.playSound(SectorVec3.fromApproximate(pX, pY, pZ), pSoundEvent, pSource,
-                pVolume, pPitch, pDistanceDelay, pSeed);
-    }
-
     private void playSound(SectorVec3 position, SoundEvent sound, SoundSource source, float volume, float pitch,
             boolean distanceDelay, long seed) {
         SectorVec3 camera = this.minecraft.gameRenderer.getMainCamera().exactPosition();
-        double distanceSquared;
-        if (camera == null) {
-            Vec3 legacyCamera = this.minecraft.gameRenderer.getMainCamera().getPosition();
-            double dx = ((double) position.blockX() + position.subX()) - legacyCamera.x;
-            double dy = position.y() - legacyCamera.y;
-            double dz = ((double) position.blockZ() + position.subZ()) - legacyCamera.z;
-            distanceSquared = dx * dx + dy * dy + dz * dz;
-        } else {
-            distanceSquared = position.relativeTo(camera).lengthSqr();
-        }
+        double distanceSquared = position.relativeTo(camera).lengthSqr();
         SimpleSoundInstance instance = new SimpleSoundInstance(sound, source, volume, pitch, RandomSource.create(seed), position);
         if (distanceDelay && distanceSquared > 100.0D) {
             double delay = Math.sqrt(distanceSquared) / 40.0D;
@@ -581,11 +562,19 @@ public class ClientLevel extends Level {
     }
 
     public void setSectionDirtyWithNeighbors(long pSectionX, int pSectionY, long pSectionZ) {
+        this.setSectionDirtyWithNeighbors(Int128.fromLong(pSectionX), pSectionY, Int128.fromLong(pSectionZ));
+    }
+
+    public void setSectionDirtyWithNeighbors(Int128 pSectionX, int pSectionY, Int128 pSectionZ) {
         this.levelRenderer.setSectionDirtyWithNeighbors(pSectionX, pSectionY, pSectionZ);
     }
 
     public void setLightReady(long pX, long pZ) {
-        LevelChunk levelchunk = this.chunkSource.getChunk(pX, pZ, false);
+        this.setLightReady(Int128.fromLong(pX), Int128.fromLong(pZ));
+    }
+
+    public void setLightReady(Int128 pX, Int128 pZ) {
+        LevelChunk levelchunk = this.chunkSource.getChunk(pX, pZ, ChunkStatus.FULL, false);
         if (levelchunk != null) {
             levelchunk.setClientLightReady(true);
         }
@@ -613,17 +602,9 @@ public class ClientLevel extends Level {
         }
     }
 
-    public void addParticle(ParticleOptions pParticleData, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
-        this.addParticle(pParticleData, SectorVec3.fromApproximate(pX, pY, pZ), pXSpeed, pYSpeed, pZSpeed);
-    }
-
     @Override
     public void addParticle(ParticleOptions options, SectorVec3 position, double xd, double yd, double zd) {
         this.levelRenderer.addParticle(options, options.getType().getOverrideLimiter(), position, xd, yd, zd);
-    }
-
-    public void addParticle(ParticleOptions pParticleData, boolean pForceAlwaysRender, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
-        this.addParticle(pParticleData, pForceAlwaysRender, SectorVec3.fromApproximate(pX, pY, pZ), pXSpeed, pYSpeed, pZSpeed);
     }
 
     @Override
@@ -631,17 +612,9 @@ public class ClientLevel extends Level {
         this.levelRenderer.addParticle(options, options.getType().getOverrideLimiter() || force, position, xd, yd, zd);
     }
 
-    public void addAlwaysVisibleParticle(ParticleOptions pParticleData, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
-        this.addAlwaysVisibleParticle(pParticleData, SectorVec3.fromApproximate(pX, pY, pZ), pXSpeed, pYSpeed, pZSpeed);
-    }
-
     @Override
     public void addAlwaysVisibleParticle(ParticleOptions options, SectorVec3 position, double xd, double yd, double zd) {
         this.levelRenderer.addParticle(options, false, true, position, xd, yd, zd);
-    }
-
-    public void addAlwaysVisibleParticle(ParticleOptions pParticleData, boolean pIgnoreRange, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
-        this.levelRenderer.addParticle(pParticleData, pIgnoreRange, SectorVec3.fromApproximate(pX, pY, pZ), pXSpeed, pYSpeed, pZSpeed);
     }
 
     @Override
@@ -668,10 +641,13 @@ public class ClientLevel extends Level {
     }
 
     public Vec3 getSkyColor(Vec3 pPos, float pPartialTick) {
+        return this.getSkyColor(SectorVec3.fromApproximate(pPos.x, pPos.y, pPos.z), pPartialTick);
+    }
+
+    public Vec3 getSkyColor(SectorVec3 pPos, float pPartialTick) {
         float f = this.getTimeOfDay(pPartialTick);
-        Vec3 vec3 = pPos.subtract(2.0D, 2.0D, 2.0D).scale(0.25D);
         BiomeManager biomemanager = this.getBiomeManager();
-        Vec3 vec31 = CubicSampler.gaussianSampleVec3(vec3, (p_194161_, p_194162_, p_194163_) -> {
+        Vec3 vec31 = sampleBiomeColors(pPos, (p_194161_, p_194162_, p_194163_) -> {
             return Vec3.fromRGB24(biomemanager.getNoiseBiomeAtQuart(p_194161_, p_194162_, p_194163_).value().getSkyColor());
         });
         float f1 = Mth.cos(f * ((float) Math.PI * 2F)) * 2.0F + 0.5F;
@@ -710,6 +686,22 @@ public class ClientLevel extends Level {
         }
 
         return new Vec3((double) f2, (double) f3, (double) f4);
+    }
+
+    /** Samples only a small local quart window, then adds the full-width quart anchor. */
+    public static Vec3 sampleBiomeColors(SectorVec3 position, BiomeColorFetcher fetcher) {
+        Int128 quartX = position.blockX().shiftRight(2);
+        Int128 quartZ = position.blockZ().shiftRight(2);
+        Vec3 local = new Vec3(((position.blockX().lo() & 3L) + position.subX() - 2.0D) * 0.25D,
+                (position.y() - 2.0D) * 0.25D,
+                ((position.blockZ().lo() & 3L) + position.subZ() - 2.0D) * 0.25D);
+        return CubicSampler.gaussianSampleVec3(local, (x, y, z) -> fetcher.fetch(
+                quartX.addSaturated(Int128.fromLong(x)), y, quartZ.addSaturated(Int128.fromLong(z))));
+    }
+
+    @FunctionalInterface
+    public interface BiomeColorFetcher {
+        Vec3 fetch(Int128 x, int y, Int128 z);
     }
 
     public Vec3 getCloudColor(float pPartialTick) {
@@ -787,7 +779,9 @@ public class ClientLevel extends Level {
 
     public int calculateBlockTint(BlockPos pBlockPos, ColorResolver pColorResolver) {
         int i = Minecraft.getInstance().options.biomeBlendRadius().get();
-        return calculateBlockTint(pBlockPos, i, pos -> pColorResolver.getColor(this.getBiome(pos).value(), (double) pos.getX(), (double) pos.getZ()));
+        // Only the legacy biome color pattern is projected; biome lookup keeps exact identity.
+        return calculateBlockTint(pBlockPos, i, pos -> pColorResolver.getColor(this.getBiome(pos).value(),
+                WorldBounds.noiseCoordinate(pos.getX()), WorldBounds.noiseCoordinate(pos.getZ())));
     }
 
     static int calculateBlockTint(BlockPos pBlockPos, int i, java.util.function.ToIntFunction<BlockPos> colorSource) {
@@ -861,9 +855,9 @@ public class ClientLevel extends Level {
         private final boolean hardcore;
         private final GameRules gameRules;
         private final boolean isFlat;
-        private long xSpawn;
+        private Int128 xSpawn = Int128.ZERO;
         private int ySpawn;
-        private long zSpawn;
+        private Int128 zSpawn = Int128.ZERO;
         private float spawnAngle;
         private long gameTime;
         private long dayTime;
@@ -878,7 +872,7 @@ public class ClientLevel extends Level {
             this.gameRules = new GameRules();
         }
 
-        public long getXSpawn() {
+        public Int128 getXSpawn() {
             return this.xSpawn;
         }
 
@@ -886,7 +880,7 @@ public class ClientLevel extends Level {
             return this.ySpawn;
         }
 
-        public long getZSpawn() {
+        public Int128 getZSpawn() {
             return this.zSpawn;
         }
 
@@ -902,7 +896,7 @@ public class ClientLevel extends Level {
             return this.dayTime;
         }
 
-        public void setXSpawn(long pX) {
+        public void setXSpawn(Int128 pX) {
             this.xSpawn = pX;
         }
 
@@ -910,7 +904,7 @@ public class ClientLevel extends Level {
             this.ySpawn = pY;
         }
 
-        public void setZSpawn(long pZ) {
+        public void setZSpawn(Int128 pZ) {
             this.zSpawn = pZ;
         }
 

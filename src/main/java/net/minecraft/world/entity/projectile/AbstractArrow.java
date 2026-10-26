@@ -72,11 +72,11 @@ public abstract class AbstractArrow extends Projectile {
 
     protected AbstractArrow(EntityType<? extends AbstractArrow> pEntityType, double pX, double pY, double pZ, Level pLevel) {
         this(pEntityType, pLevel);
-        this.setPos(pX, pY, pZ);
+        this.applyExactPosition(SectorVec3.fromApproximate(pX, pY, pZ));
     }
 
     protected AbstractArrow(EntityType<? extends AbstractArrow> pEntityType, LivingEntity pShooter, Level pLevel) {
-        this(pEntityType, pShooter.getX(), pShooter.getEyeY() - (double) 0.1F, pShooter.getZ(), pLevel);
+        this(pEntityType, pLevel);
         this.applyExactPosition(pShooter.sectorPosition().withY(pShooter.getEyeY() - (double) 0.1F));
         this.setOwner(pShooter);
         if (pShooter instanceof Player) {
@@ -89,7 +89,7 @@ public abstract class AbstractArrow extends Projectile {
     }
 
     public boolean shouldRenderAtSqrDistance(double pDistance) {
-        double d0 = this.getBoundingBox().getSize() * 10.0D;
+        double d0 = this.exactBoundingBox().getSize() * 10.0D;
         if (Double.isNaN(d0)) {
             d0 = 1.0D;
         }
@@ -109,7 +109,7 @@ public abstract class AbstractArrow extends Projectile {
     }
 
     public void lerpTo(double pX, double pY, double pZ, float pYaw, float pPitch, int pPosRotationIncrements, boolean pTeleport) {
-        this.setPos(pX, pY, pZ);
+        this.applyExactPosition(SectorVec3.fromApproximate(pX, pY, pZ));
         this.setRot(pYaw, pPitch);
     }
 
@@ -167,16 +167,10 @@ public abstract class AbstractArrow extends Projectile {
             this.inGroundTime = 0;
             SectorVec3 exactStart = this.sectorPosition();
             SectorVec3 exactEnd = exactStart.add(vec3.x, vec3.y, vec3.z);
-            Vec3 vec32 = exactStart.toApproximateVec3();
-            Vec3 vec33 = exactEnd.toApproximateVec3();
             HitResult hitresult = net.minecraft.world.level.SectorClipper.clip(this.level, exactStart, exactEnd, this,
                     ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE);
             SectorVec3 exactHit = hitresult.getExactLocation();
             SectorVec3 rayEnd = hitresult.getType() != HitResult.Type.MISS && exactHit != null ? exactHit : exactEnd;
-            if (hitresult.getType() != HitResult.Type.MISS && exactHit != null) {
-                vec33 = exactHit.toApproximateVec3();
-            }
-
             while (!this.isRemoved()) {
                 EntityHitResult entityhitresult = this.findHitEntity(exactStart, rayEnd);
                 if (entityhitresult != null) {

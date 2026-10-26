@@ -13,7 +13,7 @@ public class HoverRandomPos {
             int maxAboveSolid, int minAboveSolid) {
         SectorVec3 exact = getSectorPos(mob, horizontalRange, verticalRange, directionX, directionZ,
                 maxAngle, maxAboveSolid, minAboveSolid);
-        return exact == null ? null : exact.toApproximateVec3();
+        return exact == null ? null : exact.toExactVec3();
     }
 
     @Nullable

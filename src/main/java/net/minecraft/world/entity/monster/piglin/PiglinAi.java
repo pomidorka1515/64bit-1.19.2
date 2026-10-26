@@ -417,7 +417,7 @@ public class PiglinAi {
     }
 
     public static void angerNearbyPiglins(Player pPlayer, boolean pAngerOnlyIfCanSee) {
-        List<Piglin> list = pPlayer.level.getEntitiesOfClass(Piglin.class, pPlayer.getBoundingBox().inflate(16.0D));
+        List<Piglin> list = pPlayer.level.getEntitiesOfClass(Piglin.class, pPlayer.exactBoundingBox().inflate(16.0D));
         list.stream().filter(PiglinAi::isIdle).filter((p_34881_) -> {
                                                   return !pAngerOnlyIfCanSee || BehaviorUtils.canSee(p_34881_, pPlayer);
                                               })

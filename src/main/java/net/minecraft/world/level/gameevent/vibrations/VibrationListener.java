@@ -104,14 +104,11 @@ public class VibrationListener implements GameEventListener {
                     return false;
                 } else {
                     Vec3 source = pEventMessage.source();
-                    Entity sourceEntity = gameevent$context.sourceEntity();
-                    SectorVec3 exactSource = sourceEntity != null && sourceEntity.exactPosition() != null
-                            ? sourceEntity.exactPosition()
-                            : SectorVec3.fromApproximate(source.x, source.y, source.z);
+                    SectorVec3 exactSource = SectorVec3.fromApproximate(source);
                     SectorVec3 listener = optional.get();
                     if (!this.config.shouldListen(pLevel, this, exactSource.blockPosition(), gameevent, gameevent$context)) {
                         return false;
-                    } else if (isOccluded(pLevel, source, listener.toApproximateVec3())) {
+                    } else if (isOccluded(pLevel, exactSource, listener)) {
                         return false;
                     } else {
                         this.scheduleSignal(pLevel, gameevent, gameevent$context, exactSource, listener);
@@ -125,19 +122,18 @@ public class VibrationListener implements GameEventListener {
     private void scheduleSignal(ServerLevel level, GameEvent event, GameEvent.Context context,
             SectorVec3 source, SectorVec3 listener) {
         this.receivingDistance = (float) source.relativeTo(listener).length();
-        // ReceivingEvent is vanilla persistence state.  Its Vec3 is a legacy
-        // compatibility mirror; the particle source below remains exact.
+        // Keep the exact source both in flight and across persistence.
         this.receivingEvent = new VibrationListener.ReceivingEvent(event, this.receivingDistance,
-                source.toApproximateVec3(), context.sourceEntity());
+                source.toExactVec3(), context.sourceEntity());
         this.travelTimeInTicks = Mth.floor(this.receivingDistance);
         level.sendParticles(new VibrationParticleOption(this.listenerSource, this.travelTimeInTicks), source,
                 1, 0.0D, 0.0D, 0.0D, 0.0D);
         this.config.onSignalSchedule();
     }
 
-    private static boolean isOccluded(Level pLevel, Vec3 pFrom, Vec3 pTo) {
-        Vec3 vec3 = new Vec3((double) Mth.lfloor(pFrom.x) + 0.5D, (double) Mth.floor(pFrom.y) + 0.5D, (double) Mth.lfloor(pFrom.z) + 0.5D);
-        Vec3 vec31 = new Vec3((double) Mth.lfloor(pTo.x) + 0.5D, (double) Mth.floor(pTo.y) + 0.5D, (double) Mth.lfloor(pTo.z) + 0.5D);
+    private static boolean isOccluded(Level pLevel, SectorVec3 pFrom, SectorVec3 pTo) {
+        Vec3 vec3 = Vec3.atCenterOf(pFrom.blockPosition());
+        Vec3 vec31 = Vec3.atCenterOf(pTo.blockPosition());
 
         for (Direction direction : Direction.values()) {
             Vec3 vec32 = vec3.relative(direction, (double) 1.0E-5F);
@@ -153,7 +149,7 @@ public class VibrationListener implements GameEventListener {
 
     public static record ReceivingEvent(GameEvent gameEvent, float distance, Vec3 pos, @Nullable UUID uuid, @Nullable UUID projectileOwnerUuid, @Nullable Entity entity) {
         public static final Codec<VibrationListener.ReceivingEvent> CODEC = RecordCodecBuilder.create((p_223835_) -> {
-            return p_223835_.group(Registry.GAME_EVENT.byNameCodec().fieldOf("game_event").forGetter(VibrationListener.ReceivingEvent::gameEvent), Codec.floatRange(0.0F, Float.MAX_VALUE).fieldOf("distance").forGetter(VibrationListener.ReceivingEvent::distance), Vec3.CODEC.fieldOf("pos").forGetter(VibrationListener.ReceivingEvent::pos), ExtraCodecs.UUID.optionalFieldOf("source").forGetter((p_223850_) -> {
+            return p_223835_.group(Registry.GAME_EVENT.byNameCodec().fieldOf("game_event").forGetter(VibrationListener.ReceivingEvent::gameEvent), Codec.floatRange(0.0F, Float.MAX_VALUE).fieldOf("distance").forGetter(VibrationListener.ReceivingEvent::distance), SectorVec3.CODEC.xmap(SectorVec3::toExactVec3, SectorVec3::fromApproximate).fieldOf("pos").forGetter(VibrationListener.ReceivingEvent::pos), ExtraCodecs.UUID.optionalFieldOf("source").forGetter((p_223850_) -> {
                                 return Optional.ofNullable(p_223850_.uuid());
                             }),
                                     ExtraCodecs.UUID.optionalFieldOf("projectile_owner").forGetter((p_223843_) -> {

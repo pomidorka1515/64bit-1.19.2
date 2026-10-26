@@ -2,16 +2,18 @@ package net.minecraft.world.level.storage;
 
 import java.util.Locale;
 import net.minecraft.CrashReportCategory;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.LevelHeightAccessor;
 
 public interface LevelData {
-    long getXSpawn();
+    Int128 getXSpawn();
 
     int getYSpawn();
 
-    long getZSpawn();
+    Int128 getZSpawn();
 
     float getSpawnAngle();
 
@@ -35,7 +37,7 @@ public interface LevelData {
 
     default void fillCrashReportCategory(CrashReportCategory pCrashReportCategory, LevelHeightAccessor pLevel) {
         pCrashReportCategory.setDetail("Level spawn location", () -> {
-            return CrashReportCategory.formatLocation(pLevel, this.getXSpawn(), this.getYSpawn(), this.getZSpawn());
+            return CrashReportCategory.formatLocation(pLevel, new BlockPos(this.getXSpawn(), this.getYSpawn(), this.getZSpawn()));
         });
         pCrashReportCategory.setDetail("Level time", () -> {
             return String.format(Locale.ROOT, "%d game time, %d day time", this.getGameTime(), this.getDayTime());

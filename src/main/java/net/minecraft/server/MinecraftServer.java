@@ -8,7 +8,6 @@ import com.google.common.collect.Sets;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.GameProfileRepository;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -192,7 +191,6 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
     private final ChunkProgressListenerFactory progressListenerFactory;
     private final ServerStatus status = new ServerStatus();
     private final RandomSource random = RandomSource.create();
-    private final DataFixer fixerUpper;
     private String localIp;
     private int port = -1;
     private final RegistryAccess.Frozen registryHolder;
@@ -258,7 +256,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
         return s;
     }
 
-    public MinecraftServer(Thread pServerThread, LevelStorageSource.LevelStorageAccess pStorageSource, PackRepository pPackRepository, WorldStem pWorldStem, Proxy pProxy, DataFixer pFixerUpper, Services pServices, ChunkProgressListenerFactory pProgressListenerFactory) {
+    public MinecraftServer(Thread pServerThread, LevelStorageSource.LevelStorageAccess pStorageSource, PackRepository pPackRepository, WorldStem pWorldStem, Proxy pProxy, Services pServices, ChunkProgressListenerFactory pProgressListenerFactory) {
         super("Server");
         this.registryHolder = pWorldStem.registryAccess();
         this.worldData = pWorldStem.worldData();
@@ -277,9 +275,8 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
             this.progressListenerFactory = pProgressListenerFactory;
             this.storageSource = pStorageSource;
             this.playerDataStorage = pStorageSource.createPlayerStorage();
-            this.fixerUpper = pFixerUpper;
             this.functionManager = new ServerFunctionManager(this, this.resources.managers.getFunctionLibrary());
-            this.structureTemplateManager = new StructureTemplateManager(pWorldStem.resourceManager(), pStorageSource, pFixerUpper);
+            this.structureTemplateManager = new StructureTemplateManager(pWorldStem.resourceManager(), pStorageSource);
             this.serverThread = pServerThread;
             this.executor = Util.backgroundExecutor();
         }
@@ -394,7 +391,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
 
             for (int j1 = 0; j1 < Mth.square(11); ++j1) {
                 if (k1 >= -5 && k1 <= 5 && j >= -5 && j <= 5) {
-                    BlockPos blockpos1 = PlayerRespawnLogic.getSpawnPosInChunk(pLevel, new ChunkPos(chunkpos.x + k1, chunkpos.z + j));
+                    BlockPos blockpos1 = PlayerRespawnLogic.getSpawnPosInChunk(pLevel, new ChunkPos(WorldBounds.addChunkOffset(chunkpos.x(), k1), WorldBounds.addChunkOffset(chunkpos.z(), j)));
                     if (blockpos1 != null) {
                         pLevelData.setSpawn(blockpos1, 0.0F);
                         break;
@@ -526,6 +523,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
     }
 
     public void stopServer() {
+        net.minecraft.server.commands.GeneratorCommand.clear(this);
         if (this.metricsRecorder.isRecording()) {
             this.cancelRecordingMetrics();
         }
@@ -620,7 +618,6 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
             this.status.setDescription(Component.literal(this.motd));
             this.status.setVersion(new ServerStatus.Version(SharedConstants.getCurrentVersion().getName(), SharedConstants.getCurrentVersion().getProtocolVersion()));
             this.status.setPreviewsChat(this.previewsChat());
-            this.status.setEnforcesSecureChat(this.enforceSecureProfile());
             this.updateStatusIcon(this.status);
 
             while (this.running) {
@@ -1232,16 +1229,8 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
         return 256;
     }
 
-    public boolean enforceSecureProfile() {
-        return false;
-    }
-
     public long getNextTickTime() {
         return this.nextTickTime;
-    }
-
-    public DataFixer getFixerUpper() {
-        return this.fixerUpper;
     }
 
     public int getSpawnRadius(@Nullable ServerLevel pLevel) {

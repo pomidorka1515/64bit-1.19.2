@@ -1,6 +1,7 @@
 package net.minecraft.world.level.lighting;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LightLayer;
@@ -13,14 +14,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class WorldEdgeLightingTest {
     private static final LightChunkGetter NO_CHUNKS = new LightChunkGetter() {
-        public BlockGetter getChunkForLighting(long x, long z) { return null; }
+        public BlockGetter getChunkForLighting(Int128 x, Int128 z) { return null; }
         public BlockGetter getLevel() { return null; }
     };
 
     @Test
     void sectionEdgeChecksNeverConnectOppositeWorldEdges() {
-        for (long x : new long[] {0L, WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK}) {
-            for (long z : new long[] {0L, WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK}) {
+        for (Int128 x : new Int128[] {Int128.ZERO, Int128.of(1, 0), WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK}) {
+            for (Int128 z : new Int128[] {Int128.ZERO, Int128.of(1, 0), WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK}) {
                 RecordingEngine engine = new RecordingEngine();
                 SectionPos section = SectionPos.of(x, 4, z);
                 engine.storage.setLevel(section, 0);
@@ -29,7 +30,7 @@ class WorldEdgeLightingTest {
                 assertEquals(0, engine.edges, "An isolated section has no stored neighbors");
 
                 // A genuine inward neighbor must still have all 256 face cells checked both ways.
-                SectionPos inward = section.offset(x == WorldBounds.MAX_CHUNK ? -1 : 1, 0, 0);
+                SectionPos inward = section.offset(x.equals(WorldBounds.MAX_CHUNK) ? -1 : 1, 0, 0);
                 engine.storage.setLevel(inward, 0);
                 engine.storage.queueSectionData(section, new DataLayer(), false);
                 engine.storage.markNewInconsistencies(engine, true, false);

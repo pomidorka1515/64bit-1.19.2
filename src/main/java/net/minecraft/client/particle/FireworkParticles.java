@@ -241,10 +241,6 @@ public class FireworkParticles {
         private boolean isFarAwayFromCamera() {
             Minecraft minecraft = Minecraft.getInstance();
             net.minecraft.world.phys.SectorVec3 camera = minecraft.gameRenderer.getMainCamera().exactPosition();
-            if (camera == null) {
-                net.minecraft.world.phys.Vec3 legacyCamera = minecraft.gameRenderer.getMainCamera().getPosition();
-                camera = net.minecraft.world.phys.SectorVec3.fromApproximate(legacyCamera.x, legacyCamera.y, legacyCamera.z);
-            }
             return this.exactPosition().relativeTo(camera).lengthSqr() >= 256.0D;
         }
 

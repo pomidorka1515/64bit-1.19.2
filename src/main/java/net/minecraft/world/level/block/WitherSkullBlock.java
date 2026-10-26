@@ -60,11 +60,11 @@ public class WitherSkullBlock extends SkullBlock {
 
                     WitherBoss witherboss = EntityType.WITHER.create(pLevel);
                     BlockPos blockpos = blockpattern$blockpatternmatch.getBlock(1, 2, 0).getPos();
-                    witherboss.moveTo((double) blockpos.getX() + 0.5D, (double) blockpos.getY() + 0.55D, (double) blockpos.getZ() + 0.5D, blockpattern$blockpatternmatch.getForwards().getAxis() == Direction.Axis.X ? 0.0F : 90.0F, 0.0F);
+                    witherboss.moveTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, blockpos.getY() + 0.55D, blockpos.getZ(), 0.5D), blockpattern$blockpatternmatch.getForwards().getAxis() == Direction.Axis.X ? 0.0F : 90.0F, 0.0F);
                     witherboss.yBodyRot = blockpattern$blockpatternmatch.getForwards().getAxis() == Direction.Axis.X ? 0.0F : 90.0F;
                     witherboss.makeInvulnerable();
 
-                    for (ServerPlayer serverplayer : pLevel.getEntitiesOfClass(ServerPlayer.class, witherboss.getBoundingBox().inflate(50.0D))) {
+                    for (ServerPlayer serverplayer : pLevel.getEntitiesOfClass(ServerPlayer.class, witherboss.exactBoundingBox().inflate(50.0D))) {
                         CriteriaTriggers.SUMMONED_ENTITY.trigger(serverplayer, witherboss);
                     }
 

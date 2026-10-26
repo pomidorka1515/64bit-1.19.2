@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Int128;
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.tags.FluidTags;
@@ -20,13 +21,34 @@ import net.minecraft.world.phys.AABB;
 
 public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeManager.NoiseBiomeSource {
     @Nullable
-    ChunkAccess getChunk(long pX, long pZ, ChunkStatus pRequiredStatus, boolean pNonnull);
+    default ChunkAccess getChunk(long pX, long pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
+        return this.getChunk(net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ), pRequiredStatus, pNonnull);
+    }
+
+    @Nullable
+    ChunkAccess getChunk(net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ, ChunkStatus pRequiredStatus, boolean pNonnull);
 
     /** @deprecated */
     @Deprecated
-    boolean hasChunk(long pChunkX, long pChunkZ);
+    default boolean hasChunk(long pChunkX, long pChunkZ) {
+        return this.hasChunk(net.minecraft.core.Int128.fromLong(pChunkX), net.minecraft.core.Int128.fromLong(pChunkZ));
+    }
+
+    boolean hasChunk(net.minecraft.core.Int128 pChunkX, net.minecraft.core.Int128 pChunkZ);
 
     int getHeight(Heightmap.Types pHeightmapType, long pX, long pZ);
+
+    default int getHeight(Heightmap.Types pHeightmapType, Int128 pX, Int128 pZ) {
+        Int128 chunkX = SectionPos.blockToSectionCoord(pX);
+        Int128 chunkZ = SectionPos.blockToSectionCoord(pZ);
+        int height = this.getMinBuildHeight();
+        if (this.hasChunk(chunkX, chunkZ)) {
+            ChunkAccess chunk = this.getChunk(chunkX, chunkZ, ChunkStatus.HEIGHTMAPS, true);
+            if (chunk != null)
+                height = chunk.getHeight(pHeightmapType, (int) (pX.lo() & 15L), (int) (pZ.lo() & 15L)) + 1;
+        }
+        return height;
+    }
 
     int getSkyDarken();
 
@@ -47,17 +69,21 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
     }
 
     default int getBlockTint(BlockPos pBlockPos, ColorResolver pColorResolver) {
-        return pColorResolver.getColor(this.getBiome(pBlockPos).value(), (double) pBlockPos.getX(), (double) pBlockPos.getZ());
+        // ColorResolver's legacy double arguments are visual sampling hints only.
+        return pColorResolver.getColor(this.getBiome(pBlockPos).value(),
+                pBlockPos.getX().toDoubleSaturated(), pBlockPos.getZ().toDoubleSaturated());
     }
 
     default Holder<Biome> getNoiseBiome(long pX, int pY, long pZ) {
-        long sectionX = QuartPos.toSection(pX);
-        long sectionZ = QuartPos.toSection(pZ);
-        if (!WorldBounds.isValidChunk(sectionX, sectionZ)) {
-            return this.getUncachedNoiseBiome(pX, pY, pZ);
-        }
+        return this.getNoiseBiome(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+    }
+
+    default Holder<Biome> getNoiseBiome(Int128 pX, int pY, Int128 pZ) {
+        Int128 sectionX = pX.shiftRight(2);
+        Int128 sectionZ = pZ.shiftRight(2);
         ChunkAccess chunkaccess = this.getChunk(sectionX, sectionZ, ChunkStatus.BIOMES, false);
-        return chunkaccess != null ? chunkaccess.getNoiseBiome(pX, pY, pZ) : this.getUncachedNoiseBiome(pX, pY, pZ);
+        // Resolve exact chunk identity before projecting palette/noise sampling coordinates.
+        return chunkaccess != null ? chunkaccess.getNoiseBiome(pX.lo(), pY, pZ.lo()) : this.getUncachedNoiseBiome(pX.lo(), pY, pZ.lo());
     }
 
     Holder<Biome> getUncachedNoiseBiome(long pX, int pY, long pZ);
@@ -79,6 +105,7 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
     }
 
     default BlockPos getHeightmapPos(Heightmap.Types pHeightmapType, BlockPos pPos) {
+        // Generation regions can read primed heightmaps before HEIGHTMAPS status.
         return new BlockPos(pPos.getX(), this.getHeight(pHeightmapType, pPos.getX(), pPos.getZ()), pPos.getZ());
     }
 
@@ -128,6 +155,14 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
 
     default ChunkAccess getChunk(long pChunkX, long pChunkZ) {
         return this.getChunk(pChunkX, pChunkZ, ChunkStatus.FULL, true);
+    }
+
+    default ChunkAccess getChunk(net.minecraft.core.Int128 pChunkX, net.minecraft.core.Int128 pChunkZ) {
+        return this.getChunk(pChunkX, pChunkZ, ChunkStatus.FULL, true);
+    }
+
+    default ChunkAccess getChunk(net.minecraft.core.Int128 pChunkX, net.minecraft.core.Int128 pChunkZ, ChunkStatus pRequiredStatus) {
+        return this.getChunk(pChunkX, pChunkZ, pRequiredStatus, true);
     }
 
     default ChunkAccess getChunk(long pChunkX, long pChunkZ, ChunkStatus pRequiredStatus) {
@@ -187,6 +222,10 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
     /** @deprecated */
     @Deprecated
     default boolean hasChunkAt(long pX, long pZ) {
+        return this.hasChunkAt(Int128.fromLong(pX), Int128.fromLong(pZ));
+    }
+
+    default boolean hasChunkAt(Int128 pX, Int128 pZ) {
         return this.hasChunk(SectionPos.blockToSectionCoord(pX), SectionPos.blockToSectionCoord(pZ));
     }
 
@@ -205,31 +244,40 @@ public interface LevelReader extends BlockAndTintGetter, CollisionGetter, BiomeM
     /** @deprecated */
     @Deprecated
     default boolean hasChunksAt(long pFromX, int pFromY, long pFromZ, long pToX, int pToY, long pToZ) {
+        return this.hasChunksAt(Int128.fromLong(pFromX), pFromY, Int128.fromLong(pFromZ),
+                Int128.fromLong(pToX), pToY, Int128.fromLong(pToZ));
+    }
+
+    default boolean hasChunksAt(Int128 pFromX, int pFromY, Int128 pFromZ, Int128 pToX, int pToY, Int128 pToZ) {
         return pToY >= this.getMinBuildHeight() && pFromY < this.getMaxBuildHeight() ? this.hasChunksAt(pFromX, pFromZ, pToX, pToZ) : false;
     }
 
     /** @deprecated */
     @Deprecated
     default boolean hasChunksAt(long pFromX, long pFromZ, long pToX, long pToZ) {
-        if (!WorldBounds.isValidBlock(pFromX, pFromZ) || !WorldBounds.isValidBlock(pToX, pToZ)) {
+        return this.hasChunksAt(Int128.fromLong(pFromX), Int128.fromLong(pFromZ),
+                Int128.fromLong(pToX), Int128.fromLong(pToZ));
+    }
+
+    default boolean hasChunksAt(Int128 pFromX, Int128 pFromZ, Int128 pToX, Int128 pToZ) {
+        if (WorldBounds.localSpanExceeds(pFromX, pToX) || WorldBounds.localSpanExceeds(pFromZ, pToZ))
             return false;
-        }
-        long minX = Math.min(pFromX, pToX);
-        long maxX = Math.max(pFromX, pToX);
-        long minZ = Math.min(pFromZ, pToZ);
-        long maxZ = Math.max(pFromZ, pToZ);
-        long firstX = SectionPos.blockToSectionCoord(minX);
-        long lastX = SectionPos.blockToSectionCoord(maxX);
-        long firstZ = SectionPos.blockToSectionCoord(minZ);
-        long lastZ = SectionPos.blockToSectionCoord(maxZ);
-        for (long x = firstX;; x = WorldBounds.addChunkOffset(x, 1L)) {
-            for (long z = firstZ;; z = WorldBounds.addChunkOffset(z, 1L)) {
+        Int128 firstX = SectionPos.blockToSectionCoord(pFromX.compareTo(pToX) <= 0 ? pFromX : pToX);
+        Int128 lastX = SectionPos.blockToSectionCoord(pFromX.compareTo(pToX) <= 0 ? pToX : pFromX);
+        Int128 firstZ = SectionPos.blockToSectionCoord(pFromZ.compareTo(pToZ) <= 0 ? pFromZ : pToZ);
+        Int128 lastZ = SectionPos.blockToSectionCoord(pFromZ.compareTo(pToZ) <= 0 ? pToZ : pFromZ);
+        long width = WorldBounds.signedDifferenceAsLong(lastX, firstX) + 1L;
+        long depth = WorldBounds.signedDifferenceAsLong(lastZ, firstZ) + 1L;
+        if (width > Integer.MAX_VALUE / depth)
+            return false;
+        for (Int128 x = firstX;; x = WorldBounds.addChunkOffset(x, 1L)) {
+            for (Int128 z = firstZ;; z = WorldBounds.addChunkOffset(z, 1L)) {
                 if (!this.hasChunk(x, z))
                     return false;
-                if (z == lastZ)
+                if (z.equals(lastZ))
                     break;
             }
-            if (x == lastX)
+            if (x.equals(lastX))
                 break;
         }
         return true;

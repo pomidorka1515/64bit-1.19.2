@@ -28,7 +28,7 @@ public abstract class StructurePlacement {
     private final Optional<StructurePlacement.ExclusionZone> exclusionZone;
 
     protected static <S extends StructurePlacement> Products.P5<RecordCodecBuilder.Mu<S>, Vec3i, StructurePlacement.FrequencyReductionMethod, Float, Integer, Optional<StructurePlacement.ExclusionZone>> placementCodec(RecordCodecBuilder.Instance<S> p_227042_) {
-        return p_227042_.group(Vec3i.offsetCodec(16).optionalFieldOf("locate_offset", Vec3i.ZERO).forGetter(StructurePlacement::locateOffset), StructurePlacement.FrequencyReductionMethod.CODEC.optionalFieldOf("frequency_reduction_method", StructurePlacement.FrequencyReductionMethod.DEFAULT).forGetter(StructurePlacement::frequencyReductionMethod), Codec.floatRange(0.0F, 1.0F).optionalFieldOf("frequency", 1.0F).forGetter(StructurePlacement::frequency), ExtraCodecs.NON_NEGATIVE_INT.fieldOf("salt").forGetter(StructurePlacement::salt), StructurePlacement.ExclusionZone.CODEC.optionalFieldOf("exclusion_zone").forGetter(StructurePlacement::exclusionZone));
+        return p_227042_.group(net.minecraft.world.level.levelgen.WorldgenPlacementCodecs.optionalField(Vec3i.offsetCodec(16), "locate_offset", Vec3i.ZERO).forGetter(StructurePlacement::locateOffset), StructurePlacement.FrequencyReductionMethod.CODEC.optionalFieldOf("frequency_reduction_method", StructurePlacement.FrequencyReductionMethod.DEFAULT).forGetter(StructurePlacement::frequencyReductionMethod), Codec.floatRange(0.0F, 1.0F).optionalFieldOf("frequency", 1.0F).forGetter(StructurePlacement::frequency), ExtraCodecs.NON_NEGATIVE_INT.fieldOf("salt").forGetter(StructurePlacement::salt), StructurePlacement.ExclusionZone.CODEC.optionalFieldOf("exclusion_zone").forGetter(StructurePlacement::exclusionZone));
     }
 
     protected StructurePlacement(Vec3i pLocateOffset, StructurePlacement.FrequencyReductionMethod pFrequencyReductionMethod, float pFrequency, int pSalt, Optional<StructurePlacement.ExclusionZone> pExclusionZone) {
@@ -59,17 +59,34 @@ public abstract class StructurePlacement {
         return this.exclusionZone;
     }
 
+    /** Signed-long adapter; exclusion probes may cross into full-width coordinates. */
     public boolean isStructureChunk(ChunkGenerator pGenerator, RandomState pRandomState, long pSeed, long pX, long pZ) {
-        if (!this.isPlacementChunk(pGenerator, pRandomState, pSeed, pX, pZ)) {
-            return false;
-        } else if (this.frequency < 1.0F && !this.frequencyReductionMethod.shouldGenerate(pSeed, this.salt, pX, pZ, this.frequency)) {
-            return false;
-        } else {
-            return !this.exclusionZone.isPresent() || !this.exclusionZone.get().isPlacementForbidden(pGenerator, pRandomState, pSeed, pX, pZ);
-        }
+        return isStructureChunk(pGenerator, pRandomState, pSeed, net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ));
     }
 
-    protected abstract boolean isPlacementChunk(ChunkGenerator pGenerator, RandomState pRandomState, long pSeed, long pX, long pY);
+    protected abstract boolean isPlacementChunk(ChunkGenerator pGenerator, RandomState pRandomState, long pSeed, long pX, long pZ);
+
+    public boolean isStructureChunk(ChunkGenerator generator, RandomState random, long seed, net.minecraft.core.Int128 x, net.minecraft.core.Int128 z) {
+        if (!isPlacementChunk(generator, random, seed, x, z)) return false;
+        long sx = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(x.hi(), x.lo());
+        long sz = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(z.hi(), z.lo());
+        if (this.frequency < 1.0F && !this.frequencyReductionMethod.shouldGenerate(seed, this.salt, sx, sz, this.frequency)) return false;
+        if (this.exclusionZone.isPresent()) {
+            ExclusionZone zone = this.exclusionZone.get();
+            for (int dx = -zone.chunkCount(); dx <= zone.chunkCount(); ++dx)
+                for (int dz = -zone.chunkCount(); dz <= zone.chunkCount(); ++dz)
+                    if (zone.otherSet().value().placement().isStructureChunk(generator, random, seed,
+                            net.minecraft.world.level.WorldBounds.addChunkOffset(x, dx), net.minecraft.world.level.WorldBounds.addChunkOffset(z, dz))) return false;
+        }
+        return true;
+    }
+
+    protected boolean isPlacementChunk(ChunkGenerator generator, RandomState random, long seed, net.minecraft.core.Int128 x, net.minecraft.core.Int128 z) {
+        // Concentric rings are finite and remain centered at the original origin.
+        return net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.fitsLong(x.hi(), x.lo())
+                && net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.fitsLong(z.hi(), z.lo())
+                && isPlacementChunk(generator, random, seed, x.lo(), z.lo());
+    }
 
     public BlockPos getLocatePos(ChunkPos pChunkPos) {
         return (new BlockPos(pChunkPos.getMinBlockX(), 0, pChunkPos.getMinBlockZ())).offset(this.locateOffset());

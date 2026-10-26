@@ -33,7 +33,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class EnchantmentTableBlock extends BaseEntityBlock {
     protected static final VoxelShape SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 12.0D, 16.0D);
     public static final List<BlockPos> BOOKSHELF_OFFSETS = BlockPos.betweenClosedStream(-2, 0, -2, 2, 1, 2).filter((p_207914_) -> {
-                                                                                                               return Math.abs(p_207914_.getX()) == 2 || Math.abs(p_207914_.getZ()) == 2;
+                                                                                                               return Math.abs(p_207914_.getX().lo()) == 2 || Math.abs(p_207914_.getZ().lo()) == 2;
                                                                                                            })
                                                                    .map(BlockPos::immutable)
                                                                    .toList();
@@ -43,7 +43,7 @@ public class EnchantmentTableBlock extends BaseEntityBlock {
     }
 
     public static boolean isValidBookShelf(Level p_207910_, BlockPos p_207911_, BlockPos p_207912_) {
-        return p_207910_.getBlockState(p_207911_.offset(p_207912_)).is(Blocks.BOOKSHELF) && p_207910_.isEmptyBlock(p_207911_.offset(p_207912_.getX() / 2, p_207912_.getY(), p_207912_.getZ() / 2));
+        return p_207910_.getBlockState(p_207911_.offset(p_207912_)).is(Blocks.BOOKSHELF) && p_207910_.isEmptyBlock(p_207911_.offset(p_207912_.getX().lo() / 2, p_207912_.getY(), p_207912_.getZ().lo() / 2));
     }
 
     public boolean useShapeForLightOcclusion(BlockState pState) {
@@ -60,9 +60,9 @@ public class EnchantmentTableBlock extends BaseEntityBlock {
         for (BlockPos blockpos : BOOKSHELF_OFFSETS) {
             if (pRandom.nextInt(16) == 0 && isValidBookShelf(pLevel, pPos, blockpos)) {
                 pLevel.addParticle(ParticleTypes.ENCHANT, SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, (double) pPos.getY() + 2.0D, pPos.getZ(), 0.5D),
-                        (double) ((float) blockpos.getX() + pRandom.nextFloat()) - 0.5D,
+                        (double) ((float) blockpos.getX().lo() + pRandom.nextFloat()) - 0.5D,
                         (double) ((float) blockpos.getY() - pRandom.nextFloat() - 1.0F),
-                        (double) ((float) blockpos.getZ() + pRandom.nextFloat()) - 0.5D);
+                        (double) ((float) blockpos.getZ().lo() + pRandom.nextFloat()) - 0.5D);
             }
         }
     }

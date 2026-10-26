@@ -369,10 +369,10 @@ public class Frog extends Animal {
         @Nullable
         public Node getStart() {
             SectorAABB box = this.mob.getSectorBoundingBox();
-            return this.getStartNode(new BlockPos(box.minBlockXForRange(), Mth.floor(this.mob.getBoundingBox().minY), box.minBlockZForRange()));
+            return this.getStartNode(new BlockPos(box.minBlockXForRange(), Mth.floor(this.mob.exactBoundingBox().minY), box.minBlockZForRange()));
         }
 
-        public BlockPathTypes getBlockPathType(BlockGetter p_218551_, int p_218552_, int p_218553_, int p_218554_) {
+        public BlockPathTypes getBlockPathType(BlockGetter p_218551_, net.minecraft.core.Int128 p_218552_, int p_218553_, net.minecraft.core.Int128 p_218554_) {
             this.belowPos.set(p_218552_, p_218553_ - 1, p_218554_);
             BlockState blockstate = p_218551_.getBlockState(this.belowPos);
             return blockstate.is(BlockTags.FROG_PREFER_JUMP_TO) ? BlockPathTypes.OPEN : super.getBlockPathType(p_218551_, p_218552_, p_218553_, p_218554_);

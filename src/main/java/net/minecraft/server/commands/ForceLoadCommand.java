@@ -5,7 +5,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import it.unimi.dsi.fastutil.longs.LongSet;
+import net.minecraft.core.Int128;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -95,24 +95,20 @@ public class ForceLoadCommand {
         ResourceKey<Level> resourcekey = serverlevel.dimension();
         ObjectSet<ChunkPos> longset = serverlevel.getForcedChunks();
         longset.forEach((p_137675_) -> {
-            serverlevel.setChunkForced(p_137675_.x, p_137675_.z, false);
+            serverlevel.setChunkForced(p_137675_.x(), p_137675_.z(), false);
         });
         pSource.sendSuccess(Component.translatable("commands.forceload.removed.all", resourcekey.location()), true);
         return 0;
     }
 
     private static int changeForceLoad(CommandSourceStack pSource, ColumnPos pFrom, ColumnPos pTo, boolean pAdd) throws CommandSyntaxException {
-        long i = Math.min(pFrom.x(), pTo.x());
-        long j = Math.min(pFrom.z(), pTo.z());
-        long k = Math.max(pFrom.x(), pTo.x());
-        long l = Math.max(pFrom.z(), pTo.z());
-        long i1 = SectionPos.blockToSectionCoord(i);
-        long j1 = SectionPos.blockToSectionCoord(j);
-        long k1 = SectionPos.blockToSectionCoord(k);
-        long l1 = SectionPos.blockToSectionCoord(l);
-        long xSpan = WorldBounds.inclusiveBlockSpan(i1, k1);
-        long zSpan = WorldBounds.inclusiveBlockSpan(j1, l1);
-        long i2 = xSpan > Long.MAX_VALUE / zSpan ? Long.MAX_VALUE : xSpan * zSpan;
+        Int128 i1 = SectionPos.blockToSectionCoord(pFrom.x().compareTo(pTo.x()) <= 0 ? pFrom.x() : pTo.x());
+        Int128 j1 = SectionPos.blockToSectionCoord(pFrom.z().compareTo(pTo.z()) <= 0 ? pFrom.z() : pTo.z());
+        Int128 k1 = SectionPos.blockToSectionCoord(pFrom.x().compareTo(pTo.x()) >= 0 ? pFrom.x() : pTo.x());
+        Int128 l1 = SectionPos.blockToSectionCoord(pFrom.z().compareTo(pTo.z()) >= 0 ? pFrom.z() : pTo.z());
+        double xSpan = WorldBounds.inclusiveBlockSpanDouble(i1, k1);
+        double zSpan = WorldBounds.inclusiveBlockSpanDouble(j1, l1);
+        double i2 = xSpan * zSpan;
         if (i2 > 256L) {
             throw ERROR_TOO_MANY_CHUNKS.create(256, i2);
         } else {
@@ -121,8 +117,8 @@ public class ForceLoadCommand {
             ChunkPos chunkpos = null;
             int j2 = 0;
 
-            for (long k2 = i1;; k2 = WorldBounds.addChunkOffset(k2, 1L)) {
-                for (long l2 = j1;; l2 = WorldBounds.addChunkOffset(l2, 1L)) {
+            for (Int128 k2 = i1;; k2 = WorldBounds.addChunkOffset(k2, 1L)) {
+                for (Int128 l2 = j1;; l2 = WorldBounds.addChunkOffset(l2, 1L)) {
                     boolean flag = serverlevel.setChunkForced(k2, l2, pAdd);
                     if (flag) {
                         ++j2;
@@ -130,10 +126,10 @@ public class ForceLoadCommand {
                             chunkpos = new ChunkPos(k2, l2);
                         }
                     }
-                    if (l2 == l1)
+                    if (l2.equals(l1))
                         break;
                 }
-                if (k2 == k1)
+                if (k2.equals(k1))
                     break;
             }
 

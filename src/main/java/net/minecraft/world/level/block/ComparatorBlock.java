@@ -94,7 +94,7 @@ public class ComparatorBlock extends DiodeBlock implements EntityBlock {
 
     @Nullable
     private ItemFrame getItemFrame(Level pLevel, Direction pFacing, BlockPos pPos) {
-        List<ItemFrame> list = pLevel.getEntitiesOfClass(ItemFrame.class, new AABB((double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ(), (double) (WorldBounds.addBlockOffset(pPos.getX(), 1)), (double) (pPos.getY() + 1), (double) (WorldBounds.addBlockOffset(pPos.getZ(), 1))), (p_51890_) -> {
+        List<ItemFrame> list = pLevel.getEntitiesOfClass(ItemFrame.class, new AABB(pPos), (p_51890_) -> {
             return p_51890_ != null && p_51890_.getDirection() == pFacing;
         });
         return list.size() == 1 ? list.get(0) : null;

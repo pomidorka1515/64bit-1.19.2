@@ -22,10 +22,6 @@ public class BlockPositionSource implements PositionSource {
         this.pos = p_157703_;
     }
 
-    public Optional<Vec3> getPosition(Level pLevel) {
-        return Optional.of(Vec3.atCenterOf(this.pos));
-    }
-
     @Override
     public Optional<SectorVec3> exactPosition(Level level) {
         return Optional.of(SectorVec3.fromBlockAndFraction(this.pos.getX(), 0.5D,

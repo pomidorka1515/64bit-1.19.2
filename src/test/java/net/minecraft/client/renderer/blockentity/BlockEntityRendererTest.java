@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -51,5 +52,19 @@ class BlockEntityRendererTest {
 
         assertTrue(RENDERER.shouldRender(blockEntity, nearbyCamera));
         assertFalse(RENDERER.shouldRender(blockEntity, distantCamera));
+    }
+
+    @Test
+    void rangeChecksRetainHighHalvesAndCrossLowWordSeams() {
+        Int128 x = Int128.of(123L, -2L);
+        Int128 z = Int128.of(-456L, Long.MAX_VALUE);
+        BlockEntity blockEntity = new BlockEntity(BlockEntityType.CHEST,
+                new BlockPos(x, 64, z), Blocks.CHEST.defaultBlockState()) {};
+        assertTrue(RENDERER.shouldRender(blockEntity, SectorVec3.fromBlockAndFraction(
+                x.add(Int128.fromLong(63L)), 0.75D, 64.5D, z, 0.5D)));
+        assertFalse(RENDERER.shouldRender(blockEntity, SectorVec3.fromBlockAndFraction(
+                x.add(Int128.fromLong(64L)), 0.75D, 64.5D, z, 0.5D)));
+        assertFalse(RENDERER.shouldRender(blockEntity, SectorVec3.fromBlockAndFraction(
+                Int128.of(x.hi() + 1L, x.lo()), 0.5D, 64.5D, z, 0.5D)));
     }
 }

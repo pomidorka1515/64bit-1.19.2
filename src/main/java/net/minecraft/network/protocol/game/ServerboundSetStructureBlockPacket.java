@@ -1,6 +1,7 @@
 package net.minecraft.network.protocol.game;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
@@ -71,12 +72,13 @@ public class ServerboundSetStructureBlockPacket implements Packet<ServerGamePack
         pBuffer.writeEnum(this.updateType);
         pBuffer.writeEnum(this.mode);
         pBuffer.writeUtf(this.name);
-        pBuffer.writeByte((int) this.offset.getX());
-        pBuffer.writeByte(this.offset.getY());
-        pBuffer.writeByte((int) this.offset.getZ());
-        pBuffer.writeByte((int) this.size.getX());
-        pBuffer.writeByte(this.size.getY());
-        pBuffer.writeByte((int) this.size.getZ());
+        // These are bounded local offsets and dimensions, not absolute world axes.
+        pBuffer.writeByte(localByte(this.offset.getX(), -48, 48));
+        pBuffer.writeByte(Mth.clamp(this.offset.getY(), -48, 48));
+        pBuffer.writeByte(localByte(this.offset.getZ(), -48, 48));
+        pBuffer.writeByte(localByte(this.size.getX(), 0, 48));
+        pBuffer.writeByte(Mth.clamp(this.size.getY(), 0, 48));
+        pBuffer.writeByte(localByte(this.size.getZ(), 0, 48));
         pBuffer.writeEnum(this.mirror);
         pBuffer.writeEnum(this.rotation);
         pBuffer.writeUtf(this.data);
@@ -96,6 +98,12 @@ public class ServerboundSetStructureBlockPacket implements Packet<ServerGamePack
         }
 
         pBuffer.writeByte(i);
+    }
+
+    private static int localByte(Int128 value, int min, int max) {
+        if (value.compareTo(Int128.fromLong(min)) < 0) return min;
+        if (value.compareTo(Int128.fromLong(max)) > 0) return max;
+        return (int) value.toLongLow();
     }
 
     public void handle(ServerGamePacketListener pHandler) {

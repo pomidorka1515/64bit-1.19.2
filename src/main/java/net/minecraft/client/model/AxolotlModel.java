@@ -80,7 +80,7 @@ public class AxolotlModel<T extends Axolotl & LerpingModel> extends AgeableListM
             this.setupPlayDeadAnimation(pNetHeadYaw);
             this.saveAnimationValues(pEntity);
         } else {
-            boolean flag = pEntity.getDeltaMovement().horizontalDistanceSqr() > 1.0E-7D || pEntity.getXRot() != pEntity.xRotO || pEntity.getYRot() != pEntity.yRotO || pEntity.xOld != pEntity.getX() || pEntity.zOld != pEntity.getZ();
+            boolean flag = pEntity.getDeltaMovement().horizontalDistanceSqr() > 1.0E-7D || pEntity.getXRot() != pEntity.xRotO || pEntity.getYRot() != pEntity.yRotO || pEntity.sectorPositionDelta().horizontalDistanceSqr() > 0.0D;
             if (pEntity.isInWaterOrBubble()) {
                 if (flag) {
                     this.setupSwimmingAnimation(pAgeInTicks, pHeadPitch);

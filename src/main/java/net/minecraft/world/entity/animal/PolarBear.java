@@ -238,7 +238,7 @@ public class PolarBear extends Animal implements NeutralMob {
                 return false;
             } else {
                 if (super.canUse()) {
-                    for (PolarBear polarbear : PolarBear.this.level.getEntitiesOfClass(PolarBear.class, PolarBear.this.getBoundingBox().inflate(8.0D, 4.0D, 8.0D))) {
+                    for (PolarBear polarbear : PolarBear.this.level.getEntitiesOfClass(PolarBear.class, PolarBear.this.exactBoundingBox().inflate(8.0D, 4.0D, 8.0D))) {
                         if (polarbear.isBaby()) {
                             return true;
                         }

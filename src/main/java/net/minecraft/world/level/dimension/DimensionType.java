@@ -22,7 +22,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
 public record DimensionType(OptionalLong fixedTime, boolean hasSkyLight, boolean hasCeiling, boolean ultraWarm, boolean natural, double coordinateScale, boolean bedWorks, boolean respawnAnchorWorks, int minY, int height, int logicalHeight, TagKey<Block> infiniburn, ResourceLocation effectsLocation, float ambientLight, DimensionType.MonsterSettings monsterSettings) {
-    public static final int BITS_FOR_Y = BlockPos.PACKED_Y_LENGTH;
+    // Vertical build limits are independent of the removed packed world-position format.
+    public static final int BITS_FOR_Y = 12;
     public static final int MIN_HEIGHT = 16;
     public static final int Y_SIZE = (1 << BITS_FOR_Y) - 32;
     public static final int MAX_Y = (Y_SIZE >> 1) - 1;

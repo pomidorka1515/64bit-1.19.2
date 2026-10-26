@@ -61,7 +61,7 @@ public class EntityAnchorArgument implements ArgumentType<EntityAnchorArgument.A
             return p_90389_;
         }),
         EYES("eyes", (p_90382_, p_90383_) -> {
-            return new Vec3(p_90382_.x, p_90382_.y + (double) p_90383_.getEyeHeight(), p_90382_.z);
+            return p_90382_.add(0.0D, p_90383_.getEyeHeight(), 0.0D);
         });
 
         static final Map<String, EntityAnchorArgument.Anchor> BY_NAME = Util.make(Maps.newHashMap(), (p_90387_) -> {
@@ -83,7 +83,7 @@ public class EntityAnchorArgument implements ArgumentType<EntityAnchorArgument.A
         }
 
         public Vec3 apply(Entity pEntity) {
-            return this.transform.apply(pEntity.position(), pEntity);
+            return this.applyExact(pEntity).toExactVec3();
         }
 
         public SectorVec3 applyExact(Entity entity) {
@@ -93,7 +93,8 @@ public class EntityAnchorArgument implements ArgumentType<EntityAnchorArgument.A
 
         public Vec3 apply(CommandSourceStack pSource) {
             Entity entity = pSource.getEntity();
-            return entity == null ? pSource.getPosition() : this.transform.apply(pSource.getPosition(), entity);
+            SectorVec3 position = pSource.getExactPosition();
+            return (entity != null && this == EYES ? position.add(0.0D, entity.getEyeHeight(), 0.0D) : position).toExactVec3();
         }
     }
 }

@@ -11,10 +11,8 @@ import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.SignedMessageValidator;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.SignatureValidator;
 import net.minecraft.world.entity.player.ProfilePublicKey;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.scores.PlayerTeam;
@@ -39,28 +37,12 @@ public class PlayerInfo {
     private long lastHealthTime;
     private long healthBlinkTime;
     private long renderVisibilityId;
-    @Nullable
-    private final ProfilePublicKey profilePublicKey;
-    private final SignedMessageValidator messageValidator;
 
-    public PlayerInfo(ClientboundPlayerInfoPacket.PlayerUpdate pPlayerUpdate, SignatureValidator pSignatureValidator, boolean pEnforcesSecureChat) {
+    public PlayerInfo(ClientboundPlayerInfoPacket.PlayerUpdate pPlayerUpdate) {
         this.profile = pPlayerUpdate.getProfile();
         this.gameMode = pPlayerUpdate.getGameMode();
         this.latency = pPlayerUpdate.getLatency();
         this.tabListDisplayName = pPlayerUpdate.getDisplayName();
-        ProfilePublicKey profilepublickey = null;
-
-        try {
-            ProfilePublicKey.Data profilepublickey$data = pPlayerUpdate.getProfilePublicKey();
-            if (profilepublickey$data != null) {
-                profilepublickey = ProfilePublicKey.createValidated(pSignatureValidator, this.profile.getId(), profilepublickey$data, ProfilePublicKey.EXPIRY_GRACE_PERIOD);
-            }
-        } catch (Exception exception) {
-            LOGGER.error("Failed to validate publicKey property for profile {}", this.profile.getId(), exception);
-        }
-
-        this.profilePublicKey = profilepublickey;
-        this.messageValidator = SignedMessageValidator.create(profilepublickey, pEnforcesSecureChat);
     }
 
     public GameProfile getProfile() {
@@ -69,11 +51,7 @@ public class PlayerInfo {
 
     @Nullable
     public ProfilePublicKey getProfilePublicKey() {
-        return this.profilePublicKey;
-    }
-
-    public SignedMessageValidator getMessageValidator() {
-        return this.messageValidator;
+        return null;
     }
 
     @Nullable

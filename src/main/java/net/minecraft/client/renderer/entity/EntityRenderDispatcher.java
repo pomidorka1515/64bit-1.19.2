@@ -31,6 +31,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
@@ -44,6 +45,7 @@ import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -142,7 +144,7 @@ public class EntityRenderDispatcher implements ResourceManagerReloadListener {
 
             pMatrixStack.translate(-vec3.x(), -vec3.y(), -vec3.z());
             if (this.options.entityShadows().get() && this.shouldRenderShadow && entityrenderer.shadowRadius > 0.0F && !pEntity.isInvisible()) {
-                double d1 = this.distanceToSqr(pEntity.getX(), pEntity.getY(), pEntity.getZ());
+                double d1 = this.distanceToSqr(pEntity);
                 float f = (float) ((1.0D - d1 / 256.0D) * (double) entityrenderer.shadowStrength);
                 if (f > 0.0F) {
                     renderShadow(pMatrixStack, pBuffer, pEntity, f, pPartialTicks, this.level, entityrenderer.shadowRadius);
@@ -175,28 +177,24 @@ public class EntityRenderDispatcher implements ResourceManagerReloadListener {
         SectorVec3 exactPosition = pEntity.interpolatedExactPosition(pPartialTicks);
         // F3+B displays physical bounds, not the (occasionally enlarged) culling
         // bounds used by renderers such as the minecart renderer.
-        SectorAABB exactBounds = pEntity.getBoundingBox().getSectorBounds();
+        SectorAABB exactBounds = pEntity.getSectorBoundingBox();
         AABB aabb;
-        if (exactPosition != null && exactBounds != null) {
+        if (exactBounds != null) {
             Vec3 interpolationDelta = exactPosition.relativeTo(pEntity.sectorPosition());
             aabb = exactBounds.move(interpolationDelta.x, interpolationDelta.y, interpolationDelta.z)
                            .toLocalAABB(exactPosition);
         } else {
-            aabb = pEntity.getBoundingBox().move(-pEntity.getX(), -pEntity.getY(), -pEntity.getZ());
+            aabb = SectorAABB.around(pEntity.sectorPosition(), pEntity.getBbWidth(), pEntity.getBbHeight())
+                    .toLocalAABB(pEntity.sectorPosition());
         }
         LevelRenderer.renderLineBox(pMatrixStack, pBuffer, aabb, 1.0F, 1.0F, 1.0F, 1.0F);
         if (pEntity instanceof EnderDragon) {
-            double d0 = -Mth.lerp((double) pPartialTicks, pEntity.xOld, pEntity.getX());
-            double d1 = -Mth.lerp((double) pPartialTicks, pEntity.yOld, pEntity.getY());
-            double d2 = -Mth.lerp((double) pPartialTicks, pEntity.zOld, pEntity.getZ());
-
             for (EnderDragonPart enderdragonpart : ((EnderDragon) pEntity).getSubEntities()) {
                 pMatrixStack.pushPose();
-                double d3 = d0 + Mth.lerp((double) pPartialTicks, enderdragonpart.xOld, enderdragonpart.getX());
-                double d4 = d1 + Mth.lerp((double) pPartialTicks, enderdragonpart.yOld, enderdragonpart.getY());
-                double d5 = d2 + Mth.lerp((double) pPartialTicks, enderdragonpart.zOld, enderdragonpart.getZ());
-                pMatrixStack.translate(d3, d4, d5);
-                LevelRenderer.renderLineBox(pMatrixStack, pBuffer, enderdragonpart.getBoundingBox().move(-enderdragonpart.getX(), -enderdragonpart.getY(), -enderdragonpart.getZ()), 0.25F, 1.0F, 0.0F, 1.0F);
+                Vec3 delta = enderdragonpart.interpolatedExactPosition(pPartialTicks).relativeTo(exactPosition);
+                pMatrixStack.translate(delta.x, delta.y, delta.z);
+                LevelRenderer.renderLineBox(pMatrixStack, pBuffer, enderdragonpart.getSectorBoundingBoxForCulling()
+                        .toLocalAABB(enderdragonpart.sectorPosition()), 0.25F, 1.0F, 0.0F, 1.0F);
                 pMatrixStack.popPose();
             }
         }
@@ -266,24 +264,32 @@ public class EntityRenderDispatcher implements ResourceManagerReloadListener {
             }
         }
 
-        double d2 = Mth.lerp((double) pPartialTicks, pEntity.xOld, pEntity.getX());
-        double d0 = Mth.lerp((double) pPartialTicks, pEntity.yOld, pEntity.getY());
-        double d1 = Mth.lerp((double) pPartialTicks, pEntity.zOld, pEntity.getZ());
-        long i = Mth.lfloor(d2 - (double) f);
-        long j = Mth.lfloor(d2 + (double) f);
+        SectorVec3 position = pEntity.interpolatedExactPosition(pPartialTicks);
+        double d0 = position.y();
+        // Radius is renderer-local; enumerate local offsets to avoid endpoint wrap.
+        int i = Mth.floor(position.subX() - (double) f);
+        int j = Mth.floor(position.subX() + (double) f);
         int k = Mth.floor(d0 - (double) f);
         int l = Mth.floor(d0);
-        long i1 = Mth.lfloor(d1 - (double) f);
-        long j1 = Mth.lfloor(d1 + (double) f);
+        int i1 = Mth.floor(position.subZ() - (double) f);
+        int j1 = Mth.floor(position.subZ() + (double) f);
         PoseStack.Pose posestack$pose = pMatrixStack.last();
         VertexConsumer vertexconsumer = pBuffer.getBuffer(SHADOW_RENDER_TYPE);
 
-        for (BlockPos blockpos : BlockPos.betweenClosed(new BlockPos(i, k, i1), new BlockPos(j, l, j1))) {
-            renderBlockShadow(posestack$pose, vertexconsumer, pLevel, blockpos, d2, d0, d1, f, pWeight);
+        for (int z = i1; z <= j1; ++z) {
+            Int128 blockZ = position.blockZ().addSaturated(Int128.fromLong(z));
+            if (WorldBounds.signedDifference(blockZ, position.blockZ()) != z) continue;
+            for (int x = i; x <= j; ++x) {
+                Int128 blockX = position.blockX().addSaturated(Int128.fromLong(x));
+                if (WorldBounds.signedDifference(blockX, position.blockX()) != x) continue;
+                for (int y = k; y <= l; ++y) {
+                    renderBlockShadow(posestack$pose, vertexconsumer, pLevel, new BlockPos(blockX, y, blockZ), position, f, pWeight);
+                }
+            }
         }
     }
 
-    private static void renderBlockShadow(PoseStack.Pose pMatrixEntry, VertexConsumer pBuffer, LevelReader pLevel, BlockPos pBlockPos, double pX, double pY, double pZ, float pSize, float pWeight) {
+    private static void renderBlockShadow(PoseStack.Pose pMatrixEntry, VertexConsumer pBuffer, LevelReader pLevel, BlockPos pBlockPos, SectorVec3 position, float pSize, float pWeight) {
         BlockPos blockpos = pBlockPos.below();
         BlockState blockstate = pLevel.getBlockState(blockpos);
         if (blockstate.getRenderShape() != RenderShape.INVISIBLE && pLevel.getMaxLocalRawBrightness(pBlockPos) > 3) {
@@ -291,23 +297,25 @@ public class EntityRenderDispatcher implements ResourceManagerReloadListener {
                 VoxelShape voxelshape = blockstate.getShape(pLevel, pBlockPos.below());
                 if (!voxelshape.isEmpty()) {
                     float f = LightTexture.getBrightness(pLevel.dimensionType(), pLevel.getMaxLocalRawBrightness(pBlockPos));
-                    float f1 = (float) (((double) pWeight - (pY - (double) pBlockPos.getY()) / 2.0D) * 0.5D * (double) f);
+                    float f1 = (float) (((double) pWeight - (position.y() - (double) pBlockPos.getY()) / 2.0D) * 0.5D * (double) f);
                     if (f1 >= 0.0F) {
                         if (f1 > 1.0F) {
                             f1 = 1.0F;
                         }
 
                         AABB aabb = voxelshape.bounds();
-                        double d0 = (double) pBlockPos.getX() + aabb.minX;
-                        double d1 = (double) pBlockPos.getX() + aabb.maxX;
+                        double localX = shadowOffset(pBlockPos.getX(), position.blockX(), position.subX());
+                        double localZ = shadowOffset(pBlockPos.getZ(), position.blockZ(), position.subZ());
+                        double d0 = localX + aabb.minX;
+                        double d1 = localX + aabb.maxX;
                         double d2 = (double) pBlockPos.getY() + aabb.minY;
-                        double d3 = (double) pBlockPos.getZ() + aabb.minZ;
-                        double d4 = (double) pBlockPos.getZ() + aabb.maxZ;
-                        float f2 = (float) (d0 - pX);
-                        float f3 = (float) (d1 - pX);
-                        float f4 = (float) (d2 - pY);
-                        float f5 = (float) (d3 - pZ);
-                        float f6 = (float) (d4 - pZ);
+                        double d3 = localZ + aabb.minZ;
+                        double d4 = localZ + aabb.maxZ;
+                        float f2 = (float) d0;
+                        float f3 = (float) d1;
+                        float f4 = (float) (d2 - position.y());
+                        float f5 = (float) d3;
+                        float f6 = (float) d4;
                         float f7 = -f2 / 2.0F / pSize + 0.5F;
                         float f8 = -f3 / 2.0F / pSize + 0.5F;
                         float f9 = -f5 / 2.0F / pSize + 0.5F;
@@ -320,6 +328,10 @@ public class EntityRenderDispatcher implements ResourceManagerReloadListener {
                 }
             }
         }
+    }
+
+    static double shadowOffset(Int128 block, Int128 origin, double fraction) {
+        return WorldBounds.signedDifference(block, origin) - fraction;
     }
 
     private static void shadowVertex(PoseStack.Pose pMatrixEntry, VertexConsumer pBuffer, float pAlpha, float pX, float pY, float pZ, float pTexU, float pTexV) {
@@ -337,8 +349,8 @@ public class EntityRenderDispatcher implements ResourceManagerReloadListener {
         return pEntity.sectorPosition().relativeTo(this.camera.getExactPosition()).lengthSqr();
     }
 
-    public double distanceToSqr(double pX, double pY, double pZ) {
-        return this.camera.getPosition().distanceToSqr(pX, pY, pZ);
+    public double distanceToSqr(SectorVec3 position) {
+        return position.relativeTo(this.camera.getExactPosition()).lengthSqr();
     }
 
     public Quaternion cameraOrientation() {

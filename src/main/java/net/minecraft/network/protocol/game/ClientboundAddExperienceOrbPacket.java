@@ -7,39 +7,28 @@ import net.minecraft.world.phys.SectorVec3;
 
 public class ClientboundAddExperienceOrbPacket implements Packet<ClientGamePacketListener> {
     private final int id;
-    private final double x;
-    private final double y;
-    private final double z;
     private final SectorVec3 exactPosition;
     private final int value;
 
     public ClientboundAddExperienceOrbPacket(ExperienceOrb pOrbEntity) {
         this.id = pOrbEntity.getId();
         this.exactPosition = pOrbEntity.sectorPosition();
-        net.minecraft.world.phys.Vec3 approximate = this.exactPosition.toApproximateVec3();
-        this.x = approximate.x;
-        this.y = approximate.y;
-        this.z = approximate.z;
         this.value = pOrbEntity.getValue();
     }
 
     public ClientboundAddExperienceOrbPacket(FriendlyByteBuf pBuffer) {
         this.id = pBuffer.readVarInt();
-        this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readLong(), pBuffer.readDouble(),
-                pBuffer.readDouble(), pBuffer.readLong(), pBuffer.readDouble());
-        net.minecraft.world.phys.Vec3 approximate = this.exactPosition.toApproximateVec3();
-        this.x = approximate.x;
-        this.y = approximate.y;
-        this.z = approximate.z;
+        this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readInt128(), pBuffer.readDouble(),
+                pBuffer.readDouble(), pBuffer.readInt128(), pBuffer.readDouble());
         this.value = pBuffer.readShort();
     }
 
     public void write(FriendlyByteBuf pBuffer) {
         pBuffer.writeVarInt(this.id);
-        pBuffer.writeLong(this.exactPosition.blockX());
+        pBuffer.writeInt128(this.exactPosition.blockX());
         pBuffer.writeDouble(this.exactPosition.subX());
         pBuffer.writeDouble(this.exactPosition.y());
-        pBuffer.writeLong(this.exactPosition.blockZ());
+        pBuffer.writeInt128(this.exactPosition.blockZ());
         pBuffer.writeDouble(this.exactPosition.subZ());
         pBuffer.writeShort(this.value);
     }
@@ -56,16 +45,8 @@ public class ClientboundAddExperienceOrbPacket implements Packet<ClientGamePacke
         return this.exactPosition;
     }
 
-    public double getX() {
-        return this.x;
-    }
-
     public double getY() {
-        return this.y;
-    }
-
-    public double getZ() {
-        return this.z;
+        return this.exactPosition.y();
     }
 
     public int getValue() {

@@ -16,7 +16,7 @@ public class SpikeConfiguration implements FeatureConfiguration {
                                SpikeFeature.EndSpike.CODEC.listOf().fieldOf("spikes").forGetter((p_161193_) -> {
                                    return p_161193_.spikes;
                                }),
-                               BlockPos.CODEC.optionalFieldOf("crystal_beam_target").forGetter((p_161191_) -> {
+                               net.minecraft.world.level.levelgen.WorldgenPlacementCodecs.optionalField(BlockPos.CODEC, "crystal_beam_target").forGetter((p_161191_) -> {
                                    return Optional.ofNullable(p_161191_.crystalBeamTarget);
                                }))
                 .apply(p_68115_, SpikeConfiguration::new);

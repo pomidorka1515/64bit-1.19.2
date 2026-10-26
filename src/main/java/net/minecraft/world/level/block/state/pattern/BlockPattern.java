@@ -103,7 +103,7 @@ public class BlockPattern {
             Vec3i vec3i = new Vec3i(pFinger.getStepX(), pFinger.getStepY(), pFinger.getStepZ());
             Vec3i vec3i1 = new Vec3i(pThumb.getStepX(), pThumb.getStepY(), pThumb.getStepZ());
             Vec3i vec3i2 = vec3i.cross(vec3i1);
-            return pPos.offset(vec3i1.getX() * -pThumbOffset + vec3i2.getX() * pPalmOffset + vec3i.getX() * pFingerOffset, vec3i1.getY() * -pThumbOffset + vec3i2.getY() * pPalmOffset + vec3i.getY() * pFingerOffset, vec3i1.getZ() * -pThumbOffset + vec3i2.getZ() * pPalmOffset + vec3i.getZ() * pFingerOffset);
+            return pPos.offset(vec3i1.getX().lo() * -pThumbOffset + vec3i2.getX().lo() * pPalmOffset + vec3i.getX().lo() * pFingerOffset, vec3i1.getY() * -pThumbOffset + vec3i2.getY() * pPalmOffset + vec3i.getY() * pFingerOffset, vec3i1.getZ().lo() * -pThumbOffset + vec3i2.getZ().lo() * pPalmOffset + vec3i.getZ().lo() * pFingerOffset);
         } else {
             throw new IllegalArgumentException("Invalid forwards & up combination");
         }

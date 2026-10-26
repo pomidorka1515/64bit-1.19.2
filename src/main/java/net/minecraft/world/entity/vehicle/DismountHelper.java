@@ -48,6 +48,9 @@ public class DismountHelper {
     }
 
     public static boolean canDismountTo(CollisionGetter pLevel, Vec3 pOffset, LivingEntity pPassenger, Pose pPose) {
+        if (pOffset instanceof net.minecraft.world.phys.ExactVec3) {
+            return canExactDismountTo(pLevel, pPassenger, pOffset.exactPosition(), pPose);
+        }
         return canDismountTo(pLevel, pPassenger, pPassenger.getLocalBoundsForPose(pPose).move(pOffset));
     }
 
@@ -60,8 +63,8 @@ public class DismountHelper {
             SectorVec3 candidate, Pose pose) {
         SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(candidate);
         AABB localBox = passenger.getLocalBoundsForPose(pose);
-        AABB worldBox = localBox.move(candidate.blockX() - origin.originBlockX(),
-                candidate.y() - (double) origin.originBlockY(), candidate.blockZ() - origin.originBlockZ());
+        AABB worldBox = localBox.move(net.minecraft.world.level.WorldBounds.signedDifference(candidate.blockX(), origin.originBlockX()),
+                candidate.y() - (double) origin.originBlockY(), net.minecraft.world.level.WorldBounds.signedDifference(candidate.blockZ(), origin.originBlockZ()));
         for (VoxelShape voxelshape : level.getSectorBlockCollisions(passenger,
                      SectorAABB.around(candidate, localBox.getXsize(), localBox.getYsize()),
                      worldBox, origin)) {
@@ -111,7 +114,10 @@ public class DismountHelper {
                 Vec3 vec3 = Vec3.upFromBottomCenterOf(pPos, d0);
                 AABB aabb = pEntityType.getDimensions().makeBoundingBox(vec3);
 
-                for (VoxelShape voxelshape : pLevel.getBlockCollisions((Entity) null, aabb)) {
+                SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(vec3.exactPosition());
+                SectorAABB exactBox = aabb.getSectorBounds();
+                for (VoxelShape voxelshape : pLevel.getSectorBlockCollisions((Entity) null, exactBox,
+                        exactBox.toLocalAABB(origin), origin)) {
                     if (!voxelshape.isEmpty()) {
                         return null;
                     }
@@ -137,8 +143,8 @@ public class DismountHelper {
         EntityDimensions dimensions = type.getDimensions();
         AABB localBox = new AABB(-dimensions.width / 2.0D, 0.0D, -dimensions.width / 2.0D,
                 dimensions.width / 2.0D, dimensions.height, dimensions.width / 2.0D);
-        AABB worldBox = localBox.move(candidate.blockX() - origin.originBlockX(),
-                candidate.y() - (double) origin.originBlockY(), candidate.blockZ() - origin.originBlockZ());
+        AABB worldBox = localBox.move(net.minecraft.world.level.WorldBounds.signedDifference(candidate.blockX(), origin.originBlockX()),
+                candidate.y() - (double) origin.originBlockY(), net.minecraft.world.level.WorldBounds.signedDifference(candidate.blockZ(), origin.originBlockZ()));
         for (VoxelShape voxelshape : level.getSectorBlockCollisions(null,
                      SectorAABB.around(candidate, dimensions.width, dimensions.height),
                      worldBox, origin)) {

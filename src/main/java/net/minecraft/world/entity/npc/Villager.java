@@ -769,7 +769,7 @@ public class Villager extends AbstractVillager implements ReputationEventHandler
 
     public void spawnGolemIfNeeded(ServerLevel pServerLevel, long pGameTime, int pMinVillagerAmount) {
         if (this.wantsToSpawnGolem(pGameTime)) {
-            AABB aabb = this.getBoundingBox().inflate(10.0D, 10.0D, 10.0D);
+            AABB aabb = this.exactBoundingBox().inflate(10.0D, 10.0D, 10.0D);
             List<Villager> list = pServerLevel.getEntitiesOfClass(Villager.class, aabb);
             List<Villager> list1 = list.stream().filter((p_186293_) -> {
                                                     return p_186293_.wantsToSpawnGolem(pGameTime);

@@ -12,11 +12,11 @@ public class EnderChestBlockEntity extends BlockEntity implements LidBlockEntity
     private final ChestLidController chestLidController = new ChestLidController();
     private final ContainerOpenersCounter openersCounter = new ContainerOpenersCounter() {
         protected void onOpen(Level p_155531_, BlockPos p_155532_, BlockState p_155533_) {
-            p_155531_.playSound((Player) null, (double) p_155532_.getX() + 0.5D, (double) p_155532_.getY() + 0.5D, (double) p_155532_.getZ() + 0.5D, SoundEvents.ENDER_CHEST_OPEN, SoundSource.BLOCKS, 0.5F, p_155531_.random.nextFloat() * 0.1F + 0.9F);
+            p_155531_.playSound((Player) null, p_155532_, SoundEvents.ENDER_CHEST_OPEN, SoundSource.BLOCKS, 0.5F, p_155531_.random.nextFloat() * 0.1F + 0.9F);
         }
 
         protected void onClose(Level p_155541_, BlockPos p_155542_, BlockState p_155543_) {
-            p_155541_.playSound((Player) null, (double) p_155542_.getX() + 0.5D, (double) p_155542_.getY() + 0.5D, (double) p_155542_.getZ() + 0.5D, SoundEvents.ENDER_CHEST_CLOSE, SoundSource.BLOCKS, 0.5F, p_155541_.random.nextFloat() * 0.1F + 0.9F);
+            p_155541_.playSound((Player) null, p_155542_, SoundEvents.ENDER_CHEST_CLOSE, SoundSource.BLOCKS, 0.5F, p_155541_.random.nextFloat() * 0.1F + 0.9F);
         }
 
         protected void openerCountChanged(Level p_155535_, BlockPos p_155536_, BlockState p_155537_, int p_155538_, int p_155539_) {

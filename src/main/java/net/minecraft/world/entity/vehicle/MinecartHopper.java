@@ -62,16 +62,12 @@ public class MinecartHopper extends AbstractMinecartContainer implements Hopper 
         this.enabled = pEnabled;
     }
 
-    public double getLevelX() {
-        return this.getX();
+    public net.minecraft.world.phys.SectorVec3 getExactHopperPosition() {
+        return this.sectorPosition().add(0.0D, 0.5D, 0.0D);
     }
 
     public double getLevelY() {
         return this.getY() + 0.5D;
-    }
-
-    public double getLevelZ() {
-        return this.getZ();
     }
 
     public void tick() {
@@ -98,7 +94,7 @@ public class MinecartHopper extends AbstractMinecartContainer implements Hopper 
         if (HopperBlockEntity.suckInItems(this.level, this)) {
             return true;
         } else {
-            List<ItemEntity> list = this.level.getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(0.25D, 0.0D, 0.25D), EntitySelector.ENTITY_STILL_ALIVE);
+            List<ItemEntity> list = this.level.getEntitiesOfClass(ItemEntity.class, this.exactBoundingBox().inflate(0.25D, 0.0D, 0.25D), EntitySelector.ENTITY_STILL_ALIVE);
             if (!list.isEmpty()) {
                 HopperBlockEntity.addItem(this, list.get(0));
             }

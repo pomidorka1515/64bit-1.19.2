@@ -1,97 +1,106 @@
 package net.minecraft.network.protocol.game;
 
-import javax.annotation.Nullable;
-import net.minecraft.util.Mth;
+import net.minecraft.core.Int128;
 import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
 public class VecDeltaCodec {
     private static final double TRUNCATION_STEPS = 4096.0D;
+    /** Signed-short wire range, in 1/4096-block steps. */
+    public static final long MAX_RELATIVE_DELTA = 32767L;
+    public static final long MIN_RELATIVE_DELTA = -32768L;
+    /** Outside the relative wire range: ServerEntity must send an absolute teleport. */
+    public static final long ABSOLUTE_POSITION_REQUIRED = MAX_RELATIVE_DELTA + 1L;
+
+    private SectorVec3 sectorBase = SectorVec3.fromApproximate(Vec3.ZERO);
     private Vec3 base = Vec3.ZERO;
-    @Nullable
-    private SectorVec3 sectorBase;
 
-    private static long encode(double p_238018_) {
-        return Mth.lfloor(p_238018_ * 4096.0D);
-    }
-
-    private static double decode(long p_238020_) {
-        return (double) p_238020_ / 4096.0D;
-    }
-
-    public Vec3 decode(long p_238022_, long p_238023_, long p_238024_) {
-        if (p_238022_ == 0L && p_238023_ == 0L && p_238024_ == 0L) {
-            return this.base;
-        } else {
-            double d0 = p_238022_ == 0L ? this.base.x : decode(encode(this.base.x) + p_238022_);
-            double d1 = p_238023_ == 0L ? this.base.y : decode(encode(this.base.y) + p_238023_);
-            double d2 = p_238024_ == 0L ? this.base.z : decode(encode(this.base.z) + p_238024_);
-            return new Vec3(d0, d1, d2);
+    private static long encode(double delta) {
+        double steps = Math.floor(delta * TRUNCATION_STEPS);
+        // Check before narrowing: Java's double-to-long cast saturates, and
+        // flooring via Mth.lfloor can wrap at Long.MIN_VALUE.
+        if (!Double.isFinite(steps) || steps < MIN_RELATIVE_DELTA || steps > MAX_RELATIVE_DELTA) {
+            return ABSOLUTE_POSITION_REQUIRED;
         }
+        return (long) steps;
+    }
+
+    private static long encode(Int128 block, double fraction, Int128 baseBlock, double baseFraction) {
+        // Saturation prevents opposite Int128 edges wrapping into a tiny delta.
+        // Only bounded local differences are ever projected to double.
+        Int128 difference = block.subtractSaturated(baseBlock);
+        if (difference.compareTo(Int128.fromLong(-8L)) < 0
+                || difference.compareTo(Int128.fromLong(8L)) > 0) {
+            return ABSOLUTE_POSITION_REQUIRED;
+        }
+        return encode((double) difference.lo() + (fraction - baseFraction));
+    }
+
+    private static double decode(long delta) {
+        if (delta < MIN_RELATIVE_DELTA || delta > MAX_RELATIVE_DELTA) {
+            throw new IllegalArgumentException("Relative movement exceeds wire range: " + delta);
+        }
+        return (double) delta / TRUNCATION_STEPS;
+    }
+
+    /** Lossy compatibility view of the exact decoded target. */
+    public Vec3 decode(long x, long y, long z) {
+        SectorVec3 position = this.decodeExact(x, y, z);
+        return x == 0L && y == 0L && z == 0L ? this.base : position.toExactVec3();
     }
 
     /**
-    * Decodes a relative movement into the exact frame established by
-    * {@link #setBase(SectorVec3)}.
-    *
-    * <p>The base is the last network target, not the entity's current render
-    * interpolation position. Keeping those two concepts separate is essential:
-    * replacing this base with an in-between render position makes each incoming
-    * delta start from stale coordinates, so remote entities appear frozen and
-    * then jump when an absolute teleport packet arrives.</p>
-    */
+     * Applies validated local deltas to the last network target, never the render
+     * interpolation position. SectorVec3 clamps outward movement at Int128 world
+     * edges rather than wrapping; zero deltas preserve the exact fractions.
+     */
     public SectorVec3 decodeExact(long x, long y, long z) {
-        if (this.sectorBase == null) {
-            throw new IllegalStateException("Sector position codec base is not initialized");
-        }
+        double dx = decode(x);
+        double dy = decode(y);
+        double dz = decode(z);
         if (x == 0L && y == 0L && z == 0L) {
             return this.sectorBase;
         }
-        return this.sectorBase.add(decode(x), decode(y), decode(z));
+        return this.sectorBase.add(dx, dy, dz);
     }
 
-    public long encodeX(Vec3 p_238026_) {
-        return encode(p_238026_.x - this.base.x);
+    public long encodeX(Vec3 position) {
+        return this.encodeX(SectorVec3.fromApproximate(position));
     }
 
     public long encodeX(SectorVec3 position) {
-        return this.sectorBase == null ? this.encodeX(position.toApproximateVec3())
-                                       : encode(position.relativeX(this.sectorBase));
+        return encode(position.blockX(), position.subX(), this.sectorBase.blockX(), this.sectorBase.subX());
     }
 
-    public long encodeY(Vec3 p_238028_) {
-        return encode(p_238028_.y - this.base.y);
+    public long encodeY(Vec3 position) {
+        return encode(position.y - this.sectorBase.y());
     }
 
     public long encodeY(SectorVec3 position) {
-        return this.sectorBase == null ? this.encodeY(position.toApproximateVec3())
-                                       : encode(position.y() - this.sectorBase.y());
+        return encode(position.y() - this.sectorBase.y());
     }
 
-    public long encodeZ(Vec3 p_238030_) {
-        return encode(p_238030_.z - this.base.z);
+    public long encodeZ(Vec3 position) {
+        return this.encodeZ(SectorVec3.fromApproximate(position));
     }
 
     public long encodeZ(SectorVec3 position) {
-        return this.sectorBase == null ? this.encodeZ(position.toApproximateVec3())
-                                       : encode(position.relativeZ(this.sectorBase));
+        return encode(position.blockZ(), position.subZ(), this.sectorBase.blockZ(), this.sectorBase.subZ());
     }
 
-    public Vec3 delta(Vec3 p_238032_) {
-        return p_238032_.subtract(this.base);
+    public Vec3 delta(Vec3 position) {
+        return SectorVec3.fromApproximate(position).relativeTo(this.sectorBase);
     }
 
-    public void setBase(Vec3 p_238034_) {
-        this.base = p_238034_;
-        this.sectorBase = null;
+    public void setBase(Vec3 position) {
+        this.setBase(SectorVec3.fromApproximate(position));
     }
 
     public void setBase(SectorVec3 position) {
         this.sectorBase = position;
-        this.base = position.toApproximateVec3();
+        this.base = position.toExactVec3();
     }
 
-    @Nullable
     public SectorVec3 getSectorBase() {
         return this.sectorBase;
     }

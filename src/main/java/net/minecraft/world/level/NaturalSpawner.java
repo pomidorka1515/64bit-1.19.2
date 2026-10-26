@@ -13,6 +13,7 @@ import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Int128;
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
@@ -107,7 +108,8 @@ public final class NaturalSpawner {
     }
 
     static Biome getRoughBiome(BlockPos pPos, ChunkAccess pChunk) {
-        return pChunk.getNoiseBiome(QuartPos.fromBlock(pPos.getX()), QuartPos.fromBlock(pPos.getY()), QuartPos.fromBlock(pPos.getZ())).value();
+        // Biome noise uses the explicit low-64 worldgen projection.
+        return pChunk.getNoiseBiome(QuartPos.fromBlock(pPos.getX().toLongLow()), QuartPos.fromBlock(pPos.getY()), QuartPos.fromBlock(pPos.getZ().toLongLow())).value();
     }
 
     public static void spawnForChunk(ServerLevel pLevel, LevelChunk pChunk, NaturalSpawner.SpawnState pSpawnState, boolean pSpawnFriendlies, boolean pSpawnMonsters, boolean pForcedDespawn) {
@@ -146,8 +148,8 @@ public final class NaturalSpawner {
             int j = 0;
 
             for (int k = 0; k < 3; ++k) {
-                long l = pPos.getX();
-                long i1 = pPos.getZ();
+                Int128 l = pPos.getX();
+                Int128 i1 = pPos.getZ();
                 int j1 = 6;
                 MobSpawnSettings.SpawnerData mobspawnsettings$spawnerdata = null;
                 SpawnGroupData spawngroupdata = null;
@@ -279,9 +281,9 @@ public final class NaturalSpawner {
 
     private static BlockPos getRandomPosWithin(Level pLevel, LevelChunk pChunk) {
         ChunkPos chunkpos = pChunk.getPos();
-        long i = WorldBounds.addBlockOffset(chunkpos.getMinBlockX(), pLevel.random.nextInt(16));
-        long j = WorldBounds.addBlockOffset(chunkpos.getMinBlockZ(), pLevel.random.nextInt(16));
-        int k = pChunk.getHeight(Heightmap.Types.WORLD_SURFACE, i, j) + 1;
+        Int128 i = WorldBounds.addBlockOffset(chunkpos.getMinBlockX(), pLevel.random.nextInt(16));
+        Int128 j = WorldBounds.addBlockOffset(chunkpos.getMinBlockZ(), pLevel.random.nextInt(16));
+        int k = pChunk.getHeight(Heightmap.Types.WORLD_SURFACE, (int) (i.lo() & 15L), (int) (j.lo() & 15L)) + 1;
         int l = Mth.randomBetweenInclusive(pLevel.random, pLevel.getMinBuildHeight(), k);
         return new BlockPos(i, l, j);
     }
@@ -331,8 +333,8 @@ public final class NaturalSpawner {
         MobSpawnSettings mobspawnsettings = pBiome.value().getMobSettings();
         WeightedRandomList<MobSpawnSettings.SpawnerData> weightedrandomlist = mobspawnsettings.getMobs(MobCategory.CREATURE);
         if (!weightedrandomlist.isEmpty()) {
-            long i = pChunkPos.getMinBlockX();
-            long j = pChunkPos.getMinBlockZ();
+            Int128 i = pChunkPos.getMinBlockX();
+            Int128 j = pChunkPos.getMinBlockZ();
 
             while (pRandom.nextFloat() < mobspawnsettings.getCreatureProbability()) {
                 Optional<MobSpawnSettings.SpawnerData> optional = weightedrandomlist.getRandom(pRandom);
@@ -340,10 +342,10 @@ public final class NaturalSpawner {
                     MobSpawnSettings.SpawnerData mobspawnsettings$spawnerdata = optional.get();
                     int k = mobspawnsettings$spawnerdata.minCount + pRandom.nextInt(1 + mobspawnsettings$spawnerdata.maxCount - mobspawnsettings$spawnerdata.minCount);
                     SpawnGroupData spawngroupdata = null;
-                    long l = WorldBounds.addBlockOffset(i, pRandom.nextInt(16));
-                    long i1 = WorldBounds.addBlockOffset(j, pRandom.nextInt(16));
-                    long j1 = l;
-                    long k1 = i1;
+                    Int128 l = WorldBounds.addBlockOffset(i, pRandom.nextInt(16));
+                    Int128 i1 = WorldBounds.addBlockOffset(j, pRandom.nextInt(16));
+                    Int128 j1 = l;
+                    Int128 k1 = i1;
 
                     for (int l1 = 0; l1 < k; ++l1) {
                         boolean flag = false;
@@ -380,7 +382,7 @@ public final class NaturalSpawner {
                             i1 = WorldBounds.addBlockOffset(i1, pRandom.nextInt(5) - pRandom.nextInt(5));
                             if (!isInGenerationChunk(l, i1, i, j)) {
                                 // Vanilla's unbounded retry loop assumes that the chunk's
-                                // upper edge can be expressed as min + 16. At Long.MAX_VALUE
+                                 // upper edge can be expressed as min + 16. At Int128.MAX
                                 // that addition wraps, so every retry remains "outside" and
                                 // the worker spins forever. A single bounded re-roll keeps
                                 // the position in this chunk without coordinate overflow.
@@ -398,18 +400,24 @@ public final class NaturalSpawner {
         }
     }
 
-    private static boolean isInGenerationChunk(long p_220455_, long pPos, long pLevel, long pCategory) {
-        return WorldBounds.isWithinChunk(p_220455_, pLevel) && WorldBounds.isWithinChunk(pPos, pCategory);
+    private static boolean isInGenerationChunk(Int128 x, Int128 z, Int128 chunkX, Int128 chunkZ) {
+        long localX = WorldBounds.signedDifferenceAsLong(x, chunkX);
+        long localZ = WorldBounds.signedDifferenceAsLong(z, chunkZ);
+        return localX >= 0L && localX < 16L && localZ >= 0L && localZ < 16L;
     }
 
     static SectorVec3 getGenerationSpawnPosition(long x, int y, long z, long chunkX, long chunkZ, float width) {
+        return getGenerationSpawnPosition(Int128.fromLong(x), y, Int128.fromLong(z), Int128.fromLong(chunkX), Int128.fromLong(chunkZ), width);
+    }
+
+    static SectorVec3 getGenerationSpawnPosition(Int128 x, int y, Int128 z, Int128 chunkX, Int128 chunkZ, float width) {
         // Clamp in the small chunk-local frame, never in absolute doubles.
         double localX = Mth.clamp(WorldBounds.signedDifference(x, chunkX), (double) width, 16.0D - (double) width);
         double localZ = Mth.clamp(WorldBounds.signedDifference(z, chunkZ), (double) width, 16.0D - (double) width);
         return SectorVec3.fromBlockAndFraction(chunkX, localX, (double) y, chunkZ, localZ);
     }
 
-    private static BlockPos getTopNonCollidingPos(LevelReader pLevel, EntityType<?> pEntityType, long pX, long pZ) {
+    private static BlockPos getTopNonCollidingPos(LevelReader pLevel, EntityType<?> pEntityType, Int128 pX, Int128 pZ) {
         int i = pLevel.getHeight(SpawnPlacements.getHeightmapType(pEntityType), pX, pZ);
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(pX, i, pZ);
         if (pLevel.dimensionType().hasCeiling()) {

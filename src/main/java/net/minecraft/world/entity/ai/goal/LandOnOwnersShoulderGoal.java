@@ -29,7 +29,7 @@ public class LandOnOwnersShoulderGoal extends Goal {
 
     public void tick() {
         if (!this.isSittingOnShoulder && !this.entity.isInSittingPose() && !this.entity.isLeashed()) {
-            if (this.entity.getBoundingBox().intersects(this.owner.getBoundingBox())) {
+            if (this.entity.exactBoundingBox().intersects(this.owner.exactBoundingBox())) {
                 this.isSittingOnShoulder = this.entity.setEntityOnShoulder(this.owner);
             }
         }

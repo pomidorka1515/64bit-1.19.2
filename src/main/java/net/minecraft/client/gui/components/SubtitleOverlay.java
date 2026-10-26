@@ -40,7 +40,7 @@ public class SubtitleOverlay extends GuiComponent implements SoundEventListener 
         if (this.isListening && !this.subtitles.isEmpty()) {
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
-            Vec3 vec3 = new Vec3(this.minecraft.player.getX(), this.minecraft.player.getEyeY(), this.minecraft.player.getZ());
+            net.minecraft.world.phys.SectorVec3 eye = this.minecraft.player.exactEyePosition();
             Vec3 vec31 = (new Vec3(0.0D, 0.0D, -1.0D)).xRot(-this.minecraft.player.getXRot() * ((float) Math.PI / 180F)).yRot(-this.minecraft.player.getYRot() * ((float) Math.PI / 180F));
             Vec3 vec32 = (new Vec3(0.0D, 1.0D, 0.0D)).xRot(-this.minecraft.player.getXRot() * ((float) Math.PI / 180F)).yRot(-this.minecraft.player.getYRot() * ((float) Math.PI / 180F));
             Vec3 vec33 = vec31.cross(vec32);
@@ -62,7 +62,7 @@ public class SubtitleOverlay extends GuiComponent implements SoundEventListener 
             for (SubtitleOverlay.Subtitle subtitleoverlay$subtitle1 : this.subtitles) {
                 int k = 255;
                 Component component = subtitleoverlay$subtitle1.getText();
-                Vec3 vec34 = subtitleoverlay$subtitle1.getLocation().subtract(vec3).normalize();
+                Vec3 vec34 = subtitleoverlay$subtitle1.getLocation().exactPosition().relativeTo(eye).normalize();
                 double d0 = -vec33.dot(vec34);
                 double d1 = -vec31.dot(vec34);
                 boolean flag = d1 > 0.5D;
@@ -101,13 +101,13 @@ public class SubtitleOverlay extends GuiComponent implements SoundEventListener 
             if (!this.subtitles.isEmpty()) {
                 for (SubtitleOverlay.Subtitle subtitleoverlay$subtitle : this.subtitles) {
                     if (subtitleoverlay$subtitle.getText().equals(component)) {
-                        subtitleoverlay$subtitle.refresh(new Vec3(pSound.getX(), pSound.getY(), pSound.getZ()));
+                        subtitleoverlay$subtitle.refresh(pSound.getExactPosition().toExactVec3());
                         return;
                     }
                 }
             }
 
-            this.subtitles.add(new SubtitleOverlay.Subtitle(component, new Vec3(pSound.getX(), pSound.getY(), pSound.getZ())));
+            this.subtitles.add(new SubtitleOverlay.Subtitle(component, pSound.getExactPosition().toExactVec3()));
         }
     }
 

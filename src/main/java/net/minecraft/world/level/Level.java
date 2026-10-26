@@ -15,6 +15,7 @@ import net.minecraft.ReportedException;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.particles.ParticleOptions;
@@ -122,12 +123,13 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         this.isClientSide = pIsClientSide;
         if (dimensiontype.coordinateScale() != 1.0D) {
             this.worldBorder = new WorldBorder() {
-                public double getCenterX() {
-                    return super.getCenterX() / dimensiontype.coordinateScale();
-                }
-
-                public double getCenterZ() {
-                    return super.getCenterZ() / dimensiontype.coordinateScale();
+                public SectorVec3 getExactCenter() {
+                    SectorVec3 center = super.getExactCenter();
+                    java.math.BigDecimal scale = java.math.BigDecimal.valueOf(dimensiontype.coordinateScale());
+                    java.math.BigDecimal x = new java.math.BigDecimal(center.blockX().toString()).add(java.math.BigDecimal.valueOf(center.subX()));
+                    java.math.BigDecimal z = new java.math.BigDecimal(center.blockZ().toString()).add(java.math.BigDecimal.valueOf(center.subZ()));
+                    return SectorVec3.fromDecimal(x.divide(scale, 340, java.math.RoundingMode.HALF_EVEN).toPlainString(),
+                            0.0D, z.divide(scale, 340, java.math.RoundingMode.HALF_EVEN).toPlainString());
                 }
             };
         } else {
@@ -150,15 +152,11 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     public boolean isInWorldBounds(BlockPos pPos) {
-        return !this.isOutsideBuildHeight(pPos) && isInWorldBoundsHorizontal(pPos);
+        return !this.isOutsideBuildHeight(pPos);
     }
 
     public static boolean isInSpawnableBounds(BlockPos pPos) {
-        return !isOutsideSpawnableHeight(pPos.getY()) && isInWorldBoundsHorizontal(pPos);
-    }
-
-    private static boolean isInWorldBoundsHorizontal(BlockPos pPos) {
-        return WorldBounds.isValidBlock(pPos.getX(), pPos.getZ());
+        return !isOutsideSpawnableHeight(pPos.getY());
     }
 
     private static boolean isOutsideSpawnableHeight(int pY) {
@@ -173,12 +171,19 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return (LevelChunk) this.getChunk(pChunkX, pChunkZ, ChunkStatus.FULL);
     }
 
+    public LevelChunk getChunk(Int128 pChunkX, Int128 pChunkZ) {
+        return (LevelChunk) this.getChunk(pChunkX, pChunkZ, ChunkStatus.FULL, true);
+    }
+
     @Nullable
     public ChunkAccess getChunk(long pX, long pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
-        if (!WorldBounds.isValidChunk(pX, pZ))
-            return null;
+        return this.getChunk(Int128.fromLong(pX), Int128.fromLong(pZ), pRequiredStatus, pNonnull);
+    }
+
+    @Nullable
+    public ChunkAccess getChunk(Int128 pX, Int128 pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
         if (!pNonnull && this instanceof ServerLevel serverLevel) {
-            return serverLevel.getChunkSource().getChunkNow(pX, pZ);
+            return serverLevel.getChunkSource().getChunkNow(pX, pZ, pRequiredStatus);
         }
         ChunkAccess chunkaccess = this.getChunkSource().getChunk(pX, pZ, pRequiredStatus, pNonnull);
         if (chunkaccess == null && pNonnull) {
@@ -193,7 +198,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     public boolean setBlock(BlockPos pPos, BlockState pState, int pFlags, int pRecursionLeft) {
-        if (!WorldBounds.isValidBlock(pPos.getX(), pPos.getZ()) || this.isOutsideBuildHeight(pPos)) {
+        if (this.isOutsideBuildHeight(pPos)) {
             return false;
         } else if (!this.isClientSide && this.isDebug()) {
             return false;
@@ -305,12 +310,15 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     public int getHeight(Heightmap.Types pHeightmapType, long pX, long pZ) {
+        return this.getHeight(pHeightmapType, net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ));
+    }
+
+    public int getHeight(Heightmap.Types pHeightmapType, net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ) {
         int i;
-        if (WorldBounds.isValidBlock(pX, pZ)
-                && this.hasChunk(SectionPos.blockToSectionCoord(pX), SectionPos.blockToSectionCoord(pZ))) {
+        if (this.hasChunk(SectionPos.blockToSectionCoord(pX), SectionPos.blockToSectionCoord(pZ))) {
             LevelChunk chunk = this.getChunk(SectionPos.blockToSectionCoord(pX), SectionPos.blockToSectionCoord(pZ));
             i = chunk == null ? this.getMinBuildHeight()
-                              : chunk.getHeight(pHeightmapType, (int) (pX & 15), (int) (pZ & 15)) + 1;
+                               : chunk.getHeight(pHeightmapType, (int) (pX.lo() & 15L), (int) (pZ.lo() & 15L)) + 1;
         } else {
             i = this.getMinBuildHeight();
         }
@@ -323,9 +331,6 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     public BlockState getBlockState(BlockPos pPos) {
-        if (!WorldBounds.isValidBlock(pPos.getX(), pPos.getZ())) {
-            return Blocks.VOID_AIR.defaultBlockState();
-        }
         if (this.isOutsideBuildHeight(pPos)) {
             return Blocks.VOID_AIR.defaultBlockState();
         }
@@ -348,9 +353,6 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     public FluidState getFluidState(BlockPos pPos) {
-        if (!WorldBounds.isValidBlock(pPos.getX(), pPos.getZ())) {
-            return Fluids.EMPTY.defaultFluidState();
-        }
         if (this.isOutsideBuildHeight(pPos)) {
             return Fluids.EMPTY.defaultFluidState();
         }
@@ -379,20 +381,10 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
                 this.threadSafeRandom.nextLong());
     }
 
-    public abstract void playSeededSound(@Nullable Player pPlayer, double pX, double pY, double pZ, SoundEvent pSoundEvent, SoundSource pSoundSource, float pVolume, float pPitch, long pSeed);
-
-    /** Exact positional-sound entry point for long-coordinate callers. */
-    public void playSeededSound(@Nullable Player player, SectorVec3 position, SoundEvent sound, SoundSource source,
-            float volume, float pitch, long seed) {
-        this.playSeededSound(player, (double) position.blockX() + position.subX(), position.y(),
-                (double) position.blockZ() + position.subZ(), sound, source, volume, pitch, seed);
-    }
+    public abstract void playSeededSound(@Nullable Player player, SectorVec3 position, SoundEvent sound, SoundSource source,
+            float volume, float pitch, long seed);
 
     public abstract void playSeededSound(@Nullable Player pPlayer, Entity pEntity, SoundEvent pSoundEvent, SoundSource pSoundSource, float pVolume, float pPitch, long pSeed);
-
-    public void playSound(@Nullable Player pPlayer, double pX, double pY, double pZ, SoundEvent pSound, SoundSource pCategory, float pVolume, float pPitch) {
-        this.playSeededSound(pPlayer, pX, pY, pZ, pSound, pCategory, pVolume, pPitch, this.threadSafeRandom.nextLong());
-    }
 
     public void playSound(@Nullable Player pPlayer, Entity pEntity, SoundEvent pEvent, SoundSource pCategory, float pVolume, float pPitch) {
         this.playSeededSound(pPlayer, pEntity, pEvent, pCategory, pVolume, pPitch, this.threadSafeRandom.nextLong());
@@ -402,18 +394,10 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         this.playSeededSound(player, position, sound, source, volume, pitch, this.threadSafeRandom.nextLong());
     }
 
-    public void playLocalSound(double pX, double pY, double pZ, SoundEvent pSound, SoundSource pCategory, float pVolume, float pPitch, boolean pDistanceDelay) {
-    }
-
     /** Exact local-sound entry point for long-coordinate callers. */
     public void playLocalSound(SectorVec3 position, SoundEvent sound, SoundSource source, float volume, float pitch,
             boolean distanceDelay) {
-        Vec3 approximate = position.toApproximateVec3();
-        this.playLocalSound(approximate.x, position.y(), approximate.z, sound, source, volume, pitch, distanceDelay);
-    }
-
-    /** Legacy double particle entry point. Exact callers use the SectorVec3 overload. */
-    public void addParticle(ParticleOptions pParticleData, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
+        // Server levels do not play local sounds. ClientLevel implements the exact path.
     }
 
     /** Adds a particle at an exact X/Z world coordinate. */
@@ -421,14 +405,8 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     public void addParticle(ParticleOptions options, SectorVec3 position, double xd, double yd, double zd) {
     }
 
-    public void addParticle(ParticleOptions pParticleData, boolean pForceAlwaysRender, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
-    }
-
     /** Adds a limiter-controlled particle at an exact X/Z world coordinate. */
     public void addParticle(ParticleOptions options, boolean force, SectorVec3 position, double xd, double yd, double zd) {
-    }
-
-    public void addAlwaysVisibleParticle(ParticleOptions pParticleData, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
     }
 
     /** Adds an always-visible particle at an exact X/Z world coordinate. */
@@ -438,9 +416,6 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     /** Adds a force-controlled always-visible particle at an exact X/Z world coordinate. */
     public void addAlwaysVisibleParticle(ParticleOptions options, boolean force, SectorVec3 position,
             double xd, double yd, double zd) {
-    }
-
-    public void addAlwaysVisibleParticle(ParticleOptions pParticleData, boolean pIgnoreRange, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
     }
 
     public float getSunAngle(float pPartialTicks) {
@@ -499,15 +474,6 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return this.shouldTickBlocksAt(new ChunkPos(p_220394_));
     }
 
-    public Explosion explode(@Nullable Entity pEntity, double pX, double pY, double pZ, float pExplosionRadius, Explosion.BlockInteraction pMode) {
-        return this.explode(pEntity, (DamageSource) null, (ExplosionDamageCalculator) null, pX, pY, pZ, pExplosionRadius, false, pMode);
-    }
-
-    public Explosion explode(@Nullable Entity pEntity, double pX, double pY, double pZ, float pExplosionRadius, boolean pCausesFire, Explosion.BlockInteraction pMode) {
-        return this.explode(pEntity, (DamageSource) null, (ExplosionDamageCalculator) null,
-                SectorVec3.fromApproximate(pX, pY, pZ), pExplosionRadius, pCausesFire, pMode);
-    }
-
     public Explosion explode(@Nullable Entity source, SectorVec3 position, float radius,
             Explosion.BlockInteraction blockInteraction) {
         return this.explode(source, (DamageSource) null, (ExplosionDamageCalculator) null, position, radius, false, blockInteraction);
@@ -527,16 +493,11 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return explosion;
     }
 
-    /** Legacy absolute-double explosion entry point. Exact callers use the SectorVec3 overload. */
-    public Explosion explode(@Nullable Entity pExploder, @Nullable DamageSource pDamageSource, @Nullable ExplosionDamageCalculator pContext, double pX, double pY, double pZ, float pSize, boolean pCausesFire, Explosion.BlockInteraction pMode) {
-        return this.explode(pExploder, pDamageSource, pContext, SectorVec3.fromApproximate(pX, pY, pZ), pSize, pCausesFire, pMode);
-    }
-
     public abstract String gatherChunkSourceStats();
 
     @Nullable
     public BlockEntity getBlockEntity(BlockPos pPos) {
-        if (this.isOutsideBuildHeight(pPos) || !WorldBounds.isValidBlock(pPos.getX(), pPos.getZ())
+        if (this.isOutsideBuildHeight(pPos)
                 || !this.isClientSide && Thread.currentThread() != this.thread) {
             return null;
         }
@@ -546,7 +507,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
     public void setBlockEntity(BlockEntity pBlockEntity) {
         BlockPos blockpos = pBlockEntity.getBlockPos();
-        if (!this.isOutsideBuildHeight(blockpos) && WorldBounds.isValidBlock(blockpos.getX(), blockpos.getZ())) {
+        if (!this.isOutsideBuildHeight(blockpos)) {
             LevelChunk chunk = this.getChunkAt(blockpos);
             if (chunk != null)
                 chunk.addAndRegisterBlockEntity(pBlockEntity);
@@ -554,7 +515,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     public void removeBlockEntity(BlockPos pPos) {
-        if (!this.isOutsideBuildHeight(pPos) && WorldBounds.isValidBlock(pPos.getX(), pPos.getZ())) {
+        if (!this.isOutsideBuildHeight(pPos)) {
             LevelChunk chunk = this.getChunkAt(pPos);
             if (chunk != null)
                 chunk.removeBlockEntity(pPos);
@@ -562,8 +523,8 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     public boolean isLoaded(BlockPos pPos) {
-        return this.isOutsideBuildHeight(pPos) || !WorldBounds.isValidBlock(pPos.getX(), pPos.getZ()) ? false
-                                                                                                                  : this.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(pPos.getX()), SectionPos.blockToSectionCoord(pPos.getZ()));
+        return !this.isOutsideBuildHeight(pPos)
+                && this.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(pPos.getX()), SectionPos.blockToSectionCoord(pPos.getZ()));
     }
 
     public boolean loadedAndEntityCanStandOnFace(BlockPos pPos, Entity pEntity, Direction pDirection) {
@@ -593,7 +554,8 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     public BlockPos getSharedSpawnPos() {
         BlockPos blockpos = new BlockPos(this.levelData.getXSpawn(), this.levelData.getYSpawn(), this.levelData.getZSpawn());
         if (!this.getWorldBorder().isWithinBounds(blockpos)) {
-            blockpos = this.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, new BlockPos(this.getWorldBorder().getCenterX(), 0.0D, this.getWorldBorder().getCenterZ()));
+            SectorVec3 center = this.getWorldBorder().getExactCenter();
+            blockpos = this.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, new BlockPos(center.blockX(), 0, center.blockZ()));
         }
 
         return blockpos;
@@ -618,13 +580,15 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
 
     @Nullable
     public BlockGetter getChunkForCollisions(long pChunkX, long pChunkZ) {
-        if (!WorldBounds.isValidChunk(pChunkX, pChunkZ)) {
-            return null;
-        }
         if (this instanceof ServerLevel serverLevel) {
             return serverLevel.getChunkSource().getChunkNow(pChunkX, pChunkZ);
         }
         return this.getChunk(pChunkX, pChunkZ, ChunkStatus.FULL, false);
+    }
+
+    @Nullable
+    public BlockGetter getChunkForCollisions(Int128 pChunkX, Int128 pChunkZ) {
+        return this.getChunkSource().getChunkNow(pChunkX, pChunkZ);
     }
 
     public List<Entity> getEntities(@Nullable Entity pEntity, AABB pBoundingBox, Predicate<? super Entity> pPredicate) {

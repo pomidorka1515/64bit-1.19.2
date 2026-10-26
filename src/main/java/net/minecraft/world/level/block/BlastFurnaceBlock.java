@@ -43,11 +43,11 @@ public class BlastFurnaceBlock extends AbstractFurnaceBlock {
 
     public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, RandomSource pRandom) {
         if (pState.getValue(LIT)) {
-            double d0 = (double) pPos.getX() + 0.5D;
+            double d0 = 0.5D;
             double d1 = (double) pPos.getY();
-            double d2 = (double) pPos.getZ() + 0.5D;
+            double d2 = 0.5D;
             if (pRandom.nextDouble() < 0.1D) {
-                pLevel.playLocalSound(d0, d1, d2, SoundEvents.BLASTFURNACE_FIRE_CRACKLE, SoundSource.BLOCKS, 1.0F, 1.0F, false);
+                pLevel.playLocalSound(SectorVec3.fromBlockAndFraction(pPos.getX(), d0, d1, pPos.getZ(), d2), SoundEvents.BLASTFURNACE_FIRE_CRACKLE, SoundSource.BLOCKS, 1.0F, 1.0F, false);
             }
 
             Direction direction = pState.getValue(FACING);

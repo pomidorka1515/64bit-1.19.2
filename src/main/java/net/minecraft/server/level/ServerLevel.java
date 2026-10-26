@@ -2,7 +2,6 @@ package net.minecraft.server.level;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -46,6 +45,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
@@ -204,12 +204,9 @@ public class ServerLevel extends Level implements WorldGenLevel {
         this.serverLevelData = pServerLevelData;
         ChunkGenerator chunkgenerator = pLevelStem.generator();
         boolean flag = pServer.forceSynchronousWrites();
-        DataFixer datafixer = pServer.getFixerUpper();
-        EntityPersistentStorage<Entity> entitypersistentstorage = new EntityStorage(this, pLevelStorageAccess.getDimensionPath(pDimensionKey).resolve("entities"), datafixer, flag, pServer);
+        EntityPersistentStorage<Entity> entitypersistentstorage = new EntityStorage(this, pLevelStorageAccess.getDimensionPath(pDimensionKey).resolve("entities"), flag, pServer);
         this.entityManager = new PersistentEntitySectionManager<>(Entity.class, new ServerLevel.EntityCallbacks(), entitypersistentstorage);
-        this.chunkSource = new ServerChunkCache(this, pLevelStorageAccess, datafixer, pServer.getStructureManager(), pDispatcher, chunkgenerator, pServer.getPlayerList().getViewDistance(), pServer.getPlayerList().getSimulationDistance(), flag, pProgressListener, this.entityManager::updateChunkStatus, () -> {
-            return pServer.overworld().getDataStorage();
-        });
+        this.chunkSource = new ServerChunkCache(this, pLevelStorageAccess, pServer.getStructureManager(), pDispatcher, chunkgenerator, pServer.getPlayerList().getViewDistance(), pServer.getPlayerList().getSimulationDistance(), flag, pProgressListener, this.entityManager::updateChunkStatus);
         chunkgenerator.ensureStructuresGenerated(this.chunkSource.randomState());
         this.portalForcer = new PortalForcer(this);
         this.updateSkyBrightness();
@@ -221,7 +218,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
         }
 
         long i = pServer.getWorldData().worldGenSettings().seed();
-        this.structureCheck = new StructureCheck(this.chunkSource.chunkScanner(), this.registryAccess(), pServer.getStructureManager(), pDimensionKey, chunkgenerator, this.chunkSource.randomState(), this, chunkgenerator.getBiomeSource(), i, datafixer);
+        this.structureCheck = new StructureCheck(this.chunkSource.chunkScanner(), this.registryAccess(), pServer.getStructureManager(), chunkgenerator, this.chunkSource.randomState(), this, chunkgenerator.getBiomeSource(), i);
         this.structureManager = new StructureManager(this, pServer.getWorldData().worldGenSettings(), this.structureCheck);
         if (this.dimension() == Level.END && this.dimensionTypeRegistration().is(BuiltinDimensionTypes.END)) {
             this.dragonFight = new EndDragonFight(this, i, pServer.getWorldData().endDragonFightData());
@@ -380,8 +377,8 @@ public class ServerLevel extends Level implements WorldGenLevel {
     public void tickChunk(LevelChunk pChunk, int pRandomTickSpeed) {
         ChunkPos chunkpos = pChunk.getPos();
         boolean flag = this.isRaining();
-        long i = chunkpos.getMinBlockX();
-        long j = chunkpos.getMinBlockZ();
+        Int128 i = chunkpos.getMinBlockX();
+        Int128 j = chunkpos.getMinBlockZ();
         ProfilerFiller profilerfiller = this.getProfiler();
         profilerfiller.push("thunder");
         if (flag && this.isThundering() && this.random.nextInt(100000) == 0) {
@@ -393,12 +390,12 @@ public class ServerLevel extends Level implements WorldGenLevel {
                     SkeletonHorse skeletonhorse = EntityType.SKELETON_HORSE.create(this);
                     skeletonhorse.setTrap(true);
                     skeletonhorse.setAge(0);
-                    skeletonhorse.setPos((double) blockpos.getX(), (double) blockpos.getY(), (double) blockpos.getZ());
+                    skeletonhorse.applyExactPosition(SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.0D, blockpos.getY(), blockpos.getZ(), 0.0D));
                     this.addFreshEntity(skeletonhorse);
                 }
 
                 LightningBolt lightningbolt = EntityType.LIGHTNING_BOLT.create(this);
-                lightningbolt.moveTo(Vec3.atBottomCenterOf(blockpos));
+                lightningbolt.moveTo(SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.5D, blockpos.getY(), blockpos.getZ(), 0.5D), lightningbolt.getYRot(), lightningbolt.getXRot());
                 lightningbolt.setVisualOnly(flag1);
                 this.addFreshEntity(lightningbolt);
             }
@@ -437,7 +434,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
                     for (int k = 0; k < pRandomTickSpeed; ++k) {
                         BlockPos blockpos1 = this.getBlockRandomPos(i, l, j, 15);
                         profilerfiller.push("randomTick");
-                        BlockState blockstate = levelchunksection.getBlockState((int) (WorldBounds.subtractBlockOffset(blockpos1.getX(), i)), blockpos1.getY() - l, (int) (WorldBounds.subtractBlockOffset(blockpos1.getZ(), j)));
+                        BlockState blockstate = levelchunksection.getBlockState((int) (blockpos1.getXLo() & 15L), blockpos1.getY() - l, (int) (blockpos1.getZLo() & 15L));
                         if (blockstate.isRandomlyTicking()) {
                             blockstate.randomTick(this, blockpos1, this.random);
                         }
@@ -456,8 +453,15 @@ public class ServerLevel extends Level implements WorldGenLevel {
         profilerfiller.pop();
     }
 
+    public BlockPos getBlockRandomPos(Int128 pX, int pY, Int128 pZ, int pYMask) {
+        // Sample in a local frame to preserve Level's random sequence without narrowing the origin.
+        BlockPos offset = super.getBlockRandomPos(0L, pY, 0L, pYMask);
+        return new BlockPos(WorldBounds.addBlockOffset(pX, offset.getXLo()), offset.getY(),
+                WorldBounds.addBlockOffset(pZ, offset.getZLo()));
+    }
+
     private Optional<BlockPos> findLightningRod(BlockPos pPos) {
-        Optional<BlockPos> optional = this.getPoiManager().findClosest((p_215059_) -> { return p_215059_.is(PoiTypes.LIGHTNING_ROD); }, (p_184055_) -> { return p_184055_.getY() == this.getHeight(Heightmap.Types.WORLD_SURFACE, p_184055_.getX(), p_184055_.getZ()) - 1; }, pPos, 128, PoiManager.Occupancy.ANY);
+        Optional<BlockPos> optional = this.getPoiManager().findClosest((p_215059_) -> { return p_215059_.is(PoiTypes.LIGHTNING_ROD); }, (p_184055_) -> { return p_184055_.getY() == this.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, p_184055_).getY() - 1; }, pPos, 128, PoiManager.Occupancy.ANY);
         return optional.map((p_184053_) -> {
             return p_184053_.above(1);
         });
@@ -809,11 +813,6 @@ public class ServerLevel extends Level implements WorldGenLevel {
         }
     }
 
-    public void playSeededSound(@Nullable Player pPlayer, double pX, double pY, double pZ, SoundEvent pSoundEvent, SoundSource pSoundSource, float pVolume, float pPitch, long pSeed) {
-        this.playSeededSound(pPlayer, SectorVec3.fromApproximate(pX, pY, pZ), pSoundEvent,
-                pSoundSource, pVolume, pPitch, pSeed);
-    }
-
     @Override
     public void playSeededSound(@Nullable Player player, SectorVec3 position, SoundEvent sound, SoundSource source,
             float volume, float pitch, long seed) {
@@ -822,7 +821,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
     }
 
     public void playSeededSound(@Nullable Player pPlayer, Entity pEntity, SoundEvent pSoundEvent, SoundSource pSoundSource, float pVolume, float pPitch, long pSeed) {
-        this.server.getPlayerList().broadcast(pPlayer, pEntity.getX(), pEntity.getY(), pEntity.getZ(), (double) pSoundEvent.getRange(pVolume), this.dimension(), new ClientboundSoundEntityPacket(pSoundEvent, pSoundSource, pEntity, pVolume, pPitch, pSeed));
+        this.server.getPlayerList().broadcast(pPlayer, pEntity.exactPosition(), (double) pSoundEvent.getRange(pVolume), this.dimension(), new ClientboundSoundEntityPacket(pSoundEvent, pSoundSource, pEntity, pVolume, pPitch, pSeed));
     }
 
     public void globalLevelEvent(int pId, BlockPos pPos, int pData) {
@@ -830,7 +829,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
     }
 
     public void levelEvent(@Nullable Player pPlayer, int pType, BlockPos pPos, int pData) {
-        this.server.getPlayerList().broadcast(pPlayer, (double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ(), 64.0D, this.dimension(), new ClientboundLevelEventPacket(pType, pPos, pData, false));
+        this.server.getPlayerList().broadcast(pPlayer, SectorVec3.fromBlockAndFraction(pPos.getX(), 0.0D, pPos.getY(), pPos.getZ(), 0.0D), 64.0D, this.dimension(), new ClientboundLevelEventPacket(pType, pPos, pData, false));
     }
 
     public int getLogicalHeight() {
@@ -843,22 +842,22 @@ public class ServerLevel extends Level implements WorldGenLevel {
 
     @Override
     public void gameEvent(GameEvent pEvent, SectorVec3 exactPosition, GameEvent.Context pContext) {
-        Vec3 pPosition = exactPosition.toApproximateVec3();
+        Vec3 pPosition = exactPosition.toExactVec3();
         int i = pEvent.getNotificationRadius();
         BlockPos blockpos = new BlockPos(exactPosition.blockX(), Mth.floor(exactPosition.y()), exactPosition.blockZ());
-        long j = SectionPos.blockToSectionCoord(WorldBounds.subtractBlockOffset(blockpos.getX(), i));
+        Int128 j = SectionPos.blockToSectionCoord(WorldBounds.subtractBlockOffset(blockpos.getX(), i));
         int k = SectionPos.blockToSectionCoord(blockpos.getY() - i);
-        long l = SectionPos.blockToSectionCoord(WorldBounds.subtractBlockOffset(blockpos.getZ(), i));
-        long i1 = SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(blockpos.getX(), i));
+        Int128 l = SectionPos.blockToSectionCoord(WorldBounds.subtractBlockOffset(blockpos.getZ(), i));
+        Int128 i1 = SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(blockpos.getX(), i));
         int j1 = SectionPos.blockToSectionCoord(blockpos.getY() + i);
-        long k1 = SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(blockpos.getZ(), i));
+        Int128 k1 = SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(blockpos.getZ(), i));
         List<GameEvent.Message> list = new ArrayList<>();
         boolean flag = false;
 
-        boolean moreX = j <= i1;
-        for (long l1 = j; moreX; moreX = l1 < i1, l1 = WorldBounds.addChunkOffset(l1, 1L)) {
-            boolean moreZ = l <= k1;
-            for (long i2 = l; moreZ; moreZ = i2 < k1, i2 = WorldBounds.addChunkOffset(i2, 1L)) {
+        boolean moreX = j.compareTo(i1) <= 0;
+        for (Int128 l1 = j; moreX; moreX = l1.compareTo(i1) < 0, l1 = WorldBounds.addChunkOffset(l1, 1L)) {
+            boolean moreZ = l.compareTo(k1) <= 0;
+            for (Int128 i2 = l; moreZ; moreZ = i2.compareTo(k1) < 0, i2 = WorldBounds.addChunkOffset(i2, 1L)) {
                 ChunkAccess chunkaccess = this.getChunkSource().getChunkNow(l1, i2);
                 if (chunkaccess != null) {
                     for (int j2 = k; j2 <= j1; ++j2) {
@@ -972,13 +971,6 @@ public class ServerLevel extends Level implements WorldGenLevel {
         return explosion;
     }
 
-    /** Legacy absolute-double explosion entry point. Exact callers use the SectorVec3 overload. */
-    @Override
-    public Explosion explode(@Nullable Entity pExploder, @Nullable DamageSource pDamageSource, @Nullable ExplosionDamageCalculator pContext, double pX, double pY, double pZ, float pSize, boolean pCausesFire, Explosion.BlockInteraction pMode) {
-        return this.explode(pExploder, pDamageSource, pContext, SectorVec3.fromApproximate(pX, pY, pZ),
-                pSize, pCausesFire, pMode);
-    }
-
     public void blockEvent(BlockPos pPos, Block pBlock, int pEventID, int pEventParam) {
         this.blockEvents.add(new BlockEventData(pPos, pBlock, pEventID, pEventParam));
     }
@@ -990,7 +982,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
             BlockEventData blockeventdata = this.blockEvents.removeFirst();
             if (this.shouldTickBlocksAt(blockeventdata.pos())) {
                 if (this.doBlockEvent(blockeventdata)) {
-                    this.server.getPlayerList().broadcast((Player) null, (double) blockeventdata.pos().getX(), (double) blockeventdata.pos().getY(), (double) blockeventdata.pos().getZ(), 64.0D, this.dimension(), new ClientboundBlockEventPacket(blockeventdata.pos(), blockeventdata.block(), blockeventdata.paramA(), blockeventdata.paramB()));
+                    this.server.getPlayerList().broadcast((Player) null, SectorVec3.fromBlockAndFraction(blockeventdata.pos().getX(), 0.0D, blockeventdata.pos().getY(), blockeventdata.pos().getZ(), 0.0D), 64.0D, this.dimension(), new ClientboundBlockEventPacket(blockeventdata.pos(), blockeventdata.block(), blockeventdata.paramA(), blockeventdata.paramB()));
                 }
             } else {
                 this.blockEventsToReschedule.add(blockeventdata);
@@ -1026,12 +1018,6 @@ public class ServerLevel extends Level implements WorldGenLevel {
         return this.server.getStructureManager();
     }
 
-    /** Legacy double entry point; exact particle producers use the SectorVec3 overload. */
-    public <T extends ParticleOptions> int sendParticles(T options, double x, double y, double z, int count,
-            double xDist, double yDist, double zDist, double maxSpeed) {
-        return this.sendParticles(options, SectorVec3.fromApproximate(x, y, z), count, xDist, yDist, zDist, maxSpeed);
-    }
-
     public <T extends ParticleOptions> int sendParticles(T options, SectorVec3 position, int count,
             double xDist, double yDist, double zDist, double maxSpeed) {
         ClientboundLevelParticlesPacket packet = new ClientboundLevelParticlesPacket(options, false, position,
@@ -1043,14 +1029,6 @@ public class ServerLevel extends Level implements WorldGenLevel {
             }
         }
         return sent;
-    }
-
-    /** Legacy double entry point; exact particle producers use the SectorVec3 overload. */
-    public <T extends ParticleOptions> boolean sendParticles(ServerPlayer player, T options, boolean force,
-            double x, double y, double z, int count,
-            double xDist, double yDist, double zDist, double maxSpeed) {
-        return this.sendParticles(player, options, force, SectorVec3.fromApproximate(x, y, z), count,
-                xDist, yDist, zDist, maxSpeed);
     }
 
     public <T extends ParticleOptions> boolean sendParticles(ServerPlayer player, T options, boolean force,
@@ -1065,9 +1043,6 @@ public class ServerLevel extends Level implements WorldGenLevel {
         if (player.getLevel() != this)
             return false;
         SectorVec3 playerPosition = player.exactPosition();
-        if (playerPosition == null) {
-            playerPosition = SectorVec3.fromApproximate(player.getX(), player.getY(), player.getZ());
-        }
         if (playerPosition.relativeTo(position).lengthSqr() <= Mth.square(force ? 512.0D : 32.0D)) {
             player.connection.send(packet);
             return true;
@@ -1156,6 +1131,10 @@ public class ServerLevel extends Level implements WorldGenLevel {
     }
 
     public boolean setChunkForced(long pChunkX, long pChunkZ, boolean pAdd) {
+        return this.setChunkForced(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ), pAdd);
+    }
+
+    public boolean setChunkForced(Int128 pChunkX, Int128 pChunkZ, boolean pAdd) {
         ForcedChunksSavedData forcedchunkssaveddata = this.getDataStorage().computeIfAbsent(ForcedChunksSavedData::load, ForcedChunksSavedData::new, "chunks");
         ChunkPos chunkpos = new ChunkPos(pChunkX, pChunkZ);
         boolean flag;
@@ -1389,7 +1368,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
         for (Entity entity : pEntities) {
             Component component = entity.getCustomName();
             Component component1 = entity.getDisplayName();
-            csvoutput.writeRow(entity.getX(), entity.getY(), entity.getZ(), entity.getUUID(), Registry.ENTITY_TYPE.getKey(entity.getType()), entity.isAlive(), component1.getString(), component != null ? component.getString() : null);
+            csvoutput.writeRow(entity.exactPosition().formatX(6), entity.getY(), entity.exactPosition().formatZ(6), entity.getUUID(), Registry.ENTITY_TYPE.getKey(entity.getType()), entity.isAlive(), component1.getString(), component != null ? component.getString() : null);
         }
     }
 
@@ -1471,13 +1450,13 @@ public class ServerLevel extends Level implements WorldGenLevel {
 
     public static void makeObsidianPlatform(ServerLevel pServerLevel) {
         BlockPos blockpos = END_SPAWN_POINT;
-        long i = blockpos.getX();
+        Int128 i = blockpos.getX();
         int j = blockpos.getY() - 2;
-        long k = blockpos.getZ();
-        BlockPos.betweenClosed(i - 2, j + 1, k - 2, i + 2, j + 3, k + 2).forEach((p_207578_) -> {
+        Int128 k = blockpos.getZ();
+        BlockPos.betweenClosed(WorldBounds.subtractBlockOffset(i, 2), j + 1, WorldBounds.subtractBlockOffset(k, 2), WorldBounds.addBlockOffset(i, 2), j + 3, WorldBounds.addBlockOffset(k, 2)).forEach((p_207578_) -> {
             pServerLevel.setBlockAndUpdate(p_207578_, Blocks.AIR.defaultBlockState());
         });
-        BlockPos.betweenClosed(i - 2, j, k - 2, i + 2, j, k + 2).forEach((p_184101_) -> {
+        BlockPos.betweenClosed(WorldBounds.subtractBlockOffset(i, 2), j, WorldBounds.subtractBlockOffset(k, 2), WorldBounds.addBlockOffset(i, 2), j, WorldBounds.addBlockOffset(k, 2)).forEach((p_184101_) -> {
             pServerLevel.setBlockAndUpdate(p_184101_, Blocks.OBSIDIAN.defaultBlockState());
         });
     }

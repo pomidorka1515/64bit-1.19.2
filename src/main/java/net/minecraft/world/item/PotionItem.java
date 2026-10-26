@@ -93,7 +93,7 @@ public class PotionItem extends Item {
                 ServerLevel serverlevel = (ServerLevel) level;
 
                 for (int i = 0; i < 5; ++i) {
-                    serverlevel.sendParticles(ParticleTypes.SPLASH, (double) blockpos.getX() + level.random.nextDouble(), (double) (blockpos.getY() + 1), (double) blockpos.getZ() + level.random.nextDouble(), 1, 0.0D, 0.0D, 0.0D, 1.0D);
+                    serverlevel.sendParticles(ParticleTypes.SPLASH, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), level.random.nextDouble(), blockpos.getY() + 1, blockpos.getZ(), level.random.nextDouble()), 1, 0.0D, 0.0D, 0.0D, 1.0D);
                 }
             }
 

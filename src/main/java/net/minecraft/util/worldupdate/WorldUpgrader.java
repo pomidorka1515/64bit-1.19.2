@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.logging.LogUtils;
 import it.unimi.dsi.fastutil.objects.Object2FloatMap;
 import it.unimi.dsi.fastutil.objects.Object2FloatMaps;
@@ -17,22 +16,22 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ThreadFactory;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import net.minecraft.core.Int128;
+import net.minecraft.world.level.WorldBounds;
+import net.minecraft.world.level.chunk.storage.RegionFileNames;
+import net.minecraft.world.level.chunk.storage.RegionPos;
 import net.minecraft.ReportedException;
-import net.minecraft.SharedConstants;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.storage.ChunkStorage;
 import net.minecraft.world.level.chunk.storage.RegionFile;
 import net.minecraft.world.level.levelgen.WorldGenSettings;
-import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import org.slf4j.Logger;
 
@@ -43,7 +42,6 @@ public class WorldUpgrader {
     private final boolean eraseCache;
     private final LevelStorageSource.LevelStorageAccess levelStorage;
     private final Thread thread;
-    private final DataFixer dataFixer;
     private volatile boolean running = true;
     private volatile boolean finished;
     private volatile float progress;
@@ -52,15 +50,11 @@ public class WorldUpgrader {
     private volatile int skipped;
     private final Object2FloatMap<ResourceKey<Level>> progressMap = Object2FloatMaps.synchronize(new Object2FloatOpenCustomHashMap<>(Util.identityStrategy()));
     private volatile Component status = Component.translatable("optimizeWorld.stage.counting");
-    private static final Pattern REGEX = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
-    private final DimensionDataStorage overworldDataStorage;
 
-    public WorldUpgrader(LevelStorageSource.LevelStorageAccess pLevelStorage, DataFixer pDataFixer, WorldGenSettings pWorldGenSettings, boolean pEraseCache) {
+    public WorldUpgrader(LevelStorageSource.LevelStorageAccess pLevelStorage, WorldGenSettings pWorldGenSettings, boolean pEraseCache) {
         this.worldGenSettings = pWorldGenSettings;
         this.eraseCache = pEraseCache;
-        this.dataFixer = pDataFixer;
         this.levelStorage = pLevelStorage;
-        this.overworldDataStorage = new DimensionDataStorage(this.levelStorage.getDimensionPath(Level.OVERWORLD).resolve("data").toFile(), pDataFixer);
         this.thread = THREAD_FACTORY.newThread(this::work);
         this.thread.setUncaughtExceptionHandler((p_18825_, p_18826_) -> {
             LOGGER.error("Error upgrading world", p_18826_);
@@ -99,7 +93,7 @@ public class WorldUpgrader {
 
             for (ResourceKey<Level> resourcekey1 : immutableset) {
                 Path path = this.levelStorage.getDimensionPath(resourcekey1);
-                builder1.put(resourcekey1, new ChunkStorage(path.resolve("region"), this.dataFixer, true));
+                builder1.put(resourcekey1, new ChunkStorage(path.resolve("region"), true));
             }
 
             ImmutableMap<ResourceKey<Level>, ChunkStorage> immutablemap1 = builder1.build();
@@ -120,23 +114,18 @@ public class WorldUpgrader {
                         try {
                             CompoundTag compoundtag = chunkstorage.read(chunkpos).join().orElse((CompoundTag) null);
                             if (compoundtag != null) {
-                                int k = ChunkStorage.getVersion(compoundtag);
-                                ChunkGenerator chunkgenerator = this.worldGenSettings.dimensions().get(WorldGenSettings.levelToLevelStem(resourcekey2)).generator();
-                                CompoundTag compoundtag1 = chunkstorage.upgradeChunkTag(resourcekey2, () -> {
-                                    return this.overworldDataStorage;
-                                }, compoundtag, chunkgenerator.getTypeNameForDataFixer());
-                                ChunkPos chunkpos1 = new ChunkPos(compoundtag1.getInt("xPos"), compoundtag1.getInt("zPos"));
+                                ChunkPos chunkpos1 = new ChunkPos(NbtUtils.readInt128(compoundtag, "xPos"), NbtUtils.readInt128(compoundtag, "zPos"));
                                 if (!chunkpos1.equals(chunkpos)) {
                                     LOGGER.warn("Chunk {} has invalid position {}", chunkpos, chunkpos1);
                                 }
 
-                                boolean flag2 = k < SharedConstants.getCurrentVersion().getWorldVersion();
+                                boolean flag2 = false;
                                 if (this.eraseCache) {
-                                    flag2 = flag2 || compoundtag1.contains("Heightmaps");
-                                    compoundtag1.remove("Heightmaps");
-                                    flag2 = flag2 || compoundtag1.contains("isLightOn");
-                                    compoundtag1.remove("isLightOn");
-                                    ListTag listtag = compoundtag1.getList("sections", 10);
+                                    flag2 = flag2 || compoundtag.contains("Heightmaps");
+                                    compoundtag.remove("Heightmaps");
+                                    flag2 = flag2 || compoundtag.contains("isLightOn");
+                                    compoundtag.remove("isLightOn");
+                                    ListTag listtag = compoundtag.getList("sections", 10);
 
                                     for (int i = 0; i < listtag.size(); ++i) {
                                         CompoundTag compoundtag2 = listtag.getCompound(i);
@@ -148,7 +137,7 @@ public class WorldUpgrader {
                                 }
 
                                 if (flag2) {
-                                    chunkstorage.write(chunkpos, compoundtag1);
+                                    chunkstorage.write(chunkpos, compoundtag);
                                     flag1 = true;
                                 }
                             }
@@ -191,7 +180,6 @@ public class WorldUpgrader {
                 }
             }
 
-            this.overworldDataStorage.save();
             j = Util.getMillis() - j;
             LOGGER.info("World optimizaton finished after {} ms", (long) j);
             this.finished = true;
@@ -201,6 +189,10 @@ public class WorldUpgrader {
     private List<ChunkPos> getAllChunkPos(ResourceKey<Level> p_18831_) {
         File file1 = this.levelStorage.getDimensionPath(p_18831_).toFile();
         File file2 = new File(file1, "region");
+        return getAllChunkPos(file2);
+    }
+
+    static List<ChunkPos> getAllChunkPos(File file2) {
         File[] afile = file2.listFiles((p_18822_, p_18823_) -> {
             return p_18823_.endsWith(".mca");
         });
@@ -210,10 +202,10 @@ public class WorldUpgrader {
             List<ChunkPos> list = Lists.newArrayList();
 
             for (File file3 : afile) {
-                Matcher matcher = REGEX.matcher(file3.getName());
-                if (matcher.matches()) {
-                    int i = Integer.parseInt(matcher.group(1)) << 5;
-                    int j = Integer.parseInt(matcher.group(2)) << 5;
+                RegionPos region = RegionFileNames.parseRegionFileName(file3.getName()).orElse(null);
+                if (region != null && isRegionInBounds(region)) {
+                    Int128 i = region.x().shiftLeftSaturated(5);
+                    Int128 j = region.z().shiftLeftSaturated(5);
 
                     try {
                         RegionFile regionfile = new RegionFile(file3.toPath(), file2.toPath(), true);
@@ -221,7 +213,7 @@ public class WorldUpgrader {
                         try {
                             for (int k = 0; k < 32; ++k) {
                                 for (int l = 0; l < 32; ++l) {
-                                    ChunkPos chunkpos = new ChunkPos(k + i, l + j);
+                                    ChunkPos chunkpos = new ChunkPos(i.add(Int128.fromLong(k)), j.add(Int128.fromLong(l)));
                                     if (regionfile.doesChunkExist(chunkpos)) {
                                         list.add(chunkpos);
                                     }
@@ -245,6 +237,13 @@ public class WorldUpgrader {
 
             return list;
         }
+    }
+
+    private static boolean isRegionInBounds(RegionPos region) {
+        Int128 min = WorldBounds.MIN_CHUNK.shiftRight(5);
+        Int128 max = WorldBounds.MAX_CHUNK.shiftRight(5);
+        return region.x().compareTo(min) >= 0 && region.x().compareTo(max) <= 0
+                && region.z().compareTo(min) >= 0 && region.z().compareTo(max) <= 0;
     }
 
     public boolean isFinished() {

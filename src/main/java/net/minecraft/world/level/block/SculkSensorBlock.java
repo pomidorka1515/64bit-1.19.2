@@ -231,7 +231,7 @@ public class SculkSensorBlock extends BaseEntityBlock implements SimpleWaterlogg
         updateNeighbours(pLevel, pPos);
         pLevel.gameEvent(pEntity, GameEvent.SCULK_SENSOR_TENDRILS_CLICKING, pPos);
         if (!pState.getValue(WATERLOGGED)) {
-            pLevel.playSound((Player) null, (double) pPos.getX() + 0.5D, (double) pPos.getY() + 0.5D, (double) pPos.getZ() + 0.5D, SoundEvents.SCULK_CLICKING, SoundSource.BLOCKS, 1.0F, pLevel.random.nextFloat() * 0.2F + 0.8F);
+            pLevel.playSound((Player) null, pPos, SoundEvents.SCULK_CLICKING, SoundSource.BLOCKS, 1.0F, pLevel.random.nextFloat() * 0.2F + 0.8F);
         }
     }
 

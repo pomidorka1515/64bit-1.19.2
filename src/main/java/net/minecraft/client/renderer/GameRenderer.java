@@ -619,9 +619,9 @@ public class GameRenderer implements ResourceManagerReloadListener, AutoCloseabl
                 this.minecraft.crosshairPickEntity = null;
                 double d0 = (double) this.minecraft.gameMode.getPickRange();
                 this.minecraft.hitResult = entity.pick(d0, pPartialTicks, false);
-                Vec3 vec3 = entity.getEyePosition(pPartialTicks);
                 net.minecraft.world.phys.SectorVec3 exactEye = entity.interpolatedExactPosition(pPartialTicks)
-                                                                       .withY(vec3.y);
+                        .add(0.0D, entity.getEyeHeight(), 0.0D);
+                Vec3 vec3 = exactEye.toExactVec3();
                 boolean flag = false;
                 int i = 3;
                 double d1 = d0;

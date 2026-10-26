@@ -15,7 +15,7 @@ public class BlockLightSectionStorage extends LayerLightSectionStorage<BlockLigh
 
     protected int getLightValue(BlockPos pLevelPos) {
         DataLayer datalayer = this.getDataLayer(SectionPos.of(pLevelPos), false);
-        return datalayer == null ? 0 : datalayer.get(SectionPos.sectionRelative(pLevelPos.getX()), SectionPos.sectionRelative(pLevelPos.getY()), SectionPos.sectionRelative(pLevelPos.getZ()));
+        return datalayer == null ? 0 : datalayer.get(SectionPos.sectionRelative(pLevelPos.getXLo()), SectionPos.sectionRelative(pLevelPos.getY()), SectionPos.sectionRelative(pLevelPos.getZLo()));
     }
 
     protected static final class BlockDataLayerStorageMap extends DataLayerStorageMap<BlockLightSectionStorage.BlockDataLayerStorageMap> {
@@ -24,7 +24,7 @@ public class BlockLightSectionStorage extends LayerLightSectionStorage<BlockLigh
         }
 
         public BlockLightSectionStorage.BlockDataLayerStorageMap copy() {
-            return new BlockLightSectionStorage.BlockDataLayerStorageMap(new HashMap<>(this.map));
+            return new BlockLightSectionStorage.BlockDataLayerStorageMap(this.map.copy());
         }
     }
 }

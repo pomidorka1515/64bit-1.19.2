@@ -41,7 +41,7 @@ public class DragonLandingApproachPhase extends AbstractDragonPhaseInstance {
 
     @Nullable
     public Vec3 getFlyTargetLocation() {
-        return this.targetLocation == null ? null : this.targetLocation.toApproximateVec3();
+        return this.targetLocation == null ? null : this.targetLocation.toExactVec3();
     }
 
     public net.minecraft.world.phys.SectorVec3 getExactFlyTargetLocation() {
@@ -55,7 +55,9 @@ public class DragonLandingApproachPhase extends AbstractDragonPhaseInstance {
             Player player = this.dragon.level.getNearestPlayer(NEAR_EGG_TARGETING, this.dragon, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.0D, blockpos.getY(), blockpos.getZ(), 0.0D));
             int j;
             if (player != null) {
-                Vec3 vec3 = (new Vec3(player.getX(), 0.0D, player.getZ())).normalize();
+                Vec3 vec3 = player.sectorPosition().withY(0.0D).relativeTo(
+                        net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(net.minecraft.core.Int128.ZERO,
+                                0.0D, 0.0D, net.minecraft.core.Int128.ZERO, 0.0D)).normalize();
                 j = this.dragon.findClosestNode(-vec3.x * 40.0D, 105.0D, -vec3.z * 40.0D);
             } else {
                 j = this.dragon.findClosestNode(40.0D, (double) blockpos.getY(), 0.0D);

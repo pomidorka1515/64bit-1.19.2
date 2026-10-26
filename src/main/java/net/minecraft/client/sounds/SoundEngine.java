@@ -303,12 +303,18 @@ public class SoundEngine {
     * retain their supplied local position.
     */
     private SoundEngine.SourcePosition sourcePosition(SoundInstance sound) {
+        return sourcePosition(sound, this.listenerPosition);
+    }
+
+    static SoundEngine.SourcePosition sourcePosition(SoundInstance sound, SectorVec3 listenerPosition) {
         if (sound.isRelative()) {
-            return new SoundEngine.SourcePosition(sound.getX(), sound.getY(), sound.getZ());
+            if (sound.getExactPosition() == null)
+                return new SoundEngine.SourcePosition(0.0D, 0.0D, 0.0D);
+            Vec3 local = sound.getExactPosition().relativeTo(SectorVec3.fromApproximate(0.0D, 0.0D, 0.0D));
+            return new SoundEngine.SourcePosition(local.x, local.y, local.z);
         }
 
         SectorVec3 source = sound.getExactPosition();
-        SectorVec3 listenerPosition = this.listenerPosition;
         if (source != null) {
             // A sound can be requested during startup, before the first camera
             // update.  Do not ever hand its absolute position to OpenAL; it will
@@ -318,29 +324,14 @@ public class SoundEngine {
                                                       source.relativeZ(listenerPosition));
         }
 
-        // Compatibility for third-party SoundInstance implementations. A legacy
-        // double cannot retain sub-block precision past 2^53, but converting it
-        // to a split coordinate before subtracting still guarantees that no
-        // absolute world position reaches OpenAL.
-        if (listenerPosition == null) {
-            return new SoundEngine.SourcePosition(0.0D, 0.0D, 0.0D);
-        }
-
-        try {
-            SectorVec3 legacySource = SectorVec3.fromApproximate(sound.getX(), sound.getY(), sound.getZ());
-            return new SoundEngine.SourcePosition(legacySource.relativeX(listenerPosition),
-                    legacySource.relativeY(listenerPosition), legacySource.relativeZ(listenerPosition));
-        } catch (IllegalArgumentException ignored) {
-            // A malformed extension sound must not inject NaN or infinity into a
-            // native OpenAL call. It is silently placed at the listener instead.
-            return new SoundEngine.SourcePosition(0.0D, 0.0D, 0.0D);
-        }
+        // Missing or malformed world positions must not reach native OpenAL.
+        return new SoundEngine.SourcePosition(0.0D, 0.0D, 0.0D);
     }
 
-    private static final class SourcePosition {
-        private final double x;
-        private final double y;
-        private final double z;
+    static final class SourcePosition {
+        final double x;
+        final double y;
+        final double z;
 
         private SourcePosition(double x, double y, double z) {
             this.x = x;
@@ -513,13 +504,7 @@ public class SoundEngine {
 
     public void updateSource(Camera pRenderInfo) {
         if (this.loaded && pRenderInfo.isInitialized()) {
-            SectorVec3 exactPosition = pRenderInfo.exactPosition();
-            Vec3 legacyPosition = pRenderInfo.getPosition();
-            // Old cameras/mods may not expose a split position. That compatibility
-            // frame is still safe for ordinary double worlds.
-            this.listenerPosition = exactPosition == null
-                    ? SectorVec3.fromApproximate(legacyPosition.x, legacyPosition.y, legacyPosition.z)
-                    : exactPosition;
+            this.listenerPosition = pRenderInfo.exactPosition();
             // Camera owns mutable vectors and may update them before this work is
             // consumed by the audio thread; copy the six floats at submission.
             Vector3f look = pRenderInfo.getLookVector();

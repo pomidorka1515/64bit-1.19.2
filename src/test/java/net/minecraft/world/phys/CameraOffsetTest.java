@@ -1,6 +1,7 @@
 package net.minecraft.world.phys;
 
 import net.minecraft.client.renderer.CameraRelativePosition;
+import net.minecraft.core.Int128;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -10,8 +11,8 @@ class CameraOffsetTest {
     void cameraRaysCanLeaveAnEmptyWorldAtEitherEdge() {
         net.minecraft.SharedConstants.tryDetectVersion();
         net.minecraft.server.Bootstrap.bootStrap();
-        for (long edge : new long[] { Long.MIN_VALUE, Long.MAX_VALUE }) {
-            double direction = edge == Long.MIN_VALUE ? -4.0D : 4.0D;
+        for (Int128 edge : new Int128[] { Int128.MIN, Int128.MAX }) {
+            double direction = edge.equals(Int128.MIN) ? -4.0D : 4.0D;
             SectorVec3 eye = SectorVec3.fromBlockAndFraction(edge, 0.5D, 80.0D, edge, 0.5D);
             assertEquals(Double.POSITIVE_INFINITY,
                     net.minecraft.world.level.SectorClipper.clipCameraDistance(
@@ -30,14 +31,14 @@ class CameraOffsetTest {
 
     @Test
     void cameraCanCrossBothEdgesWithoutMovingItsWorldAnchor() {
-        SectorVec3 eye = SectorVec3.fromBlockAndFraction(Long.MAX_VALUE, 0.5D, 80.0D,
-                Long.MIN_VALUE, 0.5D);
+        SectorVec3 eye = SectorVec3.fromBlockAndFraction(Int128.MAX, 0.5D, 80.0D,
+                Int128.MIN, 0.5D);
         SectorVec3 camera = eye.offsetCamera(4.0D, 1.0D, -4.0D);
         assertFalse(camera.isInsideWorld());
         assertEquals(new Vec3(4.0D, 1.0D, -4.0D), camera.relativeTo(eye));
         CameraRelativePosition render = CameraRelativePosition.of(camera);
-        assertEquals(-4.5D, render.relativeX(Long.MAX_VALUE));
-        assertEquals(3.5D, render.relativeZ(Long.MIN_VALUE));
+        assertEquals(-4.5D, render.relativeX(Int128.MAX));
+        assertEquals(3.5D, render.relativeZ(Int128.MIN));
         assertEquals(eye, camera.offsetCamera(-4.0D, -1.0D, 4.0D));
         assertTrue(eye.isInsideWorld());
         assertTrue(eye.add(4.0D, 0.0D, -4.0D).isInsideWorld());

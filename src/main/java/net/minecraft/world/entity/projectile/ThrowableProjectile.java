@@ -21,17 +21,17 @@ public abstract class ThrowableProjectile extends Projectile {
 
     protected ThrowableProjectile(EntityType<? extends ThrowableProjectile> pEntityType, double pX, double pY, double pZ, Level pLevel) {
         this(pEntityType, pLevel);
-        this.setPos(pX, pY, pZ);
+        this.applyExactPosition(SectorVec3.fromApproximate(pX, pY, pZ));
     }
 
     protected ThrowableProjectile(EntityType<? extends ThrowableProjectile> pEntityType, LivingEntity pShooter, Level pLevel) {
-        this(pEntityType, pShooter.getX(), pShooter.getEyeY() - (double) 0.1F, pShooter.getZ(), pLevel);
+        this(pEntityType, pLevel);
         this.applyExactPosition(pShooter.sectorPosition().withY(pShooter.getEyeY() - (double) 0.1F));
         this.setOwner(pShooter);
     }
 
     public boolean shouldRenderAtSqrDistance(double pDistance) {
-        double d0 = this.getBoundingBox().getSize() * 4.0D;
+        double d0 = this.exactBoundingBox().getSize() * 4.0D;
         if (Double.isNaN(d0)) {
             d0 = 4.0D;
         }

@@ -11,7 +11,7 @@ public class HasSturdyFacePredicate implements BlockPredicate {
     private final Vec3i offset;
     private final Direction direction;
     public static final Codec<HasSturdyFacePredicate> CODEC = RecordCodecBuilder.create((p_198327_) -> {
-        return p_198327_.group(Vec3i.offsetCodec(16).optionalFieldOf("offset", Vec3i.ZERO).forGetter((p_198331_) -> {
+        return p_198327_.group(net.minecraft.world.level.levelgen.WorldgenPlacementCodecs.optionalField(Vec3i.offsetCodec(16), "offset", Vec3i.ZERO).forGetter((p_198331_) -> {
                             return p_198331_.offset;
                         }),
                                 Direction.CODEC.fieldOf("direction").forGetter((p_198329_) -> {

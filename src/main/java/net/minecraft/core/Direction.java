@@ -7,8 +7,6 @@ import com.mojang.math.Vector3f;
 import com.mojang.math.Vector4f;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
@@ -109,7 +107,7 @@ public enum Direction implements StringRepresentable {
 
     public static Direction rotate(Matrix4f pMatrix, Direction pDirection) {
         Vec3i vec3i = pDirection.getNormal();
-        Vector4f vector4f = new Vector4f((float) vec3i.getX(), (float) vec3i.getY(), (float) vec3i.getZ(), 0.0F);
+        Vector4f vector4f = new Vector4f((float) vec3i.getXLo(), (float) vec3i.getY(), (float) vec3i.getZLo(), 0.0F);
         vector4f.transform(pMatrix);
         return getNearest(vector4f.x(), vector4f.y(), vector4f.z());
     }
@@ -362,7 +360,7 @@ public enum Direction implements StringRepresentable {
     }
 
     public long getStepX() {
-        return this.normal.getX();
+        return this.normal.getXLo();
     }
 
     public int getStepY() {
@@ -370,7 +368,7 @@ public enum Direction implements StringRepresentable {
     }
 
     public long getStepZ() {
-        return this.normal.getZ();
+        return this.normal.getZLo();
     }
 
     public Vector3f step() {
@@ -448,7 +446,7 @@ public enum Direction implements StringRepresentable {
         float f = Float.MIN_VALUE;
 
         for (Direction direction1 : VALUES) {
-            float f1 = pX * (float) direction1.normal.getX() + pY * (float) direction1.normal.getY() + pZ * (float) direction1.normal.getZ();
+            float f1 = pX * (float) direction1.normal.getXLo() + pY * (float) direction1.normal.getY() + pZ * (float) direction1.normal.getZLo();
             if (f1 > f) {
                 f = f1;
                 direction = direction1;
@@ -488,7 +486,7 @@ public enum Direction implements StringRepresentable {
         float f = pDegrees * ((float) Math.PI / 180F);
         float f1 = -Mth.sin(f);
         float f2 = Mth.cos(f);
-        return (float) this.normal.getX() * f1 + (float) this.normal.getZ() * f2 > 0.0F;
+        return (float) this.normal.getXLo() * f1 + (float) this.normal.getZLo() * f2 > 0.0F;
     }
 
     public static enum Axis implements StringRepresentable, Predicate<Direction> {

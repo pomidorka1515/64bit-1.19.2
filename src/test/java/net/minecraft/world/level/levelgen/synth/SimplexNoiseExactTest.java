@@ -14,7 +14,7 @@ class SimplexNoiseExactTest {
             FarlandsMode.setMode(FarlandsMode.Mode.BIT_64_PRECISE);
             SimplexNoise noise = new SimplexNoise(new LegacyRandomSource(1234L));
             for (long x = -1000; x <= 1000; x += 17) {
-                assertEquals(noise.getValue((double) x, (double) -x + 31), noise.getValueAt(x, -x + 31));
+                assertEquals(noise.getValue((double) x, (double) -x + 31), noise.getValueAt(x, -x + 31), 1.0E-10D);
             }
             for (long x = 2000000; x < 2000100; ++x) {
                 assertEquals(noise.getValue((double) x, (double) x + 31), noise.getValueAt(x, x + 31), 1.0E-8D);

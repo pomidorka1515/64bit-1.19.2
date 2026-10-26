@@ -139,10 +139,8 @@ public class DispenserBlock extends BaseEntityBlock {
 
     public static Position getDispensePosition(BlockSource pBlockSource) {
         Direction direction = pBlockSource.getBlockState().getValue(FACING);
-        double d0 = pBlockSource.x() + 0.7D * (double) direction.getStepX();
-        double d1 = pBlockSource.y() + 0.7D * (double) direction.getStepY();
-        double d2 = pBlockSource.z() + 0.7D * (double) direction.getStepZ();
-        return new PositionImpl(d0, d1, d2);
+        return pBlockSource.exactPosition().add(0.7D * direction.getStepX(),
+                0.7D * direction.getStepY(), 0.7D * direction.getStepZ()).toExactVec3();
     }
 
     public boolean hasAnalogOutputSignal(BlockState pState) {

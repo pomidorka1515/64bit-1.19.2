@@ -61,7 +61,7 @@ public class AreaEffectCloud extends Entity {
 
     public AreaEffectCloud(Level pLevel, double pX, double pY, double pZ) {
         this(EntityType.AREA_EFFECT_CLOUD, pLevel);
-        this.setPos(pX, pY, pZ);
+        this.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromApproximate(pX, pY, pZ));
     }
 
     protected void defineSynchedData() {

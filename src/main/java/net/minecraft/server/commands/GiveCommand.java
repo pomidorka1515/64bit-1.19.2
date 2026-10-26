@@ -55,7 +55,7 @@ public class GiveCommand {
                             itementity1.makeFakeItem();
                         }
 
-                        serverplayer.level.playSound((Player) null, serverplayer.getX(), serverplayer.getY(), serverplayer.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, ((serverplayer.getRandom().nextFloat() - serverplayer.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
+                        serverplayer.level.playSound((Player) null, serverplayer.sectorPosition(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, ((serverplayer.getRandom().nextFloat() - serverplayer.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
                         serverplayer.containerMenu.broadcastChanges();
                     } else {
                         ItemEntity itementity = serverplayer.drop(itemstack, false);

@@ -37,13 +37,13 @@ public class BoatItem extends Item {
         } else {
             Vec3 vec3 = pPlayer.getViewVector(1.0F);
             double d0 = 5.0D;
-            List<Entity> list = pLevel.getEntities(pPlayer, pPlayer.getBoundingBox().expandTowards(vec3.scale(5.0D)).inflate(1.0D), ENTITY_PREDICATE);
+            List<Entity> list = pLevel.getEntities(pPlayer, pPlayer.exactBoundingBox().expandTowards(vec3.scale(5.0D)).inflate(1.0D), ENTITY_PREDICATE);
             if (!list.isEmpty()) {
-                Vec3 vec31 = pPlayer.getEyePosition();
+                net.minecraft.world.phys.SectorVec3 eye = pPlayer.exactEyePosition();
 
                 for (Entity entity : list) {
-                    AABB aabb = entity.getBoundingBox().inflate((double) entity.getPickRadius());
-                    if (aabb.contains(vec31)) {
+                    double radius = (double) entity.getPickRadius();
+                    if (entity.getSectorBoundingBox().inflate(radius, radius, radius).contains(eye)) {
                         return InteractionResultHolder.pass(itemstack);
                     }
                 }

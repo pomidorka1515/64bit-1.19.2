@@ -136,7 +136,7 @@ public class TestCommand {
     private static int createNewStructure(CommandSourceStack pSource, String pStructureName, int pX, int pY, int pZ) {
         if (pX <= 48 && pY <= 48 && pZ <= 48) {
             ServerLevel serverlevel = pSource.getLevel();
-            BlockPos blockpos = new BlockPos(pSource.getPosition());
+            BlockPos blockpos = pSource.getExactPosition().blockPosition();
             BlockPos blockpos1 = new BlockPos(blockpos.getX(), pSource.getLevel().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, blockpos).getY(), WorldBounds.addBlockOffset(blockpos.getZ(), 3));
             StructureUtils.createNewEmptyStructureBlock(pStructureName.toLowerCase(), blockpos1, new Vec3i(pX, pY, pZ), Rotation.NONE, serverlevel);
 
@@ -181,7 +181,7 @@ public class TestCommand {
     }
 
     private static int runNearbyTest(CommandSourceStack pSource) {
-        BlockPos blockpos = new BlockPos(pSource.getPosition());
+        BlockPos blockpos = pSource.getExactPosition().blockPosition();
         ServerLevel serverlevel = pSource.getLevel();
         BlockPos blockpos1 = StructureUtils.findNearestStructureBlock(blockpos, 15, serverlevel);
         if (blockpos1 == null) {
@@ -195,7 +195,7 @@ public class TestCommand {
     }
 
     private static int runAllNearbyTests(CommandSourceStack pSource) {
-        BlockPos blockpos = new BlockPos(pSource.getPosition());
+        BlockPos blockpos = pSource.getExactPosition().blockPosition();
         ServerLevel serverlevel = pSource.getLevel();
         Collection<BlockPos> collection = StructureUtils.findStructureBlocks(blockpos, 200, serverlevel);
         if (collection.isEmpty()) {
@@ -246,14 +246,14 @@ public class TestCommand {
     private static int clearAllTests(CommandSourceStack pSource, int pRadius) {
         ServerLevel serverlevel = pSource.getLevel();
         GameTestRunner.clearMarkers(serverlevel);
-        BlockPos blockpos = new BlockPos(pSource.getPosition().x, (double) pSource.getLevel().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(pSource.getPosition())).getY(), pSource.getPosition().z);
+        BlockPos blockpos = pSource.getLevel().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, pSource.getExactPosition().blockPosition());
         GameTestRunner.clearAllTests(serverlevel, blockpos, GameTestTicker.SINGLETON, Mth.clamp(pRadius, 0, 1024));
         return 1;
     }
 
     private static int runTest(CommandSourceStack pSource, TestFunction pFunction, int pRotationSteps) {
         ServerLevel serverlevel = pSource.getLevel();
-        BlockPos blockpos = new BlockPos(pSource.getPosition());
+        BlockPos blockpos = pSource.getExactPosition().blockPosition();
         int i = pSource.getLevel().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, blockpos).getY();
         BlockPos blockpos1 = new BlockPos(blockpos.getX(), i, WorldBounds.addBlockOffset(blockpos.getZ(), 3));
         GameTestRunner.clearMarkers(serverlevel);
@@ -309,7 +309,7 @@ public class TestCommand {
     }
 
     private static void runTests(CommandSourceStack p_127974_, Collection<TestFunction> p_127975_, int p_127976_, int p_127977_) {
-        BlockPos blockpos = new BlockPos(p_127974_.getPosition());
+        BlockPos blockpos = p_127974_.getExactPosition().blockPosition();
         BlockPos blockpos1 = new BlockPos(blockpos.getX(), p_127974_.getLevel().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, blockpos).getY(), WorldBounds.addBlockOffset(blockpos.getZ(), 3));
         ServerLevel serverlevel = p_127974_.getLevel();
         Rotation rotation = StructureUtils.getRotationForRotationSteps(p_127976_);
@@ -326,7 +326,7 @@ public class TestCommand {
     }
 
     private static int exportNearestTestStructure(CommandSourceStack pSource) {
-        BlockPos blockpos = new BlockPos(pSource.getPosition());
+        BlockPos blockpos = pSource.getExactPosition().blockPosition();
         ServerLevel serverlevel = pSource.getLevel();
         BlockPos blockpos1 = StructureUtils.findNearestStructureBlock(blockpos, 15, serverlevel);
         if (blockpos1 == null) {

@@ -76,7 +76,7 @@ public class CommandSourceStack implements SharedSuggestionProvider {
             EntityAnchorArgument.Anchor anchor, CommandSigningContext signingContext, TaskChainer chatMessageChainer) {
         this.source = source;
         this.worldPosition = position;
-        this.exactPosition = exactPosition != null ? exactPosition : SectorVec3.fromApproximate(position.x, position.y, position.z);
+        this.exactPosition = exactPosition != null ? exactPosition : SectorVec3.fromApproximate(position);
         this.level = level;
         this.silent = silent;
         this.entity = entity;
@@ -97,16 +97,16 @@ public class CommandSourceStack implements SharedSuggestionProvider {
 
     public CommandSourceStack withEntity(Entity entity) {
         SectorVec3 exact = entity.exactPosition();
-        Vec3 position = exact == null ? entity.position() : exact.toApproximateVec3();
+        Vec3 position = exact.toExactVec3();
         return this.entity == entity ? this : new CommandSourceStack(this.source, position, exact, this.rotation, this.level, this.permissionLevel, entity.getName().getString(), entity.getDisplayName(), this.server, entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
     }
 
     public CommandSourceStack withPosition(Vec3 position) {
-        return this.worldPosition.equals(position) ? this : new CommandSourceStack(this.source, position, SectorVec3.fromApproximate(position.x, position.y, position.z), this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
+        return this.withExactPosition(SectorVec3.fromApproximate(position));
     }
 
     public CommandSourceStack withExactPosition(SectorVec3 position) {
-        return this.exactPosition.equals(position) ? this : new CommandSourceStack(this.source, position.toApproximateVec3(), position, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
+        return this.exactPosition.equals(position) ? this : new CommandSourceStack(this.source, position.toExactVec3(), position, this.rotation, this.level, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
     }
 
     public CommandSourceStack withRotation(Vec2 pRotation) {
@@ -146,7 +146,7 @@ public class CommandSourceStack implements SharedSuggestionProvider {
             double scale = DimensionType.getTeleportationScale(this.level.dimensionType(), level.dimensionType());
             exact = scaleExact(this.exactPosition, scale);
         }
-        return new CommandSourceStack(this.source, exact.toApproximateVec3(), exact, this.rotation, level, this.permissionLevel, this.textName,
+        return new CommandSourceStack(this.source, exact.toExactVec3(), exact, this.rotation, level, this.permissionLevel, this.textName,
                 this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
     }
 
@@ -155,8 +155,8 @@ public class CommandSourceStack implements SharedSuggestionProvider {
             throw new IllegalArgumentException("Invalid dimension scale: " + scale);
         // Dimension scales used by vanilla are powers of two. Scaling the split
         // components independently avoids forming a huge global double.
-        java.math.BigDecimal x = java.math.BigDecimal.valueOf(position.blockX()).add(java.math.BigDecimal.valueOf(position.subX())).multiply(java.math.BigDecimal.valueOf(scale));
-        java.math.BigDecimal z = java.math.BigDecimal.valueOf(position.blockZ()).add(java.math.BigDecimal.valueOf(position.subZ())).multiply(java.math.BigDecimal.valueOf(scale));
+        java.math.BigDecimal x = new java.math.BigDecimal(position.blockX().toString()).add(java.math.BigDecimal.valueOf(position.subX())).multiply(java.math.BigDecimal.valueOf(scale));
+        java.math.BigDecimal z = new java.math.BigDecimal(position.blockZ().toString()).add(java.math.BigDecimal.valueOf(position.subZ())).multiply(java.math.BigDecimal.valueOf(scale));
         return SectorVec3.fromDecimal(x.toPlainString(), position.y(), z.toPlainString());
     }
 
@@ -203,10 +203,6 @@ public class CommandSourceStack implements SharedSuggestionProvider {
 
     public boolean hasPermission(int pLevel) {
         return this.permissionLevel >= pLevel;
-    }
-
-    public Vec3 getPosition() {
-        return this.worldPosition;
     }
 
     public SectorVec3 getExactPosition() {

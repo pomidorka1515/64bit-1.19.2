@@ -21,7 +21,7 @@ public class BubbleColumnAmbientSoundHandler implements AmbientSoundHandler {
 
     public void tick() {
         Level level = this.player.level;
-        BlockState blockstate = level.getBlockStatesIfLoaded(this.player.getBoundingBox().inflate(0.0D, (double) -0.4F, 0.0D).deflate(1.0E-6D)).filter((p_119669_) -> {
+        BlockState blockstate = level.getBlockStatesIfLoaded(net.minecraft.world.phys.AABB.fromSectorBounds(this.player.getSectorBoundingBox().inflate(0.0D, (double) -0.4F, 0.0D).inflate(-1.0E-6D, -1.0E-6D, -1.0E-6D))).filter((p_119669_) -> {
                                                                                                                                                    return p_119669_.is(Blocks.BUBBLE_COLUMN);
                                                                                                                                                })
                                         .findFirst()

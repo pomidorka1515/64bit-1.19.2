@@ -270,21 +270,21 @@ public class Zombie extends Monster {
             }
 
             if (livingentity != null && this.level.getDifficulty() == Difficulty.HARD && (double) this.random.nextFloat() < this.getAttributeValue(Attributes.SPAWN_REINFORCEMENTS_CHANCE) && this.level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING)) {
-                long i = this.getBlockX();
+                var i = this.getBlockX();
                 int j = Mth.floor(this.getY());
-                long k = this.getBlockZ();
+                var k = this.getBlockZ();
                 Zombie zombie = new Zombie(this.level);
 
                 for (int l = 0; l < 50; ++l) {
-                    long i1 = net.minecraft.world.level.WorldBounds.addBlockOffset(i, Mth.nextInt(this.random, 7, 40) * Mth.nextInt(this.random, -1, 1));
+                    var i1 = net.minecraft.world.level.WorldBounds.addBlockOffset(i, Mth.nextInt(this.random, 7, 40) * Mth.nextInt(this.random, -1, 1));
                     int j1 = j + Mth.nextInt(this.random, 7, 40) * Mth.nextInt(this.random, -1, 1);
-                    long k1 = net.minecraft.world.level.WorldBounds.addBlockOffset(k, Mth.nextInt(this.random, 7, 40) * Mth.nextInt(this.random, -1, 1));
+                    var k1 = net.minecraft.world.level.WorldBounds.addBlockOffset(k, Mth.nextInt(this.random, 7, 40) * Mth.nextInt(this.random, -1, 1));
                     BlockPos blockpos = new BlockPos(i1, j1, k1);
                     EntityType<?> entitytype = zombie.getType();
                     SpawnPlacements.Type spawnplacements$type = SpawnPlacements.getPlacementType(entitytype);
                     if (NaturalSpawner.isSpawnPositionOk(spawnplacements$type, this.level, blockpos, entitytype) && SpawnPlacements.checkSpawnRules(entitytype, serverlevel, MobSpawnType.REINFORCEMENT, blockpos, this.level.random)) {
                         zombie.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(i1, 0.0D, (double) j1, k1, 0.0D));
-                        if (!this.level.hasNearbyAlivePlayer(zombie.sectorPosition(), 7.0D) && this.level.isUnobstructed(zombie) && this.level.noCollision(zombie) && !this.level.containsAnyLiquid(zombie.getBoundingBox())) {
+                        if (!this.level.hasNearbyAlivePlayer(zombie.sectorPosition(), 7.0D) && this.level.isUnobstructed(zombie) && this.level.noCollision(zombie) && !this.level.containsAnyLiquid(zombie.exactBoundingBox())) {
                             zombie.setTarget(livingentity);
                             zombie.finalizeSpawn(serverlevel, this.level.getCurrentDifficultyAt(zombie.blockPosition()), MobSpawnType.REINFORCEMENT, (SpawnGroupData) null, (CompoundTag) null);
                             serverlevel.addFreshEntityWithPassengers(zombie);
@@ -417,7 +417,7 @@ public class Zombie extends Monster {
                 this.setBaby(true);
                 if (zombie$zombiegroupdata.canSpawnJockey) {
                     if ((double) randomsource.nextFloat() < 0.05D) {
-                        List<Chicken> list = pLevel.getEntitiesOfClass(Chicken.class, this.getBoundingBox().inflate(5.0D, 3.0D, 5.0D), EntitySelector.ENTITY_NOT_BEING_RIDDEN);
+                        List<Chicken> list = pLevel.getEntitiesOfClass(Chicken.class, this.exactBoundingBox().inflate(5.0D, 3.0D, 5.0D), EntitySelector.ENTITY_NOT_BEING_RIDDEN);
                         if (!list.isEmpty()) {
                             Chicken chicken = list.get(0);
                             chicken.setChickenJockey(true);

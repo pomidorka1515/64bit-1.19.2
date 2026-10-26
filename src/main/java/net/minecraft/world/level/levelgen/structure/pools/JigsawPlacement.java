@@ -10,6 +10,7 @@ import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.Vec3i;
@@ -75,8 +76,8 @@ public class JigsawPlacement {
             BlockPos blockpos1 = p_227243_.subtract(vec3i);
             PoolElementStructurePiece poolelementstructurepiece = new PoolElementStructurePiece(structuretemplatemanager, structurepoolelement, blockpos1, structurepoolelement.getGroundLevelDelta(), rotation, structurepoolelement.getBoundingBox(structuretemplatemanager, blockpos1, rotation));
             BoundingBox boundingbox = poolelementstructurepiece.getBoundingBox();
-            long i = WorldBounds.middleBlockCoordinate(boundingbox.minX(), boundingbox.maxX());
-            long j = WorldBounds.middleBlockCoordinate(boundingbox.minZ(), boundingbox.maxZ());
+            Int128 i = WorldBounds.middleBlockCoordinate(boundingbox.minX(), boundingbox.maxX());
+            Int128 j = WorldBounds.middleBlockCoordinate(boundingbox.minZ(), boundingbox.maxZ());
             int k;
             if (p_227245_.isPresent()) {
                 k = p_227243_.getY() + chunkgenerator.getFirstFreeHeight(i, j, p_227245_.get(), levelheightaccessor, p_227239_.randomState());

@@ -3,6 +3,7 @@ package net.minecraft.world.level.levelgen;
 import java.util.Arrays;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -12,6 +13,8 @@ import net.minecraft.world.level.biome.OverworldBiomeBuilder;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.levelgen.synth.WorldgenCoordinate;
+import net.minecraft.world.level.levelgen.synth.NoiseSampling;
 import org.apache.commons.lang3.mutable.MutableDouble;
 
 public interface Aquifer {
@@ -23,7 +26,7 @@ public interface Aquifer {
         return new Aquifer() {
             @Nullable
             public BlockState computeSubstance(DensityFunction.FunctionContext p_208172_, double p_208173_) {
-                return p_208173_ > 0.0D ? null : pDefaultFluid.computeFluid(p_208172_.blockX(), p_208172_.blockY(), p_208172_.blockZ()).at(p_208172_.blockY());
+                return p_208173_ > 0.0D ? null : pDefaultFluid.computeFluid(p_208172_.blockXHi(), p_208172_.blockX(), p_208172_.blockY(), p_208172_.blockZHi(), p_208172_.blockZ()).at(p_208172_.blockY());
             }
 
             public boolean shouldScheduleFluidUpdate() {
@@ -39,6 +42,11 @@ public interface Aquifer {
 
     public interface FluidPicker {
         Aquifer.FluidStatus computeFluid(long pX, int pY, long pZ);
+
+        /** Full-width extension; existing sea-level pickers are independent of X/Z. */
+        default Aquifer.FluidStatus computeFluid(long xHi, long xLo, int y, long zHi, long zLo) {
+            return computeFluid(xLo, y, zLo);
+        }
     }
 
     public static final class FluidStatus {
@@ -76,11 +84,21 @@ public interface Aquifer {
         private final DensityFunction lavaNoise;
         private final PositionalRandomFactory positionalRandomFactory;
         private final Aquifer.FluidStatus[] aquiferCache;
+        private final java.util.Set<Aquifer.FluidStatus> extrapolatedWater = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
         private final BlockPos[] aquiferLocationCache;
         private final Aquifer.FluidPicker globalFluidPicker;
         private final DensityFunction erosion;
         private final DensityFunction depth;
         private boolean shouldScheduleFluidUpdate;
+        private final long originXHi;
+        private final long originXLo;
+        private final long originZHi;
+        private final long originZLo;
+        private final long originGridXHi;
+        private final long originGridXLo;
+        private final long originGridZHi;
+        private final long originGridZLo;
+        private final boolean fullWidth;
         private final long minGridX;
         private final int minGridY;
         private final long minGridZ;
@@ -97,15 +115,32 @@ public interface Aquifer {
             this.erosion = pNoiseRouter.erosion();
             this.depth = pNoiseRouter.depth();
             this.positionalRandomFactory = pPositionalRandomFactory;
-            this.minGridX = WorldBounds.addChunkOffset(this.gridX(pChunkPos.getMinBlockX()), -1L);
+            Int128 minBlockX = pChunkPos.getMinBlockX();
+            Int128 minBlockZ = pChunkPos.getMinBlockZ();
+            this.originXHi = minBlockX.hi();
+            this.originXLo = minBlockX.lo();
+            this.originZHi = minBlockZ.hi();
+            this.originZLo = minBlockZ.lo();
+            this.originGridXHi = WorldgenCoordinate.shiftHigh(this.originXHi, 4);
+            this.originGridXLo = WorldgenCoordinate.shiftLow(this.originXHi, this.originXLo, 4);
+            this.originGridZHi = WorldgenCoordinate.shiftHigh(this.originZHi, 4);
+            this.originGridZLo = WorldgenCoordinate.shiftLow(this.originZHi, this.originZLo, 4);
+            this.fullWidth = !WorldgenCoordinate.fitsLong(this.originXHi, this.originXLo)
+                    || !WorldgenCoordinate.fitsLong(this.originZHi, this.originZLo);
+            // Full-width aquifers run the existing geometry on the chunk-local origin (0, 0).
+            long minGridBlockX = this.fullWidth ? 0L : this.originXLo;
+            long maxGridBlockX = this.fullWidth ? 15L : pChunkPos.getMaxBlockX().lo();
+            long minGridBlockZ = this.fullWidth ? 0L : this.originZLo;
+            long maxGridBlockZ = this.fullWidth ? 15L : pChunkPos.getMaxBlockZ().lo();
+            this.minGridX = WorldBounds.addChunkOffset(this.gridX(minGridBlockX), -1L);
             this.globalFluidPicker = pGlobalFluidPicker;
-            long i = WorldBounds.addChunkOffset(this.gridX(pChunkPos.getMaxBlockX()), 1L);
+            long i = WorldBounds.addChunkOffset(this.gridX(maxGridBlockX), 1L);
             this.gridSizeX = (int) (WorldBounds.signedDifferenceAsLong(i, this.minGridX) + 1L);
             this.minGridY = this.gridY(pMinY) - 1;
             int j = this.gridY(pMinY + pHeight) + 1;
             int k = j - this.minGridY + 1;
-            this.minGridZ = WorldBounds.addChunkOffset(this.gridZ(pChunkPos.getMinBlockZ()), -1L);
-            long l = WorldBounds.addChunkOffset(this.gridZ(pChunkPos.getMaxBlockZ()), 1L);
+            this.minGridZ = WorldBounds.addChunkOffset(this.gridZ(minGridBlockZ), -1L);
+            long l = WorldBounds.addChunkOffset(this.gridZ(maxGridBlockZ), 1L);
             this.gridSizeZ = (int) (WorldBounds.signedDifferenceAsLong(l, this.minGridZ) + 1L);
             int i1 = this.gridSizeX * k * this.gridSizeZ;
             this.aquiferCache = new Aquifer.FluidStatus[i1];
@@ -122,14 +157,17 @@ public interface Aquifer {
 
         @Nullable
         public BlockState computeSubstance(DensityFunction.FunctionContext pContext, double pSubstance) {
-            long i = pContext.blockX();
+            long globalX = pContext.blockX();
             int j = pContext.blockY();
-            long k = pContext.blockZ();
+            long globalZ = pContext.blockZ();
+            // Full-width geometry stays local; noise/random/surface sampling translate to global limbs.
+            long i = this.fullWidth ? (long) (int) (globalX - this.originXLo) : globalX;
+            long k = this.fullWidth ? (long) (int) (globalZ - this.originZLo) : globalZ;
             if (pSubstance > 0.0D) {
                 this.shouldScheduleFluidUpdate = false;
                 return null;
             } else {
-                Aquifer.FluidStatus aquifer$fluidstatus = this.globalFluidPicker.computeFluid(i, j, k);
+                Aquifer.FluidStatus aquifer$fluidstatus = this.globalFluidPicker.computeFluid(pContext.blockXHi(), globalX, j, pContext.blockZHi(), globalZ);
                 if (aquifer$fluidstatus.at(j).is(Blocks.LAVA)) {
                     this.shouldScheduleFluidUpdate = false;
                     return Blocks.LAVA.defaultBlockState();
@@ -156,14 +194,24 @@ public interface Aquifer {
                                 if (i5 != null) {
                                     l4 = i5;
                                 } else {
-                                    RandomSource randomsource = this.positionalRandomFactory.at(l3, i4, j4);
+                                    RandomSource randomsource;
+                                    if (this.fullWidth) {
+                                        // The grid is local, so translate it onto the exact global chunk lattice.
+                                        long gridXHi = WorldgenCoordinate.addHigh(this.originGridXHi, this.originGridXLo, l3);
+                                        long gridXLo = this.originGridXLo + l3;
+                                        long gridZHi = WorldgenCoordinate.addHigh(this.originGridZHi, this.originGridZLo, j4);
+                                        long gridZLo = this.originGridZLo + j4;
+                                        randomsource = this.positionalRandomFactory.at(gridXHi, gridXLo, i4, gridZHi, gridZLo);
+                                    } else {
+                                        randomsource = this.positionalRandomFactory.at(l3, i4, j4);
+                                    }
                                     l4 = new BlockPos(WorldBounds.addBlockOffset(WorldBounds.chunkToBlock(l3), randomsource.nextInt(10)), i4 * 12 + randomsource.nextInt(9), WorldBounds.addBlockOffset(WorldBounds.chunkToBlock(j4), randomsource.nextInt(10)));
                                     this.aquiferLocationCache[k4] = l4;
                                 }
 
-                                double i6 = WorldBounds.signedDifference(l4.getX(), i);
+                                double i6 = WorldBounds.signedDifference(l4.getXLo(), i);
                                 int j5 = l4.getY() - j;
-                                double k5 = WorldBounds.signedDifference(l4.getZ(), k);
+                                double k5 = WorldBounds.signedDifference(l4.getZLo(), k);
                                 double l5 = i6 * i6 + (double) j5 * j5 + k5 * k5;
                                 if (k1 >= l5) {
                                     l2 = k2;
@@ -190,10 +238,10 @@ public interface Aquifer {
                     BlockState blockstate = aquifer$fluidstatus1.at(j);
                     if (d1 <= 0.0D) {
                         this.shouldScheduleFluidUpdate = d1 >= FLOWING_UPDATE_SIMULARITY;
-                        return blockstate;
-                    } else if (blockstate.is(Blocks.WATER) && this.globalFluidPicker.computeFluid(i, j - 1, k).at(j - 1).is(Blocks.LAVA)) {
+                        return this.filterWaterOutput(aquifer$fluidstatus1, blockstate);
+                    } else if (blockstate.is(Blocks.WATER) && this.globalFluidPicker.computeFluid(pContext.blockXHi(), globalX, j - 1, pContext.blockZHi(), globalZ).at(j - 1).is(Blocks.LAVA)) {
                         this.shouldScheduleFluidUpdate = true;
-                        return blockstate;
+                        return this.filterWaterOutput(aquifer$fluidstatus1, blockstate);
                     } else {
                         MutableDouble mutabledouble = new MutableDouble(Double.NaN);
                         Aquifer.FluidStatus aquifer$fluidstatus2 = this.getAquiferStatus(k2);
@@ -222,7 +270,7 @@ public interface Aquifer {
                             }
 
                             this.shouldScheduleFluidUpdate = true;
-                            return blockstate;
+                            return this.filterWaterOutput(aquifer$fluidstatus1, blockstate);
                         }
                     }
                 }
@@ -231,6 +279,14 @@ public interface Aquifer {
 
         public boolean shouldScheduleFluidUpdate() {
             return this.shouldScheduleFluidUpdate;
+        }
+
+        private BlockState filterWaterOutput(Aquifer.FluidStatus status, BlockState state) {
+            if (state.is(Blocks.WATER) && this.extrapolatedWater.contains(status)) {
+                this.shouldScheduleFluidUpdate = false;
+                return Blocks.AIR.defaultBlockState();
+            }
+            return state;
         }
 
         private static double similarity(double k1, double l1) {
@@ -309,9 +365,9 @@ public interface Aquifer {
         }
 
         private Aquifer.FluidStatus getAquiferStatus(BlockPos j2) {
-            long i = j2.getX();
+            long i = j2.getXLo();
             int j = j2.getY();
-            long k = j2.getZ();
+            long k = j2.getZLo();
             long l = this.gridX(i);
             int i1 = this.gridY(j);
             long j1 = this.gridZ(k);
@@ -327,7 +383,15 @@ public interface Aquifer {
         }
 
         private Aquifer.FluidStatus computeFluid(long pX, int pY, long pZ) {
-            Aquifer.FluidStatus aquifer$fluidstatus = this.globalFluidPicker.computeFluid(pX, pY, pZ);
+            return this.computeFluid(pX, pY, pZ, true);
+        }
+
+        private Aquifer.FluidStatus computeFluidUnfiltered(long pX, int pY, long pZ) {
+            return this.computeFluid(pX, pY, pZ, false);
+        }
+
+        private Aquifer.FluidStatus computeFluid(long pX, int pY, long pZ, boolean filterWater) {
+            Aquifer.FluidStatus aquifer$fluidstatus = this.pickFluid(pX, pY, pZ);
             int i = Integer.MAX_VALUE;
             int j = pY + 12;
             int k = pY - 12;
@@ -336,7 +400,16 @@ public interface Aquifer {
             for (int[] aint : SURFACE_SAMPLING_OFFSETS_IN_CHUNKS) {
                 long l = pX + SectionPos.sectionToBlockCoord(aint[0]);
                 long i1 = pZ + SectionPos.sectionToBlockCoord(aint[1]);
-                int j1 = this.noiseChunk.preliminarySurfaceLevel(l, i1);
+                int j1;
+                if (this.fullWidth) {
+                    long xHi = WorldgenCoordinate.addHigh(this.originXHi, this.originXLo, l);
+                    long xLo = WorldgenCoordinate.addLow(this.originXHi, this.originXLo, l);
+                    long zHi = WorldgenCoordinate.addHigh(this.originZHi, this.originZLo, i1);
+                    long zLo = WorldgenCoordinate.addLow(this.originZHi, this.originZLo, i1);
+                    j1 = this.noiseChunk.preliminarySurfaceLevel(xHi, xLo, zHi, zLo);
+                } else {
+                    j1 = this.noiseChunk.preliminarySurfaceLevel(l, i1);
+                }
                 int k1 = j1 + 8;
                 boolean flag1 = aint[0] == 0 && aint[1] == 0;
                 if (flag1 && k > k1) {
@@ -345,7 +418,7 @@ public interface Aquifer {
 
                 boolean flag2 = j > k1;
                 if (flag2 || flag1) {
-                    Aquifer.FluidStatus aquifer$fluidstatus1 = this.globalFluidPicker.computeFluid(l, k1, i1);
+                    Aquifer.FluidStatus aquifer$fluidstatus1 = this.pickFluid(l, k1, i1);
                     if (!aquifer$fluidstatus1.at(k1).isAir()) {
                         if (flag1) {
                             flag = true;
@@ -360,14 +433,69 @@ public interface Aquifer {
                 i = Math.min(i, j1);
             }
 
-            int l1 = this.computeSurfaceLevel(pX, pY, pZ, aquifer$fluidstatus, i, flag);
-            return new Aquifer.FluidStatus(l1, this.computeFluidType(pX, pY, pZ, aquifer$fluidstatus, l1));
+            SurfaceLevel surface = this.computeSurfaceLevel(pX, pY, pZ, aquifer$fluidstatus, i, flag);
+            int l1 = surface.level();
+            Aquifer.FluidStatus status = new Aquifer.FluidStatus(l1, this.computeFluidType(pX, pY, pZ, aquifer$fluidstatus, l1));
+            // Only tag locally computed water whose actual floodedness sample extrapolated.
+            // Surface/ocean early returns can share picker statuses and must remain untouched.
+            // Keep fluid levels/types unchanged for pressure and lava calculations.
+            if (filterWater && surface.extrapolated() && status.fluidType.is(Blocks.WATER)
+                    && l1 != DimensionType.WAY_BELOW_MIN_Y) {
+                this.extrapolatedWater.add(status);
+            }
+            return status;
         }
 
-        private int computeSurfaceLevel(long p_223910_, int p_223911_, long p_223912_, Aquifer.FluidStatus p_223913_, int p_223914_, boolean p_223915_) {
-            DensityFunction.SinglePointContext densityfunction$singlepointcontext = new DensityFunction.SinglePointContext(p_223910_, p_223911_, p_223912_);
+        /**
+         * One context allocation per sample. Full-width coordinates stay local for the
+         * aquifer geometry and are translated here to exact global limbs.
+         */
+        private Aquifer.FluidStatus pickFluid(long x, int y, long z) {
+            if (!this.fullWidth) return this.globalFluidPicker.computeFluid(x >> 63, x, y, z >> 63, z);
+            return this.globalFluidPicker.computeFluid(
+                    WorldgenCoordinate.addHigh(this.originXHi, this.originXLo, x),
+                    WorldgenCoordinate.addLow(this.originXHi, this.originXLo, x), y,
+                    WorldgenCoordinate.addHigh(this.originZHi, this.originZLo, z),
+                    WorldgenCoordinate.addLow(this.originZHi, this.originZLo, z));
+        }
+
+        private DensityFunction.SinglePointContext singlePointContext(long pX, int pY, long pZ) {
+            if (this.fullWidth) {
+                return new DensityFunction.SinglePointContext(
+                        WorldgenCoordinate.addHigh(this.originXHi, this.originXLo, pX),
+                         WorldgenCoordinate.addLow(this.originXHi, this.originXLo, pX),
+                        pY,
+                        WorldgenCoordinate.addHigh(this.originZHi, this.originZLo, pZ),
+                         WorldgenCoordinate.addLow(this.originZHi, this.originZLo, pZ));
+            }
+            return new DensityFunction.SinglePointContext(pX, pY, pZ);
+        }
+
+        /** Translates to the global coordinate first, then divides by {@code 1 << pShift}. */
+        private DensityFunction.SinglePointContext singlePointContext(long pX, int pY, long pZ, int pShift) {
+            if (this.fullWidth) {
+                long xHi = WorldgenCoordinate.addHigh(this.originXHi, this.originXLo, pX);
+                long xLo = WorldgenCoordinate.addLow(this.originXHi, this.originXLo, pX);
+                long zHi = WorldgenCoordinate.addHigh(this.originZHi, this.originZLo, pZ);
+                long zLo = WorldgenCoordinate.addLow(this.originZHi, this.originZLo, pZ);
+                return new DensityFunction.SinglePointContext(
+                        WorldgenCoordinate.shiftHigh(xHi, pShift),
+                        WorldgenCoordinate.shiftLow(xHi, xLo, pShift),
+                        pY,
+                        WorldgenCoordinate.shiftHigh(zHi, pShift),
+                        WorldgenCoordinate.shiftLow(zHi, zLo, pShift));
+            }
+            long divisor = 1L << pShift;
+            return new DensityFunction.SinglePointContext(Math.floorDiv(pX, divisor), pY, Math.floorDiv(pZ, divisor));
+        }
+
+        private record SurfaceLevel(int level, boolean extrapolated) {}
+
+        private SurfaceLevel computeSurfaceLevel(long p_223910_, int p_223911_, long p_223912_, Aquifer.FluidStatus p_223913_, int p_223914_, boolean p_223915_) {
+            DensityFunction.SinglePointContext densityfunction$singlepointcontext = this.singlePointContext(p_223910_, p_223911_, p_223912_);
             double d0;
             double d1;
+            boolean extrapolated = false;
             if (OverworldBiomeBuilder.isDeepDarkRegion(this.erosion.compute(densityfunction$singlepointcontext), this.depth.compute(densityfunction$singlepointcontext))) {
                 d0 = -1.0D;
                 d1 = -1.0D;
@@ -375,7 +503,10 @@ public interface Aquifer {
                 int i = p_223914_ + 8 - p_223911_;
                 int j = 64;
                 double d2 = p_223915_ ? Mth.clampedMap((double) i, 0.0D, 64.0D, 1.0D, 0.0D) : 0.0D;
-                double d3 = Mth.clamp(this.fluidLevelFloodednessNoise.compute(densityfunction$singlepointcontext), -1.0D, 1.0D);
+                NoiseSampling.Sample floodedness = NoiseSampling.sampleWithExtrapolation(
+                        () -> this.fluidLevelFloodednessNoise.compute(densityfunction$singlepointcontext));
+                extrapolated = floodedness.extrapolated();
+                double d3 = Mth.clamp(floodedness.value(), -1.0D, 1.0D);
                 double d4 = Mth.map(d2, 1.0D, 0.0D, -0.3D, 0.8D);
                 double d5 = Mth.map(d2, 1.0D, 0.0D, -0.8D, 0.4D);
                 d0 = d3 - d5;
@@ -391,18 +522,16 @@ public interface Aquifer {
                 k = DimensionType.WAY_BELOW_MIN_Y;
             }
 
-            return k;
+            return new SurfaceLevel(k, extrapolated);
         }
 
         private int computeRandomizedFluidSurfaceLevel(long p_223910_, int p_223900_, long p_223901_, int p_223902_) {
             int i = 16;
             int j = 40;
-            long k = Math.floorDiv(p_223910_, 16);
             int l = Math.floorDiv(p_223900_, 40);
-            long i1 = Math.floorDiv(p_223901_, 16);
             int j1 = l * 40 + 20;
             int k1 = 10;
-            double d0 = this.fluidLevelSpreadNoise.compute(new DensityFunction.SinglePointContext(k, l, i1)) * 10.0D;
+            double d0 = this.fluidLevelSpreadNoise.compute(this.singlePointContext(p_223910_, l, p_223901_, 4)) * 10.0D;
             int l1 = Mth.quantize(d0, 3);
             int i2 = j1 + l1;
             return Math.min(p_223902_, i2);
@@ -411,10 +540,8 @@ public interface Aquifer {
         private BlockState computeFluidType(long p_223904_, int p_223905_, long p_223906_, Aquifer.FluidStatus p_223907_, int p_223908_) {
             BlockState blockstate = p_223907_.fluidType;
             if (p_223908_ <= -10 && p_223908_ != DimensionType.WAY_BELOW_MIN_Y && p_223907_.fluidType != Blocks.LAVA.defaultBlockState()) {
-                long k = Math.floorDiv(p_223904_, 64);
                 int l = Math.floorDiv(p_223905_, 40);
-                long i1 = Math.floorDiv(p_223906_, 64);
-                double d0 = this.lavaNoise.compute(new DensityFunction.SinglePointContext(k, l, i1));
+                double d0 = this.lavaNoise.compute(this.singlePointContext(p_223904_, l, p_223906_, 6));
                 if (Math.abs(d0) > 0.3D) {
                     blockstate = Blocks.LAVA.defaultBlockState();
                 }

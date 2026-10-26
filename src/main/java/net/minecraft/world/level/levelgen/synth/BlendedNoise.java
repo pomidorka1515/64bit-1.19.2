@@ -46,6 +46,7 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
     private final double yScale;
     private static volatile Thread debugCaptureThread;
     private static double debugScaledX;
+    private static String debugScaledXSplit;
     private static double debugSelectorLerp;
     private static double debugMinLimit;
     private static double debugMaxLimit;
@@ -79,14 +80,14 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
     }
 
     public double compute(DensityFunction.FunctionContext pContext) {
-        if (FarlandsMode.usesPreciseCoordinates() && (this.needsPreciseSampling(pContext.blockX()) || this.needsPreciseSampling(pContext.blockZ()))) {
+        if (FarlandsMode.usesPreciseCoordinates()) {
             return this.computePrecise(pContext);
         }
 
         boolean useLegacy32BitFloor = FarlandsMode.usesLegacyBlendedNoise();
-        double d0 = FarlandsMode.scaledNoiseCoordinate(pContext.blockX(), this.xzMultiplier);
+        double d0 = FarlandsMode.scaledNoiseCoordinate(pContext.blockXHi(), pContext.blockX(), this.xzMultiplier);
         double d1 = (double) pContext.blockY() * this.yMultiplier;
-        double d2 = FarlandsMode.scaledNoiseCoordinate(pContext.blockZ(), this.xzMultiplier);
+        double d2 = FarlandsMode.scaledNoiseCoordinate(pContext.blockZHi(), pContext.blockZ(), this.xzMultiplier);
         double d3 = d0 / this.xzFactor;
         double d4 = d1 / this.yFactor;
         double d5 = d2 / this.xzFactor;
@@ -137,6 +138,7 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
         double d17 = Mth.clampedLerp(d8 / 512.0D, d9 / 512.0D, d16) / 128.0D;
         if (Thread.currentThread() == debugCaptureThread) {
             debugScaledX = d0;
+            debugScaledXSplit = null;
             debugSelectorLerp = d16;
             debugMinLimit = d8 / 512.0D;
             debugMaxLimit = d9 / 512.0D;
@@ -144,13 +146,6 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
         }
 
         return d17;
-    }
-
-    private boolean needsPreciseSampling(long coordinate) {
-        // Blended noise expands block coordinates before sampling. Test the largest
-        // horizontal scale too: its double loses lattice precision well before 2^53 blocks.
-        double largestScale = Math.max(this.xzMultiplier, this.xzMultiplier / this.xzFactor);
-        return PreciseNoiseCoordinate.needsPrecisePath(coordinate) || Math.abs((double) coordinate * largestScale) >= 0x1.0p53;
     }
 
     private double computePrecise(DensityFunction.FunctionContext context) {
@@ -163,18 +158,10 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
         for (int i = 0; i < 8; ++i) {
             ImprovedNoise noise = this.mainNoise.getOctaveNoise(i);
             if (noise != null) {
-                // xzFactor division is combined into one finite scale; this is the only rounded BlendedNoise sub-term.
-                double selectorScale = this.xzMultiplier * octave / this.xzFactor;
-                PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
-                PreciseNoiseCoordinate.scale(context.blockX(), selectorScale, scratch);
-                long x = scratch.lattice;
-                double fx = scratch.fraction;
-                PreciseNoiseCoordinate.scale(context.blockZ(), selectorScale, scratch);
-                long z = scratch.lattice;
-                double fz = scratch.fraction;
                 double scaledY = d4 * octave;
-                long yCell = (long) Math.floor(scaledY);
-                selector += noise.noise(x, fx, yCell, scaledY - Math.floor(scaledY), z, fz, d7 * octave, scaledY) / octave;
+                selector += NoiseSampling.sample(noise, context.blockXHi(), context.blockX(), this.xzMultiplier / this.xzFactor, 0.0D,
+                        0L, 0L, 1.0D, d4, context.blockZHi(), context.blockZ(), this.xzMultiplier / this.xzFactor, 0.0D,
+                        -i, d7 * octave, scaledY) / octave;
             }
             octave /= 2.0D;
         }
@@ -186,24 +173,20 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
         double max = 0.0D;
         octave = 1.0D;
         for (int j = 0; j < 16; ++j) {
-            double octaveScale = this.xzMultiplier * octave;
-            PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
-            PreciseNoiseCoordinate.scale(context.blockX(), octaveScale, scratch);
-            long x = scratch.lattice;
-            double fx = scratch.fraction;
-            PreciseNoiseCoordinate.scale(context.blockZ(), octaveScale, scratch);
-            long z = scratch.lattice;
-            double fz = scratch.fraction;
             double scaledY = y * octave;
             if (!high) {
                 ImprovedNoise noise = this.minLimitNoise.getOctaveNoise(j);
                 if (noise != null)
-                    min += noise.noise(x, fx, (long) Math.floor(scaledY), scaledY - Math.floor(scaledY), z, fz, d6 * octave, scaledY) * (1.0D / octave);
+                    min += NoiseSampling.sample(noise, context.blockXHi(), context.blockX(), this.xzMultiplier, 0.0D,
+                            0L, 0L, 1.0D, y, context.blockZHi(), context.blockZ(), this.xzMultiplier, 0.0D,
+                            -j, d6 * octave, scaledY) / octave;
             }
             if (!low) {
                 ImprovedNoise noise = this.maxLimitNoise.getOctaveNoise(j);
                 if (noise != null)
-                    max += noise.noise(x, fx, (long) Math.floor(scaledY), scaledY - Math.floor(scaledY), z, fz, d6 * octave, scaledY) * (1.0D / octave);
+                    max += NoiseSampling.sample(noise, context.blockXHi(), context.blockX(), this.xzMultiplier, 0.0D,
+                            0L, 0L, 1.0D, y, context.blockZHi(), context.blockZ(), this.xzMultiplier, 0.0D,
+                            -j, d6 * octave, scaledY) / octave;
             }
             octave /= 2.0D;
         }
@@ -211,8 +194,14 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
         double density = Mth.clampedLerp(min / 512.0D, max / 512.0D, selectorLerp) / 128.0D;
         if (Thread.currentThread() == debugCaptureThread) {
             PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
-            PreciseNoiseCoordinate.scale(context.blockX(), this.xzMultiplier, scratch);
-            debugScaledX = (double) scratch.lattice + scratch.fraction;
+            if (WorldgenCoordinate.fitsLong(context.blockXHi(), context.blockX()))
+                PreciseNoiseCoordinate.scale(context.blockX(), this.xzMultiplier, scratch);
+            else
+                WorldgenCoordinate.scale(context.blockXHi(), context.blockX(), this.xzMultiplier, 0, scratch);
+            // Formatting must not recombine a precise lattice and fraction in double.
+            debugScaledX = Double.isNaN(scratch.failureMagnitude) ? scratch.fraction : scratch.failureMagnitude;
+            debugScaledXSplit = Double.isNaN(scratch.failureMagnitude)
+                    ? formatSplitDebugValue(scratch.lattice, scratch.fraction, 0) : null;
             debugSelectorLerp = selectorLerp;
             debugMinLimit = min / 512.0D;
             debugMaxLimit = max / 512.0D;
@@ -222,6 +211,7 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
     }
 
     public static void beginDebugCapture() {
+        debugScaledXSplit = null;
         debugScaledX = Double.NaN;
         debugSelectorLerp = Double.NaN;
         debugMinLimit = Double.NaN;
@@ -236,19 +226,33 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
 
     public static String getDebugString() {
         if (Double.isNaN(debugScaledX)) return "Not evaluated at this position";
-        return String.format(Locale.ROOT, "Scaled X: %.3f Selector Lerp: %s", debugScaledX, formatDebugValue(debugSelectorLerp));
+        return "Scaled X: " + (debugScaledXSplit != null ? debugScaledXSplit : String.format(Locale.ROOT, "%.0f", debugScaledX))
+                + " Selector lerp: " + formatDebugValue(debugSelectorLerp);
     }
 
     public static String getDebugString2() {
-        return String.format(Locale.ROOT, "Min-Limit (Low): %s Max-Limit (High): %s Blended Density: %s", formatDebugValue(debugMinLimit), formatDebugValue(debugMaxLimit), formatDebugValue(debugBlendedDensity));
+        return String.format(Locale.ROOT, "BlendedNoise min: %s max: %s density: %s", formatDebugValue(debugMinLimit), formatDebugValue(debugMaxLimit), formatDebugValue(debugBlendedDensity));
     }
 
-    private static String formatDebugValue(double value) {
-        if (Math.abs(value) > 1_000_000_000.0D) {
-            return "\247c" + String.format(Locale.ROOT, "%.3e", value) + "\247r";
+    /** Display-only decimal addition; retain every lattice digit before rounding the fraction. */
+    static String formatSplitDebugValue(long lattice, double fraction, int digits) {
+        if (!Double.isFinite(fraction)) return formatDebugValue(fraction);
+        var value = java.math.BigDecimal.valueOf(lattice).add(java.math.BigDecimal.valueOf(fraction));
+        String text = value.setScale(digits, java.math.RoundingMode.HALF_UP).toPlainString();
+        return value.abs().compareTo(java.math.BigDecimal.valueOf(1_000_000_000L)) > 0
+                ? "\247c" + text + "\247r" : text;
+    }
+
+    public static String formatDebugValue(double value) {
+        if (!Double.isFinite(value) || Math.abs(value) > 1_000_000_000.0D) {
+            return "\247c" + formatScientific(value) + "\247r";
         }
 
-        return String.format(Locale.ROOT, "%.3f", value);
+        return String.format(Locale.ROOT, "%.2f", value);
+    }
+
+    public static String formatScientific(double value) {
+        return String.format(Locale.ROOT, "%.2e", value).replace("e+", "e").replaceAll("e(-?)0+(\\d+)", "e$1$2");
     }
 
     public double minValue() {

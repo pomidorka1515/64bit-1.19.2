@@ -35,7 +35,7 @@ public class EntityBoundSoundInstance extends AbstractTickableSoundInstance {
         if (this.entity.hasSectorPosition()) {
             this.setExactPosition(this.entity.sectorPosition());
         } else {
-            this.setPosition(this.entity.getX(), this.entity.getY(), this.entity.getZ());
+            this.setExactPosition(this.entity.sectorPosition());
         }
     }
 }

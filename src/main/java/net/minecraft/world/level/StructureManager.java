@@ -1,7 +1,6 @@
 package net.minecraft.world.level;
 
 import com.google.common.collect.ImmutableList;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 
 import java.util.List;
@@ -11,6 +10,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
@@ -48,10 +48,7 @@ public class StructureManager {
     }
 
     public List<StructureStart> startsForStructure(ChunkPos pChunkPos, Predicate<Structure> pStructurePredicate) {
-        if (!WorldBounds.isValidChunk(pChunkPos.x, pChunkPos.z)) {
-            return List.of();
-        }
-        ChunkAccess referencesChunk = this.getChunkForStructureQuery(pChunkPos.x, pChunkPos.z, ChunkStatus.STRUCTURE_REFERENCES);
+        ChunkAccess referencesChunk = this.getChunkForStructureQuery(pChunkPos.x(), pChunkPos.z(), ChunkStatus.STRUCTURE_REFERENCES);
         if (referencesChunk == null) {
             return List.of();
         }
@@ -69,9 +66,6 @@ public class StructureManager {
     }
 
     public List<StructureStart> startsForStructure(SectionPos pSectionPos, Structure pStructure) {
-        if (!WorldBounds.isValidChunk(pSectionPos.x(), pSectionPos.z())) {
-            return List.of();
-        }
         ChunkAccess referencesChunk = this.getChunkForStructureQuery(pSectionPos.x(), pSectionPos.z(), ChunkStatus.STRUCTURE_REFERENCES);
         if (referencesChunk == null) {
             return List.of();
@@ -84,9 +78,6 @@ public class StructureManager {
 
     public void fillStartsForStructure(Structure pStructure, ObjectSet<ChunkPos> objectSet, Consumer<StructureStart> pStartConsumer) {
         for (ChunkPos i : objectSet) {
-            if (!WorldBounds.isValidChunk(i.x, i.z)) {
-                continue;
-            }
             SectionPos sectionpos = SectionPos.of(i, this.level.getMinSection());
             ChunkAccess startsChunk = this.getChunkForStructureQuery(sectionpos.x(), sectionpos.z(), ChunkStatus.STRUCTURE_STARTS);
             if (startsChunk == null) {
@@ -120,10 +111,7 @@ public class StructureManager {
     * region still has to use its bounded cache and may load from that cache.
     */
     @Nullable
-    private ChunkAccess getChunkForStructureQuery(long chunkX, long chunkZ, ChunkStatus status) {
-        if (!WorldBounds.isValidChunk(chunkX, chunkZ)) {
-            return null;
-        }
+    private ChunkAccess getChunkForStructureQuery(Int128 chunkX, Int128 chunkZ, ChunkStatus status) {
         if (this.level instanceof ServerLevel serverLevel) {
             return serverLevel.getChunkSource().getChunkNow(chunkX, chunkZ, status);
         }
@@ -194,18 +182,12 @@ public class StructureManager {
 
     public boolean hasAnyStructureAt(BlockPos pPos) {
         SectionPos sectionpos = SectionPos.of(pPos);
-        if (!WorldBounds.isValidChunk(sectionpos.x(), sectionpos.z())) {
-            return false;
-        }
         ChunkAccess referencesChunk = this.getChunkForStructureQuery(sectionpos.x(), sectionpos.z(), ChunkStatus.STRUCTURE_REFERENCES);
         return referencesChunk != null && referencesChunk.hasAnyStructureReferences();
     }
 
     public Map<Structure, ObjectSet<ChunkPos>> getAllStructuresAt(BlockPos pPos) {
         SectionPos sectionpos = SectionPos.of(pPos);
-        if (!WorldBounds.isValidChunk(sectionpos.x(), sectionpos.z())) {
-            return Map.of();
-        }
         ChunkAccess referencesChunk = this.getChunkForStructureQuery(sectionpos.x(), sectionpos.z(), ChunkStatus.STRUCTURE_REFERENCES);
         return referencesChunk == null ? Map.of() : referencesChunk.getAllReferences();
     }

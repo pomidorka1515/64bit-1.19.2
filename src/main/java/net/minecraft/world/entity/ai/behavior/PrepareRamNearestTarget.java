@@ -102,8 +102,8 @@ public class PrepareRamNearestTarget<E extends PathfinderMob> extends Behavior<E
 
     private net.minecraft.world.phys.SectorVec3 getEdgeOfBlock(BlockPos pPos, BlockPos pOther) {
         double d0 = 0.5D;
-        double d1 = 0.5D * Long.compare(pOther.getX(), pPos.getX());
-        double d2 = 0.5D * Long.compare(pOther.getZ(), pPos.getZ());
+        double d1 = 0.5D * pOther.getX().compareTo(pPos.getX());
+        double d2 = 0.5D * pOther.getZ().compareTo(pPos.getZ());
         return net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pOther.getX(), 0.5D + d1,
                 (double) pOther.getY(), pOther.getZ(), 0.5D + d2);
     }

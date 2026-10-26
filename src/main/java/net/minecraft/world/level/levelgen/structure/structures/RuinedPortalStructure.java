@@ -94,7 +94,7 @@ public class RuinedPortalStructure extends Structure {
             StructureTemplate structuretemplate = p_229285_.structureTemplateManager().getOrCreate(resourcelocation);
             Rotation rotation = Util.getRandom(Rotation.values(), worldgenrandom);
             Mirror mirror = worldgenrandom.nextFloat() < 0.5F ? Mirror.NONE : Mirror.FRONT_BACK;
-            BlockPos blockpos = new BlockPos(structuretemplate.getSize().getX() / 2, 0, structuretemplate.getSize().getZ() / 2);
+            BlockPos blockpos = new BlockPos(structuretemplate.getSize().getX().shiftRight(1), 0, structuretemplate.getSize().getZ().shiftRight(1));
             ChunkGenerator chunkgenerator = p_229285_.chunkGenerator();
             LevelHeightAccessor levelheightaccessor = p_229285_.heightAccessor();
             RandomState randomstate = p_229285_.randomState();
@@ -106,7 +106,7 @@ public class RuinedPortalStructure extends Structure {
             BlockPos blockpos3 = new BlockPos(blockpos1.getX(), j, blockpos1.getZ());
             return Optional.of(new Structure.GenerationStub(blockpos3, (p_229297_) -> {
                 if (ruinedportalstructure$setup3.canBeCold()) {
-                    ruinedportalpiece$properties.cold = isCold(blockpos3, p_229285_.chunkGenerator().getBiomeSource().getNoiseBiome(QuartPos.fromBlock(blockpos3.getX()), QuartPos.fromBlock(blockpos3.getY()), QuartPos.fromBlock(blockpos3.getZ()), randomstate.sampler()));
+                    ruinedportalpiece$properties.cold = isCold(blockpos3, p_229285_.chunkGenerator().getBiomeSource().getNoiseBiome(blockpos3.getX().shiftRight(2), QuartPos.fromBlock(blockpos3.getY()), blockpos3.getZ().shiftRight(2), randomstate.sampler()));
                 }
 
                 p_229297_.addPiece(new RuinedPortalPiece(p_229285_.structureTemplateManager(), blockpos3, ruinedportalstructure$setup3.placement(), ruinedportalpiece$properties, resourcelocation, structuretemplate, rotation, mirror, blockpos));

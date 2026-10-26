@@ -3,6 +3,7 @@ package net.minecraft.world.phys;
 import static org.junit.jupiter.api.Assertions.*;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.nbt.CompoundTag;
@@ -14,12 +15,42 @@ import org.junit.jupiter.api.Test;
 
 class SectorEntityCoordinatesTest {
     @Test
-    void lookTargetPacketAndRotationRetainSubBlockOffsetsAtLongEdges() {
+    void entityQueryBridgeKeepsFullWidthBoundsAndLocalDimensions() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
         Entity entity = new TestEntity();
-        SectorVec3 origin = SectorVec3.fromBlockAndFraction(Long.MAX_VALUE - 4L, 0.25D, 10.0D,
-                Long.MIN_VALUE + 4L, 0.5D);
+        for (Int128 coordinate : new Int128[] {Int128.of(1234L, 7L), Int128.of(-1234L, 7L)}) {
+            SectorVec3 position = SectorVec3.fromBlockAndFraction(coordinate, 0.25D, 10.0D,
+                    coordinate, 0.75D);
+            entity.applyExactPosition(position);
+            AABB bridge = entity.exactBoundingBox();
+            assertEquals(entity.getSectorBoundingBox(), bridge.getSectorBounds());
+            assertEquals(entity.getBbWidth(), bridge.getXsize(), 1.0E-6D);
+            assertEquals(entity.getBbHeight(), bridge.getYsize(), 1.0E-6D);
+            assertTrue(bridge.inflate(0.5D).contains(position.toExactVec3()));
+            assertFalse(bridge.intersects(AABB.fromSectorBounds(
+                    entity.getSectorBoundingBox().move(10.0D, 0.0D, 0.0D))));
+        }
+    }
+
+    @Test
+    void auditedLossyEntityEntryPointsAreRemoved() {
+        assertThrows(NoSuchMethodException.class, () -> Entity.class.getMethod("getX"));
+        assertThrows(NoSuchMethodException.class, () -> Entity.class.getMethod("getZ"));
+        assertThrows(NoSuchMethodException.class, () -> Entity.class.getMethod("position"));
+        assertThrows(NoSuchMethodException.class, () -> Entity.class.getMethod("getBoundingBox"));
+        assertThrows(NoSuchMethodException.class, () -> Entity.class.getMethod("getEyePosition"));
+        assertThrows(NoSuchMethodException.class, () -> Entity.class.getMethod("setPosRaw", double.class, double.class, double.class));
+        assertThrows(NoSuchMethodException.class, () -> SectorVec3.class.getMethod("toApproximateVec3"));
+    }
+
+    @Test
+    void lookTargetPacketAndRotationRetainSubBlockOffsetsAtFullRangeEdges() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+        Entity entity = new TestEntity();
+        SectorVec3 origin = SectorVec3.fromBlockAndFraction(Int128.MAX.subtract(Int128.fromLong(4L)), 0.25D, 10.0D,
+                Int128.MIN.add(Int128.fromLong(4L)), 0.5D);
         entity.applyExactPosition(origin);
         SectorVec3 target = origin.add(0.5D, 0.0D, 0.0D);
         net.minecraft.commands.arguments.EntityAnchorArgument.Anchor anchor =
@@ -53,11 +84,39 @@ class SectorEntityCoordinatesTest {
     }
 
     @Test
-    void portalDestinationRetainsFractionsAtLongEdges() {
-        SectorVec3 destination = SectorVec3.fromBlockAndFraction(Long.MAX_VALUE - 2L, 0.5D, 64.0D, Long.MIN_VALUE + 2L, 0.25D);
+    void portalDestinationRetainsFractionsAtFullRangeEdges() {
+        Int128 x = Int128.MAX.subtract(Int128.fromLong(2L));
+        Int128 z = Int128.MIN.add(Int128.fromLong(2L));
+        SectorVec3 destination = SectorVec3.fromBlockAndFraction(x, 0.5D, 64.0D, z, 0.25D);
         net.minecraft.world.level.portal.PortalInfo portal = new net.minecraft.world.level.portal.PortalInfo(destination, Vec3.ZERO, 90.0F, 0.0F);
         assertEquals(destination, portal.exactPos);
-        assertEquals(new BlockPos(Long.MAX_VALUE - 2L, 64, Long.MIN_VALUE + 2L), portal.exactPos.blockPosition());
+        assertEquals(new BlockPos(x, 64, z), portal.exactPos.blockPosition());
+        assertEquals(destination, ExactVec3.position(portal.pos));
+        assertEquals(destination, new net.minecraft.world.level.portal.PortalInfo(portal.pos,
+                Vec3.ZERO, 0.0F, 0.0F).exactPos);
+    }
+
+    @Test
+    void eyeInterpolationAndHitDistancesRetainFullWidthFractions() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+        Entity entity = new TestEntity();
+        for (Int128 coordinate : new Int128[] {Int128.of(1234L, 7L), Int128.of(-1234L, 7L)}) {
+            SectorVec3 start = SectorVec3.fromBlockAndFraction(coordinate, 0.25D, 10.0D,
+                    coordinate, 0.75D);
+            entity.applyExactPosition(start.add(0.5D, 2.0D, -0.5D));
+            entity.setOldExactPosition(start);
+            assertEquals(start.add(0.25D, 1.0D + entity.getEyeHeight(), -0.25D),
+                    entity.exactEyePosition(0.5F));
+            EntityHitResult hit = new EntityHitResult(entity);
+            assertEquals(entity.exactPosition(), ExactVec3.position(hit.getLocation()));
+            assertEquals(0.0D, hit.distanceTo(entity));
+            assertEquals(0.0625D, new EntityHitResult(entity,
+                    entity.exactPosition().add(0.25D, 0.0D, 0.0D)).distanceTo(entity));
+            assertEquals(entity.exactPosition().add(0.0D, 0.5D, 0.0D),
+                    new net.minecraft.world.level.gameevent.EntityPositionSource(entity, 0.5F)
+                            .exactPosition(null).orElseThrow());
+        }
     }
 
     @Test
@@ -67,17 +126,17 @@ class SectorEntityCoordinatesTest {
         Entity entity = new TestEntity();
         assertTrue(entity.hasSectorPosition());
         entity.noPhysics = true;
-        long coordinate = 1L << 60;
-        SectorVec3 start = SectorVec3.fromBlockAndFraction(coordinate, 0.25D, 10.0D, -coordinate, 0.75D);
+        Int128 coordinate = Int128.of(1L << 36, -1L);
+        SectorVec3 start = SectorVec3.fromBlockAndFraction(coordinate, 0.25D, 10.0D, coordinate.negate(), 0.75D);
         entity.applyExactPosition(start);
         entity.setOldExactPosition(start);
         entity.move(MoverType.SELF, new Vec3(0.125D, 0.5D, -0.125D));
         assertEquals(coordinate, entity.getBlockX());
-        assertEquals(-coordinate, entity.getBlockZ());
+        assertEquals(coordinate.negate(), entity.getBlockZ());
         assertEquals(0.375D, entity.sectorPosition().subX());
         assertEquals(0.625D, entity.sectorPosition().subZ());
         assertEquals(new Vec3(0.125D, 0.5D, -0.125D), entity.sectorPositionDelta());
-        assertNotNull(entity.getBoundingBox().getSectorBounds());
+        assertNotNull(entity.exactBoundingBox().getSectorBounds());
         assertEquals(0.3125D, entity.interpolatedExactPosition(0.5F).subX());
     }
 
@@ -95,7 +154,8 @@ class SectorEntityCoordinatesTest {
 
     @Test
     void blockTargetDistancesKeepFractionsBeyondDoublePrecision() {
-        for (long coordinate : new long[] {1L << 54, -(1L << 54), Long.MAX_VALUE - 8L, Long.MIN_VALUE + 8L}) {
+        for (Int128 coordinate : new Int128[] {Int128.fromLong(1L << 54), Int128.of(5L, -1L),
+                Int128.MAX.subtract(Int128.fromLong(8L)), Int128.MIN.add(Int128.fromLong(8L))}) {
             BlockPos target = new BlockPos(coordinate, 20, coordinate);
             SectorVec3 position = SectorVec3.fromBlockAndFraction(coordinate, 0.75D, 20.5D, coordinate, 0.5D);
             assertEquals(0.0625D, target.distToCenterSqr(position), 1.0E-12D);

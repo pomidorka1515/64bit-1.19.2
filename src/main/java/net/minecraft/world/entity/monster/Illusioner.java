@@ -86,8 +86,8 @@ public class Illusioner extends SpellcasterIllager implements RangedAttackMob {
         super.defineSynchedData();
     }
 
-    public AABB getBoundingBoxForCulling() {
-        return this.getBoundingBox().inflate(3.0D, 0.0D, 3.0D);
+    public net.minecraft.world.phys.SectorAABB getSectorBoundingBoxForCulling() {
+        return this.getSectorBoundingBox().inflate(3.0D, 0.0D, 3.0D);
     }
 
     public void aiStep() {

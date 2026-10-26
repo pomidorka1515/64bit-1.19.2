@@ -3,35 +3,33 @@ package net.minecraft.network.protocol.game;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.level.border.WorldBorder;
+import net.minecraft.world.phys.SectorVec3;
 
 public class ClientboundSetBorderCenterPacket implements Packet<ClientGamePacketListener> {
-    private final double newCenterX;
-    private final double newCenterZ;
+    private final SectorVec3 exactCenter;
 
     public ClientboundSetBorderCenterPacket(WorldBorder pWorldBorder) {
-        this.newCenterX = pWorldBorder.getCenterX();
-        this.newCenterZ = pWorldBorder.getCenterZ();
+        this.exactCenter = pWorldBorder.getExactCenter();
     }
 
     public ClientboundSetBorderCenterPacket(FriendlyByteBuf pBuffer) {
-        this.newCenterX = pBuffer.readDouble();
-        this.newCenterZ = pBuffer.readDouble();
+        this.exactCenter = SectorVec3.fromBlockAndFraction(pBuffer.readInt128(), pBuffer.readDouble(),
+                0.0D, pBuffer.readInt128(), pBuffer.readDouble());
     }
 
     public void write(FriendlyByteBuf pBuffer) {
-        pBuffer.writeDouble(this.newCenterX);
-        pBuffer.writeDouble(this.newCenterZ);
+        pBuffer.writeInt128(this.exactCenter.blockX());
+        pBuffer.writeDouble(this.exactCenter.subX());
+        pBuffer.writeInt128(this.exactCenter.blockZ());
+        pBuffer.writeDouble(this.exactCenter.subZ());
     }
 
     public void handle(ClientGamePacketListener pHandler) {
         pHandler.handleSetBorderCenter(this);
     }
 
-    public double getNewCenterZ() {
-        return this.newCenterZ;
+    public SectorVec3 getExactCenter() {
+        return this.exactCenter;
     }
 
-    public double getNewCenterX() {
-        return this.newCenterX;
-    }
 }

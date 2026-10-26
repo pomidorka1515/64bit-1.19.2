@@ -34,7 +34,7 @@ public abstract class MobRenderer<T extends Mob, M extends EntityModel<T>> exten
             return true;
         } else {
             Entity entity = pLivingEntity.getLeashHolder();
-            return entity != null ? pCamera.isVisible(entity.getBoundingBoxForCulling()) : false;
+            return entity != null ? pCamera.isVisible(entity.getSectorBoundingBoxForCulling()) : false;
         }
     }
 

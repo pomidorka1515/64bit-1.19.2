@@ -52,7 +52,7 @@ public class CampfireBlockEntity extends BlockEntity implements Clearable {
                                                                                                       return p_155305_.assemble(container);
                                                                                                   })
                                                    .orElse(itemstack);
-                    Containers.dropItemStack(pLevel, (double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ(), itemstack1);
+                    Containers.dropItemStack(pLevel, SectorVec3.fromBlockAndFraction(pPos.getX(), 0.0D, pPos.getY(), pPos.getZ(), 0.0D), itemstack1);
                     pBlockEntity.items.set(i, ItemStack.EMPTY);
                     pLevel.sendBlockUpdated(pPos, pState, pState, 3);
                     pLevel.gameEvent(GameEvent.BLOCK_CHANGE, pPos, GameEvent.Context.of(pState));

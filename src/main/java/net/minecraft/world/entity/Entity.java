@@ -5,6 +5,8 @@ import net.minecraft.world.phys.SectorPhysicsOrigin;
 import net.minecraft.world.phys.SectorAABB;
 
 import net.minecraft.world.phys.SectorVec3;
+import net.minecraft.core.Int128;
+import net.minecraft.nbt.NbtUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -152,9 +154,6 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     @Nullable
     private Entity vehicle;
     public Level level;
-    public double xo;
-    public double yo;
-    public double zo;
     private Vec3 position;
     /** Exact X/Z state for every entity. Legacy position remains a compatibility mirror. */
     @Nullable
@@ -186,9 +185,6 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     public float flyDist;
     public float fallDistance;
     private float nextStep = 1.0F;
-    public double xOld;
-    public double yOld;
-    public double zOld;
     public float maxUpStep;
     public boolean noPhysics;
     protected final RandomSource random = RandomSource.create();
@@ -269,8 +265,18 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             SectorPhysicsOrigin origin = new SectorPhysicsOrigin(pPos.getX(), pPos.getY(), pPos.getZ());
             return Shapes.joinIsNotEmpty(voxelshape, Shapes.create(this.getSectorBoundingBox().toLocalAABB(origin)), BooleanOp.AND);
         }
-        VoxelShape voxelshape1 = voxelshape.move((double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ());
-        return Shapes.joinIsNotEmpty(voxelshape1, Shapes.create(this.getBoundingBox()), BooleanOp.AND);
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(pPos.getX(), pPos.getY(), pPos.getZ());
+        SectorAABB box = exactBoundsOf(this.exactBoundingBox());
+        return Shapes.joinIsNotEmpty(voxelshape, Shapes.create(box.toLocalAABB(origin)), BooleanOp.AND);
+    }
+
+    private static SectorAABB exactBoundsOf(AABB box) {
+        if (box.getSectorBounds() != null)
+            return box.getSectorBounds();
+        SectorVec3 min = SectorVec3.fromApproximate(box.minX, box.minY, box.minZ);
+        SectorVec3 max = SectorVec3.fromApproximate(box.maxX, box.maxY, box.maxZ);
+        return new SectorAABB(min.blockX(), min.subX(), min.y(), min.blockZ(), min.subZ(),
+                max.blockX(), max.subX(), max.y(), max.blockZ(), max.subZ());
     }
 
     public int getTeamColor() {
@@ -392,25 +398,6 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.setXRot(pXRot % 360.0F);
     }
 
-    public final void setPos(Vec3 pPos) {
-        if (pPos instanceof net.minecraft.world.phys.ExactVec3) {
-            this.applyExactPosition(net.minecraft.world.phys.ExactVec3.position(pPos));
-            return;
-        }
-        this.setPos(pPos.x(), pPos.y(), pPos.z());
-    }
-
-    public void setPos(double p_20210_, double p_20211_, double p_20212_) {
-        // Legacy absolute-double ingress. Exact internal player movement must use setSectorPositionRaw.
-        if (this.usesSectorPhysics()) {
-            this.setSectorPosition(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(p_20210_),
-                    WorldBounds.clampVerticalDouble(p_20211_), WorldBounds.clampAbsoluteDouble(p_20212_)));
-        } else {
-            this.setPosRaw(p_20210_, p_20211_, p_20212_);
-            this.setBoundingBox(this.makeBoundingBox());
-        }
-    }
-
     protected AABB makeBoundingBox() {
         return this.sectorPosition == null ? this.dimensions.makeBoundingBox(this.position)
                                            : AABB.fromSectorBounds(SectorAABB.around(this.sectorPosition,
@@ -418,11 +405,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     protected void reapplyPosition() {
-        if (this.usesSectorPhysics()) {
-            this.refreshLegacyPositionMirror();
-        } else {
-            this.setPos(this.position.x, this.position.y, this.position.z);
-        }
+        this.refreshLegacyPositionMirror();
     }
 
     public final boolean hasSectorPosition() {
@@ -475,29 +458,27 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     /** Exact eye position for range checks and other world interactions. */
-    @Nullable
     public final SectorVec3 exactEyePosition() {
-        return this.sectorPosition == null ? null : this.sectorPosition.withY(this.getEyeY());
+        return this.sectorPosition().withY(this.getEyeY());
+    }
+
+    public final SectorVec3 exactEyePosition(float partialTick) {
+        SectorVec3 position = this.interpolatedExactPosition(partialTick);
+        return position.add(0.0D, (double) this.getEyeHeight(), 0.0D);
     }
 
     /** Squared eye-to-point distance in a split-coordinate frame, avoiding absolute X/Z doubles. */
     public final double exactDistanceToSqr(SectorVec3 point) {
         if (point == null)
             throw new NullPointerException("point");
-        if (this.sectorPosition != null) {
-            return this.exactEyePosition().relativeTo(point).lengthSqr();
-        }
-        return this.getEyePosition().distanceToSqr(point.toApproximateVec3());
+        return this.exactEyePosition().relativeTo(point).lengthSqr();
     }
 
     /** Squared feet-to-point distance in a split-coordinate frame. */
     public final double exactPositionDistanceToSqr(SectorVec3 point) {
         if (point == null)
             throw new NullPointerException("point");
-        if (this.sectorPosition != null) {
-            return this.sectorPosition.relativeTo(point).lengthSqr();
-        }
-        return this.position().distanceToSqr(point.toApproximateVec3());
+        return this.sectorPosition().relativeTo(point).lengthSqr();
     }
 
     protected boolean usesSectorPhysics() {
@@ -507,7 +488,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     private void applySectorPosition(SectorVec3 position) {
         SectorVec3 previous = this.sectorPosition;
         this.sectorPosition = position;
-        this.position = position.toApproximateVec3();
+        this.position = position.toExactVec3();
         BlockPos exactBlockPosition = position.blockPosition();
         if (!exactBlockPosition.equals(this.blockPosition)) {
             this.blockPosition = exactBlockPosition;
@@ -525,7 +506,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
     private void refreshLegacyPositionMirror() {
         if (this.sectorPosition != null) {
-            this.position = this.sectorPosition.toApproximateVec3();
+            this.position = this.sectorPosition.toExactVec3();
             this.setBoundingBox(this.makeBoundingBox());
         }
     }
@@ -682,24 +663,34 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             AABB localBox = exactBox.toLocalAABB(origin);
             return this.sectorNoCollision(exactBox, localBox, origin) && !this.sectorContainsAnyLiquid(exactBox);
         }
-        return this.isFree(this.getBoundingBox().move(pX, pY, pZ));
+        return this.isFree(this.exactBoundingBox().move(pX, pY, pZ));
     }
 
     /** Exact sector equivalent of LevelReader.containsAnyLiquid. */
     protected final boolean sectorContainsAnyLiquid(SectorAABB exactBox) {
-        for (long x = exactBox.minBlockXForRange();; x = WorldBounds.addBlockOffset(x, 1L)) {
+        if (!isSafeEntityScan(exactBox))
+            return true;
+        for (Int128 x = exactBox.minBlockXForRange();; x = WorldBounds.addBlockOffset(x, 1L)) {
             for (int y = exactBox.minBlockYForRange(); y < exactBox.maxBlockYExclusive(); ++y) {
-                for (long z = exactBox.minBlockZForRange();; z = WorldBounds.addBlockOffset(z, 1L)) {
+                for (Int128 z = exactBox.minBlockZForRange();; z = WorldBounds.addBlockOffset(z, 1L)) {
                     if (!this.level.getFluidState(new BlockPos(x, y, z)).isEmpty())
                         return true;
-                    if (z == exactBox.maxBlockZForRangeInclusive() || z == Long.MAX_VALUE)
+                    if (z.equals(exactBox.maxBlockZForRangeInclusive()))
                         break;
                 }
             }
-            if (x == exactBox.maxBlockXForRangeInclusive() || x == Long.MAX_VALUE)
+            if (x.equals(exactBox.maxBlockXForRangeInclusive()))
                 break;
         }
         return false;
+    }
+
+    private static boolean isSafeEntityScan(SectorAABB box) {
+        double width = WorldBounds.distance(box.maxBlockXForRangeInclusive(), box.minBlockXForRange()) + 1.0D;
+        double depth = WorldBounds.distance(box.maxBlockZForRangeInclusive(), box.minBlockZForRange()) + 1.0D;
+        double height = (double) box.maxBlockYExclusive() - box.minBlockYForRange();
+        return width <= 64.0D && depth <= 64.0D && height >= 0.0D
+                && width * height * depth <= Integer.MAX_VALUE;
     }
 
     private boolean isFree(AABB pBox) {
@@ -741,9 +732,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
     /** Exact/local replacement for level.noCollision; callers must not pass localBox to legacy APIs. */
     protected final boolean sectorNoCollision(SectorAABB exactBox, AABB localBox, SectorPhysicsOrigin origin) {
-        for (VoxelShape shape : this.level.getSectorBlockCollisions(this, exactBox, localBox, origin)) {
-            if (!shape.isEmpty())
-                return false;
+        try (var collisions = net.minecraft.world.level.SectorBlockCollisions.acquire(
+                this.level, this, exactBox, localBox, origin, false)) {
+            while (collisions.hasNext()) {
+                if (!collisions.next().isEmpty()) return false;
+            }
         }
         return this.level.getSectorEntityCollisions(this, exactBox, localBox, origin).isEmpty();
     }
@@ -782,9 +775,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
     protected final boolean sectorCollidesWithSuffocatingBlock(SectorAABB box) {
         SectorPhysicsOrigin origin = this.sectorPhysicsOrigin();
-        return new net.minecraft.world.level.SectorBlockCollisions(this.level, this, box, box.toLocalAABB(origin),
-                                                    origin, true)
-                .hasNext();
+        try (var collisions = net.minecraft.world.level.SectorBlockCollisions.acquire(
+                this.level, this, box, box.toLocalAABB(origin), origin, true)) {
+            return collisions.hasNext();
+        }
     }
 
     public void setOnGround(boolean pOnGround) {
@@ -796,140 +790,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public void move(MoverType pType, Vec3 pPos) {
-        if (this.usesSectorPhysics()) {
-            this.moveWithSectorPhysics(pType, pPos);
-            return;
-        }
-        if (this.noPhysics) {
-            this.setPos(this.getX() + pPos.x, this.getY() + pPos.y, this.getZ() + pPos.z);
-        } else {
-            this.wasOnFire = this.isOnFire();
-            if (pType == MoverType.PISTON) {
-                pPos = this.limitPistonMovement(pPos);
-                if (pPos.equals(Vec3.ZERO)) {
-                    return;
-                }
-            }
-
-            this.level.getProfiler().push("move");
-            if (this.stuckSpeedMultiplier.lengthSqr() > 1.0E-7D) {
-                pPos = pPos.multiply(this.stuckSpeedMultiplier);
-                this.stuckSpeedMultiplier = Vec3.ZERO;
-                this.setDeltaMovement(Vec3.ZERO);
-            }
-
-            pPos = this.maybeBackOffFromEdge(pPos, pType);
-            Vec3 vec3 = this.collide(pPos);
-            double d0 = vec3.lengthSqr();
-            if (d0 > 1.0E-7D) {
-                if (this.fallDistance != 0.0F && d0 >= 1.0D) {
-                    BlockHitResult blockhitresult = this.level.clip(new ClipContext(this.position(), this.position().add(vec3), ClipContext.Block.FALLDAMAGE_RESETTING, ClipContext.Fluid.WATER, this));
-                    if (blockhitresult.getType() != HitResult.Type.MISS) {
-                        this.resetFallDistance();
-                    }
-                }
-
-                this.setPos(this.getX() + vec3.x, this.getY() + vec3.y, this.getZ() + vec3.z);
-            }
-
-            this.level.getProfiler().pop();
-            this.level.getProfiler().push("rest");
-            boolean flag2 = !Mth.equal(pPos.x, vec3.x);
-            boolean flag = !Mth.equal(pPos.z, vec3.z);
-            this.horizontalCollision = flag2 || flag;
-            this.verticalCollision = pPos.y != vec3.y;
-            this.verticalCollisionBelow = this.verticalCollision && pPos.y < 0.0D;
-            if (this.horizontalCollision) {
-                this.minorHorizontalCollision = this.isHorizontalCollisionMinor(vec3);
-            } else {
-                this.minorHorizontalCollision = false;
-            }
-
-            this.onGround = this.verticalCollision && pPos.y < 0.0D;
-            BlockPos blockpos = this.getOnPosLegacy();
-            BlockState blockstate = this.level.getBlockState(blockpos);
-            this.checkFallDamage(vec3.y, this.onGround, blockstate, blockpos);
-            if (this.isRemoved()) {
-                this.level.getProfiler().pop();
-            } else {
-                if (this.horizontalCollision) {
-                    Vec3 vec31 = this.getDeltaMovement();
-                    this.setDeltaMovement(flag2 ? 0.0D : vec31.x, vec31.y, flag ? 0.0D : vec31.z);
-                }
-
-                Block block = blockstate.getBlock();
-                if (pPos.y != vec3.y) {
-                    block.updateEntityAfterFallOn(this.level, this);
-                }
-
-                if (this.onGround) {
-                    block.stepOn(this.level, blockpos, blockstate, this);
-                }
-
-                Entity.MovementEmission entity$movementemission = this.getMovementEmission();
-                if (entity$movementemission.emitsAnything() && !this.isPassenger()) {
-                    double d1 = vec3.x;
-                    double d2 = vec3.y;
-                    double d3 = vec3.z;
-                    this.flyDist += (float) (vec3.length() * 0.6D);
-                    boolean flag1 = blockstate.is(BlockTags.CLIMBABLE) || blockstate.is(Blocks.POWDER_SNOW);
-                    if (!flag1) {
-                        d2 = 0.0D;
-                    }
-
-                    this.walkDist += (float) vec3.horizontalDistance() * 0.6F;
-                    this.moveDist += (float) Math.sqrt(d1 * d1 + d2 * d2 + d3 * d3) * 0.6F;
-                    if (this.moveDist > this.nextStep && !blockstate.isAir()) {
-                        this.nextStep = this.nextStep();
-                        if (this.isInWater()) {
-                            if (entity$movementemission.emitsSounds()) {
-                                Entity entity = this.isVehicle() && this.getControllingPassenger() != null ? this.getControllingPassenger() : this;
-                                float f = entity == this ? 0.35F : 0.4F;
-                                Vec3 vec32 = entity.getDeltaMovement();
-                                float f1 = Math.min(1.0F, (float) Math.sqrt(vec32.x * vec32.x * (double) 0.2F + vec32.y * vec32.y + vec32.z * vec32.z * (double) 0.2F) * f);
-                                this.playSwimSound(f1);
-                            }
-
-                            if (entity$movementemission.emitsEvents()) {
-                                this.gameEvent(GameEvent.SWIM);
-                            }
-                        } else {
-                            if (entity$movementemission.emitsSounds()) {
-                                this.playAmethystStepSound(blockstate);
-                                this.playStepSound(blockpos, blockstate);
-                            }
-
-                            if (entity$movementemission.emitsEvents() && (this.onGround || pPos.y == 0.0D || this.isInPowderSnow || flag1)) {
-                                this.level.gameEvent(GameEvent.STEP, this.position, GameEvent.Context.of(this, this.getBlockStateOn()));
-                            }
-                        }
-                    } else if (blockstate.isAir()) {
-                        this.processFlappingMovement();
-                    }
-                }
-
-                this.tryCheckInsideBlocks();
-                float f2 = this.getBlockSpeedFactor();
-                this.setDeltaMovement(this.getDeltaMovement().multiply((double) f2, 1.0D, (double) f2));
-                if (this.level.getBlockStatesIfLoaded(this.getBoundingBox().deflate(1.0E-6D)).noneMatch((p_20127_) -> {
-                        return p_20127_.is(BlockTags.FIRE) || p_20127_.is(Blocks.LAVA);
-                    })) {
-                    if (this.remainingFireTicks <= 0) {
-                        this.setRemainingFireTicks(-this.getFireImmuneTicks());
-                    }
-
-                    if (this.wasOnFire && (this.isInPowderSnow || this.isInWaterRainOrBubble())) {
-                        this.playEntityOnFireExtinguishedSound();
-                    }
-                }
-
-                if (this.isOnFire() && (this.isInPowderSnow || this.isInWaterRainOrBubble())) {
-                    this.setRemainingFireTicks(-this.getFireImmuneTicks());
-                }
-
-                this.level.getProfiler().pop();
-            }
-        }
+        this.moveWithSectorPhysics(pType, pPos);
     }
 
     protected boolean isHorizontalCollisionMinor(Vec3 pDeltaMovement) {
@@ -1020,7 +881,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             SectorVec3 position = this.sectorPosition();
             return new BlockPos(position.blockX(), Mth.floor(position.y() - 0.5000001D), position.blockZ());
         }
-        return new BlockPos(this.position.x, this.getBoundingBox().minY - 0.5000001D, this.position.z);
+        return new BlockPos(this.position.x, this.exactBoundingBox().minY - 0.5000001D, this.position.z);
     }
 
     protected Vec3 maybeBackOffFromEdge(Vec3 pVec, MoverType pMover) {
@@ -1161,7 +1022,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     private Vec3 collide(Vec3 pVec) {
-        AABB aabb = this.getBoundingBox();
+        AABB aabb = this.exactBoundingBox();
         List<VoxelShape> list = this.level.getEntityCollisions(this, aabb.expandTowards(pVec));
         Vec3 vec3 = pVec.lengthSqr() == 0.0D ? pVec : collideBoundingBox(this, pVec, aabb, this.level, list);
         boolean flag = pVec.x != vec3.x;
@@ -1198,9 +1059,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         if (!entityShapes.isEmpty()) {
             builder.addAll(entityShapes);
         }
-        builder.addAll(level.getSectorBlockCollisions(entity, exactBox.expandTowards(movement.x, movement.y, movement.z),
-                localBox.expandTowards(movement), origin));
-        return collideWithShapes(movement, localBox, builder.build(), true);
+        try (var collisions = net.minecraft.world.level.SectorBlockCollisions.acquire(level, entity,
+                exactBox.expandTowards(movement.x, movement.y, movement.z),
+                localBox.expandTowards(movement), origin, false)) {
+            builder.addAll(collisions);
+            return collideWithShapes(movement, localBox, builder.build(), true);
+        }
     }
 
     public static Vec3 collideBoundingBox(@Nullable Entity pEntity, Vec3 pVec, AABB pCollisionBox, Level pLevel, List<VoxelShape> pPotentialHits) {
@@ -1299,15 +1163,15 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             this.checkInsideSectorBlocks();
             return;
         }
-        AABB aabb = this.getBoundingBox();
+        AABB aabb = this.exactBoundingBox();
         BlockPos blockpos = new BlockPos(aabb.minX + 0.001D, aabb.minY + 0.001D, aabb.minZ + 0.001D);
         BlockPos blockpos1 = new BlockPos(aabb.maxX - 0.001D, aabb.maxY - 0.001D, aabb.maxZ - 0.001D);
         if (this.level.hasChunksAt(blockpos, blockpos1)) {
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-            for (long i = blockpos.getX();; i = WorldBounds.addBlockOffset(i, 1L)) {
+            for (Int128 i = blockpos.getX();; i = WorldBounds.addBlockOffset(i, 1L)) {
                 for (int j = blockpos.getY(); j <= blockpos1.getY(); ++j) {
-                    for (long k = blockpos.getZ();; k = WorldBounds.addBlockOffset(k, 1L)) {
+                    for (Int128 k = blockpos.getZ();; k = WorldBounds.addBlockOffset(k, 1L)) {
                         blockpos$mutableblockpos.set(i, j, k);
                         BlockState blockstate = this.level.getBlockState(blockpos$mutableblockpos);
 
@@ -1320,11 +1184,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                             CrashReportCategory.populateBlockDetails(crashreportcategory, this.level, blockpos$mutableblockpos, blockstate);
                             throw new ReportedException(crashreport);
                         }
-                        if (k == blockpos1.getZ() || k == Long.MAX_VALUE)
+                        if (k.equals(blockpos1.getZ()))
                             break;
                     }
                 }
-                if (i == blockpos1.getX() || i == Long.MAX_VALUE)
+                if (i.equals(blockpos1.getX()))
                     break;
             }
         }
@@ -1335,13 +1199,15 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         SectorAABB exact = this.getSectorBoundingBox();
         // The small inset preserves vanilla's boundary behavior without converting the world X/Z to doubles.
         SectorAABB scan = exact.inflate(-0.001D, -0.001D, -0.001D);
+        if (!isSafeEntityScan(scan))
+            return;
         if (!this.level.hasChunksAt(scan.minBlockXForRange(), scan.minBlockYForRange(), scan.minBlockZForRange(),
                     scan.maxBlockXForRangeInclusive(), scan.maxBlockYExclusive(), scan.maxBlockZForRangeInclusive()))
             return;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-        for (long x = scan.minBlockXForRange();; x = WorldBounds.addBlockOffset(x, 1L)) {
+        for (Int128 x = scan.minBlockXForRange();; x = WorldBounds.addBlockOffset(x, 1L)) {
             for (int y = scan.minBlockYForRange(); y < scan.maxBlockYExclusive(); ++y) {
-                for (long z = scan.minBlockZForRange();; z = WorldBounds.addBlockOffset(z, 1L)) {
+                for (Int128 z = scan.minBlockZForRange();; z = WorldBounds.addBlockOffset(z, 1L)) {
                     pos.set(x, y, z);
                     BlockState state = this.level.getBlockState(pos);
                     try {
@@ -1353,11 +1219,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                         CrashReportCategory.populateBlockDetails(category, this.level, pos, state);
                         throw new ReportedException(report);
                     }
-                    if (z == scan.maxBlockZForRangeInclusive() || z == Long.MAX_VALUE)
+                    if (z.equals(scan.maxBlockZForRangeInclusive()))
                         break;
                 }
             }
-            if (x == scan.maxBlockXForRangeInclusive() || x == Long.MAX_VALUE)
+            if (x.equals(scan.maxBlockXForRangeInclusive()))
                 break;
         }
     }
@@ -1405,12 +1271,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
     public void playSound(SoundEvent pSound, float pVolume, float pPitch) {
         if (!this.isSilent()) {
-            if (this.sectorPosition != null) {
-                this.level.playSeededSound((Player) null, this.sectorPosition, pSound, this.getSoundSource(), pVolume,
-                        pPitch, this.level.getRandom().nextLong());
-            } else {
-                this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), pSound, this.getSoundSource(), pVolume, pPitch);
-            }
+            this.level.playSeededSound((Player) null, this.sectorPosition(), pSound, this.getSoundSource(), pVolume,
+                    pPitch, this.level.getRandom().nextLong());
         }
     }
 
@@ -1477,7 +1339,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
     private boolean isInRain() {
         BlockPos blockpos = this.blockPosition();
-        return this.level.isRainingAt(blockpos) || this.level.isRainingAt(new BlockPos(blockpos.getX(), Mth.floor(this.getBoundingBox().maxY), blockpos.getZ()));
+        return this.level.isRainingAt(blockpos) || this.level.isRainingAt(new BlockPos(blockpos.getX(), Mth.floor(this.exactBoundingBox().maxY), blockpos.getZ()));
     }
 
     private boolean isInBubbleColumn() {
@@ -1542,15 +1404,13 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         double d0 = this.getEyeY() - (double) 0.11111111F;
         Entity entity = this.getVehicle();
         if (entity instanceof Boat boat) {
-            if (!boat.isUnderWater() && boat.getBoundingBox().maxY >= d0 && boat.getBoundingBox().minY <= d0) {
+            if (!boat.isUnderWater() && boat.exactBoundingBox().maxY >= d0 && boat.exactBoundingBox().minY <= d0) {
                 return;
             }
         }
 
         // Sector players address the eye fluid using exact X/Z and ordinary small-height Y.
-        BlockPos blockpos = this.usesSectorPhysics()
-                ? new BlockPos(this.sectorPosition().blockX(), Mth.floor(d0), this.sectorPosition().blockZ())
-                : new BlockPos(this.getX(), d0, this.getZ());
+        BlockPos blockpos = new BlockPos(this.sectorPosition().blockX(), Mth.floor(d0), this.sectorPosition().blockZ());
         FluidState fluidstate = this.level.getFluidState(blockpos);
         double d1 = (double) ((float) blockpos.getY() + fluidstate.getHeight(this.level, blockpos));
         if (d1 > d0) {
@@ -1558,10 +1418,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         }
     }
 
-    /** Exact particle origin for sector entities; ordinary entities retain their legacy double position. */
+    /** Exact particle origin, offset by a local displacement. */
     public final SectorVec3 particlePosition(double dx, double dy, double dz) {
-        return this.sectorPosition != null ? this.sectorPosition.add(dx, dy, dz)
-                                           : SectorVec3.fromApproximate(this.getX() + dx, this.getY() + dy, this.getZ() + dz);
+        return this.sectorPosition().add(dx, dy, dz);
     }
 
     protected void doWaterSplashEffect() {
@@ -1648,46 +1507,17 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.level.hasChunkAt(this.getBlockX(), this.getBlockZ()) ? this.level.getLightLevelDependentMagicValue(this.sectorPosition().withY(this.getEyeY()).blockPosition()) : 0.0F;
     }
 
-    public void absMoveTo(double pX, double pY, double pZ, float pYRot, float pXRot) {
-        this.absMoveTo(pX, pY, pZ);
-        this.setYRot(pYRot % 360.0F);
-        this.setXRot(Mth.clamp(pXRot, -90.0F, 90.0F) % 360.0F);
-        this.yRotO = this.getYRot();
-        this.xRotO = this.getXRot();
-    }
-
-    public void absMoveTo(double pX, double pY, double pZ) {
-        this.absMoveTo(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(pX),
-                               WorldBounds.clampVerticalDouble(pY), WorldBounds.clampAbsoluteDouble(pZ)),
-                this.getYRot(), this.getXRot());
-    }
-
     /** Applies a split-coordinate absolute position while preserving the exact X/Z fractions. */
     public final void absMoveTo(SectorVec3 position, float yRot, float xRot) {
         if (!this.usesSectorPhysics()) {
             throw new IllegalStateException("Entity does not use sector physics");
         }
-        Vec3 approximate = position.toApproximateVec3();
-        this.xo = approximate.x;
-        this.yo = position.y();
-        this.zo = approximate.z;
+        this.setOldExactPosition(position);
         this.applyExactPosition(position);
         this.setYRot(yRot % 360.0F);
         this.setXRot(Mth.clamp(xRot, -90.0F, 90.0F) % 360.0F);
         this.yRotO = this.getYRot();
         this.xRotO = this.getXRot();
-    }
-
-    public void moveTo(Vec3 pVec) {
-        if (pVec instanceof net.minecraft.world.phys.ExactVec3) {
-            this.moveTo(net.minecraft.world.phys.ExactVec3.position(pVec), this.getYRot(), this.getXRot());
-            return;
-        }
-        this.moveTo(pVec.x, pVec.y, pVec.z);
-    }
-
-    public void moveTo(double p_20105_, double p_20106_, double p_20107_) {
-        this.moveTo(p_20105_, p_20106_, p_20107_, this.getYRot(), this.getXRot());
     }
 
     public void moveTo(BlockPos pPos, float pYRot, float pXRot) {
@@ -1708,35 +1538,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.reapplyPosition();
     }
 
-    public void moveTo(double pX, double pY, double pZ, float pYRot, float pXRot) {
-        this.moveTo(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(pX),
-                            WorldBounds.clampVerticalDouble(pY), WorldBounds.clampAbsoluteDouble(pZ)),
-                pYRot, pXRot);
-    }
-
     public final void setOldPosAndRot() {
-        if (this.usesSectorPhysics()) {
-            SectorVec3 current = this.sectorPosition();
-            this.sectorPositionOld = current;
-            // xo/yo/zo and xOld/yOld/zOld remain lossy legacy mirrors for rendering and compatibility.
-            Vec3 approximate = current.toApproximateVec3();
-            this.xo = approximate.x;
-            this.yo = approximate.y;
-            this.zo = approximate.z;
-            this.xOld = approximate.x;
-            this.yOld = approximate.y;
-            this.zOld = approximate.z;
-        } else {
-            double d0 = this.getX();
-            double d1 = this.getY();
-            double d2 = this.getZ();
-            this.xo = d0;
-            this.yo = d1;
-            this.zo = d2;
-            this.xOld = d0;
-            this.yOld = d1;
-            this.zOld = d2;
-        }
+        this.setOldExactPosition(this.sectorPosition());
         this.yRotO = this.getYRot();
         this.xRotO = this.getXRot();
     }
@@ -1767,11 +1570,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     public void push(Entity pEntity) {
         if (!this.isPassengerOfSameVehicle(pEntity)) {
             if (!pEntity.noPhysics && !this.noPhysics) {
-                Vec3 exactDelta = this.sectorPosition != null && pEntity.sectorPosition != null
-                        ? pEntity.sectorPosition.relativeTo(this.sectorPosition)
-                        : null;
-                double d0 = exactDelta != null ? exactDelta.x : pEntity.getX() - this.getX();
-                double d1 = exactDelta != null ? exactDelta.z : pEntity.getZ() - this.getZ();
+                Vec3 exactDelta = pEntity.sectorPosition().relativeTo(this.sectorPosition());
+                double d0 = exactDelta.x;
+                double d1 = exactDelta.z;
                 double d2 = Mth.absMax(d0, d1);
                 if (d2 >= (double) 0.01F) {
                     d2 = Math.sqrt(d2);
@@ -1846,42 +1647,17 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.calculateViewVector(pXRot - 90.0F, pYRot);
     }
 
-    public final Vec3 getEyePosition() {
-        return new Vec3(this.getX(), this.getEyeY(), this.getZ());
-    }
-
-    public final Vec3 getEyePosition(float pPartialTicks) {
-        if (this.sectorPosition != null) {
-            SectorVec3 interpolated = this.interpolatedExactPosition(pPartialTicks);
-            return interpolated.withY(interpolated.y() + (double) this.getEyeHeight()).toApproximateVec3();
-        }
-        double d0 = Mth.lerp((double) pPartialTicks, this.xo, this.getX());
-        double d1 = Mth.lerp((double) pPartialTicks, this.yo, this.getY()) + (double) this.getEyeHeight();
-        double d2 = Mth.lerp((double) pPartialTicks, this.zo, this.getZ());
-        return new Vec3(d0, d1, d2);
-    }
-
     public Vec3 getLightProbePosition(float pPartialTicks) {
-        return this.getEyePosition(pPartialTicks);
+        return this.exactEyePosition(pPartialTicks).toExactVec3();
     }
 
     /** Exact block used for entity lighting; avoids converting sector X/Z to doubles. */
     public final BlockPos getLightProbeBlockPosition(float partialTick) {
-        if (this.sectorPosition != null) {
-            SectorVec3 interpolated = this.interpolatedExactPosition(partialTick);
-            return interpolated.withY(interpolated.y() + (double) this.getEyeHeight()).blockPosition();
-        }
-        return new BlockPos(this.getLightProbePosition(partialTick));
+        return this.exactEyePosition(partialTick).blockPosition();
     }
 
     public final Vec3 getPosition(float pPartialTicks) {
-        if (this.hasSectorPosition()) {
-            return new net.minecraft.world.phys.ExactVec3(this.interpolatedExactPosition(pPartialTicks));
-        }
-        double d0 = Mth.lerp((double) pPartialTicks, this.xo, this.getX());
-        double d1 = Mth.lerp((double) pPartialTicks, this.yo, this.getY());
-        double d2 = Mth.lerp((double) pPartialTicks, this.zo, this.getZ());
-        return new Vec3(d0, d1, d2);
+        return this.interpolatedExactPosition(pPartialTicks).toExactVec3();
     }
 
     public HitResult pick(double pHitDistance, float pPartialTicks, boolean pHitFluids) {
@@ -1889,18 +1665,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public BlockHitResult pick(double range, float partialTick, ClipContext.Fluid fluidMode) {
-        if (this.sectorPosition != null) {
-            SectorVec3 interpolated = this.interpolatedExactPosition(partialTick);
-            SectorVec3 from = interpolated.withY(interpolated.y() + (double) this.getEyeHeight());
-            Vec3 view = this.getViewVector(partialTick);
-            SectorVec3 to = from.add(view.x * range, view.y * range, view.z * range);
-            return net.minecraft.world.level.SectorClipper.clip(this.level, from, to, this,
-                    ClipContext.Block.OUTLINE, fluidMode);
-        }
-        Vec3 vec3 = this.getEyePosition(partialTick);
-        Vec3 vec31 = this.getViewVector(partialTick);
-        Vec3 vec32 = vec3.add(vec31.x * range, vec31.y * range, vec31.z * range);
-        return this.level.clip(new ClipContext(vec3, vec32, ClipContext.Block.OUTLINE, fluidMode, this));
+        SectorVec3 from = this.exactEyePosition(partialTick);
+        Vec3 view = this.getViewVector(partialTick);
+        SectorVec3 to = from.add(view.x * range, view.y * range, view.z * range);
+        return net.minecraft.world.level.SectorClipper.clip(this.level, from, to, this,
+                ClipContext.Block.OUTLINE, fluidMode);
     }
 
     public boolean isPickable() {
@@ -1926,7 +1695,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public boolean shouldRenderAtSqrDistance(double pDistance) {
-        double d0 = this.getBoundingBox().getSize();
+        double d0 = this.exactBoundingBox().getSize();
         if (Double.isNaN(d0)) {
             d0 = 1.0D;
         }
@@ -1961,21 +1730,12 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             // coordinate near or beyond 2^53 through a double permanently drops
             // its block and/or sub-block bits.
             SectorVec3 exactPosition = this.sectorPosition;
-            if (this.vehicle != null) {
-                pCompound.put("Pos", this.newDoubleList(this.vehicle.getX(), this.getY(), this.vehicle.getZ()));
-            } else if (exactPosition != null) {
-                Vec3 approximate = exactPosition.toApproximateVec3();
-                pCompound.put("Pos", this.newDoubleList(approximate.x, approximate.y, approximate.z));
-            } else {
-                pCompound.put("Pos", this.newDoubleList(this.getX(), this.getY(), this.getZ()));
-            }
-
             if (exactPosition != null) {
                 CompoundTag exactTag = new CompoundTag();
-                exactTag.putLong("BlockX", exactPosition.blockX());
+                NbtUtils.writeInt128(exactTag, "BlockX", exactPosition.blockX());
                 exactTag.putDouble("SubX", exactPosition.subX());
                 exactTag.putDouble("Y", exactPosition.y());
-                exactTag.putLong("BlockZ", exactPosition.blockZ());
+                NbtUtils.writeInt128(exactTag, "BlockZ", exactPosition.blockZ());
                 exactTag.putDouble("SubZ", exactPosition.subZ());
                 pCompound.put("ExactPos", exactTag);
             }
@@ -2057,7 +1817,6 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
     public void load(CompoundTag pCompound) {
         try {
-            ListTag listtag = pCompound.getList("Pos", 6);
             ListTag listtag1 = pCompound.getList("Motion", 6);
             ListTag listtag2 = pCompound.getList("Rotation", 5);
             double d0 = listtag1.getDouble(0);
@@ -2066,17 +1825,18 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             this.setDeltaMovement(!Double.isFinite(d0) || Math.abs(d0) > 10.0D ? 0.0D : d0,
                     !Double.isFinite(d1) || Math.abs(d1) > 10.0D ? 0.0D : d1,
                     !Double.isFinite(d2) || Math.abs(d2) > 10.0D ? 0.0D : d2);
-            //         double d3 = 3.0000512E7D;
-            if (this.usesSectorPhysics() && pCompound.contains("ExactPos", 10)) {
-                CompoundTag exactTag = pCompound.getCompound("ExactPos");
-                this.applyExactPosition(SectorVec3.fromBlockAndFraction(exactTag.getLong("BlockX"),
-                        exactTag.getDouble("SubX"), exactTag.getDouble("Y"),
-                        exactTag.getLong("BlockZ"), exactTag.getDouble("SubZ")));
-            } else {
-                // Legacy saves and non-sector entities continue to use vanilla Pos.
-                this.setPosRaw(listtag.getDouble(0), listtag.getDouble(1), listtag.getDouble(2));
-            }
-            //         this.setPosRaw(Mth.clamp(listtag.getDouble(0), -3.0000512E7D, 3.0000512E7D), Mth.clamp(listtag.getDouble(1), -2.0E7D, 2.0E7D), Mth.clamp(listtag.getDouble(2), -3.0000512E7D, 3.0000512E7D));
+            if (!pCompound.contains("ExactPos", 10))
+                throw new IllegalArgumentException("Missing ExactPos entity coordinates");
+            CompoundTag exactTag = pCompound.getCompound("ExactPos");
+            if (!exactTag.contains("SubX", 6) || !exactTag.contains("Y", 6) || !exactTag.contains("SubZ", 6))
+                throw new IllegalArgumentException("Missing ExactPos entity fractions or height");
+            double subX = exactTag.getDouble("SubX");
+            double subZ = exactTag.getDouble("SubZ");
+            double y = exactTag.getDouble("Y");
+            if (!(subX >= 0.0D && subX < 1.0D) || !(subZ >= 0.0D && subZ < 1.0D) || !Double.isFinite(y))
+                throw new IllegalArgumentException("Invalid ExactPos entity fractions or height");
+            this.applyExactPosition(SectorVec3.fromBlockAndFraction(NbtUtils.readInt128(exactTag, "BlockX"),
+                    subX, y, NbtUtils.readInt128(exactTag, "BlockZ"), subZ));
             this.setYRot(listtag2.getFloat(0));
             this.setXRot(listtag2.getFloat(1));
             this.setOldPosAndRot();
@@ -2096,7 +1856,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                 this.stringUUID = this.uuid.toString();
             }
 
-            if (Double.isFinite(this.getX()) && Double.isFinite(this.getY()) && Double.isFinite(this.getZ())) {
+            if (Double.isFinite(this.getY())) {
                 if (Double.isFinite((double) this.getYRot()) && Double.isFinite((double) this.getXRot())) {
                     this.reapplyPosition();
                     this.setRot(this.getYRot(), this.getXRot());
@@ -2217,22 +1977,16 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     public boolean isInWall() {
         if (this.noPhysics) {
             return false;
-        } else if (this.usesSectorPhysics()) {
+        } else {
             float width = this.dimensions.width * 0.8F;
             SectorVec3 eye = this.sectorPosition().withY(this.getEyeY());
             SectorAABB exactEyeBox = SectorAABB.around(eye, (double) width, 1.0E-6D);
             SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(eye);
             AABB localEyeBox = exactEyeBox.toLocalAABB(origin);
-            return new net.minecraft.world.level.SectorBlockCollisions(this.level, this, exactEyeBox,
-                                                        localEyeBox, origin, true)
-                    .hasNext();
-        } else {
-            float f = this.dimensions.width * 0.8F;
-            AABB aabb = AABB.ofSize(this.getEyePosition(), (double) f, 1.0E-6D, (double) f);
-            return BlockPos.betweenClosedStream(aabb).anyMatch((p_201942_) -> {
-                BlockState blockstate = this.level.getBlockState(p_201942_);
-                return !blockstate.isAir() && blockstate.isSuffocating(this.level, p_201942_) && Shapes.joinIsNotEmpty(blockstate.getCollisionShape(this.level, p_201942_).move((double) p_201942_.getX(), (double) p_201942_.getY(), (double) p_201942_.getZ()), Shapes.create(aabb), BooleanOp.AND);
-            });
+            try (var collisions = net.minecraft.world.level.SectorBlockCollisions.acquire(
+                    this.level, this, exactEyeBox, localEyeBox, origin, true)) {
+                return collisions.hasNext();
+            }
         }
     }
 
@@ -2257,17 +2011,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public void positionRider(Entity pPassenger) {
-        this.positionRider(pPassenger, Entity::setPos);
-    }
-
-    private void positionRider(Entity pPassenger, Entity.MoveFunction pCallback) {
         if (this.hasPassenger(pPassenger)) {
             double d0 = this.getY() + this.getPassengersRidingOffset() + pPassenger.getMyRidingOffset();
-            if (this.hasSectorPosition() && pPassenger.hasSectorPosition()) {
-                pPassenger.applyExactPosition(this.sectorPosition().withY(d0));
-            } else {
-                pCallback.accept(pPassenger, this.getX(), d0, this.getZ());
-            }
+            pPassenger.applyExactPosition(this.sectorPosition().withY(d0));
         }
     }
 
@@ -2393,7 +2139,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public void lerpTo(double pX, double pY, double pZ, float pYRot, float pXRot, int pLerpSteps, boolean pTeleport) {
-        this.setPos(pX, pY, pZ);
+        this.applyExactPosition(SectorVec3.fromApproximate(pX, pY, pZ));
         this.setRot(pYRot, pXRot);
     }
 
@@ -2796,7 +2542,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
 
     public String toString() {
         String s = this.level == null ? "~NULL~" : this.level.toString();
-        return this.removalReason != null ? String.format(Locale.ROOT, "%s['%s'/%d, l='%s', x=%.2f, y=%.2f, z=%.2f, removed=%s]", this.getClass().getSimpleName(), this.getName().getString(), this.id, s, this.getX(), this.getY(), this.getZ(), this.removalReason) : String.format(Locale.ROOT, "%s['%s'/%d, l='%s', x=%.2f, y=%.2f, z=%.2f]", this.getClass().getSimpleName(), this.getName().getString(), this.id, s, this.getX(), this.getY(), this.getZ());
+        return String.format(Locale.ROOT, "%s['%s'/%d, l='%s', x=%s, y=%.2f, z=%s%s]",
+                this.getClass().getSimpleName(), this.getName().getString(), this.id, s,
+                this.sectorPosition().formatX(2), this.getY(), this.sectorPosition().formatZ(2),
+                this.removalReason == null ? "" : ", removed=" + this.removalReason);
     }
 
     public boolean isInvulnerableTo(DamageSource pSource) {
@@ -2866,6 +2615,39 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.setRemoved(Entity.RemovalReason.CHANGED_DIMENSION);
     }
 
+    private static SectorVec3 scalePortalPosition(SectorVec3 origin, double scale) {
+        if (scale == 1.0D)
+            return origin;
+        if (scale == 0.125D) {
+            return SectorVec3.fromBlockAndFraction(origin.blockX().shiftRight(3),
+                    ((origin.blockX().lo() & 7L) + origin.subX()) / 8.0D, origin.y(),
+                    origin.blockZ().shiftRight(3), ((origin.blockZ().lo() & 7L) + origin.subZ()) / 8.0D);
+        }
+        if (scale == 8.0D) {
+            Int128 x = origin.blockX().shiftLeftSaturated(3);
+            Int128 z = origin.blockZ().shiftLeftSaturated(3);
+            double fractionX = origin.subX() * 8.0D;
+            double fractionZ = origin.subZ() * 8.0D;
+            boolean overflowX = !x.shiftRight(3).equals(origin.blockX());
+            boolean overflowZ = !z.shiftRight(3).equals(origin.blockZ());
+            return SectorVec3.fromBlockAndFraction(overflowX ? x : x.addSaturated(Int128.fromLong((long) fractionX)),
+                    overflowX ? (x.hi() < 0L ? 0.0D : Math.nextDown(1.0D)) : fractionX - Math.floor(fractionX), origin.y(),
+                    overflowZ ? z : z.addSaturated(Int128.fromLong((long) fractionZ)),
+                    overflowZ ? (z.hi() < 0L ? 0.0D : Math.nextDown(1.0D)) : fractionZ - Math.floor(fractionZ));
+        }
+        java.math.BigDecimal multiplier = java.math.BigDecimal.valueOf(scale);
+        return SectorVec3.fromDecimal(
+                clampPortalCoordinate(new java.math.BigDecimal(origin.blockX().toString()).add(java.math.BigDecimal.valueOf(origin.subX())).multiply(multiplier)),
+                origin.y(),
+                clampPortalCoordinate(new java.math.BigDecimal(origin.blockZ().toString()).add(java.math.BigDecimal.valueOf(origin.subZ())).multiply(multiplier)));
+    }
+
+    private static String clampPortalCoordinate(java.math.BigDecimal value) {
+        java.math.BigDecimal min = new java.math.BigDecimal(Int128.MIN.toString());
+        java.math.BigDecimal max = new java.math.BigDecimal(Int128.MAX.toString()).add(java.math.BigDecimal.valueOf(Math.nextDown(1.0D)));
+        return value.max(min).min(max).toPlainString();
+    }
+
     @Nullable
     protected PortalInfo findDimensionEntryPoint(ServerLevel pDestination) {
         boolean flag = this.level.dimension() == Level.END && pDestination.dimension() == Level.OVERWORLD;
@@ -2878,11 +2660,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                 WorldBorder worldborder = pDestination.getWorldBorder();
                 double d0 = DimensionType.getTeleportationScale(this.level.dimensionType(), pDestination.dimensionType());
                 SectorVec3 origin = this.sectorPosition();
-                java.math.BigDecimal scale = java.math.BigDecimal.valueOf(d0);
-                SectorVec3 destination = SectorVec3.fromDecimal(
-                        java.math.BigDecimal.valueOf(origin.blockX()).add(java.math.BigDecimal.valueOf(origin.subX())).multiply(scale).max(java.math.BigDecimal.valueOf(Long.MIN_VALUE)).min(java.math.BigDecimal.valueOf(Long.MAX_VALUE)).toPlainString(),
-                        origin.y(),
-                        java.math.BigDecimal.valueOf(origin.blockZ()).add(java.math.BigDecimal.valueOf(origin.subZ())).multiply(scale).max(java.math.BigDecimal.valueOf(Long.MIN_VALUE)).min(java.math.BigDecimal.valueOf(Long.MAX_VALUE)).toPlainString());
+                SectorVec3 destination = scalePortalPosition(origin, d0);
                 BlockPos blockpos1 = destination.blockPosition();
                 return this.getExitPortal(pDestination, blockpos1, flag2, worldborder).map((p_185941_) -> {
                                                                                       BlockState blockstate = this.level.getBlockState(this.portalEntrancePos);
@@ -2951,8 +2729,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         pCategory.setDetail("Entity Name", () -> {
             return this.getName().getString();
         });
-        pCategory.setDetail("Entity's Exact location", String.format(Locale.ROOT, "%.2f, %.2f, %.2f", this.getX(), this.getY(), this.getZ()));
-        pCategory.setDetail("Entity's Block location", CrashReportCategory.formatLocation(this.level, this.getBlockX(), this.getBlockY(), this.getBlockZ()));
+        pCategory.setDetail("Entity's Exact location", this.sectorPosition().toString());
+        pCategory.setDetail("Entity's Block location", this.blockPosition().toString());
         Vec3 vec3 = this.getDeltaMovement();
         pCategory.setDetail("Entity's Momentum", String.format(Locale.ROOT, "%.2f, %.2f, %.2f", vec3.x, vec3.y, vec3.z));
         pCategory.setDetail("Entity's Passengers", () -> {
@@ -3023,33 +2801,19 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.entityData.get(DATA_CUSTOM_NAME_VISIBLE);
     }
 
-    public final void teleportToWithTicket(double pX, double pY, double pZ) {
-        this.teleportToWithTicket(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(pX),
-                WorldBounds.clampVerticalDouble(pY), WorldBounds.clampAbsoluteDouble(pZ)));
-    }
-
     /** Loads the target chunk and teleports without reconstructing large horizontal doubles. */
     public final void teleportToWithTicket(SectorVec3 position) {
         if (this.level instanceof ServerLevel) {
             ChunkPos chunkpos = new ChunkPos(position.blockPosition());
             ((ServerLevel) this.level).getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, chunkpos, 0, this.getId());
-            this.level.getChunk(chunkpos.x, chunkpos.z);
+            this.level.getChunk(chunkpos.x(), chunkpos.z());
             this.teleportTo(position);
         }
-    }
-
-    public void dismountTo(double pX, double pY, double pZ) {
-        this.teleportTo(pX, pY, pZ);
     }
 
     /** Exact split-coordinate dismount ingress; never reconstructs a lossy global X/Z double. */
     public void dismountToExact(SectorVec3 position) {
         this.teleportTo(position);
-    }
-
-    public void teleportTo(double pX, double pY, double pZ) {
-        this.teleportTo(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(pX),
-                WorldBounds.clampVerticalDouble(pY), WorldBounds.clampAbsoluteDouble(pZ)));
     }
 
     /** Teleports this entity and riders to an exact split-coordinate target. */
@@ -3104,13 +2868,6 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                 });
                 return;
             }
-            Vec3 vec3 = this.position().add(0.0D, (double) entitydimensions.height / 2.0D, 0.0D);
-            double d0 = (double) Math.max(0.0F, entitydimensions1.width - entitydimensions.width) + 1.0E-6D;
-            double d1 = (double) Math.max(0.0F, entitydimensions1.height - entitydimensions.height) + 1.0E-6D;
-            VoxelShape voxelshape = Shapes.create(AABB.ofSize(vec3, d0, d1, d0));
-            this.level.findFreePosition(this, voxelshape, vec3, (double) entitydimensions1.width, (double) entitydimensions1.height, (double) entitydimensions1.width).ifPresent((p_185956_) -> {
-                this.setPos(p_185956_.add(0.0D, (double) (-entitydimensions1.height) / 2.0D, 0.0D));
-            });
         }
     }
 
@@ -3130,12 +2887,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return true;
     }
 
-    public final AABB getBoundingBox() {
-        return this.bb;
-    }
-
-    public AABB getBoundingBoxForCulling() {
-        return this.getBoundingBox();
+    public final AABB exactBoundingBox() {
+        return AABB.fromSectorBounds(this.getSectorBoundingBox());
     }
 
     /** Exact X/Z culling bounds for sector-enabled entities. */
@@ -3145,13 +2898,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     protected AABB getBoundingBoxForPose(Pose pPose) {
-        if (this.usesSectorPhysics())
-            return AABB.fromSectorBounds(this.getSectorBoundingBoxForPose(pPose));
-        EntityDimensions entitydimensions = this.getDimensions(pPose);
-        float f = entitydimensions.width / 2.0F;
-        Vec3 vec3 = new Vec3(this.getX() - (double) f, this.getY(), this.getZ() - (double) f);
-        Vec3 vec31 = new Vec3(this.getX() + (double) f, this.getY() + (double) entitydimensions.height, this.getZ() + (double) f);
-        return new AABB(vec3, vec31);
+        return AABB.fromSectorBounds(this.getSectorBoundingBoxForPose(pPose));
     }
 
     public final void setBoundingBox(AABB pBb) {
@@ -3345,7 +3092,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     * that would snap onto the coarse double grid near 2^63.
     */
     public SectorVec3 getExactDismountLocationForPassenger(LivingEntity p_20124_) {
-        return p_20124_.sectorPosition().withY(this.getBoundingBox().maxY);
+        return p_20124_.sectorPosition().withY(this.exactBoundingBox().maxY);
     }
 
     @Nullable
@@ -3366,7 +3113,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public CommandSourceStack createCommandSourceStack() {
-        return new CommandSourceStack(this, this.position(), this.getRotationVector(), this.level instanceof ServerLevel ? (ServerLevel) this.level : null, this.getPermissionLevel(), this.getName().getString(), this.getDisplayName(), this.level.getServer(), this);
+        return new CommandSourceStack(this, this.exactPositionVector(), this.getRotationVector(), this.level instanceof ServerLevel ? (ServerLevel) this.level : null, this.getPermissionLevel(), this.getName().getString(), this.getDisplayName(), this.level.getServer(), this);
     }
 
     protected int getPermissionLevel() {
@@ -3413,7 +3160,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         if (this.touchingUnloadedChunk()) {
             return false;
         } else {
-            AABB aabb = this.getBoundingBox().deflate(0.001D);
+            AABB aabb = this.exactBoundingBox().deflate(0.001D);
             int i = Mth.floor(aabb.minX);
             int j = Mth.ceil(aabb.maxX);
             int k = Mth.floor(aabb.minY);
@@ -3481,15 +3228,17 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         if (this.touchingUnloadedChunk())
             return false;
         SectorAABB box = this.getSectorBoundingBox().inflate(-0.001D, -0.001D, -0.001D);
+        if (!isSafeEntityScan(box))
+            return false;
         double maxDepth = 0.0D;
         boolean pushed = this.isPushedByFluid();
         boolean found = false;
         Vec3 flow = Vec3.ZERO;
         int flowCount = 0;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-        for (long x = box.minBlockXForRange();; x = WorldBounds.addBlockOffset(x, 1L)) {
+        for (Int128 x = box.minBlockXForRange();; x = WorldBounds.addBlockOffset(x, 1L)) {
             for (int y = box.minBlockYForRange(); y < box.maxBlockYExclusive(); ++y) {
-                for (long z = box.minBlockZForRange();; z = WorldBounds.addBlockOffset(z, 1L)) {
+                for (Int128 z = box.minBlockZForRange();; z = WorldBounds.addBlockOffset(z, 1L)) {
                     pos.set(x, y, z);
                     FluidState state = this.level.getFluidState(pos);
                     if (state.is(tag)) {
@@ -3506,11 +3255,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                             }
                         }
                     }
-                    if (z == box.maxBlockZForRangeInclusive() || z == Long.MAX_VALUE)
+                    if (z.equals(box.maxBlockZForRangeInclusive()))
                         break;
                 }
             }
-            if (x == box.maxBlockXForRangeInclusive() || x == Long.MAX_VALUE)
+            if (x.equals(box.maxBlockXForRangeInclusive()))
                 break;
         }
         if (flow.length() > 0.0D) {
@@ -3533,7 +3282,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             return !this.level.hasChunksAt(box.minBlockXForRange(), box.minBlockZForRange(),
                     box.maxBlockXForRangeInclusive(), box.maxBlockZForRangeInclusive());
         }
-        AABB aabb = this.getBoundingBox().inflate(1.0D);
+        AABB aabb = this.exactBoundingBox().inflate(1.0D);
         int i = Mth.floor(aabb.minX);
         int j = Mth.ceil(aabb.maxX);
         int k = Mth.floor(aabb.minZ);
@@ -3563,14 +3312,14 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.type.getDimensions();
     }
 
-    public Vec3 position() {
-        return this.position;
+    /** World-position carrier for APIs whose signature still uses Vec3. */
+    public final Vec3 exactPositionVector() {
+        return this.sectorPosition().toExactVec3();
     }
 
-    /** Exact position for sector-aware callers; null for vanilla entities. */
-    @Nullable
+    /** Authoritative exact world position. */
     public final SectorVec3 exactPosition() {
-        return this.sectorPosition;
+        return this.sectorPosition();
     }
 
     /** Exact position from the previous tick, when this entity uses sector physics. */
@@ -3595,13 +3344,6 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         if (position == null)
             throw new NullPointerException("position");
         this.sectorPositionOld = position;
-        Vec3 approximate = position.toApproximateVec3();
-        this.xo = approximate.x;
-        this.yo = approximate.y;
-        this.zo = approximate.z;
-        this.xOld = approximate.x;
-        this.yOld = approximate.y;
-        this.zOld = approximate.z;
     }
 
     /** Returns a small interpolation frame for this entity without subtracting large doubles. */
@@ -3621,10 +3363,6 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                 result.add(cast);
         }
         return result;
-    }
-
-    public Vec3 trackingPosition() {
-        return this.position();
     }
 
     public BlockPos blockPosition() {
@@ -3670,20 +3408,16 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.setDeltaMovement(new Vec3(pX, pY, pZ));
     }
 
-    public final long getBlockX() {
+    public final Int128 getBlockX() {
         return this.blockPosition.getX();
     }
 
-    public final double getX() {
-        return this.position.x;
+    public final long getBlockXHi() {
+        return this.blockPosition.getXHi();
     }
 
-    public double getX(double pScale) {
-        return this.sectorPosition().add((double) this.getBbWidth() * pScale, 0.0D, 0.0D).toApproximateVec3().x;
-    }
-
-    public double getRandomX(double pScale) {
-        return this.getX((2.0D * this.random.nextDouble() - 1.0D) * pScale);
+    public final long getBlockXLo() {
+        return this.blockPosition.getXLo();
     }
 
     public final int getBlockY() {
@@ -3706,48 +3440,16 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.position.y + (double) this.eyeHeight;
     }
 
-    public final long getBlockZ() {
+    public final Int128 getBlockZ() {
         return this.blockPosition.getZ();
     }
 
-    public final double getZ() {
-        return this.position.z;
+    public final long getBlockZHi() {
+        return this.blockPosition.getZHi();
     }
 
-    public double getZ(double pScale) {
-        return this.sectorPosition().add(0.0D, 0.0D, (double) this.getBbWidth() * pScale).toApproximateVec3().z;
-    }
-
-    public double getRandomZ(double pScale) {
-        return this.getZ((2.0D * this.random.nextDouble() - 1.0D) * pScale);
-    }
-
-    public final void setPosRaw(double pX, double pY, double pZ) {
-        // This is still a legacy approximate absolute-double ingress for sector entities.
-        // Exact movement must call setSectorPositionRaw(SectorVec3) directly.
-        if (this.usesSectorPhysics()) {
-            this.setSectorPositionRaw(SectorVec3.fromApproximate(WorldBounds.clampAbsoluteDouble(pX),
-                    WorldBounds.clampVerticalDouble(pY), WorldBounds.clampAbsoluteDouble(pZ)));
-            return;
-        }
-        pX = WorldBounds.clampAbsoluteDouble(pX);
-        pY = WorldBounds.clampVerticalDouble(pY);
-        pZ = WorldBounds.clampAbsoluteDouble(pZ);
-        if (this.position.x != pX || this.position.y != pY || this.position.z != pZ) {
-            this.position = new Vec3(pX, pY, pZ);
-            long i = Mth.lfloor(pX);
-            long j = Mth.lfloor(pY);
-            long k = Mth.lfloor(pZ);
-            if (i != this.blockPosition.getX() || j != this.blockPosition.getY() || k != this.blockPosition.getZ()) {
-                this.blockPosition = new BlockPos(i, j, k);
-                this.feetBlockState = null;
-                if (SectionPos.blockToSectionCoord(i) != this.chunkPosition.x || SectionPos.blockToSectionCoord(k) != this.chunkPosition.z) {
-                    this.chunkPosition = new ChunkPos(this.blockPosition);
-                }
-            }
-
-            this.levelCallback.onMove();
-        }
+    public final long getBlockZLo() {
+        return this.blockPosition.getZLo();
     }
 
     public void checkDespawn() {

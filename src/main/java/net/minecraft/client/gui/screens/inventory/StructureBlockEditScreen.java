@@ -185,7 +185,7 @@ public class StructureBlockEditScreen extends Screen {
         BlockPos blockpos = this.structure.getStructurePos();
         this.posXEdit = new EditBox(this.font, this.width / 2 - 152, 80, 80, 20, Component.translatable("structure_block.position.x"));
         this.posXEdit.setMaxLength(15);
-        this.posXEdit.setValue(Long.toString(blockpos.getX()));
+        this.posXEdit.setValue(blockpos.getX().toString());
         this.addWidget(this.posXEdit);
         this.posYEdit = new EditBox(this.font, this.width / 2 - 72, 80, 80, 20, Component.translatable("structure_block.position.y"));
         this.posYEdit.setMaxLength(15);
@@ -193,12 +193,12 @@ public class StructureBlockEditScreen extends Screen {
         this.addWidget(this.posYEdit);
         this.posZEdit = new EditBox(this.font, this.width / 2 + 8, 80, 80, 20, Component.translatable("structure_block.position.z"));
         this.posZEdit.setMaxLength(15);
-        this.posZEdit.setValue(Long.toString(blockpos.getZ()));
+        this.posZEdit.setValue(blockpos.getZ().toString());
         this.addWidget(this.posZEdit);
         Vec3i vec3i = this.structure.getStructureSize();
         this.sizeXEdit = new EditBox(this.font, this.width / 2 - 152, 120, 80, 20, Component.translatable("structure_block.size.x"));
         this.sizeXEdit.setMaxLength(15);
-        this.sizeXEdit.setValue(Long.toString(vec3i.getX()));
+        this.sizeXEdit.setValue(vec3i.getX().toString());
         this.addWidget(this.sizeXEdit);
         this.sizeYEdit = new EditBox(this.font, this.width / 2 - 72, 120, 80, 20, Component.translatable("structure_block.size.y"));
         this.sizeYEdit.setMaxLength(15);
@@ -206,7 +206,7 @@ public class StructureBlockEditScreen extends Screen {
         this.addWidget(this.sizeYEdit);
         this.sizeZEdit = new EditBox(this.font, this.width / 2 + 8, 120, 80, 20, Component.translatable("structure_block.size.z"));
         this.sizeZEdit.setMaxLength(15);
-        this.sizeZEdit.setValue(Long.toString(vec3i.getZ()));
+        this.sizeZEdit.setValue(vec3i.getZ().toString());
         this.addWidget(this.sizeZEdit);
         this.integrityEdit = new EditBox(this.font, this.width / 2 - 152, 120, 80, 20, Component.translatable("structure_block.integrity.integrity"));
         this.integrityEdit.setMaxLength(15);

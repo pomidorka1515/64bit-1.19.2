@@ -343,7 +343,7 @@ public class MultiPlayerGameMode {
             return InteractionResult.PASS;
         } else {
             this.ensureHasSentCarriedItem();
-            this.connection.send(new ServerboundMovePlayerPacket.PosRot(pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), pPlayer.getYRot(), pPlayer.getXRot(), pPlayer.isOnGround()));
+            this.connection.send(new ServerboundMovePlayerPacket.PosRot(pPlayer.sectorPosition(), pPlayer.getYRot(), pPlayer.getXRot(), pPlayer.isOnGround()));
             MutableObject<InteractionResult> mutableobject = new MutableObject<>();
             this.startPrediction(this.minecraft.level, (p_233720_) -> {
                 ServerboundUseItemPacket serverbounduseitempacket = new ServerboundUseItemPacket(pHand, p_233720_);
@@ -391,7 +391,7 @@ public class MultiPlayerGameMode {
 
     public InteractionResult interactAt(Player pPlayer, Entity pTarget, EntityHitResult pRay, InteractionHand pHand) {
         this.ensureHasSentCarriedItem();
-        Vec3 vec3 = pRay.getLocation().subtract(pTarget.getX(), pTarget.getY(), pTarget.getZ());
+        Vec3 vec3 = pRay.getLocation().subtract(pTarget.exactPositionVector());
         this.connection.send(ServerboundInteractPacket.createInteractionPacket(pTarget, pPlayer.isShiftKeyDown(), pHand, vec3));
         return this.localPlayerMode == GameType.SPECTATOR ? InteractionResult.PASS : pTarget.interactAt(pPlayer, vec3, pHand);
     }

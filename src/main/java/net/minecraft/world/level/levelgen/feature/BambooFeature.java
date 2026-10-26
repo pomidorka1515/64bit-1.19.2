@@ -2,6 +2,7 @@ package net.minecraft.world.level.levelgen.feature;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldBounds;
@@ -38,9 +39,9 @@ public class BambooFeature extends Feature<ProbabilityFeatureConfiguration> {
                     int k = randomsource.nextInt(4) + 1;
 
                     for (int l = -k; l <= k; ++l) {
-                        long i1 = WorldBounds.addBlockOffset(blockpos.getX(), l);
+                        Int128 i1 = WorldBounds.addBlockOffset(blockpos.getX(), l);
                         for (int j1 = -k; j1 <= k; ++j1) {
-                            long k1 = WorldBounds.addBlockOffset(blockpos.getZ(), j1);
+                        Int128 k1 = WorldBounds.addBlockOffset(blockpos.getZ(), j1);
                             if (l * l + j1 * j1 <= k * k) {
                                 blockpos$mutableblockpos1.set(i1, worldgenlevel.getHeight(Heightmap.Types.WORLD_SURFACE, i1, k1) - 1, k1);
                                 if (isDirt(worldgenlevel.getBlockState(blockpos$mutableblockpos1))) {

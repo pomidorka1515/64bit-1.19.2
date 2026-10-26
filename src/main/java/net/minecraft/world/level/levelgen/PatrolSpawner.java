@@ -104,7 +104,7 @@ public class PatrolSpawner implements CustomSpawner {
                     patrollingmonster.findPatrolTarget();
                 }
 
-                patrollingmonster.setPos((double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ());
+                patrollingmonster.moveTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.0D, pPos.getY(), pPos.getZ(), 0.0D), patrollingmonster.getYRot(), patrollingmonster.getXRot());
                 patrollingmonster.finalizeSpawn(pLevel, pLevel.getCurrentDifficultyAt(pPos), MobSpawnType.PATROL, (SpawnGroupData) null, (CompoundTag) null);
                 pLevel.addFreshEntityWithPassengers(patrollingmonster);
                 return true;

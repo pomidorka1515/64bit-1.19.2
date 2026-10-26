@@ -7,6 +7,7 @@ import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -83,7 +84,7 @@ public class RuinedPortalPiece extends TemplateStructurePiece {
 
     private static StructurePlaceSettings makeSettings(StructureTemplateManager pStructureTemplateManager, CompoundTag pTag, ResourceLocation pLocation) {
         StructureTemplate structuretemplate = pStructureTemplateManager.getOrCreate(pLocation);
-        BlockPos blockpos = new BlockPos(structuretemplate.getSize().getX() / 2, 0, structuretemplate.getSize().getZ() / 2);
+        BlockPos blockpos = new BlockPos(structuretemplate.getSize().getX().shiftRight(1), 0, structuretemplate.getSize().getZ().shiftRight(1));
         return makeSettings(Mirror.valueOf(pTag.getString("Mirror")), Rotation.valueOf(pTag.getString("Rotation")), RuinedPortalPiece.VerticalPlacement.byName(pTag.getString("VerticalPlacement")), blockpos, RuinedPortalPiece.Properties.CODEC.parse(new Dynamic<>(NbtOps.INSTANCE, pTag.get("Properties"))).getOrThrow(true, LOGGER::error));
     }
 
@@ -158,27 +159,30 @@ public class RuinedPortalPiece extends TemplateStructurePiece {
     }
 
     private void addNetherrackDripColumnsBelowPortal(RandomSource pRandom, LevelAccessor pLevel) {
-        long i = WorldBounds.addBlockOffset(this.boundingBox.minX(), 1L);
-        long j = WorldBounds.subtractBlockOffset(this.boundingBox.maxX(), 1L);
-        long k = WorldBounds.addBlockOffset(this.boundingBox.minZ(), 1L);
-        long l = WorldBounds.subtractBlockOffset(this.boundingBox.maxZ(), 1L);
-        if (i > j || k > l) {
+        Int128 i = WorldBounds.addBlockOffset(this.boundingBox.minX(), 1L);
+        Int128 j = WorldBounds.subtractBlockOffset(this.boundingBox.maxX(), 1L);
+        Int128 k = WorldBounds.addBlockOffset(this.boundingBox.minZ(), 1L);
+        Int128 l = WorldBounds.subtractBlockOffset(this.boundingBox.maxZ(), 1L);
+        if (i.compareTo(j) > 0 || k.compareTo(l) > 0) {
             return;
         }
 
-        for (long i1 = i;; i1 = WorldBounds.addBlockOffset(i1, 1L)) {
-            for (long j1 = k;; j1 = WorldBounds.addBlockOffset(j1, 1L)) {
+        if (WorldBounds.localSpanExceeds(j, i) || WorldBounds.localSpanExceeds(l, k)) {
+            throw new IllegalArgumentException("Portal footprint exceeds safe local span");
+        }
+        for (Int128 i1 = i;; i1 = WorldBounds.addBlockOffset(i1, 1L)) {
+            for (Int128 j1 = k;; j1 = WorldBounds.addBlockOffset(j1, 1L)) {
                 BlockPos blockpos = new BlockPos(i1, this.boundingBox.minY(), j1);
                 if (pLevel.getBlockState(blockpos).is(Blocks.NETHERRACK)) {
                     this.addNetherrackDripColumn(pRandom, pLevel, blockpos.below());
                 }
 
-                if (j1 == l) {
+                if (j1.equals(l)) {
                     break;
                 }
             }
 
-            if (i1 == j) {
+            if (i1.equals(j)) {
                 break;
             }
         }
@@ -199,22 +203,26 @@ public class RuinedPortalPiece extends TemplateStructurePiece {
     private void spreadNetherrack(RandomSource pRandom, LevelAccessor pLevel) {
         boolean flag = this.verticalPlacement == RuinedPortalPiece.VerticalPlacement.ON_LAND_SURFACE || this.verticalPlacement == RuinedPortalPiece.VerticalPlacement.ON_OCEAN_FLOOR;
         BlockPos blockpos = this.boundingBox.getCenter();
-        long i = blockpos.getX();
-        long j = blockpos.getZ();
+        Int128 i = blockpos.getX();
+        Int128 j = blockpos.getZ();
         float[] afloat = new float[] {1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.9F, 0.9F, 0.8F, 0.7F, 0.6F, 0.4F, 0.2F};
         int k = afloat.length;
-        int l = (int) ((this.boundingBox.getXSpan() + this.boundingBox.getZSpan()) / 2); // TODO: i
+        if (this.boundingBox.getXSpan().compareTo(Int128.fromLong(Integer.MAX_VALUE)) > 0
+                || this.boundingBox.getZSpan().compareTo(Int128.fromLong(Integer.MAX_VALUE)) > 0) {
+            throw new IllegalArgumentException("Portal dimensions exceed local int range");
+        }
+        int l = Math.toIntExact((this.boundingBox.getXSpan().lo() + this.boundingBox.getZSpan().lo()) / 2);
         int i1 = pRandom.nextInt(Math.max(1, 8 - l / 2));
         int j1 = 3;
         BlockPos.MutableBlockPos blockpos$mutableblockpos = BlockPos.ZERO.mutable();
 
-        long k1 = WorldBounds.subtractBlockOffset(i, k);
-        long l1 = WorldBounds.addBlockOffset(i, k);
-        long i2 = WorldBounds.subtractBlockOffset(j, k);
-        long j2 = WorldBounds.addBlockOffset(j, k);
+        Int128 k1 = WorldBounds.subtractBlockOffset(i, k);
+        Int128 l1 = WorldBounds.addBlockOffset(i, k);
+        Int128 i2 = WorldBounds.subtractBlockOffset(j, k);
+        Int128 j2 = WorldBounds.addBlockOffset(j, k);
 
-        for (long k2 = k1;; k2 = WorldBounds.addBlockOffset(k2, 1L)) {
-            for (long l2 = i2;; l2 = WorldBounds.addBlockOffset(l2, 1L)) {
+        for (Int128 k2 = k1;; k2 = WorldBounds.addBlockOffset(k2, 1L)) {
+            for (Int128 l2 = i2;; l2 = WorldBounds.addBlockOffset(l2, 1L)) {
                 double i3 = WorldBounds.distance(k2, i) + WorldBounds.distance(l2, j);
                 double j3 = Math.max(0.0D, i3 + (double) i1);
                 if (j3 < (double) k) {
@@ -234,12 +242,12 @@ public class RuinedPortalPiece extends TemplateStructurePiece {
                     }
                 }
 
-                if (l2 == j2) {
+                if (l2.equals(j2)) {
                     break;
                 }
             }
 
-            if (k2 == l1) {
+            if (k2.equals(l1)) {
                 break;
             }
         }
@@ -258,7 +266,7 @@ public class RuinedPortalPiece extends TemplateStructurePiece {
         }
     }
 
-    private static int getSurfaceY(LevelAccessor pLevel, long pX, long pZ, RuinedPortalPiece.VerticalPlacement pVerticalPlacement) {
+    private static int getSurfaceY(LevelAccessor pLevel, Int128 pX, Int128 pZ, RuinedPortalPiece.VerticalPlacement pVerticalPlacement) {
         return pLevel.getHeight(getHeightMapType(pVerticalPlacement), pX, pZ) - 1;
     }
 

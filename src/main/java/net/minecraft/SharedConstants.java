@@ -6,9 +6,13 @@ import io.netty.util.ResourceLeakDetector.Level;
 import java.time.Duration;
 import javax.annotation.Nullable;
 import net.minecraft.commands.BrigadierExceptions;
-import net.minecraft.util.datafix.DataFixerOptimizationOption;
+import net.minecraft.core.Int128;
 import net.minecraft.world.level.ChunkPos;
 
+/**
+ * Shared client/server constants. The 128-bit coordinate wire format requires a matching fork jar
+ * on both sides; vanilla clients and older 64-bit fork clients are not compatible.
+ */
 public class SharedConstants {
     /** @deprecated */
     @Deprecated
@@ -27,11 +31,10 @@ public class SharedConstants {
     public static final String RELEASE_TARGET = "1.19.2";
     /** @deprecated */
     @Deprecated
-    public static final int RELEASE_NETWORK_PROTOCOL_VERSION = 0x4C534301;
+    public static final int RELEASE_NETWORK_PROTOCOL_VERSION = 0x4C534302;
     /** @deprecated */
     @Deprecated
     public static final int SNAPSHOT_NETWORK_PROTOCOL_VERSION = 103;
-    public static final int SNBT_NAG_VERSION = 3075;
     private static final int SNAPSHOT_PROTOCOL_BIT = 30;
     public static final boolean THROW_ON_TASK_FAILURE = false;
     /** @deprecated */
@@ -117,12 +120,10 @@ public class SharedConstants {
     public static final boolean DEBUG_STORE_CHUNK_STACKTRACES = false;
     public static final boolean DEBUG_FEATURE_COUNT = false;
     public static final long MAXIMUM_TICK_TIME_NANOS = Duration.ofMillis(300L).toNanos();
-    public static boolean CHECK_DATA_FIXER_SCHEMA = true;
     // Development-only pause/log paths are prohibitively expensive in a normal
     // run-client session, especially when terrain postprocessing triggers a
     // recoverable diagnostic such as a recursive navigation update.
     public static boolean IS_RUNNING_IN_IDE = false;
-    public static DataFixerOptimizationOption DATAFIXER_OPTIMIZATION_OPTION = DataFixerOptimizationOption.UNINITIALIZED_UNOPTIMIZED;
     public static final int WORLD_RESOLUTION = 16;
     public static final int MAX_CHAT_LENGTH = 256;
     public static final int MAX_COMMAND_LENGTH = 32500;
@@ -187,28 +188,14 @@ public class SharedConstants {
     }
 
     public static boolean debugVoidTerrain(ChunkPos pChunkPos) {
-        long i = pChunkPos.getMinBlockX();
-        long j = pChunkPos.getMinBlockZ();
+        Int128 i = pChunkPos.getMinBlockX();
+        Int128 j = pChunkPos.getMinBlockZ();
         if (!debugGenerateSquareTerrainWithoutNoise) {
             return false;
         } else {
-            return i > 8192 || i < 0 || j > 1024 || j < 0;
+            return i.compareTo(Int128.fromLong(8192)) > 0 || i.compareTo(Int128.ZERO) < 0
+                || j.compareTo(Int128.fromLong(1024)) > 0 || j.compareTo(Int128.ZERO) < 0;
         }
-    }
-
-    public static void enableDataFixerOptimizations() {
-        DataFixerOptimizationOption datafixeroptimizationoption;
-        switch (DATAFIXER_OPTIMIZATION_OPTION) {
-            case INITIALIZED_UNOPTIMIZED:
-                throw new IllegalStateException("Tried to enable datafixer optimization after unoptimized initialization");
-            case INITIALIZED_OPTIMIZED:
-                datafixeroptimizationoption = DataFixerOptimizationOption.INITIALIZED_OPTIMIZED;
-                break;
-            default:
-                datafixeroptimizationoption = DataFixerOptimizationOption.UNINITIALIZED_OPTIMIZED;
-        }
-
-        DATAFIXER_OPTIMIZATION_OPTION = datafixeroptimizationoption;
     }
 
     static {

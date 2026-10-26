@@ -90,7 +90,7 @@ public class EditWorldScreen extends Screen {
                     makeBackupAndShowToast(this.levelAccess);
                 }
 
-                this.minecraft.setScreen(OptimizeWorldScreen.create(this.minecraft, this.callback, this.minecraft.getFixerUpper(), this.levelAccess, p_170236_));
+                this.minecraft.setScreen(OptimizeWorldScreen.create(this.minecraft, this.callback, this.levelAccess, p_170236_));
             }, Component.translatable("optimizeWorld.confirm.title"), Component.translatable("optimizeWorld.confirm.description"), true));
         }));
         this.addRenderableWidget(new Button(this.width / 2 - 100, this.height / 4 + 120 + 5, 200, 20, Component.translatable("selectWorld.edit.export_worldgen_settings"), (p_101284_) -> {

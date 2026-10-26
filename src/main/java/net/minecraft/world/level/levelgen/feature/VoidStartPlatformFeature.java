@@ -18,25 +18,25 @@ public class VoidStartPlatformFeature extends Feature<NoneFeatureConfiguration> 
         super(pCodec);
     }
 
-    private static double checkerboardDistance(long pFirstX, long pFirstZ, long pSecondX, long pSecondZ) {
+    private static double checkerboardDistance(net.minecraft.core.Int128 pFirstX, net.minecraft.core.Int128 pFirstZ, net.minecraft.core.Int128 pSecondX, net.minecraft.core.Int128 pSecondZ) {
         return Math.max(WorldBounds.distance(pFirstX, pSecondX), WorldBounds.distance(pFirstZ, pSecondZ));
     }
 
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> pContext) {
         WorldGenLevel worldgenlevel = pContext.level();
         ChunkPos chunkpos = new ChunkPos(pContext.origin());
-        if (checkerboardDistance(chunkpos.x, chunkpos.z, PLATFORM_ORIGIN_CHUNK.x, PLATFORM_ORIGIN_CHUNK.z) > 1) {
+        if (checkerboardDistance(chunkpos.x(), chunkpos.z(), PLATFORM_ORIGIN_CHUNK.x(), PLATFORM_ORIGIN_CHUNK.z()) > 1) {
             return true;
         } else {
             BlockPos blockpos = PLATFORM_OFFSET.atY(pContext.origin().getY() + PLATFORM_OFFSET.getY());
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-            long i = chunkpos.getMinBlockZ();
-            long j = chunkpos.getMinBlockX();
+            net.minecraft.core.Int128 i = chunkpos.getMinBlockZ();
+            net.minecraft.core.Int128 j = chunkpos.getMinBlockX();
             for (int k = 0; k < 16; ++k) {
-                long l = WorldBounds.addBlockOffset(i, k);
+                net.minecraft.core.Int128 l = WorldBounds.addBlockOffset(i, k);
                 for (int i1 = 0; i1 < 16; ++i1) {
-                    long j1 = WorldBounds.addBlockOffset(j, i1);
+                    net.minecraft.core.Int128 j1 = WorldBounds.addBlockOffset(j, i1);
                     if (checkerboardDistance(blockpos.getX(), blockpos.getZ(), j1, l) <= 16.0D) {
                         blockpos$mutableblockpos.set(j1, blockpos.getY(), l);
                         if (blockpos$mutableblockpos.equals(blockpos)) {

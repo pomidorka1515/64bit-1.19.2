@@ -61,12 +61,12 @@ public class StructureBlockEntity extends BlockEntity {
         pTag.putString("name", this.getStructureName());
         pTag.putString("author", this.author);
         pTag.putString("metadata", this.metaData);
-        pTag.putInt("posX", this.structurePos.getX());
+        pTag.putInt("posX", localInt(this.structurePos.getX()));
         pTag.putInt("posY", this.structurePos.getY());
-        pTag.putInt("posZ", this.structurePos.getZ());
-        pTag.putInt("sizeX", this.structureSize.getX());
+        pTag.putInt("posZ", localInt(this.structurePos.getZ()));
+        pTag.putInt("sizeX", localInt(this.structureSize.getX()));
         pTag.putInt("sizeY", this.structureSize.getY());
-        pTag.putInt("sizeZ", this.structureSize.getZ());
+        pTag.putInt("sizeZ", localInt(this.structureSize.getZ()));
         pTag.putString("rotation", this.rotation.toString());
         pTag.putString("mirror", this.mirror.toString());
         pTag.putString("mode", this.mode.toString());
@@ -264,11 +264,11 @@ public class StructureBlockEntity extends BlockEntity {
             BlockPos blockpos2 = new BlockPos(WorldBounds.addBlockOffset(blockpos.getX(), 80), this.level.getMaxBuildHeight() - 1, WorldBounds.addBlockOffset(blockpos.getZ(), 80));
             Stream<BlockPos> stream = this.getRelatedCorners(blockpos1, blockpos2);
             return calculateEnclosingBoundingBox(blockpos, stream).filter((p_155790_) -> {
-                                                                      long j = p_155790_.maxX() - p_155790_.minX();
+                                                                      long j = WorldBounds.signedDifferenceAsLong(p_155790_.maxX(), p_155790_.minX());
                                                                       int k = p_155790_.maxY() - p_155790_.minY();
-                                                                      long l = p_155790_.maxZ() - p_155790_.minZ();
+                                                                      long l = WorldBounds.signedDifferenceAsLong(p_155790_.maxZ(), p_155790_.minZ());
                                                                       if (j > 1 && k > 1 && l > 1) {
-                                                                          this.structurePos = new BlockPos(p_155790_.minX() - WorldBounds.addBlockOffset(blockpos.getX(), 1), p_155790_.minY() - blockpos.getY() + 1, p_155790_.minZ() - WorldBounds.addBlockOffset(blockpos.getZ(), 1));
+                                                                          this.structurePos = new BlockPos(p_155790_.minX().subtract(blockpos.getX()).add(net.minecraft.core.Int128.ONE), p_155790_.minY() - blockpos.getY() + 1, p_155790_.minZ().subtract(blockpos.getZ()).add(net.minecraft.core.Int128.ONE));
                                                                           this.structureSize = new Vec3i(j - 1, k - 1, l - 1);
                                                                           this.setChanged();
                                                                           BlockState blockstate = this.level.getBlockState(blockpos);
@@ -448,6 +448,14 @@ public class StructureBlockEntity extends BlockEntity {
 
     public void setShowBoundingBox(boolean pShowBoundingBox) {
         this.showBoundingBox = pShowBoundingBox;
+    }
+
+    private static int localInt(net.minecraft.core.Int128 value) {
+        if (value.compareTo(net.minecraft.core.Int128.fromLong(Integer.MIN_VALUE)) < 0
+                || value.compareTo(net.minecraft.core.Int128.fromLong(Integer.MAX_VALUE)) > 0) {
+            throw new IllegalArgumentException("Structure-local coordinate does not fit an int");
+        }
+        return (int) value.lo();
     }
 
     public static enum UpdateType {

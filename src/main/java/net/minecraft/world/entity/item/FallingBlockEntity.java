@@ -41,6 +41,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 import org.slf4j.Logger;
 
 public class FallingBlockEntity extends Entity {
@@ -64,19 +65,20 @@ public class FallingBlockEntity extends Entity {
         this(EntityType.FALLING_BLOCK, pLevel);
         this.blockState = pState;
         this.blocksBuilding = true;
-        this.setPos(pX, pY, pZ);
+        this.applyExactPosition(SectorVec3.fromApproximate(pX, pY, pZ));
         this.setDeltaMovement(Vec3.ZERO);
         this.setOldPosAndRot();
         this.setStartPos(this.blockPosition());
     }
 
     public static FallingBlockEntity fall(Level pLevel, BlockPos pPos, BlockState pBlockState) {
-        FallingBlockEntity fallingblockentity = new FallingBlockEntity(pLevel, (double) pPos.getX() + 0.5D,
-                (double) pPos.getY(), (double) pPos.getZ() + 0.5D,
+        FallingBlockEntity fallingblockentity = new FallingBlockEntity(pLevel, 0.5D,
+                (double) pPos.getY(), 0.5D,
                 pBlockState.hasProperty(BlockStateProperties.WATERLOGGED) ? pBlockState.setValue(BlockStateProperties.WATERLOGGED, Boolean.valueOf(false)) : pBlockState);
         fallingblockentity.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(),
                 0.5D, (double) pPos.getY(), pPos.getZ(), 0.5D));
         fallingblockentity.setOldPosAndRot();
+        fallingblockentity.setStartPos(pPos);
         pLevel.setBlock(pPos, pBlockState.getFluidState().createLegacyBlock(), 3);
         pLevel.addFreshEntity(fallingblockentity);
         return fallingblockentity;

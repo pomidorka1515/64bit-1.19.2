@@ -1,14 +1,13 @@
 package net.minecraft.world.level.pathfinder;
 
 import com.google.common.collect.Maps;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.Map;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
@@ -46,7 +45,7 @@ public class SwimNodeEvaluator extends NodeEvaluator {
 
     @Nullable
     public Target getGoal(double pX, double pY, double pZ) {
-        return this.getTargetFromNode(super.getNode(Mth.lfloor(pX), Mth.floor(pY), Mth.lfloor(pZ)));
+        return this.getTargetFromNode(super.getNode(Int128.fromDoubleFloorSaturated(pX), Mth.floor(pY), Int128.fromDoubleFloorSaturated(pZ)));
     }
 
     public int getNeighbors(Node[] p_77483_, Node p_77484_) {
@@ -81,7 +80,7 @@ public class SwimNodeEvaluator extends NodeEvaluator {
     }
 
     @Nullable
-    protected Node getNode(long pX, int pY, long pZ) {
+    protected Node getNode(Int128 pX, int pY, Int128 pZ) {
         Node node = null;
         BlockPathTypes blockpathtypes = this.getCachedBlockType(pX, pY, pZ);
         if (this.allowBreaching && blockpathtypes == BlockPathTypes.BREACH || blockpathtypes == BlockPathTypes.WATER) {
@@ -101,26 +100,26 @@ public class SwimNodeEvaluator extends NodeEvaluator {
         return node;
     }
 
-    protected BlockPathTypes getCachedBlockType(long pX, int pY, long pZ) {
+    protected BlockPathTypes getCachedBlockType(Int128 pX, int pY, Int128 pZ) {
         return this.pathTypesByPosCache.computeIfAbsent(new BlockPos(pX, pY, pZ), (p_192957_) -> {
             return this.getBlockPathType(this.level, pX, pY, pZ);
         });
     }
 
-    public BlockPathTypes getBlockPathType(BlockGetter pLevel, long pX, int pY, long pZ) {
+    public BlockPathTypes getBlockPathType(BlockGetter pLevel, Int128 pX, int pY, Int128 pZ) {
         return this.getBlockPathType(pLevel, pX, pY, pZ, this.mob, this.entityWidth, this.entityHeight, this.entityDepth, this.canOpenDoors(), this.canPassDoors());
     }
 
-    public BlockPathTypes getBlockPathType(BlockGetter pBlockaccess, long pX, int pY, long pZ, Mob pEntityliving, int pXSize, int pYSize, int pZSize, boolean pCanBreakDoors, boolean pCanEnterDoors) {
+    public BlockPathTypes getBlockPathType(BlockGetter pBlockaccess, Int128 pX, int pY, Int128 pZ, Mob pEntityliving, int pXSize, int pYSize, int pZSize, boolean pCanBreakDoors, boolean pCanEnterDoors) {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-        long maxX = WorldBounds.addBlockOffset(pX, (long) pXSize - 1L);
-        long maxZ = WorldBounds.addBlockOffset(pZ, (long) pZSize - 1L);
+        Int128 maxX = WorldBounds.addBlockOffset(pX, (long) pXSize - 1L);
+        Int128 maxZ = WorldBounds.addBlockOffset(pZ, (long) pZSize - 1L);
         boolean moreX = pXSize > 0;
-        for (long i = pX; moreX; moreX = i < maxX, i = WorldBounds.addBlockOffset(i, 1L)) {
+        for (Int128 i = pX; moreX; moreX = i.compareTo(maxX) < 0, i = WorldBounds.addBlockOffset(i, 1L)) {
             for (int j = pY; j < pY + pYSize; ++j) {
                 boolean moreZ = pZSize > 0;
-                for (long k = pZ; moreZ; moreZ = k < maxZ, k = WorldBounds.addBlockOffset(k, 1L)) {
+                for (Int128 k = pZ; moreZ; moreZ = k.compareTo(maxZ) < 0, k = WorldBounds.addBlockOffset(k, 1L)) {
                     FluidState fluidstate = pBlockaccess.getFluidState(blockpos$mutableblockpos.set(i, j, k));
                     BlockState blockstate = pBlockaccess.getBlockState(blockpos$mutableblockpos.set(i, j, k));
                     if (fluidstate.isEmpty() && blockstate.isPathfindable(pBlockaccess, blockpos$mutableblockpos.below(), PathComputationType.WATER) && blockstate.isAir()) {

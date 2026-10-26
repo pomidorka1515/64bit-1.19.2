@@ -18,6 +18,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
@@ -103,9 +104,10 @@ public class EnderDragonRenderer extends EntityRenderer<EnderDragon> {
         pMatrixStack.popPose();
         if (pEntity.nearestCrystal != null) {
             pMatrixStack.pushPose();
-            float f6 = (float) (pEntity.nearestCrystal.getX() - Mth.lerp((double) pPartialTicks, pEntity.xo, pEntity.getX()));
-            float f8 = (float) (pEntity.nearestCrystal.getY() - Mth.lerp((double) pPartialTicks, pEntity.yo, pEntity.getY()));
-            float f9 = (float) (pEntity.nearestCrystal.getZ() - Mth.lerp((double) pPartialTicks, pEntity.zo, pEntity.getZ()));
+            Vec3 delta = pEntity.nearestCrystal.sectorPosition().relativeTo(pEntity.interpolatedExactPosition(pPartialTicks));
+            float f6 = (float) delta.x;
+            float f8 = (float) delta.y;
+            float f9 = (float) delta.z;
             renderCrystalBeams(f6, f8 + EndCrystalRenderer.getY(pEntity.nearestCrystal, pPartialTicks), f9, pPartialTicks, pEntity.tickCount, pMatrixStack, pBuffer, pPackedLight);
             pMatrixStack.popPose();
         }

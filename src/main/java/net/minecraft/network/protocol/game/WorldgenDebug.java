@@ -9,9 +9,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.EndRingsMode;
+import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
+import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
+import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.synth.BlendedNoise;
-import net.minecraft.world.level.levelgen.synth.FarlandsMode;
+import net.minecraft.world.level.levelgen.synth.GeneratorConfig;
 import net.minecraft.world.level.levelgen.synth.ImprovedNoise;
 import net.minecraft.world.level.levelgen.synth.SimplexNoise;
 
@@ -25,33 +30,57 @@ public final class WorldgenDebug {
     public static ClientboundCustomPayloadPacket sample(ServerPlayer player) {
         BlockPos pos = player.blockPosition();
         ServerChunkCache chunks = player.getLevel().getChunkSource();
+        return sample(player.getLevel().dimension().location(), chunks.getGenerator(), chunks.randomState(), pos,
+                player.getServer().getWorldData().generatorConfig());
+    }
+
+    static ClientboundCustomPayloadPacket sample(ResourceLocation dimension, ChunkGenerator generator, RandomState randomState,
+                                                BlockPos pos, GeneratorConfig config) {
         List<String> lines = new ArrayList<>();
         BlendedNoise.beginDebugCapture();
         ImprovedNoise.beginDebugCapture();
-        try {
-            chunks.getGenerator().addDebugScreenInfo(lines, chunks.randomState(), pos);
-            lines.add("Config End Rings: " + EndRingsMode.isEnabled() + " Generator: " + FarlandsMode.getMode().generatorDescription());
-            lines.add("BlendedNoise");
-            lines.add(BlendedNoise.getDebugString());
+        try (var ignored = net.minecraft.world.level.levelgen.synth.GenerationContext.open(config)) {
+            // Include all generator F3 diagnostics in the same payload as the noise captures.
+            lines.add(config.debugLine(EndRingsMode.isEnabled()));
+            generator.addDebugScreenInfo(lines, randomState, pos);
+            if (pos.getY() >= 256) {
+                // The density router can skip blended noise at the upper slide boundary too.
+                // Sample it directly for display only, retaining the player's full X/Z.
+                var context = new DensityFunction.SinglePointContext(pos.getX(), 255, pos.getZ());
+                randomState.router().finalDensity().mapAll(new DensityFunction.Visitor() {
+                    public DensityFunction apply(DensityFunction function) {
+                        if (function instanceof BlendedNoise noise) noise.compute(context);
+                        return function;
+                    }
+                });
+            }
             lines.add(BlendedNoise.getDebugString2());
-            lines.add("ImprovedNoise");
+            lines.add(BlendedNoise.getDebugString());
+            if (pos.getY() >= 256) {
+                // ImprovedNoise is also sampled by later router diagnostics, not just
+                // BlendedNoise. Replay the full diagnostic order at 255 so its last
+                // captured sample matches the actual F3 payload at that height.
+                generator.addDebugScreenInfo(new ArrayList<>(), randomState,
+                        new BlockPos(pos.getX(), 255, pos.getZ()));
+            }
             lines.add(ImprovedNoise.getDebugString());
             lines.add(ImprovedNoise.getDebugString2());
         } finally {
             ImprovedNoise.endDebugCapture();
             BlendedNoise.endDebugCapture();
         }
-        SimplexNoise.beginDebugCapture();
-        try {
-            Biome.BIOME_INFO_NOISE.getValue((double) pos.getX(), (double) pos.getZ(), false);
-            lines.add("SimplexNoise");
-            lines.add(SimplexNoise.getDebugString());
-            lines.add(SimplexNoise.getDebugString2());
-        } finally {
-            SimplexNoise.endDebugCapture();
+        // The End does not use the biome surface-info noise sampled by this probe.
+        if (!(generator instanceof NoiseBasedChunkGenerator noiseGenerator && noiseGenerator.stable(NoiseGeneratorSettings.END))) {
+            SimplexNoise.beginDebugCapture();
+            try (var ignored = net.minecraft.world.level.levelgen.synth.GenerationContext.open(config)) {
+                Biome.BIOME_INFO_NOISE.getValueScaled(pos.getXHi(), pos.getXLo(), pos.getZHi(), pos.getZLo(), 1.0D, false);
+                lines.add(SimplexNoise.getDebugString());
+            } finally {
+                SimplexNoise.endDebugCapture();
+            }
         }
         FriendlyByteBuf data = new FriendlyByteBuf(Unpooled.buffer());
-        data.writeResourceLocation(player.getLevel().dimension().location());
+        data.writeResourceLocation(dimension);
         data.writeVarInt(lines.size());
         for (String line : lines) data.writeUtf(line);
         return new ClientboundCustomPayloadPacket(CHANNEL, data);

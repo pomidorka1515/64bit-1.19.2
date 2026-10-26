@@ -114,7 +114,7 @@ public class ExecuteCommand {
                             List<CommandSourceStack> list = Lists.newArrayList();
 
                             for (Entity entity : EntityArgument.getOptionalEntities(p_137297_, "targets")) {
-                                list.add(p_137297_.getSource().withLevel((ServerLevel) entity.level).withExactPosition(entity.exactPosition() != null ? entity.exactPosition() : SectorVec3.fromApproximate(entity.getX(), entity.getY(), entity.getZ())).withRotation(entity.getRotationVector()));
+                                list.add(p_137297_.getSource().withLevel((ServerLevel) entity.level).withExactPosition(entity.exactPosition()).withRotation(entity.getRotationVector()));
                             }
 
                             return list;
@@ -126,7 +126,7 @@ public class ExecuteCommand {
                             List<CommandSourceStack> list = Lists.newArrayList();
 
                             for (Entity entity : EntityArgument.getOptionalEntities(p_137293_, "targets")) {
-                                list.add(p_137293_.getSource().withExactPosition(entity.exactPosition() != null ? entity.exactPosition() : SectorVec3.fromApproximate(entity.getX(), entity.getY(), entity.getZ())));
+                                list.add(p_137293_.getSource().withExactPosition(entity.exactPosition()));
                             }
 
                             return list;
@@ -347,7 +347,7 @@ public class ExecuteCommand {
 
     private static boolean checkCustomPredicate(CommandSourceStack pSource, LootItemCondition pPredicate) {
         ServerLevel serverlevel = pSource.getLevel();
-        LootContext.Builder lootcontext$builder = (new LootContext.Builder(serverlevel)).withParameter(LootContextParams.ORIGIN, pSource.getExactPosition().toApproximateVec3()).withOptionalParameter(LootContextParams.THIS_ENTITY, pSource.getEntity());
+        LootContext.Builder lootcontext$builder = (new LootContext.Builder(serverlevel)).withParameter(LootContextParams.ORIGIN, pSource.getExactPosition().toExactVec3()).withOptionalParameter(LootContextParams.THIS_ENTITY, pSource.getEntity());
         return pPredicate.test(lootcontext$builder.create(LootContextParamSets.COMMAND));
     }
 
@@ -405,22 +405,21 @@ public class ExecuteCommand {
     private static OptionalInt checkRegions(ServerLevel pLevel, BlockPos pBegin, BlockPos pEnd, BlockPos pDestination, boolean pIsMasked) throws CommandSyntaxException {
         BoundingBox boundingbox = BoundingBox.fromCorners(pBegin, pEnd);
         BoundingBox boundingbox1 = BoundingBox.fromCorners(pDestination, pDestination.offset(boundingbox.getLength()));
-        long xSpan = boundingbox.getXSpan();
-        long zSpan = boundingbox.getZSpan();
+        double xSpan = WorldBounds.inclusiveBlockSpanDouble(boundingbox.minX(), boundingbox.maxX());
+        double zSpan = WorldBounds.inclusiveBlockSpanDouble(boundingbox.minZ(), boundingbox.maxZ());
         long ySpan = boundingbox.getYSpan();
-        long i = xSpan > Long.MAX_VALUE / zSpan || xSpan * zSpan > Long.MAX_VALUE / ySpan
-                ? Long.MAX_VALUE : xSpan * zSpan * ySpan;
+        double i = xSpan * zSpan * ySpan;
         if (i > 32768) {
             throw ERROR_AREA_TOO_LARGE.create(32768, i);
         } else {
             int j = 0;
 
-            for (long k = boundingbox.minZ();; k = WorldBounds.addBlockOffset(k, 1L)) {
+            for (net.minecraft.core.Int128 k = boundingbox.minZ();; k = WorldBounds.addBlockOffset(k, 1L)) {
                 for (int l = boundingbox.minY(); l <= boundingbox.maxY(); ++l) {
-                    for (long i1 = boundingbox.minX();; i1 = WorldBounds.addBlockOffset(i1, 1L)) {
+                    for (net.minecraft.core.Int128 i1 = boundingbox.minX();; i1 = WorldBounds.addBlockOffset(i1, 1L)) {
                         BlockPos blockpos1 = new BlockPos(i1, l, k);
-                        BlockPos blockpos2 = new BlockPos(WorldBounds.addBlockOffset(boundingbox1.minX(), WorldBounds.subtractBlockOffset(i1, boundingbox.minX())),
-                                boundingbox1.minY() + (l - boundingbox.minY()), WorldBounds.addBlockOffset(boundingbox1.minZ(), WorldBounds.subtractBlockOffset(k, boundingbox.minZ())));
+                        BlockPos blockpos2 = new BlockPos(WorldBounds.addBlockOffset(boundingbox1.minX(), WorldBounds.blockOffsetInRange(i1, boundingbox.minX(), boundingbox.maxX())),
+                                boundingbox1.minY() + (l - boundingbox.minY()), WorldBounds.addBlockOffset(boundingbox1.minZ(), WorldBounds.blockOffsetInRange(k, boundingbox.minZ(), boundingbox.maxZ())));
                         BlockState blockstate = pLevel.getBlockState(blockpos1);
                         if (!pIsMasked || !blockstate.is(Blocks.AIR)) {
                             if (blockstate != pLevel.getBlockState(blockpos2)) {
@@ -447,11 +446,11 @@ public class ExecuteCommand {
 
                             ++j;
                         }
-                        if (i1 == boundingbox.maxX())
+                        if (i1.equals(boundingbox.maxX()))
                             break;
                     }
                 }
-                if (k == boundingbox.maxZ())
+                if (k.equals(boundingbox.maxZ()))
                     break;
             }
 

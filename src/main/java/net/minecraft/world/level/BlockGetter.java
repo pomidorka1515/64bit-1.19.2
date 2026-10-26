@@ -46,6 +46,25 @@ public interface BlockGetter extends LevelHeightAccessor {
     }
 
     default BlockHitResult isBlockInLine(ClipBlockStateContext pContext) {
+        if (pContext.getFrom() instanceof net.minecraft.world.phys.ExactVec3
+                || pContext.getTo() instanceof net.minecraft.world.phys.ExactVec3) {
+            var from = net.minecraft.world.phys.SectorVec3.fromApproximate(pContext.getFrom());
+            var to = net.minecraft.world.phys.SectorVec3.fromApproximate(pContext.getTo());
+            var origin = net.minecraft.world.phys.SectorPhysicsOrigin.from(from);
+            Vec3 localFrom = origin.toLocal(from);
+            Vec3 localTo = origin.toLocal(to);
+            if (!from.isLocalTo(to)) throw new IllegalArgumentException("Ray exceeds safe local physics span");
+            Vec3 delta = localTo.subtract(localFrom);
+            Vec3 ddaTo = localFrom.add(Math.abs(delta.x) < 1.0E-9D ? Math.copySign(1.0E-9D, delta.x) : delta.x,
+                    Math.abs(delta.y) < 1.0E-9D ? Math.copySign(1.0E-9D, delta.y) : delta.y,
+                    Math.abs(delta.z) < 1.0E-9D ? Math.copySign(1.0E-9D, delta.z) : delta.z);
+            return traverseBlocks(localFrom, ddaTo, pContext, (context, local) -> {
+                BlockPos world = new BlockPos(origin.originBlockX().addSaturated(local.getX()),
+                        origin.originBlockY() + local.getY(), origin.originBlockZ().addSaturated(local.getZ()));
+                return context.isTargetBlock().test(this.getBlockState(world))
+                        ? new BlockHitResult(Vec3.atCenterOf(world), Direction.UP, world, false) : null;
+            }, context -> BlockHitResult.missExact(to, Direction.UP, to.blockPosition()));
+        }
         return traverseBlocks(pContext.getFrom(), pContext.getTo(), pContext, (p_151356_, p_151357_) -> {
          BlockState blockstate = this.getBlockState(p_151357_);
          Vec3 vec3 = p_151356_.getFrom().subtract(p_151356_.getTo());

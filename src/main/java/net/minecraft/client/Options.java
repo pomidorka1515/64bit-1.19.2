@@ -51,7 +51,6 @@ import net.minecraft.client.sounds.SoundEngine;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.client.tutorial.TutorialSteps;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -63,7 +62,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.Mth;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.ChatVisiblity;
 import net.minecraft.world.entity.player.PlayerModelPart;
@@ -352,8 +350,6 @@ public class Options {
             return list;
         };
     }, OptionInstance.forOptionEnum(), new OptionInstance.Enum<>(Arrays.asList(ChatPreviewStatus.values()), Codec.INT.xmap(ChatPreviewStatus::byId, ChatPreviewStatus::getId)), ChatPreviewStatus.LIVE, (p_242263_) -> {});
-    private static final Component CHAT_TOOLTIP_ONLY_SHOW_SECURE = Component.translatable("options.onlyShowSecureChat.tooltip");
-    private final OptionInstance<Boolean> onlyShowSecureChat = OptionInstance.createBoolean("options.onlyShowSecureChat", OptionInstance.cachedConstantTooltip(CHAT_TOOLTIP_ONLY_SHOW_SECURE), false);
     public final KeyMapping keyUp = new KeyMapping("key.forward", 87, "key.categories.movement");
     public final KeyMapping keyLeft = new KeyMapping("key.left", 65, "key.categories.movement");
     public final KeyMapping keyDown = new KeyMapping("key.back", 83, "key.categories.movement");
@@ -370,7 +366,6 @@ public class Options {
     public final KeyMapping keyChat = new KeyMapping("key.chat", 84, "key.categories.multiplayer");
     public final KeyMapping keyPlayerList = new KeyMapping("key.playerlist", 258, "key.categories.multiplayer");
     public final KeyMapping keyCommand = new KeyMapping("key.command", 47, "key.categories.multiplayer");
-    public final KeyMapping keySocialInteractions = new KeyMapping("key.socialInteractions", 80, "key.categories.multiplayer");
     public final KeyMapping keyScreenshot = new KeyMapping("key.screenshot", 291, "key.categories.misc");
     public final KeyMapping keyTogglePerspective = new KeyMapping("key.togglePerspective", 294, "key.categories.misc");
     public final KeyMapping keySmoothCamera = new KeyMapping("key.smoothCamera", InputConstants.UNKNOWN.getValue(), "key.categories.misc");
@@ -380,7 +375,7 @@ public class Options {
     public final KeyMapping[] keyHotbarSlots = new KeyMapping[] {new KeyMapping("key.hotbar.1", 49, "key.categories.inventory"), new KeyMapping("key.hotbar.2", 50, "key.categories.inventory"), new KeyMapping("key.hotbar.3", 51, "key.categories.inventory"), new KeyMapping("key.hotbar.4", 52, "key.categories.inventory"), new KeyMapping("key.hotbar.5", 53, "key.categories.inventory"), new KeyMapping("key.hotbar.6", 54, "key.categories.inventory"), new KeyMapping("key.hotbar.7", 55, "key.categories.inventory"), new KeyMapping("key.hotbar.8", 56, "key.categories.inventory"), new KeyMapping("key.hotbar.9", 57, "key.categories.inventory")};
     public final KeyMapping keySaveHotbarActivator = new KeyMapping("key.saveToolbarActivator", 67, "key.categories.creative");
     public final KeyMapping keyLoadHotbarActivator = new KeyMapping("key.loadToolbarActivator", 88, "key.categories.creative");
-    public final KeyMapping[] keyMappings = ArrayUtils.addAll((KeyMapping[]) (new KeyMapping[] {this.keyAttack, this.keyUse, this.keyUp, this.keyLeft, this.keyDown, this.keyRight, this.keyJump, this.keyShift, this.keySprint, this.keyDrop, this.keyInventory, this.keyChat, this.keyPlayerList, this.keyPickItem, this.keyCommand, this.keySocialInteractions, this.keyScreenshot, this.keyTogglePerspective, this.keySmoothCamera, this.keyFullscreen, this.keySpectatorOutlines, this.keySwapOffhand, this.keySaveHotbarActivator, this.keyLoadHotbarActivator, this.keyAdvancements}), (KeyMapping[]) this.keyHotbarSlots);
+    public final KeyMapping[] keyMappings = ArrayUtils.addAll((KeyMapping[]) (new KeyMapping[] {this.keyAttack, this.keyUse, this.keyUp, this.keyLeft, this.keyDown, this.keyRight, this.keyJump, this.keyShift, this.keySprint, this.keyDrop, this.keyInventory, this.keyChat, this.keyPlayerList, this.keyPickItem, this.keyCommand, this.keyScreenshot, this.keyTogglePerspective, this.keySmoothCamera, this.keyFullscreen, this.keySpectatorOutlines, this.keySwapOffhand, this.keySaveHotbarActivator, this.keyLoadHotbarActivator, this.keyAdvancements}), (KeyMapping[]) this.keyHotbarSlots);
     protected Minecraft minecraft;
     private final File optionsFile;
     public boolean hideGui;
@@ -431,7 +426,7 @@ public class Options {
     }, new OptionInstance.ClampingLazyMaxIntRange(0, () -> {
         Minecraft minecraft = Minecraft.getInstance();
         return !minecraft.isRunning() ? 2147483646 : minecraft.getWindow().calculateScale(0, minecraft.isEnforceUnicode());
-    }), 0, (p_231974_) -> {});
+    }), 2, (p_231974_) -> {});
     private final OptionInstance<ParticleStatus> particles = new OptionInstance<>("options.particles", OptionInstance.noTooltip(), OptionInstance.forOptionEnum(), new OptionInstance.Enum<>(Arrays.asList(ParticleStatus.values()), Codec.INT.xmap(ParticleStatus::byId, ParticleStatus::getId)), ParticleStatus.ALL, (p_231869_) -> {});
     private final OptionInstance<NarratorStatus> narrator = new OptionInstance<>("options.narrator", OptionInstance.noTooltip(), (p_231907_, p_231908_) -> { return (Component) (this.minecraft.getNarrator().isActive() ? p_231908_.getName() : Component.translatable("options.narrator.notavailable")); }, new OptionInstance.Enum<>(Arrays.asList(NarratorStatus.values()), Codec.INT.xmap(NarratorStatus::byId, NarratorStatus::getId)), NarratorStatus.OFF, (p_231860_) -> { this.minecraft.getNarrator().updateNarratorStatus(p_231860_); });
     public String languageCode = "en_us";
@@ -654,10 +649,6 @@ public class Options {
         return this.chatPreview;
     }
 
-    public OptionInstance<Boolean> onlyShowSecureChat() {
-        return this.onlyShowSecureChat;
-    }
-
     public OptionInstance<Integer> fov() {
         return this.fov;
     }
@@ -802,7 +793,6 @@ public class Options {
         pAccessor.process("showAutosaveIndicator", this.showAutosaveIndicator);
         pAccessor.process("allowServerListing", this.allowServerListing);
         pAccessor.process("chatPreview", this.chatPreview);
-        pAccessor.process("onlyShowSecureChat", this.onlyShowSecureChat);
 
         for (KeyMapping keymapping : this.keyMappings) {
             String s = keymapping.saveString();
@@ -862,7 +852,7 @@ public class Options {
                 bufferedreader.close();
             }
 
-            final CompoundTag compoundtag1 = this.dataFix(compoundtag);
+            final CompoundTag compoundtag1 = compoundtag;
             if (!compoundtag1.contains("graphicsMode") && compoundtag1.contains("fancyGraphics")) {
                 if (isTrue(compoundtag1.getString("fancyGraphics"))) {
                     this.graphicsMode.set(GraphicsStatus.FANCY);
@@ -958,17 +948,6 @@ public class Options {
 
     static boolean isFalse(String pValue) {
         return "false".equals(pValue);
-    }
-
-    private CompoundTag dataFix(CompoundTag pNbt) {
-        int i = 0;
-
-        try {
-            i = Integer.parseInt(pNbt.getString("version"));
-        } catch (RuntimeException runtimeexception) {
-        }
-
-        return NbtUtils.update(this.minecraft.getFixerUpper(), DataFixTypes.OPTIONS, pNbt, i);
     }
 
     public void save() {

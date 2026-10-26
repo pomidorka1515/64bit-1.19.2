@@ -1,26 +1,35 @@
-# 64-bit minecraft
+# 128-bit minecraft
 
-a playable minecraft 1.19.2 where horizontal coordinates are `long`, not `int` and not a lossy `double`.
+minecraft 1.19.2 with signed 128-bit horizontal coordinates (`Int128`), not `int`, `long`, or a lossy `double`. this branch is undergoing the 128-bit migration; main compilation is green, but test conversion and final acceptance are still pending.
 
-the world border is gone. X/Z run to the very ends of a signed 64-bit integer, and movement, collision, rendering, sound and terrain gen keep working long after doubles stop being able to count whole blocks.
+the world border is gone. block X/Z span `-2^127` through `2^127 - 1`; Y keeps the usual build height. exact positions, storage, networking, camera-relative math and terrain generation consume the full coordinate.
+
+## save break and worldgen boundary
+
+- **new worlds only.** the save format is strictly incompatible with vanilla worlds and worlds from the old 64-bit fork. old or foreign saves are rejected, not migrated; there is no old-world support or fallback decoder. matching 128-bit client/server builds are required.
+- exact horizontal positions use an `Int128` block coordinate plus a normalized double fraction in `[0, 1)`. chunk/section keys, region files and persisted placement identity retain the full 128 bits.
+- worldgen carries primitive high/low horizontal limbs through density sampling, biomes, surfaces, aquifers and positional seeds. the precise mode scales full-width integers before reducing noise lattice indices; other modes retain their floating-point and Far Lands behavior.
+- the five modes keep their existing signed-long sampling results. full-width sampling does not imply unique terrain at every address: noise permutations, finite seed spaces, deliberate clamps, floating-point precision loss and Far Lands arithmetic still apply.
+- full-width addresses do not wrap into their low-word aliases. address arithmetic saturates at the signed-128 endpoints. no old-save migration or new generator mode is introduced.
 
 the original unfinished mod was written by mckuhei, whose sites are dead now. code before the fork is commit `f1b40fcf28655ebf01aa5dd77bc8e0cdc9dc97af` (it barely works)
 
 ## highlights
 
-- a world the size of a `long`. block X/Z span `Long.MIN_VALUE` to `Long.MAX_VALUE`, Y keeps the usual build height. chunk and region math saturates instead of wrapping around to the far side of the world.
+- a world addressed by `Int128`. block X/Z span the signed 128-bit domain, Y keeps the usual build height. coordinate arithmetic saturates instead of wrapping around to the far side of the world.
 - positions stay lossless past the double limit. `SectorVec3` keeps X/Z as a block coordinate plus a fraction in `[0, 1)`, so physics never subtracts two gigantic world doubles.
 - collision still works out there. movement gets solved in a tiny local frame, then applied back to the real position — including on the last representable block, not just "pretty far out".
 - every entity and block entity keeps a true position: players, mobs, vehicles, projectiles, all of them. spawning, AI, pathfinding, riding and dismounting use it.
 - camera-relative client. terrain, block entities, particles, explosions, sky, clouds and audio are drawn and heard relative to the camera, so the view doesn't dissolve into jitter.
-- five terrain modes, stored with the world. `/farlands` switches them, `/farlands confirm` applies.
+- independent generator mode and coordinate precision, both stored in world NBT. `/generator mode ...` or `/generator precision ...` stages a change; `/generator confirm` applies and saves it.
   - `32bit` — how the original mod behaved. far lands at 12,550,824.
-  - `32bit-hybrid` — the classic far lands, but the noise router, caves, aquifers and ores run on 64-bit math.
-  - `64bit` — 64-bit generator. far lands show up where double noise loses integer steps, around 2^53.
-  - `off` — same generator with the far lands patched out.
-  - `64bit-precise` — like `off`, but noise keeps an exact lattice past the 53-bit double limit.
+  - `64bit` — 64-bit generator with intentional Far Lands arithmetic.
+  - `32bit-stable-shifts` — same as `32bit`, except `shift_x`/`shift_z` use overflow-safe, full-128-bit sampling in both stacks (including the rotated noise Y axis). The protected shifts always retain exact coordinates; all other samplers retain 32-bit Far Lands arithmetic and follow the selected precision.
+  - `64bit-stable-shifts` — same as `64bit`, except `shift_x`/`shift_z` use overflow-safe, full-128-bit sampling in both stacks (including the rotated noise Y axis). All other noise overflow remains. The protected shifts always retain exact coordinates; other samplers still follow the selected precision.
+  - `64bit-patched` — same generator with the Far Lands arithmetic patched out.
+  - precision: `precise` retains exact integer positions; `lossy` uses absolute doubles. Precision is independent of mode and does not patch intentional generator limits.
 - outer end rings are optional. `/endrings` flips them on or off; turning them off asks for `/endrings confirm`.
-- debug that isn't lying to you at range. F3 shows precision, splits block vs region coords, and prints the generator mode. `/wraprouter` dumps NoiseRouter overflow. `/frustum` toggles frustum culling when the cull turns out wrong.
+- debug that isn't lying to you at range. F3 shows precision, splits block vs region coords, and prints the generator mode. `/wraprouter` dumps NoiseRouter overflow.
 
 ## what got redone
 
@@ -28,7 +37,7 @@ vanilla's `int` positions and `double` physics couldn't be patched in one spot. 
 
 ### coords and world limits
 
-- `Vec3i`, `BlockPos`, `ChunkPos`, `SectionPos`: X/Z are `long`, Y stays `int`.
+- `Vec3i`, `BlockPos`, `ChunkPos`, `SectionPos`: X/Z are `Int128`, Y stays `int`.
 - `WorldBounds`: one set of block, chunk and region limits, with saturating add/multiply so an edge request can't overflow into the other side of the world.
 - chunk tickets, chunk cache, region-file indexing, "chunk out of bounds" handling.
 - the world border — removed, not just pushed further out.
@@ -39,9 +48,9 @@ vanilla's `int` positions and `double` physics couldn't be patched in one spot. 
 - `SectorVec3`, `SectorAABB`, `SectorPhysicsOrigin`: lossless position, lossless box, one fixed local origin per collision solve.
 - `SectorBlockCollisions`: block shapes get shifted by a small origin-relative offset, not by a global double.
 - entity `move()`, stepping, fluids, suffocation, edge back-off for sector entities.
-- `SectorClipper`: block raycasts walk long block addresses, hit positions stay true.
+- `SectorClipper`: block raycasts walk exact 128-bit block addresses, hit positions stay true.
 - block placing, breaking, outlines, the break animation.
-- boundary collision, the last `2^63` block included. it used to behave like quicksand.
+- boundary collision uses exact split coordinates and bounded local frames rather than global doubles.
 
 ### entities, ai, vehicles
 
@@ -63,8 +72,8 @@ vanilla's `int` positions and `double` physics couldn't be patched in one spot. 
 ### terrain
 
 - the noise itself: improved, perlin, simplex, blended and normal noise, plus the noise router and density functions.
-- `PreciseNoiseCoordinate`: one 64-by-53-bit product, split into a lattice and a fraction, so the precise generator doesn't collapse onto a chunk grid past 2^53.
-- `FarlandsMode`, old boolean save format included.
+- `PreciseNoiseCoordinate` retains the established long path; `WorldgenCoordinate` supplies primitive 128-by-53-bit scaling, carries and full-width conversion for distant samples.
+- `FarlandsMode` retains all five existing arithmetic policies; legacy world saves are not supported.
 - surface rules and `SurfaceSystem`.
 - ores, ore veins, heightmaps.
 - structures and jigsaw placement, mineshafts among them. structure starts used to crash on the boundary with no log.
@@ -82,7 +91,7 @@ vanilla's `int` positions and `double` physics couldn't be patched in one spot. 
 ### rendering
 
 - `LevelRenderer` and the camera. world drawing is camera-relative, and the render loop no longer overflows its chunk walk.
-- block-entity poses: the long block position is subtracted before it reaches the float matrix stack.
+- block-entity poses: the exact block position is subtracted before it reaches the float matrix stack.
 - the skybox used to be a flat color; it's a proper per-dimension sky again, with long-safe world math.
 - clouds.
 - particles, the particle limiter included, which now runs in camera space.
@@ -96,9 +105,12 @@ vanilla's `int` positions and `double` physics couldn't be patched in one spot. 
 ### commands
 
 - teleport and the other position commands move sector positions instead of adding to `getX()` / `getZ()`.
-- `/farlands`, `/endrings`, `/frustum`, `/wraprouter`.
+- `/generator`, `/endrings`, `/wraprouter`.
 
 ## installing
+
+these launcher steps describe the published 64-bit releases. for this in-progress 128-bit branch,
+build matching client/server jars from source and create a new world; do not use an old save.
 
 - grab the jar from the [latest release](https://github.com/pomidorka1515/64bit-1.19.2/releases)
 - get [prism launcher](https://prismlauncher.org) if you don't have it already
@@ -106,9 +118,21 @@ vanilla's `int` positions and `double` physics couldn't be patched in one spot. 
 - open its settings, then Version
 - "Add to Minecraft.jar" and pick the jar you downloaded
 
-in game, `/farlands help` lists the generator modes. mode changes are saved with the world and only kick in after `/farlands confirm`.
-
 ## source
+
+### termux
+use native OpenJDK 17 (no root or proot needed, doesnt require glibc):
+```sh
+pkg update && pkg install openjdk-17
+ln -s "$PREFIX/lib/jvm/java-17-openjdk" "$HOME/jdk17"
+./gradlew compileJava test
+```
+
+the wrapper automatically uses `~/jdk17` when `JAVA_HOME` is unset.
+it also disables gradle's incompatible linux native services and file watching,
+and limits gradle to two workers and a 1536 MiB heap.
+an explicit `JAVA_HOME` still takes precedence. 
+compilation and tests do not require client assets or the `setup` / `runclient` tasks.
 
 ### building the client and dedicated server
 

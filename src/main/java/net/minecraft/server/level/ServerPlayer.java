@@ -1,6 +1,7 @@
 package net.minecraft.server.level;
 
 import net.minecraft.world.phys.SectorVec3;
+import net.minecraft.nbt.NbtUtils;
 
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
@@ -306,8 +307,12 @@ public class ServerPlayer extends Player {
             this.stopSleeping();
         }
 
-        if (pCompound.contains("SpawnX", 99) && pCompound.contains("SpawnY", 99) && pCompound.contains("SpawnZ", 99)) {
-            this.respawnPosition = new BlockPos(pCompound.getLong("SpawnX"), pCompound.getInt("SpawnY"), pCompound.getLong("SpawnZ"));
+        if (pCompound.contains("SpawnX") || pCompound.contains("SpawnY") || pCompound.contains("SpawnZ")
+                || pCompound.contains("SpawnXHi") || pCompound.contains("SpawnZHi")) {
+            if (!pCompound.contains("SpawnY", 3)) {
+                throw new IllegalArgumentException("Missing or invalid player SpawnY");
+            }
+            this.respawnPosition = new BlockPos(NbtUtils.readInt128(pCompound, "SpawnX"), pCompound.getInt("SpawnY"), NbtUtils.readInt128(pCompound, "SpawnZ"));
             this.respawnForced = pCompound.getBoolean("SpawnForced");
             this.respawnAngle = pCompound.getFloat("SpawnAngle");
             if (pCompound.contains("SpawnDimension")) {
@@ -342,9 +347,9 @@ public class ServerPlayer extends Player {
         pCompound.put("recipeBook", this.recipeBook.toNbt());
         pCompound.putString("Dimension", this.level.dimension().location().toString());
         if (this.respawnPosition != null) {
-            pCompound.putInt("SpawnX", this.respawnPosition.getX());
+            NbtUtils.writeInt128(pCompound, "SpawnX", this.respawnPosition.getX());
             pCompound.putInt("SpawnY", this.respawnPosition.getY());
-            pCompound.putInt("SpawnZ", this.respawnPosition.getZ());
+            NbtUtils.writeInt128(pCompound, "SpawnZ", this.respawnPosition.getZ());
             pCompound.putBoolean("SpawnForced", this.respawnForced);
             pCompound.putFloat("SpawnAngle", this.respawnAngle);
             ResourceLocation.CODEC.encodeStart(NbtOps.INSTANCE, this.respawnDimension.location()).resultOrPartial(LOGGER::error).ifPresent((p_9134_) -> {
@@ -519,14 +524,14 @@ public class ServerPlayer extends Player {
 
     public void trackStartFallingPosition() {
         if (this.fallDistance > 0.0F && this.startingToFallPosition == null) {
-            this.startingToFallPosition = this.position();
+            this.startingToFallPosition = this.exactPositionVector();
         }
     }
 
     public void trackEnteredOrExitedLavaOnVehicle() {
         if (this.getVehicle() != null && this.getVehicle().isInLava()) {
             if (this.enteredLavaOnVehiclePosition == null) {
-                this.enteredLavaOnVehiclePosition = this.position();
+                this.enteredLavaOnVehiclePosition = this.exactPositionVector();
             } else {
                 CriteriaTriggers.RIDE_ENTITY_IN_LAVA_TRIGGER.trigger(this, this.enteredLavaOnVehiclePosition);
             }
@@ -713,7 +718,7 @@ public class ServerPlayer extends Player {
             if (portalinfo != null) {
                 serverlevel.getProfiler().push("moving");
                 if (resourcekey == Level.OVERWORLD && pServer.dimension() == Level.NETHER) {
-                    this.enteredNetherPosition = this.position();
+                    this.enteredNetherPosition = this.exactPositionVector();
                 } else if (pServer.dimension() == Level.END) {
                     this.createEndPlatform(pServer, portalinfo.exactPos.blockPosition());
                 }
@@ -867,11 +872,7 @@ public class ServerPlayer extends Player {
 
         super.stopSleepInBed(pWakeImmediately, pUpdateLevelForSleepingPlayers);
         if (this.connection != null) {
-            if (this.hasSectorPosition()) {
-                this.connection.teleportExact(this.sectorPosition(), this.getYRot(), this.getXRot());
-            } else {
-                this.connection.teleport(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
-            }
+            this.connection.teleportExact(this.sectorPosition(), this.getYRot(), this.getXRot());
         }
     }
 
@@ -882,11 +883,7 @@ public class ServerPlayer extends Player {
         } else {
             Entity entity1 = this.getVehicle();
             if (entity1 != entity && this.connection != null) {
-                if (this.hasSectorPosition()) {
-                    this.connection.teleportExact(this.sectorPosition(), this.getYRot(), this.getXRot());
-                } else {
-                    this.connection.teleport(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
-                }
+                this.connection.teleportExact(this.sectorPosition(), this.getYRot(), this.getXRot());
             }
 
             return true;
@@ -898,12 +895,8 @@ public class ServerPlayer extends Player {
         super.stopRiding();
         Entity entity1 = this.getVehicle();
         if (entity1 != entity && this.connection != null) {
-            if (this.hasSectorPosition()) {
-                this.connection.teleportExact(this.sectorPosition(), this.getYRot(), this.getXRot(),
-                        java.util.Collections.emptySet(), true);
-            } else {
-                this.connection.dismount(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
-            }
+            this.connection.teleportExact(this.sectorPosition(), this.getYRot(), this.getXRot(),
+                    java.util.Collections.emptySet(), true);
         }
     }
 
@@ -1148,7 +1141,7 @@ public class ServerPlayer extends Player {
         this.connection.send(new ClientboundUpdateMobEffectPacket(this.getId(), pInstance));
         if (pInstance.getEffect() == MobEffects.LEVITATION) {
             this.levitationStartTime = this.tickCount;
-            this.levitationStartPos = this.position();
+            this.levitationStartPos = this.exactPositionVector();
         }
 
         CriteriaTriggers.EFFECTS_CHANGED.trigger(this, pEntity);
@@ -1300,7 +1293,7 @@ public class ServerPlayer extends Player {
     }
 
     public void sendServerStatus(ServerStatus p_215110_) {
-        this.connection.send(new ClientboundServerDataPacket(p_215110_.getDescription(), p_215110_.getFavicon(), p_215110_.previewsChat(), p_215110_.enforcesSecureChat()));
+        this.connection.send(new ClientboundServerDataPacket(p_215110_.getDescription(), p_215110_.getFavicon(), p_215110_.previewsChat()));
     }
 
     protected int getPermissionLevel() {
@@ -1337,11 +1330,7 @@ public class ServerPlayer extends Player {
         this.camera = (Entity) (pEntityToSpectate == null ? this : pEntityToSpectate);
         if (entity != this.camera) {
             this.connection.send(new ClientboundSetCameraPacket(this.camera));
-            if (this.camera.hasSectorPosition()) {
-                this.teleportTo(this.camera.sectorPosition());
-            } else {
-                this.teleportTo(this.camera.getX(), this.camera.getY(), this.camera.getZ());
-            }
+            this.teleportTo(this.camera.sectorPosition());
         }
     }
 
@@ -1399,11 +1388,6 @@ public class ServerPlayer extends Player {
     * through the player and network state transitions.
     */
     public void teleportTo(ServerLevel level, SectorVec3 position, float yRot, float xRot) {
-        if (!this.hasSectorPosition()) {
-            this.teleportTo(level, position.toApproximateVec3().x, position.y(), position.toApproximateVec3().z, yRot, xRot);
-            return;
-        }
-
         this.setCamera(this);
         this.stopRiding();
         if (level == this.level) {
@@ -1445,7 +1429,7 @@ public class ServerPlayer extends Player {
             this.server.getPlayerList().sendPlayerPermissionLevel(this);
             oldLevel.removePlayerImmediately(this, Entity.RemovalReason.CHANGED_DIMENSION);
             this.unsetRemoved();
-            this.moveTo(x, y, z, yRot, xRot);
+            this.moveTo(SectorVec3.fromApproximate(x, y, z), yRot, xRot);
             this.setLevel(level);
             level.addDuringCommandTeleport(this);
             this.triggerDimensionChangeTriggers(oldLevel);
@@ -1497,7 +1481,7 @@ public class ServerPlayer extends Player {
 
     public void untrackChunk(ChunkPos pChunkPos) {
         if (this.isAlive()) {
-            this.connection.send(new ClientboundForgetLevelChunkPacket(pChunkPos.x, pChunkPos.z));
+            this.connection.send(new ClientboundForgetLevelChunkPacket(pChunkPos.x(), pChunkPos.z()));
         }
     }
 

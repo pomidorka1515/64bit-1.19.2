@@ -27,7 +27,7 @@ public class StrongholdStructure extends Structure {
         StrongholdPieces.StartPiece strongholdpieces$startpiece;
         do {
             p_229946_.clear();
-            p_229947_.random().setLargeFeatureSeed(p_229947_.seed() + (long) (i++), p_229947_.chunkPos().x, p_229947_.chunkPos().z);
+            p_229947_.random().setLargeFeatureSeed(p_229947_.seed() + (long) (i++), p_229947_.chunkPos().x(), p_229947_.chunkPos().z());
             StrongholdPieces.resetPieces();
             strongholdpieces$startpiece = new StrongholdPieces.StartPiece(p_229947_.random(), p_229947_.chunkPos().getBlockX(2), p_229947_.chunkPos().getBlockZ(2));
             p_229946_.addPiece(strongholdpieces$startpiece);

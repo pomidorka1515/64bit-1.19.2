@@ -118,9 +118,9 @@ public class LiquidBlockRenderer {
                 f10 = this.calculateAverageHeight(pLevel, fluid, f11, f13, f15, pPos.relative(Direction.SOUTH).relative(Direction.WEST));
             }
 
-            double d1 = (double) (pPos.getX() & 15);
+            double d1 = (double) (pPos.getXLo() & 15);
             double d2 = (double) (pPos.getY() & 15);
-            double d0 = (double) (pPos.getZ() & 15);
+            double d0 = (double) (pPos.getZLo() & 15);
             float f16 = 0.001F;
             float f17 = flag2 ? 0.001F : 0.0F;
             if (flag1 && !isFaceOccludedByNeighbor(pLevel, pPos, Direction.UP, Math.min(Math.min(f8, f10), Math.min(f9, f7)), blockstate1)) {

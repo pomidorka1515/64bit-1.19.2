@@ -35,11 +35,6 @@ public class Vec2Argument implements ArgumentType<Coordinates> {
         return new Vec2Argument(pCenterCorrect);
     }
 
-    public static Vec2 getVec2(CommandContext<CommandSourceStack> context, String name) {
-        SectorVec3 position = context.getArgument(name, Coordinates.class).getExactPosition(context.getSource());
-        return new Vec2((float) position.toApproximateVec3().x, (float) position.toApproximateVec3().z);
-    }
-
     public static SectorVec3 getExactVec2(CommandContext<CommandSourceStack> context, String name) {
         return context.getArgument(name, Coordinates.class).getExactPosition(context.getSource());
     }

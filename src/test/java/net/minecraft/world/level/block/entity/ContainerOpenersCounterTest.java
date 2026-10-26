@@ -5,12 +5,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.phys.SectorVec3;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class ContainerOpenersCounterTest {
+    @Test
+    void recheckRangeAtInt128EdgesUsesUnclippedLocalOffsets() {
+        for (Int128 x : new Int128[] {Int128.MIN, Int128.MAX}) {
+            BlockPos chest = new BlockPos(x, 64, x);
+            SectorVec3 player = SectorVec3.fromBlockAndFraction(x, 0.75D, 64.5D, x, 0.25D);
+            assertTrue(ContainerOpenersCounter.isWithinRecheckRange(player, chest));
+            assertTrue(BlockEntity.isWithinUsableDistance(player, chest, 1.0D));
+            assertFalse(ContainerOpenersCounter.isWithinRecheckRange(player.add(0.0D, 7.0D, 0.0D), chest));
+        }
+    }
+
     @BeforeAll
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();

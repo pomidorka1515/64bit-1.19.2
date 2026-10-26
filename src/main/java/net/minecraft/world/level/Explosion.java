@@ -1,5 +1,8 @@
 package net.minecraft.world.level;
 
+import net.minecraft.core.Int128;
+
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.mojang.datafixers.util.Pair;
@@ -167,14 +170,16 @@ public class Explosion {
 
         this.toBlow.addAll(set);
         float f2 = this.radius * 2.0F;
-        long minX = this.position.add(-(double) f2 - 1.0D, 0.0D, 0.0D).blockX();
-        long maxX = this.position.add((double) f2 + 1.0D, 0.0D, 0.0D).blockX();
+        Int128 minX = this.position.add(-(double) f2 - 1.0D, 0.0D, 0.0D).blockX();
+        Int128 maxX = this.position.add((double) f2 + 1.0D, 0.0D, 0.0D).blockX();
         int minY = Mth.floor(this.position.y() - (double) f2 - 1.0D);
         int maxY = Mth.floor(this.position.y() + (double) f2 + 1.0D);
-        long minZ = this.position.add(0.0D, 0.0D, -(double) f2 - 1.0D).blockZ();
-        long maxZ = this.position.add(0.0D, 0.0D, (double) f2 + 1.0D).blockZ();
+        Int128 minZ = this.position.add(0.0D, 0.0D, -(double) f2 - 1.0D).blockZ();
+        Int128 maxZ = this.position.add(0.0D, 0.0D, (double) f2 + 1.0D).blockZ();
 
-        for (Entity entity : this.level.getEntities().getAll()) {
+        // Damage can synchronously remove entities (or trigger another explosion).
+        // Never iterate the live registry while applying those side effects.
+        for (Entity entity : Lists.newArrayList(this.level.getEntities().getAll())) {
             this.hurtEntity(entity, f2, minX, maxX, minY, maxY, minZ, maxZ);
             if (entity instanceof EnderDragon dragon) {
                 for (EnderDragonPart part : dragon.getSubEntities()) {
@@ -186,20 +191,18 @@ public class Explosion {
         }
     }
 
-    private void hurtEntity(Entity entity, float blastDiameter, long minX, long maxX, int minY, int maxY,
-            long minZ, long maxZ) {
+    private void hurtEntity(Entity entity, float blastDiameter, Int128 minX, Int128 maxX, int minY, int maxY,
+            Int128 minZ, Int128 maxZ) {
         if (entity == this.source || entity.ignoreExplosion())
             return;
         SectorVec3 entityPosition = entity.exactPosition();
-        if (entityPosition == null) {
-            entityPosition = SectorVec3.fromApproximate(entity.getX(), entity instanceof PrimedTnt ? entity.getY() : entity.getEyeY(), entity.getZ());
-        } else if (!(entity instanceof PrimedTnt)) {
+        if (!(entity instanceof PrimedTnt)) {
             entityPosition = entityPosition.withY(entity.getEyeY());
         }
 
-        if (entityPosition.blockX() < minX || entityPosition.blockX() > maxX
+        if (entityPosition.blockX().compareTo(minX) < 0 || entityPosition.blockX().compareTo(maxX) > 0
                 || entityPosition.y() < (double) minY || entityPosition.y() > (double) maxY
-                || entityPosition.blockZ() < minZ || entityPosition.blockZ() > maxZ)
+                || entityPosition.blockZ().compareTo(minZ) < 0 || entityPosition.blockZ().compareTo(maxZ) > 0)
             return;
 
         Vec3 relativePosition = entityPosition.relativeTo(this.position);
@@ -284,9 +287,7 @@ public class Explosion {
 
     public void finalizeExplosion(boolean pSpawnParticles) {
         if (this.level.isClientSide) {
-            // Sound has not yet received an exact origin overload; preserve its legacy boundary.
-            Vec3 approximatePosition = this.position.toApproximateVec3();
-            this.level.playLocalSound(approximatePosition.x, approximatePosition.y, approximatePosition.z,
+            this.level.playLocalSound(this.position,
                     SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 4.0F,
                     (1.0F + (this.level.random.nextFloat() - this.level.random.nextFloat()) * 0.2F) * 0.7F, false);
         }

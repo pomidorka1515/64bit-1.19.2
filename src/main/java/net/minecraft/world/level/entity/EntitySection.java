@@ -29,7 +29,7 @@ public class EntitySection<T extends EntityAccess> {
 
     public void getEntities(AABB pBounds, Consumer<T> pConsumer) {
         for (T t : this.storage) {
-            if (t.getBoundingBox().intersects(pBounds)) {
+            if (t.exactBoundingBox().intersects(pBounds)) {
                 pConsumer.accept(t);
             }
         }
@@ -40,7 +40,7 @@ public class EntitySection<T extends EntityAccess> {
         if (!collection.isEmpty()) {
             for (T t : collection) {
                 U u = (U) ((EntityAccess) pTest.tryCast(t));
-                if (u != null && t.getBoundingBox().intersects(pBounds)) {
+                if (u != null && t.exactBoundingBox().intersects(pBounds)) {
                     pConsumer.accept(u);
                 }
             }

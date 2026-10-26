@@ -24,9 +24,9 @@ public class PoweredRailBlock extends BaseRailBlock {
         if (pRecursionCount >= 8) {
             return false;
         } else {
-            long i = pPos.getX();
+            int i = 0;
             int j = pPos.getY();
-            long k = pPos.getZ();
+            int k = 0;
             boolean flag = true;
             RailShape railshape = pState.getValue(SHAPE);
             switch (railshape) {
@@ -89,10 +89,14 @@ public class PoweredRailBlock extends BaseRailBlock {
                     railshape = RailShape.NORTH_SOUTH;
             }
 
-            if (this.isSameRailWithPower(pLevel, new BlockPos(i, j, k), pSearchForward, pRecursionCount, railshape)) {
+            BlockPos next = pPos.offset(i, j - pPos.getY(), k);
+            if ((i != 0 && next.getX().equals(pPos.getX())) || (k != 0 && next.getZ().equals(pPos.getZ()))) {
+                return false;
+            }
+            if (this.isSameRailWithPower(pLevel, next, pSearchForward, pRecursionCount, railshape)) {
                 return true;
             } else {
-                return flag && this.isSameRailWithPower(pLevel, new BlockPos(i, j - 1, k), pSearchForward, pRecursionCount, railshape);
+                return flag && this.isSameRailWithPower(pLevel, next.below(), pSearchForward, pRecursionCount, railshape);
             }
         }
     }

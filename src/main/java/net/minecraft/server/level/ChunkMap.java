@@ -6,21 +6,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
-import com.mojang.datafixers.DataFixer;
 import com.mojang.datafixers.util.Either;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ByteMap;
-import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2LongMap;
-import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.LongIterator;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.Object2ByteMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
@@ -36,7 +27,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
@@ -58,6 +48,7 @@ import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
 import net.minecraft.Util;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
@@ -100,9 +91,8 @@ import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.blending.BlendingData;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
-import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.minecraft.world.level.storage.LevelStorageSource;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.SectorVec3;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.slf4j.Logger;
@@ -128,7 +118,6 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     private final BlockableEventLoop<Runnable> mainThreadExecutor;
     private ChunkGenerator generator;
     private RandomState randomState;
-    private final Supplier<DimensionDataStorage> overworldDataStorage;
     private final PoiManager poiManager;
     final ObjectSet<ChunkPos> toDrop = new ObjectOpenHashSet<>();
     private boolean modified;
@@ -148,8 +137,8 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     private final Queue<Runnable> unloadQueue = Queues.newConcurrentLinkedQueue();
     int viewDistance;
 
-    public ChunkMap(ServerLevel pLevel, LevelStorageSource.LevelStorageAccess pLevelStorageAccess, DataFixer pFixerUpper, StructureTemplateManager pStructureManager, Executor pDispatcher, BlockableEventLoop<Runnable> pMainThreadExecutor, LightChunkGetter pLightChunk, ChunkGenerator pGenerator, ChunkProgressListener pProgressListener, ChunkStatusUpdateListener pChunkStatusListener, Supplier<DimensionDataStorage> pOverworldDataStorage, int pViewDistance, boolean pSync) {
-        super(pLevelStorageAccess.getDimensionPath(pLevel.dimension()).resolve("region"), pFixerUpper, pSync);
+    public ChunkMap(ServerLevel pLevel, LevelStorageSource.LevelStorageAccess pLevelStorageAccess, StructureTemplateManager pStructureManager, Executor pDispatcher, BlockableEventLoop<Runnable> pMainThreadExecutor, LightChunkGetter pLightChunk, ChunkGenerator pGenerator, ChunkProgressListener pProgressListener, ChunkStatusUpdateListener pChunkStatusListener, int pViewDistance, boolean pSync) {
+        super(pLevelStorageAccess.getDimensionPath(pLevel.dimension()).resolve("region"), pSync);
         this.structureTemplateManager = pStructureManager;
         Path path = pLevelStorageAccess.getDimensionPath(pLevel.dimension());
         this.storageName = path.getFileName().toString();
@@ -172,8 +161,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
         this.mainThreadMailbox = this.queueSorter.getProcessor(processorhandle, false);
         this.lightEngine = new ThreadedLevelLightEngine(pLightChunk, this, this.level.dimensionType().hasSkyLight(), processormailbox, this.queueSorter.getProcessor(processormailbox, false));
         this.distanceManager = new ChunkMap.DistanceManager(pDispatcher, pMainThreadExecutor);
-        this.overworldDataStorage = pOverworldDataStorage;
-        this.poiManager = new PoiManager(path.resolve("poi"), pFixerUpper, pSync, pLevel.registryAccess(), pLevel);
+        this.poiManager = new PoiManager(path.resolve("poi"), pSync, pLevel.registryAccess(), pLevel);
         this.setViewDistance(pViewDistance);
     }
 
@@ -196,41 +184,44 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     }
 
     private static double euclideanDistanceSquared(ChunkPos pChunkPos, Entity pEntity) {
-        double d0;
-        double d1;
-        if (pEntity.hasSectorPosition()) {
-            // Keep the exact sector coordinate as the source of truth.  The
-            // vanilla path remains unchanged for entities without one.
-            d0 = WorldBounds.signedDifference(SectionPos.sectionToBlockCoord(pChunkPos.x, 8), pEntity.sectorPosition().blockX())
-                    - pEntity.sectorPosition().subX();
-            d1 = WorldBounds.signedDifference(SectionPos.sectionToBlockCoord(pChunkPos.z, 8), pEntity.sectorPosition().blockZ())
-                    - pEntity.sectorPosition().subZ();
-        } else {
-            d0 = (double) SectionPos.sectionToBlockCoord(pChunkPos.x, 8) - pEntity.getX();
-            d1 = (double) SectionPos.sectionToBlockCoord(pChunkPos.z, 8) - pEntity.getZ();
-        }
+        SectorVec3 position = pEntity.sectorPosition();
+        double d0 = WorldBounds.signedDifference(pChunkPos.getMiddleBlockX(), position.blockX()) - position.subX();
+        double d1 = WorldBounds.signedDifference(pChunkPos.getMiddleBlockZ(), position.blockZ()) - position.subZ();
         return d0 * d0 + d1 * d1;
     }
 
     public static boolean isChunkInRange(long p_200879_, long p_200880_, long p_200881_, long p_200882_, long p_200883_) {
+        return isChunkInRange(Int128.fromLong(p_200879_), Int128.fromLong(p_200880_),
+                Int128.fromLong(p_200881_), Int128.fromLong(p_200882_), p_200883_);
+    }
+
+    public static boolean isChunkInRange(Int128 p_200879_, Int128 p_200880_, Int128 p_200881_, Int128 p_200882_, long p_200883_) {
+        return isChunkInRange(p_200879_.hi(), p_200879_.lo(), p_200880_.hi(), p_200880_.lo(), p_200881_, p_200882_, p_200883_);
+    }
+
+    private static boolean isChunkInRange(ChunkPos pos, Int128 centerX, Int128 centerZ, long radius) {
+        return isChunkInRange(pos.xHi(), pos.xLo(), pos.zHi(), pos.zLo(), centerX, centerZ, radius);
+    }
+
+    private static boolean isChunkInRange(long xHi, long xLo, long zHi, long zLo, Int128 centerX, Int128 centerZ, long p_200883_) {
         if (p_200883_ < 1L)
             return false;
-        double dx = Math.max(0.0D, WorldBounds.distance(p_200879_, p_200881_) - 1.0D);
-        double dz = Math.max(0.0D, WorldBounds.distance(p_200880_, p_200882_) - 1.0D);
+        double dx = Math.max(0.0D, (double) net.minecraft.core.Int128Math.distance(xHi, xLo, centerX.hi(), centerX.lo()) - 1.0D);
+        double dz = Math.max(0.0D, (double) net.minecraft.core.Int128Math.distance(zHi, zLo, centerZ.hi(), centerZ.lo()) - 1.0D);
         double far = Math.max(0.0D, Math.max(dx, dz) - 1.0D);
         double near = Math.min(dx, dz);
         double radius = (double) p_200883_ - 1.0D;
         return near * near + far * far <= radius * radius;
     }
 
-    private static boolean isChunkOnRangeBorder(long p_183829_, long p_183830_, long p_183831_, long p_183832_, int p_183833_) {
+    private static boolean isChunkOnRangeBorder(Int128 p_183829_, Int128 p_183830_, Int128 p_183831_, Int128 p_183832_, int p_183833_) {
         if (!isChunkInRange(p_183829_, p_183830_, p_183831_, p_183832_, p_183833_)) {
             return false;
         }
-        Long plusX = WorldBounds.tryAddChunkOffset(p_183829_, 1L);
-        Long plusZ = WorldBounds.tryAddChunkOffset(p_183830_, 1L);
-        Long minusX = WorldBounds.tryAddChunkOffset(p_183829_, -1L);
-        Long minusZ = WorldBounds.tryAddChunkOffset(p_183830_, -1L);
+        Int128 plusX = WorldBounds.tryAddChunkOffset(p_183829_, 1L);
+        Int128 plusZ = WorldBounds.tryAddChunkOffset(p_183830_, 1L);
+        Int128 minusX = WorldBounds.tryAddChunkOffset(p_183829_, -1L);
+        Int128 minusZ = WorldBounds.tryAddChunkOffset(p_183830_, -1L);
         return plusX == null || !isChunkInRange(plusX, p_183830_, p_183831_, p_183832_, p_183833_)
                 || plusZ == null || !isChunkInRange(p_183829_, plusZ, p_183831_, p_183832_, p_183833_)
                 || minusX == null || !isChunkInRange(minusX, p_183830_, p_183831_, p_183832_, p_183833_)
@@ -238,23 +229,22 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     }
 
     /** Visits a small, edge-clipped rectangular chunk range without overflowing. */
-    private static void forEachChunkBox(long centerX1, long centerZ1, long centerX2, long centerZ2,
+    private static void forEachChunkBox(Int128 centerX1, Int128 centerZ1, Int128 centerX2, Int128 centerZ2,
             long edgeRadius, Consumer<ChunkPos> action) {
-        if (edgeRadius < 0L || !WorldBounds.isValidChunk(centerX1, centerZ1)
-                || !WorldBounds.isValidChunk(centerX2, centerZ2)) {
+        if (edgeRadius < 0L) {
             return;
         }
-        long minX = WorldBounds.addChunkOffset(Math.min(centerX1, centerX2), -edgeRadius);
-        long minZ = WorldBounds.addChunkOffset(Math.min(centerZ1, centerZ2), -edgeRadius);
-        long maxX = WorldBounds.addChunkOffset(Math.max(centerX1, centerX2), edgeRadius);
-        long maxZ = WorldBounds.addChunkOffset(Math.max(centerZ1, centerZ2), edgeRadius);
-        for (long x = minX;; x = WorldBounds.addChunkOffset(x, 1L)) {
-            for (long z = minZ;; z = WorldBounds.addChunkOffset(z, 1L)) {
+        Int128 minX = WorldBounds.addChunkOffset(centerX1.compareTo(centerX2) <= 0 ? centerX1 : centerX2, -edgeRadius);
+        Int128 minZ = WorldBounds.addChunkOffset(centerZ1.compareTo(centerZ2) <= 0 ? centerZ1 : centerZ2, -edgeRadius);
+        Int128 maxX = WorldBounds.addChunkOffset(centerX1.compareTo(centerX2) >= 0 ? centerX1 : centerX2, edgeRadius);
+        Int128 maxZ = WorldBounds.addChunkOffset(centerZ1.compareTo(centerZ2) >= 0 ? centerZ1 : centerZ2, edgeRadius);
+        for (Int128 x = minX;; x = WorldBounds.addChunkOffset(x, 1L)) {
+            for (Int128 z = minZ;; z = WorldBounds.addChunkOffset(z, 1L)) {
                 action.accept(new ChunkPos(x, z));
-                if (z == maxZ)
+                if (z.equals(maxZ))
                     break;
             }
-            if (x == maxX)
+            if (x.equals(maxX))
                 break;
         }
     }
@@ -305,8 +295,8 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     private CompletableFuture<Either<List<ChunkAccess>, ChunkHolder.ChunkLoadingFailure>> getChunkRangeFuture(ChunkPos p_140211_, int p_140212_, IntFunction<ChunkStatus> p_140213_) {
         List<CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>>> list = new ArrayList<>();
         List<ChunkHolder> list1 = new ArrayList<>();
-        long i = p_140211_.x;
-        long j = p_140211_.z;
+        Int128 i = p_140211_.x();
+        Int128 j = p_140211_.z();
 
         for (int k = -p_140212_; k <= p_140212_; ++k) {
             for (int l = -p_140212_; l <= p_140212_; ++l) {
@@ -344,7 +334,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
                     return Either.right(new ChunkHolder.ChunkLoadingFailure() {
                         public String toString() {
                             long diameter = (long) p_140212_ * 2L + 1L;
-                            return "Unloaded " + new ChunkPos(WorldBounds.addChunkOffset(i, l1 % diameter), WorldBounds.addChunkOffset(j, l1 / diameter)) + " " + either.right().get();
+                            return "Unloaded " + new ChunkPos(WorldBounds.addChunkOffset(i, l1 % diameter - p_140212_), WorldBounds.addChunkOffset(j, l1 / diameter - p_140212_)) + " " + either.right().get();
                         }
                     });
                 }
@@ -664,8 +654,8 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
                exception.getStackTrace();
                CrashReport crashreport = CrashReport.forThrowable(exception, "Exception generating new chunk");
                CrashReportCategory crashreportcategory = crashreport.addCategory("Chunk to be generated");
-               crashreportcategory.setDetail("Location", String.format(Locale.ROOT, "%d,%d", chunkpos.x, chunkpos.z));
-               crashreportcategory.setDetail("Position hash", ChunkPos.hash(chunkpos.x, chunkpos.z));
+               crashreportcategory.setDetail("Location", chunkpos.x() + "," + chunkpos.z());
+               crashreportcategory.setDetail("Position hash", chunkpos.hashCode());
                crashreportcategory.setDetail("Generator", this.generator);
                this.mainThreadExecutor.execute(() -> {
                   throw new ReportedException(crashreport);
@@ -814,7 +804,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
                 this.markPosition(chunkpos, chunkstatus.getChunkType());
                 return true;
             } catch (Exception exception) {
-                LOGGER.error("Failed to save chunk {},{}", chunkpos.x, chunkpos.z, exception);
+                LOGGER.error("Failed to save chunk {},{}", chunkpos.x(), chunkpos.z(), exception);
                 return false;
             }
         }
@@ -855,8 +845,8 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
                 MutableObject<ClientboundLevelChunkWithLightPacket> mutableobject = new MutableObject<>();
                 this.getPlayers(chunkpos, false).forEach((p_214864_) -> {
                     SectionPos sectionpos = p_214864_.getLastSectionPos();
-                    boolean flag = isChunkInRange(chunkpos.x, chunkpos.z, sectionpos.x(), sectionpos.z(), j);
-                    boolean flag1 = isChunkInRange(chunkpos.x, chunkpos.z, sectionpos.x(), sectionpos.z(), this.viewDistance);
+                    boolean flag = isChunkInRange(chunkpos, sectionpos.x(), sectionpos.z(), j);
+                    boolean flag1 = isChunkInRange(chunkpos, sectionpos.x(), sectionpos.z(), this.viewDistance);
                     this.updateChunkTracking(p_214864_, chunkpos, mutableobject, flag, flag1);
                 });
             }
@@ -906,7 +896,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
             Optional<LevelChunk> optional1 = optional.flatMap((p_214932_) -> {
                 return p_214932_ instanceof LevelChunk ? Optional.of((LevelChunk) p_214932_) : Optional.empty();
             });
-            csvoutput.writeRow(chunkpos.x, chunkpos.z, chunkholder.getTicketLevel(), optional.isPresent(), optional.map(ChunkAccess::getStatus).orElse((ChunkStatus) null), optional1.map(LevelChunk::getFullStatus).orElse((ChunkHolder.FullChunkStatus) null), printFuture(chunkholder.getFullChunkFuture()), printFuture(chunkholder.getTickingChunkFuture()), printFuture(chunkholder.getEntityTickingChunkFuture()), this.distanceManager.getTicketDebugString(chunkpos), this.anyPlayerCloseEnoughForSpawning(chunkpos), optional1.map((p_214953_) -> {
+            csvoutput.writeRow(chunkpos.x(), chunkpos.z(), chunkholder.getTicketLevel(), optional.isPresent(), optional.map(ChunkAccess::getStatus).orElse((ChunkStatus) null), optional1.map(LevelChunk::getFullStatus).orElse((ChunkHolder.FullChunkStatus) null), printFuture(chunkholder.getFullChunkFuture()), printFuture(chunkholder.getTickingChunkFuture()), printFuture(chunkholder.getEntityTickingChunkFuture()), this.distanceManager.getTicketDebugString(chunkpos), this.anyPlayerCloseEnoughForSpawning(chunkpos), optional1.map((p_214953_) -> {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             return p_214953_.getBlockEntities().size();
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         })
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        .orElse(0),
@@ -933,13 +923,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     }
 
     private CompletableFuture<Optional<CompoundTag>> readChunk(ChunkPos pPos) {
-        return this.read(pPos).thenApplyAsync((p_214907_) -> {
-            return p_214907_.map(this::upgradeChunkTag);
-        }, Util.backgroundExecutor());
-    }
-
-    private CompoundTag upgradeChunkTag(CompoundTag p_214948_) {
-        return this.upgradeChunkTag(this.level.dimension(), this.overworldDataStorage, p_214948_, this.generator.getTypeNameForDataFixer());
+        return this.read(pPos);
     }
 
     boolean anyPlayerCloseEnoughForSpawning(ChunkPos pChunkPos) {
@@ -988,8 +972,8 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     void updatePlayerStatus(ServerPlayer pPlayer, boolean pTrack) {
         boolean flag = this.skipPlayer(pPlayer);
         boolean flag1 = this.playerMap.ignoredOrUnknown(pPlayer);
-        long i = SectionPos.blockToSectionCoord(pPlayer.getBlockX());
-        long j = SectionPos.blockToSectionCoord(pPlayer.getBlockZ());
+        Int128 i = SectionPos.blockToSectionCoord(pPlayer.getBlockX());
+        Int128 j = SectionPos.blockToSectionCoord(pPlayer.getBlockZ());
         if (pTrack) {
             this.playerMap.addPlayer(new ChunkPos(i, j), pPlayer, flag);
             this.updatePlayerPos(pPlayer);
@@ -1005,7 +989,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
         }
 
         forEachChunkBox(i, j, i, j, (long) this.viewDistance + 1L, (chunkpos) -> {
-            if (isChunkInRange(chunkpos.x, chunkpos.z, i, j, this.viewDistance)) {
+            if (isChunkInRange(chunkpos, i, j, this.viewDistance)) {
                 this.updateChunkTracking(pPlayer, chunkpos, new MutableObject<>(), !pTrack, pTrack);
             }
         });
@@ -1027,8 +1011,8 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
             }
         }
 
-        long i2 = SectionPos.blockToSectionCoord(pPlayer.getBlockX());
-        long j2 = SectionPos.blockToSectionCoord(pPlayer.getBlockZ());
+        Int128 i2 = SectionPos.blockToSectionCoord(pPlayer.getBlockX());
+        Int128 j2 = SectionPos.blockToSectionCoord(pPlayer.getBlockZ());
         SectionPos sectionpos = pPlayer.getLastSectionPos();
         SectionPos sectionpos1 = SectionPos.of(pPlayer);
         ChunkPos i = sectionpos.chunk();
@@ -1054,29 +1038,29 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
                 this.playerMap.unIgnorePlayer(pPlayer);
             }
 
-            if (i != j) {
+            if (!i.equals(j)) {
                 this.playerMap.updatePlayer(i, j, pPlayer);
             }
         }
 
-        long k = sectionpos.x();
-        long l = sectionpos.z();
-        if (WorldBounds.within(k, i2, (long) this.viewDistance * 2L)
-                && WorldBounds.within(l, j2, (long) this.viewDistance * 2L)) {
+        Int128 k = sectionpos.x();
+        Int128 l = sectionpos.z();
+        if (WorldBounds.distance(k, i2) <= (long) this.viewDistance * 2L
+                && WorldBounds.distance(l, j2) <= (long) this.viewDistance * 2L) {
             forEachChunkBox(k, l, i2, j2, (long) this.viewDistance + 1L, (chunkpos) -> {
-                boolean flag5 = isChunkInRange(chunkpos.x, chunkpos.z, k, l, this.viewDistance);
-                boolean flag6 = isChunkInRange(chunkpos.x, chunkpos.z, i2, j2, this.viewDistance);
+                boolean flag5 = isChunkInRange(chunkpos, k, l, this.viewDistance);
+                boolean flag6 = isChunkInRange(chunkpos, i2, j2, this.viewDistance);
                 this.updateChunkTracking(pPlayer, chunkpos, new MutableObject<>(), flag5, flag6);
             });
         } else {
             forEachChunkBox(k, l, k, l, (long) this.viewDistance + 1L, (chunkpos) -> {
-                if (isChunkInRange(chunkpos.x, chunkpos.z, k, l, this.viewDistance)) {
+                if (isChunkInRange(chunkpos, k, l, this.viewDistance)) {
                     this.updateChunkTracking(pPlayer, chunkpos, new MutableObject<>(), true, false);
                 }
             });
 
             forEachChunkBox(i2, j2, i2, j2, (long) this.viewDistance + 1L, (chunkpos) -> {
-                if (isChunkInRange(chunkpos.x, chunkpos.z, i2, j2, this.viewDistance)) {
+                if (isChunkInRange(chunkpos, i2, j2, this.viewDistance)) {
                     this.updateChunkTracking(pPlayer, chunkpos, new MutableObject<>(), false, true);
                 }
             });
@@ -1089,7 +1073,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
 
         for (ServerPlayer serverplayer : set) {
             SectionPos sectionpos = serverplayer.getLastSectionPos();
-            if (pBoundaryOnly && isChunkOnRangeBorder(pPos.x, pPos.z, sectionpos.x(), sectionpos.z(), this.viewDistance) || !pBoundaryOnly && isChunkInRange(pPos.x, pPos.z, sectionpos.x(), sectionpos.z(), this.viewDistance)) {
+            if (pBoundaryOnly && isChunkOnRangeBorder(pPos.x(), pPos.z(), sectionpos.x(), sectionpos.z(), this.viewDistance) || !pBoundaryOnly && isChunkInRange(pPos.x(), pPos.z(), sectionpos.x(), sectionpos.z(), this.viewDistance)) {
                 builder.add(serverplayer);
             }
         }
@@ -1305,9 +1289,14 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
 
         public void updatePlayer(ServerPlayer pPlayer) {
             if (pPlayer != this.entity) {
-                Vec3 vec3 = pPlayer.position().subtract(this.entity.position());
+                SectorVec3 playerPosition = pPlayer.sectorPosition();
+                SectorVec3 entityPosition = this.entity.sectorPosition();
+                double dx = WorldBounds.signedDifference(playerPosition.blockX(), entityPosition.blockX())
+                        + playerPosition.subX() - entityPosition.subX();
+                double dz = WorldBounds.signedDifference(playerPosition.blockZ(), entityPosition.blockZ())
+                        + playerPosition.subZ() - entityPosition.subZ();
                 double d0 = (double) Math.min(this.getEffectiveRange(), (ChunkMap.this.viewDistance - 1) * 16);
-                double d1 = vec3.x * vec3.x + vec3.z * vec3.z;
+                double d1 = dx * dx + dz * dz;
                 double d2 = d0 * d0;
                 boolean flag = d1 <= d2 && this.entity.broadcastToPlayer(pPlayer);
                 if (flag) {

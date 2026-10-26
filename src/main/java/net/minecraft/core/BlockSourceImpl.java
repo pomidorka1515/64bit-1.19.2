@@ -3,6 +3,7 @@ package net.minecraft.core;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.SectorVec3;
 
 public class BlockSourceImpl implements BlockSource {
     private final ServerLevel level;
@@ -17,16 +18,12 @@ public class BlockSourceImpl implements BlockSource {
         return this.level;
     }
 
-    public double x() {
-        return (double) this.pos.getX() + 0.5D;
+    public SectorVec3 exactPosition() {
+        return SectorVec3.fromBlockAndFraction(this.pos.getX(), 0.5D, this.y(), this.pos.getZ(), 0.5D);
     }
 
     public double y() {
         return (double) this.pos.getY() + 0.5D;
-    }
-
-    public double z() {
-        return (double) this.pos.getZ() + 0.5D;
     }
 
     public BlockPos getPos() {

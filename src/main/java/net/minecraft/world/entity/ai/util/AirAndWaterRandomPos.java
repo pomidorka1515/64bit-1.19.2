@@ -12,7 +12,7 @@ public class AirAndWaterRandomPos {
             double directionX, double directionZ, double maxAngle) {
         SectorVec3 exact = getSectorPos(mob, horizontalRange, verticalRange, startHeight,
                 directionX, directionZ, maxAngle);
-        return exact == null ? null : exact.toApproximateVec3();
+        return exact == null ? null : exact.toExactVec3();
     }
 
     @Nullable

@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.border.WorldBorder;
@@ -25,6 +26,15 @@ public interface CollisionGetter extends BlockGetter {
     @Nullable
     BlockGetter getChunkForCollisions(long pChunkX, long pChunkZ);
 
+    /** Unmigrated providers cannot contain addresses outside their long projection. */
+    @Nullable
+    default BlockGetter getChunkForCollisions(Int128 pChunkX, Int128 pChunkZ) {
+        if (!pChunkX.equals(Int128.fromLong(pChunkX.lo()))
+                || !pChunkZ.equals(Int128.fromLong(pChunkZ.lo())))
+            return null;
+        return this.getChunkForCollisions(pChunkX.lo(), pChunkZ.lo());
+    }
+
     default boolean isUnobstructed(@Nullable Entity pEntity, VoxelShape pShape) {
         return true;
     }
@@ -36,15 +46,34 @@ public interface CollisionGetter extends BlockGetter {
         }
 
         Entity entity = pContext instanceof EntityCollisionContext entitycollisioncontext ? entitycollisioncontext.getEntity() : null;
-        if (entity != null && entity.hasSectorPosition()) {
-            if (entity.isColliding(pPos, pState)) {
-                return false;
-            }
-
-            return this.isUnobstructed(entity, voxelshape.move((double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ()));
+        if (entity != null && entity.hasSectorPosition() && entity.isColliding(pPos, pState)) {
+            return false;
         }
 
-        return this.isUnobstructed((Entity) null, voxelshape.move((double) pPos.getX(), (double) pPos.getY(), (double) pPos.getZ()));
+        if (!(this instanceof EntityGetter getter)) {
+            return true;
+        }
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(pPos.getX(), pPos.getY(), pPos.getZ());
+        AABB bounds = voxelshape.bounds();
+        try {
+            SectorAABB exactBox = new SectorAABB(pPos.getX(), bounds.minX, bounds.minY + pPos.getY(),
+                    pPos.getZ(), bounds.minZ, pPos.getX(), bounds.maxX, bounds.maxY + pPos.getY(),
+                    pPos.getZ(), bounds.maxZ);
+            AABB localBox = exactBox.toLocalAABB(origin);
+            for (Entity candidate : getter.getSectorEntities(entity, exactBox, localBox, origin,
+                    other -> !other.isRemoved() && other.blocksBuilding
+                            && (entity == null || !other.isPassengerOfSameVehicle(entity)))) {
+                SectorAABB candidateBox = candidate.getSectorBoundingBoxForCulling();
+                if (candidateBox != null && Shapes.joinIsNotEmpty(voxelshape,
+                        Shapes.create(candidateBox.toLocalAABB(origin)), BooleanOp.AND)) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (IllegalArgumentException exception) {
+            // An unsafe local span cannot establish that placement is unobstructed.
+            return false;
+        }
     }
 
     default boolean isUnobstructed(Entity pEntity) {
@@ -55,7 +84,7 @@ public interface CollisionGetter extends BlockGetter {
                     candidate -> !candidate.isRemoved() && candidate.blocksBuilding
                             && !candidate.isPassengerOfSameVehicle(pEntity)).isEmpty();
         }
-        return this.isUnobstructed(pEntity, Shapes.create(pEntity.getBoundingBox()));
+        return this.isUnobstructed(pEntity, Shapes.create(pEntity.exactBoundingBox()));
     }
 
     default boolean noCollision(AABB pCollisionBox) {
@@ -63,7 +92,7 @@ public interface CollisionGetter extends BlockGetter {
     }
 
     default boolean noCollision(Entity pEntity) {
-        return this.noCollision(pEntity, pEntity.getBoundingBox());
+        return this.noCollision(pEntity, pEntity.exactBoundingBox());
     }
 
     default boolean noCollision(@Nullable Entity pEntity, AABB pCollisionBox) {

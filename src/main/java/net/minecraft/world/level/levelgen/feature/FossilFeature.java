@@ -37,11 +37,11 @@ public class FossilFeature extends Feature<FossilFeatureConfiguration> {
         BoundingBox boundingbox = new BoundingBox(WorldBounds.subtractBlockOffset(chunkpos.getMinBlockX(), 16L), worldgenlevel.getMinBuildHeight(), WorldBounds.subtractBlockOffset(chunkpos.getMinBlockZ(), 16L), WorldBounds.addBlockOffset(chunkpos.getMaxBlockX(), 16L), worldgenlevel.getMaxBuildHeight(), WorldBounds.addBlockOffset(chunkpos.getMaxBlockZ(), 16L));
         StructurePlaceSettings structureplacesettings = (new StructurePlaceSettings()).setRotation(rotation).setBoundingBox(boundingbox).setRandom(randomsource);
         Vec3i vec3i = structuretemplate.getSize(rotation);
-        BlockPos blockpos1 = blockpos.offset(-vec3i.getX() / 2, 0, -vec3i.getZ() / 2);
+        BlockPos blockpos1 = blockpos.offset(-vec3i.getXLo() / 2, 0, -vec3i.getZLo() / 2);
         int j = blockpos.getY();
 
-        for (int k = 0; k < vec3i.getX(); ++k) {
-            for (int l = 0; l < vec3i.getZ(); ++l) {
+        for (int k = 0; k < vec3i.getXLo(); ++k) {
+            for (int l = 0; l < vec3i.getZLo(); ++l) {
                 j = Math.min(j, worldgenlevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, WorldBounds.addBlockOffset(blockpos1.getX(), k), WorldBounds.addBlockOffset(blockpos1.getZ(), l)));
             }
         }

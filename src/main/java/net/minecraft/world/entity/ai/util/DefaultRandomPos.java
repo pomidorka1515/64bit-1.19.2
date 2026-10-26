@@ -11,7 +11,7 @@ public class DefaultRandomPos {
     @Nullable
     public static Vec3 getPos(PathfinderMob mob, int horizontalRange, int verticalRange) {
         SectorVec3 exact = getSectorPos(mob, horizontalRange, verticalRange);
-        return exact == null ? null : exact.toApproximateVec3();
+        return exact == null ? null : exact.toExactVec3();
     }
 
     @Nullable
@@ -28,7 +28,7 @@ public class DefaultRandomPos {
             Vec3 target, double maxAngle) {
         SectorVec3 exact = getSectorPosTowards(mob, horizontalRange, verticalRange,
                 SectorVec3.fromApproximate(target.x, target.y, target.z), maxAngle);
-        return exact == null ? null : exact.toApproximateVec3();
+        return exact == null ? null : exact.toExactVec3();
     }
 
     @Nullable
@@ -47,7 +47,7 @@ public class DefaultRandomPos {
     public static Vec3 getPosAway(PathfinderMob mob, int horizontalRange, int verticalRange, Vec3 avoid) {
         SectorVec3 exact = getSectorPosAway(mob, horizontalRange, verticalRange,
                 SectorVec3.fromApproximate(avoid.x, avoid.y, avoid.z));
-        return exact == null ? null : exact.toApproximateVec3();
+        return exact == null ? null : exact.toExactVec3();
     }
 
     @Nullable

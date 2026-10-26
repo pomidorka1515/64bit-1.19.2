@@ -36,7 +36,7 @@ public class EvokerFangs extends Entity {
         this.warmupDelayTicks = pWarmupDelay;
         this.setOwner(pOwner);
         this.setYRot(pYRot * (180F / (float) Math.PI));
-        this.setPos(pX, pY, pZ);
+        this.applyExactPosition(net.minecraft.world.phys.SectorVec3.fromApproximate(pX, pY, pZ));
     }
 
     protected void defineSynchedData() {

@@ -146,12 +146,6 @@ public abstract class Player extends LivingEntity {
     public float oBob;
     public float bob;
     public int takeXpDelay;
-    public double xCloakO;
-    public double yCloakO;
-    public double zCloakO;
-    public double xCloak;
-    public double yCloak;
-    public double zCloak;
     private int sleepCounter;
     protected boolean wasUnderwater;
     private final Abilities abilities = new Abilities();
@@ -319,14 +313,6 @@ public abstract class Player extends LivingEntity {
 
     private void moveCloak() {
         this.moveExactCloak();
-        Vec3 old = this.exactCloakOld.toApproximateVec3();
-        Vec3 current = this.exactCloak.toApproximateVec3();
-        this.xCloakO = old.x;
-        this.yCloakO = old.y;
-        this.zCloakO = old.z;
-        this.xCloak = current.x;
-        this.yCloak = current.y;
-        this.zCloak = current.z;
     }
 
     private net.minecraft.world.phys.SectorVec3 exactCloak;
@@ -410,7 +396,7 @@ public abstract class Player extends LivingEntity {
     }
 
     public void playSound(SoundEvent pSound, float pVolume, float pPitch) {
-        this.level.playSound(this, this.getX(), this.getY(), this.getZ(), pSound, this.getSoundSource(), pVolume, pPitch);
+        this.level.playSound(this, this.sectorPosition(), pSound, this.getSoundSource(), pVolume, pPitch);
     }
 
     public void playNotifySound(SoundEvent pSound, SoundSource pSource, float pVolume, float pPitch) {
@@ -456,19 +442,12 @@ public abstract class Player extends LivingEntity {
             this.stopRiding();
             this.setShiftKeyDown(false);
         } else {
-            SectorVec3 old = this.hasSectorPosition() ? this.sectorPosition() : null;
-            double d0 = this.getX();
-            double d1 = this.getY();
-            double d2 = this.getZ();
+            SectorVec3 old = this.sectorPosition();
             super.rideTick();
             this.oBob = this.bob;
             this.bob = 0.0F;
-            if (old != null) {
-                Vec3 delta = this.sectorPosition().relativeTo(old);
-                this.checkRidingStatistics(delta.x, delta.y, delta.z);
-            } else {
-                this.checkRidingStatistics(this.getX() - d0, this.getY() - d1, this.getZ() - d2);
-            }
+            Vec3 delta = this.sectorPosition().relativeTo(old);
+            this.checkRidingStatistics(delta.x, delta.y, delta.z);
         }
     }
 
@@ -513,9 +492,9 @@ public abstract class Player extends LivingEntity {
         if (this.getHealth() > 0.0F && !this.isSpectator()) {
             AABB aabb;
             if (this.isPassenger() && !this.getVehicle().isRemoved()) {
-                aabb = this.getBoundingBox().minmax(this.getVehicle().getBoundingBox()).inflate(1.0D, 0.0D, 1.0D);
+                aabb = this.exactBoundingBox().minmax(this.getVehicle().exactBoundingBox()).inflate(1.0D, 0.0D, 1.0D);
             } else {
-                aabb = this.getBoundingBox().inflate(1.0D, 0.5D, 1.0D);
+                aabb = this.exactBoundingBox().inflate(1.0D, 0.5D, 1.0D);
             }
 
             List<Entity> list = this.level.getEntities(this, aabb);
@@ -550,7 +529,7 @@ public abstract class Player extends LivingEntity {
                                   })
                     .ifPresent((p_36255_) -> {
                         if (!Parrot.imitateNearbyMobs(this.level, this)) {
-                            this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), Parrot.getAmbient(this.level, this.level.random), this.getSoundSource(), 1.0F, Parrot.getPitch(this.level.random));
+                            this.level.playSound((Player) null, this.sectorPosition(), Parrot.getAmbient(this.level, this.level.random), this.getSoundSource(), 1.0F, Parrot.getPitch(this.level.random));
                         }
                     });
         }
@@ -1089,7 +1068,7 @@ public abstract class Player extends LivingEntity {
                     int i = 0;
                     i += EnchantmentHelper.getKnockbackBonus(this);
                     if (this.isSprinting() && flag) {
-                        this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_ATTACK_KNOCKBACK, this.getSoundSource(), 1.0F, 1.0F);
+                        this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.PLAYER_ATTACK_KNOCKBACK, this.getSoundSource(), 1.0F, 1.0F);
                         ++i;
                         flag1 = true;
                     }
@@ -1138,14 +1117,14 @@ public abstract class Player extends LivingEntity {
                         if (flag3) {
                             float f3 = 1.0F + EnchantmentHelper.getSweepingDamageRatio(this) * f;
 
-                            for (LivingEntity livingentity : this.level.getEntitiesOfClass(LivingEntity.class, pTarget.getBoundingBox().inflate(1.0D, 0.25D, 1.0D))) {
+                            for (LivingEntity livingentity : this.level.getEntitiesOfClass(LivingEntity.class, pTarget.exactBoundingBox().inflate(1.0D, 0.25D, 1.0D))) {
                                 if (livingentity != this && livingentity != pTarget && !this.isAlliedTo(livingentity) && (!(livingentity instanceof ArmorStand) || !((ArmorStand) livingentity).isMarker()) && this.distanceToSqr(livingentity) < 9.0D) {
                                     livingentity.knockback((double) 0.4F, (double) Mth.sin(this.getYRot() * ((float) Math.PI / 180F)), (double) (-Mth.cos(this.getYRot() * ((float) Math.PI / 180F))));
                                     livingentity.hurt(DamageSource.playerAttack(this), f3);
                                 }
                             }
 
-                            this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_ATTACK_SWEEP, this.getSoundSource(), 1.0F, 1.0F);
+                            this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.PLAYER_ATTACK_SWEEP, this.getSoundSource(), 1.0F, 1.0F);
                             this.sweepAttack();
                         }
 
@@ -1156,15 +1135,15 @@ public abstract class Player extends LivingEntity {
                         }
 
                         if (flag2) {
-                            this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_ATTACK_CRIT, this.getSoundSource(), 1.0F, 1.0F);
+                            this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.PLAYER_ATTACK_CRIT, this.getSoundSource(), 1.0F, 1.0F);
                             this.crit(pTarget);
                         }
 
                         if (!flag2 && !flag3) {
                             if (flag) {
-                                this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_ATTACK_STRONG, this.getSoundSource(), 1.0F, 1.0F);
+                                this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.PLAYER_ATTACK_STRONG, this.getSoundSource(), 1.0F, 1.0F);
                             } else {
-                                this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_ATTACK_WEAK, this.getSoundSource(), 1.0F, 1.0F);
+                                this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.PLAYER_ATTACK_WEAK, this.getSoundSource(), 1.0F, 1.0F);
                             }
                         }
 
@@ -1206,7 +1185,7 @@ public abstract class Player extends LivingEntity {
 
                         this.causeFoodExhaustion(0.1F);
                     } else {
-                        this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_ATTACK_NODAMAGE, this.getSoundSource(), 1.0F, 1.0F);
+                        this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.PLAYER_ATTACK_NODAMAGE, this.getSoundSource(), 1.0F, 1.0F);
                         if (flag4) {
                             pTarget.clearFire();
                         }
@@ -1307,7 +1286,7 @@ public abstract class Player extends LivingEntity {
 
     public static Optional<Vec3> findRespawnPositionAndUseSpawnBlock(ServerLevel pServerLevel, BlockPos pSpawnBlockPos, float pPlayerOrientation, boolean pIsRespawnForced, boolean pRespawnAfterWinningTheGame) {
         return findExactRespawnPositionAndUseSpawnBlock(pServerLevel, pSpawnBlockPos, pPlayerOrientation, pIsRespawnForced, pRespawnAfterWinningTheGame)
-                .map(SectorVec3::toApproximateVec3);
+                .map(SectorVec3::toExactVec3);
     }
 
     /** Exact split-coordinate respawn resolution; never reconstructs a global X/Z double. */
@@ -1385,10 +1364,7 @@ public abstract class Player extends LivingEntity {
     }
 
     public void travel(Vec3 pTravelVector) {
-        SectorVec3 exactBefore = this.hasSectorPosition() ? this.sectorPosition() : null;
-        double d0 = this.getX();
-        double d1 = this.getY();
-        double d2 = this.getZ();
+        SectorVec3 exactBefore = this.sectorPosition();
         if (this.isSwimming() && !this.isPassenger()) {
             double d3 = this.getLookAngle().y;
             double d4 = d3 < -0.2D ? 0.085D : 0.06D;
@@ -1414,12 +1390,8 @@ public abstract class Player extends LivingEntity {
             super.travel(pTravelVector);
         }
 
-        if (exactBefore != null) {
-            Vec3 exactDelta = this.sectorPosition().relativeTo(exactBefore);
-            this.checkMovementStatistics(exactDelta.x, exactDelta.y, exactDelta.z);
-        } else {
-            this.checkMovementStatistics(this.getX() - d0, this.getY() - d1, this.getZ() - d2);
-        }
+        Vec3 exactDelta = this.sectorPosition().relativeTo(exactBefore);
+        this.checkMovementStatistics(exactDelta);
     }
 
     public void updateSwimming() {
@@ -1439,10 +1411,9 @@ public abstract class Player extends LivingEntity {
     }
 
     public void checkMovementStatistics(Vec3 displacement) {
-        this.checkMovementStatistics(displacement.x, displacement.y, displacement.z);
-    }
-
-    public void checkMovementStatistics(double pDistanceX, double pDistanceY, double pDistanceZ) {
+        double pDistanceX = displacement.x;
+        double pDistanceY = displacement.y;
+        double pDistanceZ = displacement.z;
         if (!this.isPassenger()) {
             if (this.isSwimming()) {
                 int i = Math.round((float) Math.sqrt(pDistanceX * pDistanceX + pDistanceY * pDistanceY + pDistanceZ * pDistanceZ) * 100.0F);
@@ -1618,7 +1589,7 @@ public abstract class Player extends LivingEntity {
 
         if (pLevels > 0 && this.experienceLevel % 5 == 0 && (float) this.lastLevelUpTime < (float) this.tickCount - 100.0F) {
             float f = this.experienceLevel > 30 ? 1.0F : (float) this.experienceLevel / 30.0F;
-            this.level.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_LEVELUP, this.getSoundSource(), f * 0.75F, 1.0F);
+            this.level.playSound((Player) null, this.sectorPosition(), SoundEvents.PLAYER_LEVELUP, this.getSoundSource(), f * 0.75F, 1.0F);
             this.lastLevelUpTime = this.tickCount;
         }
     }
@@ -1951,7 +1922,7 @@ public abstract class Player extends LivingEntity {
     public ItemStack eat(Level pLevel, ItemStack pFood) {
         this.getFoodData().eat(pFood.getItem(), pFood);
         this.awardStat(Stats.ITEM_USED.get(pFood.getItem()));
-        pLevel.playSound((Player) null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_BURP, SoundSource.PLAYERS, 0.5F, pLevel.random.nextFloat() * 0.1F + 0.9F);
+        pLevel.playSound((Player) null, this.sectorPosition(), SoundEvents.PLAYER_BURP, SoundSource.PLAYERS, 0.5F, pLevel.random.nextFloat() * 0.1F + 0.9F);
         if (this instanceof ServerPlayer) {
             CriteriaTriggers.CONSUME_ITEM.trigger((ServerPlayer) this, pFood);
         }
@@ -1971,7 +1942,7 @@ public abstract class Player extends LivingEntity {
             if (this.isVisuallySwimming()) {
                 return this.getPosition(pPartialTicks).add((new Vec3(d0, 0.2D, -0.15D)).xRot(-f).yRot(-f1));
             } else {
-                double d5 = this.getBoundingBox().getYsize() - 1.0D;
+                double d5 = this.exactBoundingBox().getYsize() - 1.0D;
                 double d6 = this.isCrouching() ? -0.2D : 0.07D;
                 return this.getPosition(pPartialTicks).add((new Vec3(d0, d5, d6)).yRot(-f1));
             }

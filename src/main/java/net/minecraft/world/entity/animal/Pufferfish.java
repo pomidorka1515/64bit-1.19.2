@@ -118,7 +118,7 @@ public class Pufferfish extends AbstractFish {
     public void aiStep() {
         super.aiStep();
         if (this.isAlive() && this.getPuffState() > 0) {
-            for (Mob mob : this.level.getEntitiesOfClass(Mob.class, this.getBoundingBox().inflate(0.3D), (p_149013_) -> {
+            for (Mob mob : this.level.getEntitiesOfClass(Mob.class, this.exactBoundingBox().inflate(0.3D), (p_149013_) -> {
                      return targetingConditions.test(this, p_149013_);
                  })) {
                 if (mob.isAlive()) {
@@ -186,7 +186,7 @@ public class Pufferfish extends AbstractFish {
         }
 
         public boolean canUse() {
-            List<LivingEntity> list = this.fish.level.getEntitiesOfClass(LivingEntity.class, this.fish.getBoundingBox().inflate(2.0D), (p_149015_) -> {
+            List<LivingEntity> list = this.fish.level.getEntitiesOfClass(LivingEntity.class, this.fish.exactBoundingBox().inflate(2.0D), (p_149015_) -> {
                 return Pufferfish.targetingConditions.test(this.fish, p_149015_);
             });
             return !list.isEmpty();

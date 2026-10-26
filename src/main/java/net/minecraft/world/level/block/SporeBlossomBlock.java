@@ -34,14 +34,14 @@ public class SporeBlossomBlock extends Block {
     }
 
     public void animateTick(BlockState p_222503_, Level p_222504_, BlockPos p_222505_, RandomSource p_222506_) {
-        long i = p_222505_.getX();
+        net.minecraft.core.Int128 i = p_222505_.getX();
         int j = p_222505_.getY();
-        long k = p_222505_.getZ();
+        net.minecraft.core.Int128 k = p_222505_.getZ();
         p_222504_.addParticle(ParticleTypes.FALLING_SPORE_BLOSSOM, SectorVec3.fromBlockAndFraction(i, p_222506_.nextDouble(), (double) j + 0.7D, k, p_222506_.nextDouble()), 0.0D, 0.0D, 0.0D);
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
         for (int l = 0; l < 14; ++l) {
-            blockpos$mutableblockpos.set(i + Mth.nextInt(p_222506_, -10, 10), j - p_222506_.nextInt(10), k + Mth.nextInt(p_222506_, -10, 10));
+            blockpos$mutableblockpos.set(net.minecraft.world.level.WorldBounds.addBlockOffset(i, Mth.nextInt(p_222506_, -10, 10)), j - p_222506_.nextInt(10), net.minecraft.world.level.WorldBounds.addBlockOffset(k, Mth.nextInt(p_222506_, -10, 10)));
             BlockState blockstate = p_222504_.getBlockState(blockpos$mutableblockpos);
             if (!blockstate.isCollisionShapeFullBlock(p_222504_, blockpos$mutableblockpos)) {
                 p_222504_.addParticle(ParticleTypes.SPORE_BLOSSOM_AIR, SectorVec3.fromBlockAndFraction(blockpos$mutableblockpos.getX(), p_222506_.nextDouble(), (double) blockpos$mutableblockpos.getY() + p_222506_.nextDouble(), blockpos$mutableblockpos.getZ(), p_222506_.nextDouble()), 0.0D, 0.0D, 0.0D);

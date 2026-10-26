@@ -70,8 +70,7 @@ public class FireworkRocketEntity extends Projectile implements ItemSupplier {
     }
 
     public FireworkRocketEntity(Level pLevel, ItemStack pStack, LivingEntity pShooter) {
-        this(pLevel, pShooter, pShooter.getX(), pShooter.getY(), pShooter.getZ(), pStack);
-        this.applyExactPosition(pShooter.sectorPosition());
+        this(pLevel, pShooter, pShooter.sectorPosition(), pStack);
         this.entityData.set(DATA_ATTACHED_TO_TARGET, OptionalInt.of(pShooter.getId()));
         this.attachedToEntity = pShooter;
     }
@@ -84,6 +83,11 @@ public class FireworkRocketEntity extends Projectile implements ItemSupplier {
     public FireworkRocketEntity(Level pLevel, ItemStack pStack, Entity pShooter, double pX, double pY, double pZ, boolean pShotAtAngle) {
         this(pLevel, pStack, pX, pY, pZ, pShotAtAngle);
         this.setOwner(pShooter);
+    }
+
+    public FireworkRocketEntity(Level level, ItemStack stack, Entity shooter, SectorVec3 position, boolean shotAtAngle) {
+        this(level, shooter, position, stack);
+        this.entityData.set(DATA_SHOT_AT_ANGLE, shotAtAngle);
     }
 
     protected void defineSynchedData() {

@@ -47,19 +47,28 @@ public class RandomSpreadStructurePlacement extends StructurePlacement {
     }
 
     public ChunkPos getPotentialStructureChunk(long p_227009_, long p_227010_, long p_227011_) {
-        long i = Math.floorDiv(p_227010_, this.spacing);
-        long j = Math.floorDiv(p_227011_, this.spacing);
-        WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(0L));
-        worldgenrandom.setLargeFeatureWithSalt(p_227009_, i, j, this.salt());
-        int k = this.spacing - this.separation;
-        int l = this.spreadType.evaluate(worldgenrandom, k);
-        int i1 = this.spreadType.evaluate(worldgenrandom, k);
-        return new ChunkPos(net.minecraft.world.level.WorldBounds.addBlockOffset(net.minecraft.world.level.WorldBounds.multiplySaturated(i, this.spacing), l), net.minecraft.world.level.WorldBounds.addBlockOffset(net.minecraft.world.level.WorldBounds.multiplySaturated(j, this.spacing), i1));
+        return getPotentialStructureChunk(p_227009_, net.minecraft.core.Int128.fromLong(p_227010_), net.minecraft.core.Int128.fromLong(p_227011_));
     }
 
-    protected boolean isPlacementChunk(ChunkGenerator pGenerator, RandomState pRandomState, long pSeed, long pX, long pY) {
-        ChunkPos chunkpos = this.getPotentialStructureChunk(pSeed, pX, pY);
-        return chunkpos.x == pX && chunkpos.z == pY;
+    protected boolean isPlacementChunk(ChunkGenerator pGenerator, RandomState pRandomState, long pSeed, long pX, long pZ) {
+        return this.getPotentialStructureChunk(pSeed, pX, pZ).equals(new ChunkPos(pX, pZ));
+    }
+
+    public ChunkPos getPotentialStructureChunk(long seed, net.minecraft.core.Int128 x, net.minecraft.core.Int128 z) {
+        // Divide before selecting the seed path. A single region may straddle
+        // the signed-long seam; every chunk in it must use the same region seed.
+        net.minecraft.core.Int128 rx = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.floorDivide(x.hi(), x.lo(), this.spacing);
+        net.minecraft.core.Int128 rz = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.floorDivide(z.hi(), z.lo(), this.spacing);
+        WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(0L));
+        random.setLargeFeatureWithSalt(seed, rx, rz, salt());
+        int bound = this.spacing - this.separation;
+        int dx = this.spreadType.evaluate(random, bound), dz = this.spreadType.evaluate(random, bound);
+        return new ChunkPos(rx.multiplySaturated(this.spacing).addSaturated(net.minecraft.core.Int128.fromLong(dx)),
+                rz.multiplySaturated(this.spacing).addSaturated(net.minecraft.core.Int128.fromLong(dz)));
+    }
+
+    protected boolean isPlacementChunk(ChunkGenerator generator, RandomState random, long seed, net.minecraft.core.Int128 x, net.minecraft.core.Int128 z) {
+        return getPotentialStructureChunk(seed, x, z).equals(new ChunkPos(x, z));
     }
 
     public StructurePlacementType<?> type() {

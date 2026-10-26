@@ -76,4 +76,19 @@ public class PerlinSimplexNoise {
 
         return d0;
     }
+
+    public double getValueScaled(long xHi, long xLo, long zHi, long zLo, double scale, boolean offsets) {
+        double value = 0.0D;
+        double weight = this.highestFreqValueFactor;
+        int octave = Math.getExponent(this.highestFreqInputFactor);
+        for (SimplexNoise noise : this.noiseLevels) {
+            if (noise != null) {
+                value += noise.getValueScaled(xHi, xLo, zHi, zLo, scale, octave,
+                        offsets ? noise.xo : 0.0D, offsets ? noise.yo : 0.0D) * weight;
+            }
+            --octave;
+            weight *= 2.0D;
+        }
+        return value;
+    }
 }

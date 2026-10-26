@@ -201,7 +201,7 @@ public class Creeper extends Monster implements PowerableMob {
     protected InteractionResult mobInteract(Player pPlayer, InteractionHand pHand) {
         ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (itemstack.is(Items.FLINT_AND_STEEL)) {
-            this.level.playSound(pPlayer, this.getX(), this.getY(), this.getZ(), SoundEvents.FLINTANDSTEEL_USE, this.getSoundSource(), 1.0F, this.random.nextFloat() * 0.4F + 0.8F);
+            this.level.playSound(pPlayer, this.sectorPosition(), SoundEvents.FLINTANDSTEEL_USE, this.getSoundSource(), 1.0F, this.random.nextFloat() * 0.4F + 0.8F);
             if (!this.level.isClientSide) {
                 this.ignite();
                 itemstack.hurtAndBreak(1, pPlayer, (p_32290_) -> {

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.VisibleForDebug;
 import net.minecraft.world.entity.Entity;
@@ -117,7 +118,7 @@ public class Path {
             for (int i = 0; i < this.nodes.size(); ++i) {
                 Node node = this.nodes.get(i);
                 Node node1 = pPathentity.nodes.get(i);
-                if (node.x != node1.x || node.y != node1.y || node.z != node1.z) {
+                if (!node.x.equals(node1.x) || node.y != node1.y || !node.z.equals(node1.z)) {
                     return false;
                 }
             }
@@ -155,9 +156,11 @@ public class Path {
             this.targetNodes.forEach((p_164708_) -> {
                 p_164708_.writeToStream(pBuffer);
             });
-            pBuffer.writeLong(this.target.getX());
+            pBuffer.writeLong(this.target.getXHi());
+            pBuffer.writeLong(this.target.getXLo());
             pBuffer.writeInt(this.target.getY());
-            pBuffer.writeLong(this.target.getZ());
+            pBuffer.writeLong(this.target.getZHi());
+            pBuffer.writeLong(this.target.getZLo());
             pBuffer.writeInt(this.nodes.size());
 
             for (Node node : this.nodes) {
@@ -188,7 +191,8 @@ public class Path {
             set.add(Target.createFromStream(pBuf));
         }
 
-        BlockPos blockpos = new BlockPos(pBuf.readLong(), pBuf.readInt(), pBuf.readLong());
+        BlockPos blockpos = new BlockPos(Int128.of(pBuf.readLong(), pBuf.readLong()), pBuf.readInt(),
+                Int128.of(pBuf.readLong(), pBuf.readLong()));
         List<Node> list = Lists.newArrayList();
         int l = pBuf.readInt();
 

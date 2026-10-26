@@ -148,7 +148,7 @@ public class Phantom extends FlyingMob implements Enemy {
     public void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         if (pCompound.contains("AX")) {
-            this.anchorPoint = new BlockPos(pCompound.getLong("AX"), pCompound.getInt("AY"), pCompound.getLong("AZ"));
+            this.anchorPoint = new BlockPos(net.minecraft.nbt.NbtUtils.readInt128(pCompound, "AX"), pCompound.getInt("AY"), net.minecraft.nbt.NbtUtils.readInt128(pCompound, "AZ"));
         }
 
         this.setPhantomSize(pCompound.getInt("Size"));
@@ -156,9 +156,9 @@ public class Phantom extends FlyingMob implements Enemy {
 
     public void addAdditionalSaveData(CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
-        pCompound.putInt("AX", this.anchorPoint.getX());
+        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "AX", this.anchorPoint.getX());
         pCompound.putInt("AY", this.anchorPoint.getY());
-        pCompound.putInt("AZ", this.anchorPoint.getZ());
+        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "AZ", this.anchorPoint.getZ());
         pCompound.putInt("Size", this.getPhantomSize());
     }
 
@@ -216,7 +216,7 @@ public class Phantom extends FlyingMob implements Enemy {
                 return false;
             } else {
                 this.nextScanTick = reducedTickDelay(60);
-                List<Player> list = Phantom.this.level.getNearbyPlayers(this.attackTargeting, Phantom.this, Phantom.this.getBoundingBox().inflate(16.0D, 64.0D, 16.0D));
+                List<Player> list = Phantom.this.level.getNearbyPlayers(this.attackTargeting, Phantom.this, Phantom.this.exactBoundingBox().inflate(16.0D, 64.0D, 16.0D));
                 if (!list.isEmpty()) {
                     list.sort(Comparator.<Entity, Double>comparing(Entity::getY).reversed());
 
@@ -444,7 +444,7 @@ public class Phantom extends FlyingMob implements Enemy {
                 } else {
                     if (Phantom.this.tickCount > this.catSearchTick) {
                         this.catSearchTick = Phantom.this.tickCount + 20;
-                        List<Cat> list = Phantom.this.level.getEntitiesOfClass(Cat.class, Phantom.this.getBoundingBox().inflate(16.0D), EntitySelector.ENTITY_STILL_ALIVE);
+                        List<Cat> list = Phantom.this.level.getEntitiesOfClass(Cat.class, Phantom.this.exactBoundingBox().inflate(16.0D), EntitySelector.ENTITY_STILL_ALIVE);
 
                         for (Cat cat : list) {
                             cat.hiss();
@@ -470,7 +470,7 @@ public class Phantom extends FlyingMob implements Enemy {
             LivingEntity livingentity = Phantom.this.getTarget();
             if (livingentity != null) {
                 Phantom.this.moveTargetPoint = livingentity.sectorPosition().withY(livingentity.getY(0.5D));
-                if (Phantom.this.getBoundingBox().inflate((double) 0.2F).intersects(livingentity.getBoundingBox())) {
+                if (Phantom.this.exactBoundingBox().inflate((double) 0.2F).intersects(livingentity.exactBoundingBox())) {
                     Phantom.this.doHurtTarget(livingentity);
                     Phantom.this.attackPhase = Phantom.AttackPhase.CIRCLE;
                     if (!Phantom.this.isSilent()) {

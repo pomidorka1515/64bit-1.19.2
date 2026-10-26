@@ -480,7 +480,7 @@ public class Panda extends Animal {
         this.level.addParticle(ParticleTypes.SNEEZE, this.particlePosition(-(double) (this.getBbWidth() + 1.0F) * 0.5D * (double) Mth.sin(this.yBodyRot * ((float) Math.PI / 180F)), (double) this.getEyeHeight() - 0.1D, (double) (this.getBbWidth() + 1.0F) * 0.5D * (double) Mth.cos(this.yBodyRot * ((float) Math.PI / 180F))), vec3.x, 0.0D, vec3.z);
         this.playSound(SoundEvents.PANDA_SNEEZE, 1.0F, 1.0F);
 
-        for (Panda panda : this.level.getEntitiesOfClass(Panda.class, this.getBoundingBox().inflate(10.0D))) {
+        for (Panda panda : this.level.getEntitiesOfClass(Panda.class, this.exactBoundingBox().inflate(10.0D))) {
             if (!panda.isBaby() && panda.onGround && !panda.isInWater() && panda.canPerformAction()) {
                 panda.jumpFromGround();
             }
@@ -881,7 +881,7 @@ public class Panda extends Animal {
                     if (this.lookAtType == Player.class) {
                         this.lookAt = this.mob.level.getNearestPlayer(this.lookAtContext, this.mob, this.mob.exactEyePosition());
                     } else {
-                        this.lookAt = this.mob.level.getNearestEntity(this.mob.level.getEntitiesOfClass(this.lookAtType, this.mob.getBoundingBox().inflate((double) this.lookDistance, 3.0D, (double) this.lookDistance), (p_148985_) -> {
+                        this.lookAt = this.mob.level.getNearestEntity(this.mob.level.getEntitiesOfClass(this.lookAtType, this.mob.exactBoundingBox().inflate((double) this.lookDistance, 3.0D, (double) this.lookDistance), (p_148985_) -> {
                             return true;
                         }), this.lookAtContext, this.mob, this.mob.exactEyePosition());
                     }
@@ -988,7 +988,7 @@ public class Panda extends Animal {
 
         public boolean canUse() {
             if (this.cooldown <= Panda.this.tickCount && !Panda.this.isBaby() && !Panda.this.isInWater() && Panda.this.canPerformAction() && Panda.this.getUnhappyCounter() <= 0) {
-                List<ItemEntity> list = Panda.this.level.getEntitiesOfClass(ItemEntity.class, Panda.this.getBoundingBox().inflate(6.0D, 6.0D, 6.0D), Panda.PANDA_ITEMS);
+                List<ItemEntity> list = Panda.this.level.getEntitiesOfClass(ItemEntity.class, Panda.this.exactBoundingBox().inflate(6.0D, 6.0D, 6.0D), Panda.PANDA_ITEMS);
                 return !list.isEmpty() || !Panda.this.getItemBySlot(EquipmentSlot.MAINHAND).isEmpty();
             } else {
                 return false;
@@ -1010,7 +1010,7 @@ public class Panda extends Animal {
         }
 
         public void start() {
-            List<ItemEntity> list = Panda.this.level.getEntitiesOfClass(ItemEntity.class, Panda.this.getBoundingBox().inflate(8.0D, 8.0D, 8.0D), Panda.PANDA_ITEMS);
+            List<ItemEntity> list = Panda.this.level.getEntitiesOfClass(ItemEntity.class, Panda.this.exactBoundingBox().inflate(8.0D, 8.0D, 8.0D), Panda.PANDA_ITEMS);
             if (!list.isEmpty() && Panda.this.getItemBySlot(EquipmentSlot.MAINHAND).isEmpty()) {
                 Panda.this.getNavigation().moveTo(list.get(0), (double) 1.2F);
             } else if (!Panda.this.getItemBySlot(EquipmentSlot.MAINHAND).isEmpty()) {

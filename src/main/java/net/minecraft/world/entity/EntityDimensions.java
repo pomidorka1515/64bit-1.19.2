@@ -15,6 +15,9 @@ public class EntityDimensions {
     }
 
     public AABB makeBoundingBox(Vec3 pPos) {
+        if (pPos instanceof net.minecraft.world.phys.ExactVec3) {
+            return AABB.fromSectorBounds(net.minecraft.world.phys.SectorAABB.around(pPos.exactPosition(), this.width, this.height));
+        }
         return this.makeBoundingBox(pPos.x, pPos.y, pPos.z);
     }
 

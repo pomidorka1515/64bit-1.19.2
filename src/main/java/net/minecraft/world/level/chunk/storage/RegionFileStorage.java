@@ -1,6 +1,5 @@
 package net.minecraft.world.level.chunk.storage;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 
 import java.io.DataInputStream;
@@ -18,7 +17,7 @@ import net.minecraft.world.level.ChunkPos;
 public final class RegionFileStorage implements AutoCloseable {
     public static final String ANVIL_EXTENSION = ".mca";
     private static final int MAX_CACHE_SIZE = 256;
-    private final Object2ObjectLinkedOpenHashMap<ChunkPos, RegionFile> regionCache = new Object2ObjectLinkedOpenHashMap<>();
+    private final Object2ObjectLinkedOpenHashMap<RegionPos, RegionFile> regionCache = new Object2ObjectLinkedOpenHashMap<>();
     private final Path folder;
     private final boolean sync;
 
@@ -28,19 +27,18 @@ public final class RegionFileStorage implements AutoCloseable {
     }
 
     private RegionFile getRegionFile(ChunkPos pChunkPos) throws IOException {
-        ChunkPos i = new ChunkPos(pChunkPos.getRegionX(), pChunkPos.getRegionZ());
+        RegionPos i = new RegionPos(pChunkPos.getRegionX(), pChunkPos.getRegionZ());
         RegionFile regionfile = this.regionCache.getAndMoveToFirst(i);
         if (regionfile != null) {
             return regionfile;
         } else {
-            if (this.regionCache.size() >= 256) {
-                this.regionCache.removeLast().close();
-            }
-
             Files.createDirectories(this.folder);
-            Path path = this.folder.resolve("r." + pChunkPos.getRegionX() + "." + pChunkPos.getRegionZ() + ".mca");
+            Path path = this.folder.resolve(RegionFileNames.regionFileName(i.x(), i.z()));
             RegionFile regionfile1 = new RegionFile(path, this.folder, this.sync);
             this.regionCache.putAndMoveToFirst(i, regionfile1);
+            if (this.regionCache.size() > MAX_CACHE_SIZE) {
+                this.regionCache.removeLast().close();
+            }
             return regionfile1;
         }
     }

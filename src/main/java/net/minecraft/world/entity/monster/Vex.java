@@ -101,7 +101,7 @@ public class Vex extends Monster {
     public void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         if (pCompound.contains("BoundX")) {
-            this.boundOrigin = new BlockPos(pCompound.getLong("BoundX"), pCompound.getInt("BoundY"), pCompound.getLong("BoundZ"));
+            this.boundOrigin = new BlockPos(net.minecraft.nbt.NbtUtils.readInt128(pCompound, "BoundX"), pCompound.getInt("BoundY"), net.minecraft.nbt.NbtUtils.readInt128(pCompound, "BoundZ"));
         }
 
         if (pCompound.contains("LifeTicks")) {
@@ -112,9 +112,9 @@ public class Vex extends Monster {
     public void addAdditionalSaveData(CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
         if (this.boundOrigin != null) {
-            pCompound.putInt("BoundX", this.boundOrigin.getX());
+            net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "BoundX", this.boundOrigin.getX());
             pCompound.putInt("BoundY", this.boundOrigin.getY());
-            pCompound.putInt("BoundZ", this.boundOrigin.getZ());
+            net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "BoundZ", this.boundOrigin.getZ());
         }
 
         if (this.hasLimitedLife) {
@@ -237,7 +237,7 @@ public class Vex extends Monster {
         public void tick() {
             LivingEntity livingentity = Vex.this.getTarget();
             if (livingentity != null) {
-                if (Vex.this.getBoundingBox().intersects(livingentity.getBoundingBox())) {
+                if (Vex.this.exactBoundingBox().intersects(livingentity.exactBoundingBox())) {
                     Vex.this.doHurtTarget(livingentity);
                     Vex.this.setIsCharging(false);
                 } else {
@@ -276,7 +276,7 @@ public class Vex extends Monster {
             if (this.operation == MoveControl.Operation.MOVE_TO) {
                 Vec3 vec3 = this.wantedDelta();
                 double d0 = vec3.length();
-                if (d0 < Vex.this.getBoundingBox().getSize()) {
+                if (d0 < Vex.this.exactBoundingBox().getSize()) {
                     this.operation = MoveControl.Operation.WAIT;
                     Vex.this.setDeltaMovement(Vex.this.getDeltaMovement().scale(0.5D));
                 } else {

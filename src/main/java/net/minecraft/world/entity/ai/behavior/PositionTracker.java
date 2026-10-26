@@ -11,7 +11,7 @@ public interface PositionTracker {
     /** Compatibility conversion; exact AI code should use currentExactPosition(). */
     @Deprecated
     default Vec3 currentPosition() {
-        return this.currentExactPosition().toApproximateVec3();
+        return this.currentExactPosition().toExactVec3();
     }
 
     BlockPos currentBlockPosition();

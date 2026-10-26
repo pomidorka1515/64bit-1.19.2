@@ -230,7 +230,7 @@ public class ItemCommands {
 
     private static ItemStack applyModifier(CommandSourceStack pSource, LootItemFunction pModifier, ItemStack pItem) {
         ServerLevel serverlevel = pSource.getLevel();
-        LootContext.Builder lootcontext$builder = (new LootContext.Builder(serverlevel)).withParameter(LootContextParams.ORIGIN, pSource.getExactPosition().toApproximateVec3()).withOptionalParameter(LootContextParams.THIS_ENTITY, pSource.getEntity());
+        LootContext.Builder lootcontext$builder = (new LootContext.Builder(serverlevel)).withParameter(LootContextParams.ORIGIN, pSource.getExactPosition().toExactVec3()).withOptionalParameter(LootContextParams.THIS_ENTITY, pSource.getEntity());
         return pModifier.apply(pItem, lootcontext$builder.create(LootContextParamSets.COMMAND));
     }
 

@@ -275,10 +275,10 @@ public class EnderDragon extends Mob implements Enemy {
                 this.tickPart(this.wing1, (double) (f15 * 4.5F), 2.0D, (double) (f2 * 4.5F));
                 this.tickPart(this.wing2, (double) (f15 * -4.5F), 2.0D, (double) (f2 * -4.5F));
                 if (!this.level.isClientSide && this.hurtTime == 0) {
-                    this.knockBack(this.level.getEntities(this, this.wing1.getBoundingBox().inflate(4.0D, 2.0D, 4.0D).move(0.0D, -2.0D, 0.0D), EntitySelector.NO_CREATIVE_OR_SPECTATOR));
-                    this.knockBack(this.level.getEntities(this, this.wing2.getBoundingBox().inflate(4.0D, 2.0D, 4.0D).move(0.0D, -2.0D, 0.0D), EntitySelector.NO_CREATIVE_OR_SPECTATOR));
-                    this.hurt(this.level.getEntities(this, this.head.getBoundingBox().inflate(1.0D), EntitySelector.NO_CREATIVE_OR_SPECTATOR));
-                    this.hurt(this.level.getEntities(this, this.neck.getBoundingBox().inflate(1.0D), EntitySelector.NO_CREATIVE_OR_SPECTATOR));
+                    this.knockBack(this.level.getEntities(this, this.wing1.exactBoundingBox().inflate(4.0D, 2.0D, 4.0D).move(0.0D, -2.0D, 0.0D), EntitySelector.NO_CREATIVE_OR_SPECTATOR));
+                    this.knockBack(this.level.getEntities(this, this.wing2.exactBoundingBox().inflate(4.0D, 2.0D, 4.0D).move(0.0D, -2.0D, 0.0D), EntitySelector.NO_CREATIVE_OR_SPECTATOR));
+                    this.hurt(this.level.getEntities(this, this.head.exactBoundingBox().inflate(1.0D), EntitySelector.NO_CREATIVE_OR_SPECTATOR));
+                    this.hurt(this.level.getEntities(this, this.neck.exactBoundingBox().inflate(1.0D), EntitySelector.NO_CREATIVE_OR_SPECTATOR));
                 }
 
                 float f3 = Mth.sin(this.getYRot() * ((float) Math.PI / 180F) - this.yRotA * 0.01F);
@@ -312,7 +312,7 @@ public class EnderDragon extends Mob implements Enemy {
                 }
 
                 if (!this.level.isClientSide) {
-                    this.inWall = this.checkWalls(this.head.getBoundingBox()) | this.checkWalls(this.neck.getBoundingBox()) | this.checkWalls(this.body.getBoundingBox());
+                    this.inWall = this.checkWalls(this.head.exactBoundingBox()) | this.checkWalls(this.neck.exactBoundingBox()) | this.checkWalls(this.body.exactBoundingBox());
                     if (this.dragonFight != null) {
                         this.dragonFight.updateDragon(this);
                     }
@@ -349,7 +349,7 @@ public class EnderDragon extends Mob implements Enemy {
         }
 
         if (this.random.nextInt(10) == 0) {
-            List<EndCrystal> list = this.level.getEntitiesOfClass(EndCrystal.class, this.getBoundingBox().inflate(32.0D));
+            List<EndCrystal> list = this.level.getEntitiesOfClass(EndCrystal.class, this.exactBoundingBox().inflate(32.0D));
             EndCrystal endcrystal = null;
             double d0 = Double.MAX_VALUE;
 
@@ -494,7 +494,7 @@ public class EnderDragon extends Mob implements Enemy {
 
         if (this.level instanceof ServerLevel) {
             if (this.dragonDeathTime > 150 && this.dragonDeathTime % 5 == 0 && flag) {
-                ExperienceOrb.award((ServerLevel) this.level, this.position(), Mth.floor((float) i * 0.08F));
+                ExperienceOrb.award((ServerLevel) this.level, this.sectorPosition(), Mth.floor((float) i * 0.08F));
             }
 
             if (this.dragonDeathTime == 1 && !this.isSilent()) {
@@ -507,7 +507,7 @@ public class EnderDragon extends Mob implements Enemy {
         this.yBodyRot = this.getYRot();
         if (this.dragonDeathTime == 200 && this.level instanceof ServerLevel) {
             if (flag) {
-                ExperienceOrb.award((ServerLevel) this.level, this.position(), Mth.floor((float) i * 0.2F));
+                ExperienceOrb.award((ServerLevel) this.level, this.sectorPosition(), Mth.floor((float) i * 0.2F));
             }
 
             if (this.dragonFight != null) {

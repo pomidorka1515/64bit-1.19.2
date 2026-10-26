@@ -42,10 +42,7 @@ public class RaidDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
     }
 
     private static void renderTextOverBlock(String pText, BlockPos pPos, int pColor) {
-        double d0 = (double) pPos.getX() + 0.5D;
-        double d1 = (double) pPos.getY() + 1.3D;
-        double d2 = (double) pPos.getZ() + 0.5D;
-        DebugRenderer.renderFloatingText(pText, d0, d1, d2, pColor, 0.04F, true, 0.0F, true);
+        DebugRenderer.renderFloatingText(pText, pPos, 0.5D, 1.3D, 0.5D, pColor, 0.04F, true, 0.0F, true);
     }
 
     private Camera getCamera() {

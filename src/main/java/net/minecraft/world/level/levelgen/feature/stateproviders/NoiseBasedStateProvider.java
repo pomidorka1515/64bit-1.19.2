@@ -37,12 +37,13 @@ public abstract class NoiseBasedStateProvider extends BlockStateProvider {
     }
 
     protected double getNoiseValue(BlockPos pPos, double pDelta) {
-        long blockX = pPos.getX();
-        long blockZ = pPos.getZ();
-        if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockZ))) {
-            return this.noise.getValueScaled(blockX, pDelta, pPos.getY(), pDelta, blockZ);
+        // Keep high limbs until the mode-specific sampling boundary.
+        long blockX = pPos.getXLo();
+        long blockZ = pPos.getZLo();
+        if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(pPos.getXHi(), blockX) || PreciseNoiseCoordinate.needsPrecisePath(pPos.getZHi(), blockZ))) {
+            return this.noise.getValueScaled(pPos.getXHi(), blockX, pDelta, pPos.getY(), pDelta, pPos.getZHi(), blockZ);
         }
 
-        return this.noise.getValue(FarlandsMode.scaledNoiseCoordinate(blockX, pDelta), (double) pPos.getY() * pDelta, FarlandsMode.scaledNoiseCoordinate(blockZ, pDelta));
+        return this.noise.getValue(FarlandsMode.scaledNoiseCoordinate(pPos.getXHi(), blockX, pDelta), (double) pPos.getY() * pDelta, FarlandsMode.scaledNoiseCoordinate(pPos.getZHi(), blockZ, pDelta));
     }
 }

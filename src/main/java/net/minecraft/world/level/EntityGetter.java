@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
+import net.minecraft.core.Int128;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
@@ -83,7 +84,7 @@ public interface EntityGetter {
             return true;
         } else {
             for (Entity entity : this.getEntities(pEntity, pShape.bounds())) {
-                if (!entity.isRemoved() && entity.blocksBuilding && (pEntity == null || !entity.isPassengerOfSameVehicle(pEntity)) && Shapes.joinIsNotEmpty(pShape, Shapes.create(entity.getBoundingBox()), BooleanOp.AND)) {
+                if (!entity.isRemoved() && entity.blocksBuilding && (pEntity == null || !entity.isPassengerOfSameVehicle(pEntity)) && Shapes.joinIsNotEmpty(pShape, Shapes.create(entity.exactBoundingBox()), BooleanOp.AND)) {
                     return false;
                 }
             }
@@ -108,7 +109,7 @@ public interface EntityGetter {
                 ImmutableList.Builder<VoxelShape> builder = ImmutableList.builderWithExpectedSize(list.size());
 
                 for (Entity entity : list) {
-                    builder.add(Shapes.create(entity.getBoundingBox()));
+                    builder.add(Shapes.create(entity.exactBoundingBox()));
                 }
 
                 return builder.build();
@@ -118,7 +119,7 @@ public interface EntityGetter {
 
     /**
     * Returns entities whose exact boxes intersect a sector-physics query. The
-    * section overlap is determined in long block coordinates; the final box
+    * section overlap is determined in full-width block coordinates; the final box
     * intersection occurs in the caller's small local frame.
     */
     default List<Entity> getSectorEntities(@Nullable Entity entity, SectorAABB exactBox,
@@ -127,16 +128,16 @@ public interface EntityGetter {
         LevelEntityGetter<Entity> entityGetter = this.getEntityGetterForSectorQueries();
         if (entityGetter == null)
             return List.of();
-        long minBlockX = WorldBounds.addBlockOffset(exactBox.minBlockXForRange(), -1L);
-        long maxBlockX = WorldBounds.addBlockOffset(exactBox.maxBlockXForRangeInclusive(), 1L);
-        long minBlockZ = WorldBounds.addBlockOffset(exactBox.minBlockZForRange(), -1L);
-        long maxBlockZ = WorldBounds.addBlockOffset(exactBox.maxBlockZForRangeInclusive(), 1L);
+        Int128 minBlockX = WorldBounds.addBlockOffset(exactBox.minBlockXForRange(), -1L);
+        Int128 maxBlockX = WorldBounds.addBlockOffset(exactBox.maxBlockXForRangeInclusive(), 1L);
+        Int128 minBlockZ = WorldBounds.addBlockOffset(exactBox.minBlockZForRange(), -1L);
+        Int128 maxBlockZ = WorldBounds.addBlockOffset(exactBox.maxBlockZForRangeInclusive(), 1L);
         int minBlockY = WorldBounds.addSaturated(exactBox.minBlockYForRange(), -1);
         int maxBlockY = WorldBounds.addSaturated(exactBox.maxBlockYExclusive(), 1);
-        long minChunkX = Math.floorDiv(minBlockX, 16L);
-        long maxChunkX = Math.floorDiv(maxBlockX, 16L);
-        long minChunkZ = Math.floorDiv(minBlockZ, 16L);
-        long maxChunkZ = Math.floorDiv(maxBlockZ, 16L);
+        Int128 minChunkX = minBlockX.shiftRight(4);
+        Int128 maxChunkX = maxBlockX.shiftRight(4);
+        Int128 minChunkZ = minBlockZ.shiftRight(4);
+        Int128 maxChunkZ = maxBlockZ.shiftRight(4);
         int minSectionY = Math.floorDiv(minBlockY, 16);
         int maxSectionY = Math.floorDiv(maxBlockY, 16);
         List<Entity> result = Lists.newArrayList();
@@ -157,8 +158,8 @@ public interface EntityGetter {
     private static void addIfInSectorQuery(List<Entity> result, @Nullable Entity excluded, Entity candidate,
             AABB localBox, SectorPhysicsOrigin origin,
             Predicate<? super Entity> predicate,
-            long minChunkX, long maxChunkX, int minSectionY, int maxSectionY,
-            long minChunkZ, long maxChunkZ) {
+            Int128 minChunkX, Int128 maxChunkX, int minSectionY, int maxSectionY,
+            Int128 minChunkZ, Int128 maxChunkZ) {
         if (candidate == excluded || !predicate.test(candidate)
                 || !isInSectorQueryRange(candidate, minChunkX, maxChunkX, minSectionY, maxSectionY,
                         minChunkZ, maxChunkZ))
@@ -195,21 +196,21 @@ public interface EntityGetter {
         return builder.build();
     }
 
-    private static boolean isInSectorQueryRange(Entity entity, long minChunkX, long maxChunkX,
+    private static boolean isInSectorQueryRange(Entity entity, Int128 minChunkX, Int128 maxChunkX,
             int minSectionY, int maxSectionY,
-            long minChunkZ, long maxChunkZ) {
+            Int128 minChunkZ, Int128 maxChunkZ) {
         SectorAABB box = entity.getSectorBoundingBoxForCulling();
         if (box == null) {
             return false;
         }
-        long minEntityChunkX = Math.floorDiv(box.minBlockXForRange(), 16L);
-        long maxEntityChunkX = Math.floorDiv(box.maxBlockXForRangeInclusive(), 16L);
-        long minEntityChunkZ = Math.floorDiv(box.minBlockZForRange(), 16L);
-        long maxEntityChunkZ = Math.floorDiv(box.maxBlockZForRangeInclusive(), 16L);
+        Int128 minEntityChunkX = box.minBlockXForRange().shiftRight(4);
+        Int128 maxEntityChunkX = box.maxBlockXForRangeInclusive().shiftRight(4);
+        Int128 minEntityChunkZ = box.minBlockZForRange().shiftRight(4);
+        Int128 maxEntityChunkZ = box.maxBlockZForRangeInclusive().shiftRight(4);
         int minEntitySectionY = Math.floorDiv(box.minBlockYForRange(), 16);
         int maxEntitySectionY = Math.floorDiv(box.maxBlockYExclusive(), 16);
-        return maxEntityChunkX >= minChunkX && minEntityChunkX <= maxChunkX
-                && maxEntityChunkZ >= minChunkZ && minEntityChunkZ <= maxChunkZ
+        return maxEntityChunkX.compareTo(minChunkX) >= 0 && minEntityChunkX.compareTo(maxChunkX) <= 0
+                && maxEntityChunkZ.compareTo(minChunkZ) >= 0 && minEntityChunkZ.compareTo(maxChunkZ) <= 0
                 && maxEntitySectionY >= minSectionY && minEntitySectionY <= maxSectionY;
     }
 
@@ -386,9 +387,8 @@ public interface EntityGetter {
 
         for (Player player : this.players()) {
             SectorAABB exactBox = pArea.getSectorBounds();
-            SectorPhysicsOrigin origin = exactBox == null ? null : SectorPhysicsOrigin.from(player.sectorPosition());
-            boolean contains = exactBox == null ? pArea.contains(player.getX(), player.getY(), player.getZ())
-                    : exactBox.toLocalAABB(origin).contains(origin.toLocal(player.sectorPosition()));
+            boolean contains = exactBox == null ? pArea.contains(player.exactPositionVector())
+                    : exactBox.contains(player.sectorPosition());
             if (contains && pPredicate.test(pTarget, player)) {
                 list.add(player);
             }

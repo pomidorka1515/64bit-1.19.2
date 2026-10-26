@@ -78,37 +78,25 @@ public abstract class AbstractSoundInstance implements SoundInstance {
         return this.pitch * this.sound.getPitch().sample(this.random);
     }
 
-    public double getX() {
-        return this.x;
-    }
-
     public double getY() {
         return this.y;
     }
 
-    public double getZ() {
-        return this.z;
-    }
-
     @Override
     public SectorVec3 getExactPosition() {
-        return this.exactPosition;
+        if (this.exactPosition != null)
+            return this.exactPosition;
+        if (!Double.isFinite(this.x) || !Double.isFinite(this.y) || !Double.isFinite(this.z))
+            return null;
+        return SectorVec3.fromApproximate(this.x, this.y, this.z);
     }
 
-    /**
-    * Updates both the exact source position and its lossy compatibility mirror.
-    * Audio/render code must consume {@link #getExactPosition()}; the doubles
-    * remain for vanilla extensions that have not yet adopted SectorVec3.
-    */
+    /** Updates the authoritative world-space sound source. */
     protected final void setExactPosition(SectorVec3 position) {
         if (position == null)
             throw new NullPointerException("position");
         this.exactPosition = position;
-        // Avoid two compatibility Vec3 allocations for every entity-bound sound
-        // tick. These mirrors are not used by the listener-relative audio path.
-        this.x = (double) position.blockX() + position.subX();
         this.y = position.y();
-        this.z = (double) position.blockZ() + position.subZ();
     }
 
     protected final void setPosition(double x, double y, double z) {

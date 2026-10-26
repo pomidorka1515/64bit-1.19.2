@@ -29,6 +29,6 @@ public interface GameEventDispatcher {
     boolean walkListeners(GameEvent p_223748_, Vec3 p_223749_, GameEvent.Context p_223750_, BiConsumer<GameEventListener, Vec3> p_223751_);
 
     default boolean walkListeners(GameEvent event, net.minecraft.world.phys.SectorVec3 position, GameEvent.Context context, BiConsumer<GameEventListener, Vec3> visitor) {
-        return this.walkListeners(event, position.toApproximateVec3(), context, visitor);
+        return this.walkListeners(event, position.toExactVec3(), context, visitor);
     }
 }

@@ -616,7 +616,7 @@ public abstract class BlockBehaviour {
                 return Vec3.ZERO;
             } else {
                 Block block = this.getBlock();
-                long i = Mth.getSeed(pPos.getX(), 0, pPos.getZ());
+                long i = Mth.getSeed(pPos.getX().lo(), 0, pPos.getZ().lo());
                 float f = block.getMaxHorizontalOffset();
                 double d0 = Mth.clamp(((double) ((float) (i & 15L) / 15.0F) - 0.5D) * 0.5D, (double) (-f), (double) f);
                 double d1 = this.offsetType == BlockBehaviour.OffsetType.XYZ ? ((double) ((float) (i >> 4 & 15L) / 15.0F) - 1.0D) * (double) block.getMaxVerticalOffset() : 0.0D;

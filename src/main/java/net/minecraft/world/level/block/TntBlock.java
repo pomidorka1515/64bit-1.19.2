@@ -59,7 +59,7 @@ public class TntBlock extends Block {
 
     public void wasExploded(Level pLevel, BlockPos pPos, Explosion pExplosion) {
         if (!pLevel.isClientSide) {
-            PrimedTnt primedtnt = new PrimedTnt(pLevel, (double) pPos.getX() + 0.5D, (double) pPos.getY(), (double) pPos.getZ() + 0.5D, pExplosion.getSourceMob());
+            PrimedTnt primedtnt = new PrimedTnt(pLevel, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, pPos.getY(), pPos.getZ(), 0.5D), pExplosion.getSourceMob());
             int i = primedtnt.getFuse();
             primedtnt.setFuse((short) (pLevel.random.nextInt(i / 4) + i / 8));
             pLevel.addFreshEntity(primedtnt);
@@ -72,9 +72,9 @@ public class TntBlock extends Block {
 
     private static void explode(Level pLevel, BlockPos pPos, @Nullable LivingEntity pEntity) {
         if (!pLevel.isClientSide) {
-            PrimedTnt primedtnt = new PrimedTnt(pLevel, (double) pPos.getX() + 0.5D, (double) pPos.getY(), (double) pPos.getZ() + 0.5D, pEntity);
+            PrimedTnt primedtnt = new PrimedTnt(pLevel, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, pPos.getY(), pPos.getZ(), 0.5D), pEntity);
             pLevel.addFreshEntity(primedtnt);
-            pLevel.playSound((Player) null, primedtnt.getX(), primedtnt.getY(), primedtnt.getZ(), SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
+            pLevel.playSound((Player) null, pPos, SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
             pLevel.gameEvent(pEntity, GameEvent.PRIME_FUSE, pPos);
         }
     }

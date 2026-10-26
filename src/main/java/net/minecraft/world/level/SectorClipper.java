@@ -3,6 +3,7 @@ package net.minecraft.world.level;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Int128;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
@@ -15,29 +16,29 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 /**
  * Exact X/Z block ray traversal for sector-aware entities.
  *
- * <p>The DDA walks long block addresses while all ray/shape arithmetic happens
+ * <p>The DDA walks local block offsets while all ray/shape arithmetic happens
  * in a small frame anchored at the ray origin.  In particular, no absolute
- * world X/Z double is ever created while selecting a block.</p>
+ * world X/Z double is ever created while selecting a block. Rays exceeding
+ * {@link WorldBounds#MAX_SAFE_LOCAL_SPAN} are rejected before traversal.</p>
  */
 public final class SectorClipper {
     private SectorClipper() {}
 
-    /** Player-camera ray in an unclamped local frame; space beyond long bounds is air. */
+    /** Player-camera ray in an unclamped local frame; space beyond Int128 bounds is air. */
     public static double clipCameraDistance(BlockGetter level, SectorVec3 anchor, Vec3 fromOffset,
             Vec3 toOffset, Entity entity) {
         SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(anchor);
         Vec3 eye = anchor.toLocal(origin.originBlockX(), origin.originBlockY(), origin.originBlockZ());
         Vec3 from = eye.add(fromOffset);
         Vec3 to = eye.add(toOffset);
+        requireSafeRay(from, to);
         ClipContext context = new ClipContext(from, to, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, entity);
         if (from.equals(to))
             return Double.POSITIVE_INFINITY;
         BlockHitResult hit = BlockGetter.traverseBlocks(from, safeDdaEnd(from, to), context,
                 (ignored, pos) -> {
-                    try {
-                        Math.addExact(origin.originBlockX(), pos.getX());
-                        Math.addExact(origin.originBlockZ(), pos.getZ());
-                    } catch (ArithmeticException outsideWorld) {
+                    if (additionOverflows(origin.originBlockX(), pos.getX())
+                            || additionOverflows(origin.originBlockZ(), pos.getZ())) {
                         return null;
                     }
                     return clipBlock(level, context, origin, pos);
@@ -48,8 +49,9 @@ public final class SectorClipper {
     public static BlockHitResult clip(BlockGetter level, SectorVec3 from, SectorVec3 to, Entity entity,
             ClipContext.Block blockMode, ClipContext.Fluid fluidMode) {
         SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(from);
-        Vec3 localFrom = from.toLocal(origin.originBlockX(), origin.originBlockY(), origin.originBlockZ());
-        Vec3 localTo = to.toLocal(origin.originBlockX(), origin.originBlockY(), origin.originBlockZ());
+        Vec3 localFrom = origin.toLocal(from);
+        Vec3 localTo = origin.toLocal(to);
+        requireSafeRay(localFrom, localTo);
         ClipContext context = new ClipContext(localFrom, localTo, blockMode, fluidMode, entity);
         if (localFrom.equals(localTo)) {
             return BlockHitResult.missExact(to, Direction.getNearest(localFrom.x - localTo.x, localFrom.y - localTo.y, localFrom.z - localTo.z), to.blockPosition());
@@ -71,6 +73,23 @@ public final class SectorClipper {
                 from.y + safeDirection(to.y - from.y), from.z + safeDirection(to.z - from.z));
     }
 
+    private static boolean additionOverflows(Int128 base, Int128 offset) {
+        Int128 sum = base.add(offset);
+        return (base.hi() < 0L) == (offset.hi() < 0L) && (sum.hi() < 0L) != (base.hi() < 0L);
+    }
+
+    private static void requireSafeRay(Vec3 from, Vec3 to) {
+        double limit = WorldBounds.MAX_SAFE_LOCAL_SPAN;
+        if (!safeComponent(from.x, to.x, limit) || !safeComponent(from.y, to.y, limit)
+                || !safeComponent(from.z, to.z, limit))
+            throw new IllegalArgumentException("Ray exceeds safe local physics span");
+    }
+
+    private static boolean safeComponent(double from, double to, double limit) {
+        return Double.isFinite(from) && Double.isFinite(to)
+                && Math.abs(from) <= limit && Math.abs(to) <= limit && Math.abs(to - from) <= limit;
+    }
+
     private static double safeDirection(double direction) {
         if (Math.abs(direction) >= 1.0E-9D)
             return direction;
@@ -81,18 +100,18 @@ public final class SectorClipper {
     private static BlockHitResult clipBlock(BlockGetter level, ClipContext context,
             SectorPhysicsOrigin origin, BlockPos localPos) {
         // The DDA can step just beyond the last representable block when a ray
-        // points out of the world at a long-coordinate edge.  Saturate the
+        // points out of the world at an Int128-coordinate edge. Saturate the
         // horizontal address instead of allowing arithmetic overflow to crash
         // the render thread.
-        long blockX = WorldBounds.addBlockOffset(origin.originBlockX(), localPos.getX());
-        long blockZ = WorldBounds.addBlockOffset(origin.originBlockZ(), localPos.getZ());
+        Int128 blockX = WorldBounds.addBlockOffset(origin.originBlockX(), localPos.getX());
+        Int128 blockZ = WorldBounds.addBlockOffset(origin.originBlockZ(), localPos.getZ());
         int blockY = origin.originBlockY() + localPos.getY();
         BlockPos worldPos = new BlockPos(blockX, blockY, blockZ);
         BlockState state = level.getBlockState(worldPos);
         FluidState fluid = level.getFluidState(worldPos);
-        double localX = (double) localPos.getX();
+        double localX = WorldBounds.signedDifference(localPos.getX(), Int128.ZERO);
         double localY = (double) localPos.getY();
-        double localZ = (double) localPos.getZ();
+        double localZ = WorldBounds.signedDifference(localPos.getZ(), Int128.ZERO);
 
         VoxelShape blockShape = context.getBlockShape(state, level, worldPos);
         BlockHitResult blockHit = clipShape(context.getFrom(), context.getTo(),

@@ -216,7 +216,7 @@ public class Ravager extends Raider {
 
     private void roar() {
         if (this.isAlive()) {
-            for (LivingEntity livingentity : this.level.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(4.0D), NO_RAVAGER_AND_ALIVE)) {
+            for (LivingEntity livingentity : this.level.getEntitiesOfClass(LivingEntity.class, this.exactBoundingBox().inflate(4.0D), NO_RAVAGER_AND_ALIVE)) {
                 if (!(livingentity instanceof AbstractIllager)) {
                     livingentity.hurt(DamageSource.mobAttack(this), 6.0F);
                 }
@@ -289,7 +289,7 @@ public class Ravager extends Raider {
     }
 
     public boolean checkSpawnObstruction(LevelReader pLevel) {
-        return !pLevel.containsAnyLiquid(this.getBoundingBox());
+        return !pLevel.containsAnyLiquid(this.exactBoundingBox());
     }
 
     public void applyRaidBuffs(int pWave, boolean pUnusedFalse) {

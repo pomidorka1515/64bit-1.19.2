@@ -5,6 +5,7 @@ import com.mojang.math.Vector4f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.CameraRelativePosition;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.SectorAABB;
@@ -15,26 +16,16 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public class Frustum {
     public static final int OFFSET_STEP = 4;
-    private static volatile boolean enabled = true;
     private final Vector4f[] frustumData = new Vector4f[6];
     private Vector4f viewVector;
     private double camX;
     private double camY;
     private double camZ;
     private CameraRelativePosition cameraRelativePosition = CameraRelativePosition.of(SectorVec3.fromApproximate(0.0D, 0.0D, 0.0D));
-    // Keep the integral camera block separate from the lossy Vec3 mirror.  X/Z
-    // deltas must be formed as long arithmetic before they are narrowed to float.
+    // Subtract exact camera bases before narrowing local distances to float.
 
     public Frustum(Matrix4f pProjection, Matrix4f pFrustum) {
         this.calculateFrustum(pProjection, pFrustum);
-    }
-
-    public static boolean isEnabled() {
-        return enabled;
-    }
-
-    public static void setEnabled(boolean enabled) {
-        Frustum.enabled = enabled;
     }
 
     public Frustum(Frustum pOther) {
@@ -80,9 +71,9 @@ public class Frustum {
             throw new NullPointerException("camera");
         if (camera.getExactPosition() != null) {
             this.cameraRelativePosition = CameraRelativePosition.of(camera.getExactPosition());
-            this.camX = camera.getPosition().x;
-            this.camY = camera.getPosition().y;
-            this.camZ = camera.getPosition().z;
+            this.camX = camera.getExactPosition().subX();
+            this.camY = camera.getExactPosition().y();
+            this.camZ = camera.getExactPosition().subZ();
         } else {
             this.prepare(camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
         }
@@ -110,8 +101,8 @@ public class Frustum {
     }
 
     public boolean isVisible(AABB pAabb) {
-        if (!enabled)
-            return true;
+        if (pAabb.getSectorBounds() != null)
+            return this.isVisible(pAabb.getSectorBounds());
         long minBlockX = Mth.lfloor(pAabb.minX);
         int minBlockY = Mth.floor(pAabb.minY);
         long minBlockZ = Mth.lfloor(pAabb.minZ);
@@ -129,8 +120,6 @@ public class Frustum {
 
     /** Tests an exact X/Z box without reconstructing its endpoints as doubles. */
     public boolean isVisible(SectorAABB box) {
-        if (!enabled)
-            return true;
         if (box == null)
             throw new NullPointerException("box");
         return this.cubeInFrustumLocal(
@@ -141,8 +130,6 @@ public class Frustum {
 
     /** Tests a block-local shape at an exact block position. */
     public boolean isVisible(BlockPos blockPos, AABB localShape) {
-        if (!enabled)
-            return true;
         if (blockPos == null)
             throw new NullPointerException("blockPos");
         if (localShape == null)
@@ -153,11 +140,9 @@ public class Frustum {
                 relativeY(blockPos.getY()) + localShape.maxY, relativeZ(blockPos.getZ(), localShape.maxZ));
     }
 
-    public boolean isChunkVisible(long chunkX, int originBlockY, long chunkZ) {
-        if (!enabled)
-            return true;
-        long blockMinX = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkX);
-        long blockMinZ = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkZ);
+    public boolean isChunkVisible(Int128 chunkX, int originBlockY, Int128 chunkZ) {
+        Int128 blockMinX = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkX);
+        Int128 blockMinZ = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkZ);
 
         double minX = this.cameraRelativePosition.relativeX(blockMinX);
         double minY = this.cameraRelativePosition.relativeY(originBlockY);
@@ -170,11 +155,11 @@ public class Frustum {
         return this.cubeInFrustumLocal(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
-    private double relativeX(long block, double fraction) {
+    private double relativeX(Int128 block, double fraction) {
         return this.cameraRelativePosition.relativeX(block) + fraction;
     }
 
-    private double relativeZ(long block, double fraction) {
+    private double relativeZ(Int128 block, double fraction) {
         return this.cameraRelativePosition.relativeZ(block) + fraction;
     }
 

@@ -3,7 +3,6 @@ package net.minecraft.world.level.chunk;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.mojang.logging.LogUtils;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
@@ -66,6 +65,7 @@ public abstract class ChunkAccess implements BlockGetter, BiomeManager.NoiseBiom
     private BiomeGenerationSettings carverBiomeSettings;
     @Nullable
     protected NoiseChunk noiseChunk;
+    private net.minecraft.world.level.levelgen.synth.GeneratorConfig noiseConfig;
     protected final UpgradeData upgradeData;
     @Nullable
     protected BlendingData blendingData;
@@ -347,8 +347,10 @@ public abstract class ChunkAccess implements BlockGetter, BiomeManager.NoiseBiom
     }
 
     public NoiseChunk getOrCreateNoiseChunk(Function<ChunkAccess, NoiseChunk> pNoiseChunkCreator) {
-        if (this.noiseChunk == null) {
+        var config = net.minecraft.world.level.levelgen.synth.GenerationContext.current();
+        if (this.noiseChunk == null || !config.equals(this.noiseConfig)) {
             this.noiseChunk = pNoiseChunkCreator.apply(this);
+            this.noiseConfig = config;
         }
 
         return this.noiseChunk;
@@ -383,8 +385,9 @@ public abstract class ChunkAccess implements BlockGetter, BiomeManager.NoiseBiom
 
     public void fillBiomesFromNoise(BiomeResolver pResolver, Climate.Sampler pSampler) {
         ChunkPos chunkpos = this.getPos();
-        long i = QuartPos.fromBlock(chunkpos.getMinBlockX());
-        long j = QuartPos.fromBlock(chunkpos.getMinBlockZ());
+        // Noise generation retains its explicit low-64 block-coordinate seam.
+        long i = QuartPos.fromBlock(chunkpos.getMinBlockX().lo());
+        long j = QuartPos.fromBlock(chunkpos.getMinBlockZ().lo());
         LevelHeightAccessor levelheightaccessor = this.getHeightAccessorForGeneration();
 
         for (int k = levelheightaccessor.getMinSection(); k < levelheightaccessor.getMaxSection(); ++k) {

@@ -88,7 +88,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
         return CompletableFuture.supplyAsync(Util.wrapThreadWithTaskName("init_biomes", () -> {
             this.doCreateBiomes(pBlender, pRandom, pStructureManager, pChunk);
             return pChunk;
-        }), Util.backgroundExecutor());
+        }), net.minecraft.world.level.levelgen.synth.GenerationContext.capture(Util.backgroundExecutor()));
     }
 
     private void doCreateBiomes(Blender pBlender, RandomState pRandom, StructureManager pStructureManager, ChunkAccess pChunk) {
@@ -96,7 +96,16 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
             return this.createNoiseChunk(p_224340_, pStructureManager, pBlender, pRandom);
         });
         BiomeResolver biomeresolver = BelowZeroRetrogen.getBiomeResolver(pBlender.getBiomeResolver(this.biomeSource), pChunk);
-        pChunk.fillBiomesFromNoise(biomeresolver, noisechunk.cachedClimateSampler(pRandom.router(), this.settings.value().spawnTarget()));
+        net.minecraft.world.level.biome.Climate.Sampler sampler = noisechunk.cachedClimateSampler(pRandom.router(), this.settings.value().spawnTarget());
+        if (pChunk.getPos().getMinBlockX().hi() != (pChunk.getPos().getMinBlockX().lo() >> 63)
+                || pChunk.getPos().getMinBlockZ().hi() != (pChunk.getPos().getMinBlockZ().lo() >> 63)) {
+            net.minecraft.core.Int128 qx = pChunk.getPos().getMinBlockX().shiftRight(2);
+            net.minecraft.core.Int128 qz = pChunk.getPos().getMinBlockZ().shiftRight(2);
+            // New-world generation has no old blending or below-zero retrogen data.
+            pChunk.fillBiomesFromNoise((bx, by, bz, s) -> this.biomeSource.getNoiseBiome(
+                    qx.add(net.minecraft.core.Int128.fromLong(bx & 3L)), by,
+                    qz.add(net.minecraft.core.Int128.fromLong(bz & 3L)), s), sampler);
+        } else pChunk.fillBiomesFromNoise(biomeresolver, sampler);
     }
 
     private NoiseChunk createNoiseChunk(ChunkAccess pChunk, StructureManager pStructureManager, Blender pBlender, RandomState pRandom) {
@@ -125,6 +134,16 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
         return mutableobject.getValue();
     }
 
+    public int getBaseHeight(net.minecraft.core.Int128 x, net.minecraft.core.Int128 z, Heightmap.Types type, LevelHeightAccessor level, RandomState random) {
+        return iterateNoiseColumn(level, random, x, z, null, type.isOpaque()).orElse(level.getMinBuildHeight());
+    }
+
+    public NoiseColumn getBaseColumn(net.minecraft.core.Int128 x, net.minecraft.core.Int128 z, LevelHeightAccessor level, RandomState random) {
+        MutableObject<NoiseColumn> column = new MutableObject<>();
+        iterateNoiseColumn(level, random, x, z, column, null);
+        return column.getValue();
+    }
+
     private static volatile boolean wrapRouterDebugInfo;
 
     /**
@@ -138,16 +157,51 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
     }
 
     public void addDebugScreenInfo(List<String> pInfo, RandomState pRandom, BlockPos pPos) {
-        DecimalFormat decimalformat = new DecimalFormat("0.000");
+        DecimalFormat decimalformat = new DecimalFormat("0.00", java.text.DecimalFormatSymbols.getInstance(java.util.Locale.ROOT));
         NoiseRouter noiserouter = pRandom.router();
         DensityFunction.SinglePointContext densityfunction$singlepointcontext = new DensityFunction.SinglePointContext(pPos.getX(), pPos.getY(), pPos.getZ());
+        if (this.stable(NoiseGeneratorSettings.END)) {
+            // The End only uses the island field (stored in erosion) and the density fields.
+            double islands = noiserouter.erosion().compute(densityfunction$singlepointcontext);
+            double initial = noiserouter.initialDensityWithoutJaggedness().compute(densityfunction$singlepointcontext);
+            double density = noiserouter.finalDensity().compute(densityfunction$singlepointcontext);
+            if (wrapRouterDebugInfo) {
+                pInfo.add("(Verbose) NoiseRouter: ");
+                pInfo.add("Erosion: " + formatDebugValue(decimalformat, islands, 1.5D));
+                pInfo.add("Initial Density: " + formatDebugValue(decimalformat, initial, -25.0D, 2.0D));
+                pInfo.add("Final Density: " + formatDebugValue(decimalformat, density, 3.0D));
+            } else {
+                pInfo.add("NoiseRouter E: " + formatDebugValue(decimalformat, islands, 1.5D)
+                        + " AS: " + formatDebugValue(decimalformat, initial, -25.0D, 2.0D)
+                        + " N: " + formatDebugValue(decimalformat, density, 3.0D));
+            }
+            return;
+        }
+        if (this.stable(NoiseGeneratorSettings.NETHER)) {
+            // Nether routing only uses climate temperature/vegetation and final density.
+            double temperature = noiserouter.temperature().compute(densityfunction$singlepointcontext);
+            double vegetation = noiserouter.vegetation().compute(densityfunction$singlepointcontext);
+            double density = noiserouter.finalDensity().compute(densityfunction$singlepointcontext);
+            if (wrapRouterDebugInfo) {
+                pInfo.add("(Verbose) NoiseRouter: ");
+                pInfo.add("Temperature: " + formatDebugValue(decimalformat, temperature, 1.5D));
+                pInfo.add("Vegetation: " + formatDebugValue(decimalformat, vegetation, 1.5D));
+                pInfo.add("Final Density: " + formatDebugValue(decimalformat, density, 3.0D));
+            } else {
+                pInfo.add("NoiseRouter T: " + formatDebugValue(decimalformat, temperature, 1.5D)
+                        + " V: " + formatDebugValue(decimalformat, vegetation, 1.5D)
+                        + " N: " + formatDebugValue(decimalformat, density, 3.0D));
+            }
+            WorldgenDiagnostics.append(pInfo, pRandom, pPos, this.settings);
+            return;
+        }
         double d0 = noiserouter.ridges().compute(densityfunction$singlepointcontext);
         double d1 = noiserouter.temperature().compute(densityfunction$singlepointcontext);
         double d2 = noiserouter.vegetation().compute(densityfunction$singlepointcontext);
         double d3 = noiserouter.continents().compute(densityfunction$singlepointcontext);
         double d4 = noiserouter.erosion().compute(densityfunction$singlepointcontext);
         double d5 = noiserouter.depth().compute(densityfunction$singlepointcontext);
-        double d6 = NoiseRouterData.peaksAndValleys((float) d0);
+        double d6 = debugPeaksAndValleys(d0);
         double d7 = noiserouter.initialDensityWithoutJaggedness().compute(densityfunction$singlepointcontext);
         double d8 = noiserouter.finalDensity().compute(densityfunction$singlepointcontext);
         boolean flag = this.stable(NoiseGeneratorSettings.END);
@@ -160,23 +214,39 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
             pInfo.add("Depth: " + formatDebugValue(decimalformat, d5, 2.5D));
             pInfo.add("Weirdness: " + formatDebugValue(decimalformat, d0, 1.5D));
             pInfo.add("Peaks & Valleys: " + formatDebugValue(decimalformat, d6, 1.0D));
-            pInfo.add("Initial Density: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -3.0D, flag ? 2.0D : 3.0D));
+            pInfo.add("Initial Density: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -64.0D, flag ? 2.0D : 64.0D));
             pInfo.add("Final Density: " + formatDebugValue(decimalformat, d8, 3.0D));
         } else {
-            pInfo.add("NoiseRouter T: " + formatDebugValue(decimalformat, d1, 1.5D) + " V: " + formatDebugValue(decimalformat, d2, 1.5D) + " C: " + formatDebugValue(decimalformat, d3, 1.5D) + " E: " + formatDebugValue(decimalformat, d4, 1.5D) + " D: " + formatDebugValue(decimalformat, d5, 2.5D) + " W: " + formatDebugValue(decimalformat, d0, 1.5D) + " PV: " + formatDebugValue(decimalformat, d6, 1.0D) + " AS: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -3.0D, flag ? 2.0D : 3.0D) + " N: " + formatDebugValue(decimalformat, d8, 3.0D));
+            pInfo.add("NoiseRouter T: " + formatDebugValue(decimalformat, d1, 1.5D) + " V: " + formatDebugValue(decimalformat, d2, 1.5D) + " C: " + formatDebugValue(decimalformat, d3, 1.5D) + " E: " + formatDebugValue(decimalformat, d4, 1.5D));
+            pInfo.add(" D: " + formatDebugValue(decimalformat, d5, 2.5D)
+                    + " W: " + formatDebugValue(decimalformat, d0, 1.5D) + " PV: " + formatDebugValue(decimalformat, d6, 1.0D) + " AS: " + formatDebugValue(decimalformat, d7, flag ? -25.0D : -64.0D, flag ? 2.0D : 64.0D) + " N: " + formatDebugValue(decimalformat, d8, 3.0D));
         }
+        WorldgenDiagnostics.append(pInfo, pRandom, pPos, this.settings);
+    }
+
+    // Match the folded-ridges density function without narrowing the debug value to float.
+    // The float helper is also used by worldgen; leave its behavior unchanged.
+    static double debugPeaksAndValleys(double weirdness) {
+        return -(Math.abs(Math.abs(weirdness) - 2.0D / 3.0D) - 1.0D / 3.0D) * 3.0D;
     }
 
     private static String formatDebugValue(DecimalFormat p_224307_, double p_224308_, double p_224309_) {
         return formatDebugValue(p_224307_, p_224308_, -p_224309_, p_224309_);
     }
 
-    private static String formatDebugValue(DecimalFormat p_224310_, double p_224311_, double pExecutor, double pBlender) {
-        String s = p_224310_.format(p_224311_);
-        return !Double.isNaN(p_224311_) && p_224311_ >= pExecutor && p_224311_ <= pBlender ? s : ChatFormatting.RED + s + ChatFormatting.RESET;
+    static String formatDebugValue(DecimalFormat format, double value, double min, double max) {
+        if (Double.isFinite(value) && value >= min && value <= max) {
+            return format.format(value);
+        }
+        return ChatFormatting.RED + net.minecraft.world.level.levelgen.synth.BlendedNoise.formatScientific(value) + ChatFormatting.RESET;
     }
 
     private OptionalInt iterateNoiseColumn(LevelHeightAccessor pLevel, RandomState pRandom, long pX, long pZ, @Nullable MutableObject<NoiseColumn> pColumn, @Nullable Predicate<BlockState> pStoppingState) {
+        return iterateNoiseColumn(pLevel, pRandom, net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ), pColumn, pStoppingState);
+    }
+
+    private OptionalInt iterateNoiseColumn(LevelHeightAccessor pLevel, RandomState pRandom, net.minecraft.core.Int128 x, net.minecraft.core.Int128 z, @Nullable MutableObject<NoiseColumn> pColumn, @Nullable Predicate<BlockState> pStoppingState) {
+        long pX = x.lo(), pZ = z.lo();
         NoiseSettings noisesettings = this.settings.value().noiseSettings().clampToHeightAccessor(pLevel);
         int i = noisesettings.getCellHeight();
         int j = noisesettings.minY();
@@ -202,7 +272,8 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
             long k2 = k1 * i1;
             double d0 = (double) l1 / (double) i1;
             double d1 = (double) i2 / (double) i1;
-            NoiseChunk noisechunk = new NoiseChunk(1, pRandom, j2, k2, noisesettings, DensityFunctions.BeardifierMarker.INSTANCE, this.settings.value(), this.globalFluidPicker, Blender.empty());
+            int shift = Integer.numberOfTrailingZeros(i1);
+            NoiseChunk noisechunk = new NoiseChunk(1, pRandom, x.shiftRight(shift).shiftLeftSaturated(shift), z.shiftRight(shift).shiftLeftSaturated(shift), noisesettings, DensityFunctions.BeardifierMarker.INSTANCE, this.settings.value(), this.globalFluidPicker, Blender.empty());
             noisechunk.initializeForFirstCellX();
             noisechunk.advanceCellX(0);
 
@@ -251,8 +322,14 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
     }
 
     public void applyCarvers(WorldGenRegion pLevel, long pSeed, RandomState pRandom, BiomeManager pBiomeManager, StructureManager pStructureManager, ChunkAccess pChunk, GenerationStep.Carving pStep) {
-        BiomeManager biomemanager = pBiomeManager.withDifferentSource((p_224281_, p_224282_, p_224283_) -> {
-            return this.biomeSource.getNoiseBiome(p_224281_, p_224282_, p_224283_, pRandom.sampler());
+        BiomeManager biomemanager = pBiomeManager.withDifferentSource(new BiomeManager.NoiseBiomeSource() {
+            public Holder<Biome> getNoiseBiome(long x, int y, long z) {
+                return NoiseBasedChunkGenerator.this.biomeSource.getNoiseBiome(x, y, z, pRandom.sampler());
+            }
+
+            public Holder<Biome> getNoiseBiome(net.minecraft.core.Int128 x, int y, net.minecraft.core.Int128 z) {
+                return NoiseBasedChunkGenerator.this.biomeSource.getNoiseBiome(x, y, z, pRandom.sampler());
+            }
         });
         WorldgenRandom worldgenrandom = new WorldgenRandom(new LegacyRandomSource(RandomSupport.generateUniqueSeed()));
         int i = 8;
@@ -266,17 +343,17 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
 
         for (int j = -8; j <= 8; ++j) {
             for (int k = -8; k <= 8; ++k) {
-                ChunkPos chunkpos1 = new ChunkPos(WorldBounds.addChunkOffset(chunkpos.x, j), WorldBounds.addChunkOffset(chunkpos.z, k));
-                ChunkAccess chunkaccess = pLevel.getChunk(chunkpos1.x, chunkpos1.z);
+                ChunkPos chunkpos1 = new ChunkPos(WorldBounds.addChunkOffset(chunkpos.x(), j), WorldBounds.addChunkOffset(chunkpos.z(), k));
+                ChunkAccess chunkaccess = pLevel.getChunk(chunkpos1.x(), chunkpos1.z());
                 BiomeGenerationSettings biomegenerationsettings = chunkaccess.carverBiome(() -> {
-                    return this.getBiomeGenerationSettings(this.biomeSource.getNoiseBiome(QuartPos.fromBlock(chunkpos1.getMinBlockX()), 0, QuartPos.fromBlock(chunkpos1.getMinBlockZ()), pRandom.sampler()));
+                    return this.getBiomeGenerationSettings(this.biomeSource.getNoiseBiome(chunkpos1.getMinBlockX().shiftRight(2), 0, chunkpos1.getMinBlockZ().shiftRight(2), pRandom.sampler()));
                 });
                 Iterable<Holder<ConfiguredWorldCarver<?>>> iterable = biomegenerationsettings.getCarvers(pStep);
                 int l = 0;
 
                 for (Holder<ConfiguredWorldCarver<?>> holder : iterable) {
                     ConfiguredWorldCarver<?> configuredworldcarver = holder.value();
-                    worldgenrandom.setLargeFeatureSeed(pSeed + (long) l, chunkpos1.x, chunkpos1.z);
+                    worldgenrandom.setLargeFeatureSeed(pSeed + (long) l, chunkpos1.x(), chunkpos1.z());
                     if (configuredworldcarver.isStartChunk(worldgenrandom)) {
                         configuredworldcarver.carve(carvingcontext, pChunk, biomemanager::getBiome, worldgenrandom, aquifer, chunkpos1, carvingmask);
                     }
@@ -307,7 +384,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
 
             return CompletableFuture.supplyAsync(Util.wrapThreadWithTaskName("wgen_fill_noise", () -> {
                                         return this.doFill(pBlender, pStructureManager, pRandom, pChunk, j, k);
-                                    }), Util.backgroundExecutor()).whenCompleteAsync((p_224309_, p_224310_) -> {
+                                    }), net.minecraft.world.level.levelgen.synth.GenerationContext.capture(Util.backgroundExecutor())).whenCompleteAsync((p_224309_, p_224310_) -> {
                 for (LevelChunkSection levelchunksection1 : set) {
                     levelchunksection1.release();
                 }
@@ -322,8 +399,8 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
         Heightmap heightmap = pChunk.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR_WG);
         Heightmap heightmap1 = pChunk.getOrCreateHeightmapUnprimed(Heightmap.Types.WORLD_SURFACE_WG);
         ChunkPos chunkpos = pChunk.getPos();
-        long i = chunkpos.getMinBlockX();
-        long j = chunkpos.getMinBlockZ();
+        long i = chunkpos.getMinBlockX().lo();
+        long j = chunkpos.getMinBlockZ().lo();
         Aquifer aquifer = noisechunk.aquifer();
         noisechunk.initializeForFirstCellX();
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
@@ -371,7 +448,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
                                 blockstate = this.debugPreliminarySurfaceLevel(noisechunk, k3, k2, j4, blockstate);
                                 if (blockstate != AIR && !SharedConstants.debugVoidTerrain(pChunk.getPos())) {
                                     if (blockstate.getLightEmission() != 0 && pChunk instanceof ProtoChunk) {
-                                        blockpos$mutableblockpos.set(k3, k2, j4);
+                                        blockpos$mutableblockpos.set(chunkpos.getBlockX(k1 * k + j3), k2, chunkpos.getBlockZ(l1 * k + i4));
                                         ((ProtoChunk) pChunk).addLight(blockpos$mutableblockpos);
                                     }
 
@@ -379,7 +456,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
                                     heightmap.update(l3, k2, k4, blockstate);
                                     heightmap1.update(l3, k2, k4, blockstate);
                                     if (aquifer.shouldScheduleFluidUpdate() && !blockstate.getFluidState().isEmpty()) {
-                                        blockpos$mutableblockpos.set(k3, k2, j4);
+                                        blockpos$mutableblockpos.set(chunkpos.getBlockX(k1 * k + j3), k2, chunkpos.getBlockZ(l1 * k + i4));
                                         pChunk.markPosForPostprocessing(blockpos$mutableblockpos);
                                     }
                                 }

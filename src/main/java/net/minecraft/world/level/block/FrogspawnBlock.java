@@ -91,10 +91,10 @@ public class FrogspawnBlock extends Block {
 
         for (int j = 1; j <= i; ++j) {
             Tadpole tadpole = EntityType.TADPOLE.create(pLevel);
-            double d0 = (double) pPos.getX() + this.getRandomTadpolePositionOffset(pRandom);
-            double d1 = (double) pPos.getZ() + this.getRandomTadpolePositionOffset(pRandom);
+            double d0 = this.getRandomTadpolePositionOffset(pRandom);
+            double d1 = this.getRandomTadpolePositionOffset(pRandom);
             int k = pRandom.nextInt(1, 361);
-            tadpole.moveTo(d0, (double) pPos.getY() - 0.5D, d1, (float) k, 0.0F);
+            tadpole.moveTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), d0, (double) pPos.getY() - 0.5D, pPos.getZ(), d1), (float) k, 0.0F);
             tadpole.setPersistenceRequired();
             pLevel.addFreshEntity(tadpole);
         }

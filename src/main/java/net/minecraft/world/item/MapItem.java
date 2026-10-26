@@ -8,6 +8,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -44,6 +45,10 @@ public class MapItem extends ComplexItem {
     }
 
     public static ItemStack create(Level pLevel, long pLevelX, long pLevelZ, byte pScale, boolean pTrackingPosition, boolean pUnlimitedTracking) {
+        return create(pLevel, Int128.fromLong(pLevelX), Int128.fromLong(pLevelZ), pScale, pTrackingPosition, pUnlimitedTracking);
+    }
+
+    public static ItemStack create(Level pLevel, Int128 pLevelX, Int128 pLevelZ, byte pScale, boolean pTrackingPosition, boolean pUnlimitedTracking) {
         ItemStack itemstack = new ItemStack(Items.FILLED_MAP);
         createAndStoreSavedData(itemstack, pLevel, pLevelX, pLevelZ, pScale, pTrackingPosition, pUnlimitedTracking, pLevel.dimension());
         return itemstack;
@@ -66,8 +71,8 @@ public class MapItem extends ComplexItem {
         return compoundtag != null && compoundtag.contains("map", 99) ? compoundtag.getInt("map") : null;
     }
 
-    private static int createNewSavedData(Level pLevel, long pX, long pZ, int pScale, boolean pTrackingPosition, boolean pUnlimitedTracking, ResourceKey<Level> pDimension) {
-        MapItemSavedData mapitemsaveddata = MapItemSavedData.createFresh((double) pX, (double) pZ, (byte) pScale, pTrackingPosition, pUnlimitedTracking, pDimension);
+    private static int createNewSavedData(Level pLevel, Int128 pX, Int128 pZ, int pScale, boolean pTrackingPosition, boolean pUnlimitedTracking, ResourceKey<Level> pDimension) {
+        MapItemSavedData mapitemsaveddata = MapItemSavedData.createFresh(pX, pZ, (byte) pScale, pTrackingPosition, pUnlimitedTracking, pDimension);
         int i = pLevel.getFreeMapId();
         pLevel.setMapData(makeKey(i), mapitemsaveddata);
         return i;
@@ -77,7 +82,7 @@ public class MapItem extends ComplexItem {
         pStack.getOrCreateTag().putInt("map", pMapId);
     }
 
-    private static void createAndStoreSavedData(ItemStack pStack, Level pLevel, long pX, long pZ, int pScale, boolean pTrackingPosition, boolean pUnlimitedTracking, ResourceKey<Level> pDimension) {
+    private static void createAndStoreSavedData(ItemStack pStack, Level pLevel, Int128 pX, Int128 pZ, int pScale, boolean pTrackingPosition, boolean pUnlimitedTracking, ResourceKey<Level> pDimension) {
         int i = createNewSavedData(pLevel, pX, pZ, pScale, pTrackingPosition, pUnlimitedTracking, pDimension);
         storeMapData(pStack, i);
     }
@@ -89,10 +94,16 @@ public class MapItem extends ComplexItem {
     public void update(Level pLevel, Entity pViewer, MapItemSavedData pData) {
         if (pLevel.dimension() == pData.dimension && pViewer instanceof Player) {
             int i = 1 << pData.scale;
-            int j = pData.x;
-            int k = pData.z;
-            int l = Mth.floor(pViewer.getX() - (double) j) / i + 64;
-            int i1 = Mth.floor(pViewer.getZ() - (double) k) / i + 64;
+            Int128 j = pData.x;
+            Int128 k = pData.z;
+            net.minecraft.world.phys.SectorVec3 viewer = pViewer.sectorPosition();
+            double dx = net.minecraft.world.level.WorldBounds.signedDifference(viewer.blockX(), j) + viewer.subX();
+            double dz = net.minecraft.world.level.WorldBounds.signedDifference(viewer.blockZ(), k) + viewer.subZ();
+            if (Math.abs(dx) > 256 * i || Math.abs(dz) > 256 * i) {
+                return;
+            }
+            int l = Mth.floor(dx) / i + 64;
+            int i1 = Mth.floor(dz) / i + 64;
             int j1 = 128 / i;
             if (pLevel.dimensionType().hasCeiling()) {
                 j1 /= 2;
@@ -112,18 +123,18 @@ public class MapItem extends ComplexItem {
                             int i2 = k1 - l;
                             int j2 = l1 - i1;
                             boolean flag1 = i2 * i2 + j2 * j2 > (j1 - 2) * (j1 - 2);
-                            int k2 = (j / i + k1 - 64) * i;
-                            int l2 = (k / i + l1 - 64) * i;
+                            Int128 k2 = j.shiftRight(pData.scale).multiplySaturated(i).addSaturated(Int128.fromLong((k1 - 64) * i));
+                            Int128 l2 = k.shiftRight(pData.scale).multiplySaturated(i).addSaturated(Int128.fromLong((l1 - 64) * i));
                             Multiset<MaterialColor> multiset = LinkedHashMultiset.create();
                             LevelChunk levelchunk = pLevel.getChunkAt(new BlockPos(k2, 0, l2));
                             if (!levelchunk.isEmpty()) {
                                 ChunkPos chunkpos = levelchunk.getPos();
-                                int i3 = k2 & 15;
-                                int j3 = l2 & 15;
+                                int i3 = (int) (k2.lo() & 15);
+                                int j3 = (int) (l2.lo() & 15);
                                 int k3 = 0;
                                 double d1 = 0.0D;
                                 if (pLevel.dimensionType().hasCeiling()) {
-                                    int l3 = k2 + l2 * 231871;
+                                    int l3 = (int) k2.lo() + (int) l2.lo() * 231871;
                                     l3 = l3 * l3 * 31287121 + l3 * 11;
                                     if ((l3 >> 20 & 1) == 0) {
                                         multiset.add(Blocks.DIRT.defaultBlockState().getMapColor(pLevel, BlockPos.ZERO), 10);
@@ -145,7 +156,7 @@ public class MapItem extends ComplexItem {
                                             } else {
                                                 do {
                                                     --k4;
-                                                    blockpos$mutableblockpos1.set(chunkpos.getMinBlockX() + i4 + i3, k4, chunkpos.getMinBlockZ() + j4 + j3);
+                                                    blockpos$mutableblockpos1.set(chunkpos.getMinBlockX().addSaturated(Int128.fromLong(i4 + i3)), k4, chunkpos.getMinBlockZ().addSaturated(Int128.fromLong(j4 + j3)));
                                                     blockstate = levelchunk.getBlockState(blockpos$mutableblockpos1);
                                                 } while (blockstate.getMapColor(pLevel, blockpos$mutableblockpos1) == MaterialColor.NONE && k4 > pLevel.getMinBuildHeight());
 
@@ -164,7 +175,7 @@ public class MapItem extends ComplexItem {
                                                 }
                                             }
 
-                                            pData.checkBanners(pLevel, chunkpos.getMinBlockX() + i4 + i3, chunkpos.getMinBlockZ() + j4 + j3);
+                                            pData.checkBanners(pLevel, chunkpos.getMinBlockX().addSaturated(Int128.fromLong(i4 + i3)), chunkpos.getMinBlockZ().addSaturated(Int128.fromLong(j4 + j3)));
                                             d1 += (double) k4 / (double) (i * i);
                                             multiset.add(blockstate.getMapColor(pLevel, blockpos$mutableblockpos1));
                                         }
@@ -220,16 +231,16 @@ public class MapItem extends ComplexItem {
         if (mapitemsaveddata != null) {
             if (pServerLevel.dimension() == mapitemsaveddata.dimension) {
                 int i = 1 << mapitemsaveddata.scale;
-                int j = mapitemsaveddata.x;
-                int k = mapitemsaveddata.z;
+                Int128 j = mapitemsaveddata.x;
+                Int128 k = mapitemsaveddata.z;
                 boolean[] aboolean = new boolean[16384];
-                int l = j / i - 64;
-                int i1 = k / i - 64;
+                Int128 l = j.shiftRight(mapitemsaveddata.scale).multiplySaturated(i);
+                Int128 i1 = k.shiftRight(mapitemsaveddata.scale).multiplySaturated(i);
                 BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
                 for (int j1 = 0; j1 < 128; ++j1) {
                     for (int k1 = 0; k1 < 128; ++k1) {
-                        Holder<Biome> holder = pServerLevel.getBiome(blockpos$mutableblockpos.set((l + k1) * i, 0, (i1 + j1) * i));
+                        Holder<Biome> holder = pServerLevel.getBiome(blockpos$mutableblockpos.set(l.addSaturated(Int128.fromLong((k1 - 64) * i)), 0, i1.addSaturated(Int128.fromLong((j1 - 64) * i))));
                         aboolean[j1 * 128 + k1] = holder.is(BiomeTags.WATER_ON_MAP_OUTLINES);
                     }
                 }

@@ -539,7 +539,7 @@ public abstract class AbstractHorse extends Animal implements ContainerListener,
 
     protected void followMommy() {
         if (this.isBred() && this.isBaby() && !this.isEating()) {
-            LivingEntity livingentity = this.level.getNearestEntity(AbstractHorse.class, MOMMY_TARGETING, this, this.sectorPosition(), this.getBoundingBox().inflate(16.0D));
+            LivingEntity livingentity = this.level.getNearestEntity(AbstractHorse.class, MOMMY_TARGETING, this, this.sectorPosition(), this.exactBoundingBox().inflate(16.0D));
             if (livingentity != null && this.distanceToSqr(livingentity) > 4.0D) {
                 this.navigation.createPath(livingentity, 0);
             }
@@ -966,16 +966,16 @@ public abstract class AbstractHorse extends Animal implements ContainerListener,
         SectorVec3 base = this.sectorPosition();
         long floorX = (long) Math.floor(escape.x);
         long floorZ = (long) Math.floor(escape.z);
-        long blockX = WorldBounds.addBlockOffset(base.blockX(), floorX);
-        long blockZ = WorldBounds.addBlockOffset(base.blockZ(), floorZ);
+        var blockX = WorldBounds.addBlockOffset(base.blockX(), floorX);
+        var blockZ = WorldBounds.addBlockOffset(base.blockZ(), floorZ);
         double subX = base.subX() + escape.x - (double) floorX;
         double subZ = base.subZ() + escape.z - (double) floorZ;
-        double minY = this.getBoundingBox().minY;
-        double maxY = this.getBoundingBox().maxY + 0.75D;
+        double minY = this.exactBoundingBox().minY;
+        double maxY = this.exactBoundingBox().maxY + 0.75D;
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
         for (Pose pose : passenger.getDismountPoses()) {
-            blockpos$mutableblockpos.set(blockX, minY, blockZ);
+            blockpos$mutableblockpos.set(blockX, Mth.floor(minY), blockZ);
             if (blockpos$mutableblockpos.getY() > maxY)
                 continue;
 

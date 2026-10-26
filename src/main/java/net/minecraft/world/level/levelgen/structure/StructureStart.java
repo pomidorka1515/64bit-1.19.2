@@ -4,9 +4,11 @@ import com.mojang.logging.LogUtils;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
@@ -48,7 +50,13 @@ public final class StructureStart {
                 LOGGER.error("Unknown stucture id: {}", (Object) s);
                 return null;
             } else {
-                ChunkPos chunkpos = new ChunkPos(p_226859_.getLong("ChunkX"), p_226859_.getLong("ChunkZ"));
+                Int128 chunkX = NbtUtils.readInt128(p_226859_, "ChunkX");
+                Int128 chunkZ = NbtUtils.readInt128(p_226859_, "ChunkZ");
+                if (chunkX.compareTo(ChunkPos.MIN_CHUNK_COORDINATE) < 0 || chunkX.compareTo(ChunkPos.MAX_CHUNK_COORDINATE) > 0
+                        || chunkZ.compareTo(ChunkPos.MIN_CHUNK_COORDINATE) < 0 || chunkZ.compareTo(ChunkPos.MAX_CHUNK_COORDINATE) > 0) {
+                    throw new IllegalArgumentException("Structure start is outside the chunk coordinate domain");
+                }
+                ChunkPos chunkpos = new ChunkPos(chunkX, chunkZ);
                 int i = p_226859_.getInt("references");
                 ListTag listtag = p_226859_.getList("Children", 10);
 
@@ -98,8 +106,8 @@ public final class StructureStart {
         CompoundTag compoundtag = new CompoundTag();
         if (this.isValid()) {
             compoundtag.putString("id", pContext.registryAccess().registryOrThrow(Registry.STRUCTURE_REGISTRY).getKey(this.structure).toString());
-            compoundtag.putInt("ChunkX", pChunkPos.x);
-            compoundtag.putInt("ChunkZ", pChunkPos.z);
+            NbtUtils.writeInt128(compoundtag, "ChunkX", pChunkPos.x());
+            NbtUtils.writeInt128(compoundtag, "ChunkZ", pChunkPos.z());
             compoundtag.putInt("references", this.references);
             compoundtag.put("Children", this.pieceContainer.save(pContext));
             return compoundtag;

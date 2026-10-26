@@ -56,7 +56,7 @@ public class PowderSnowBlock extends Block implements BucketPickup {
             pEntity.makeStuckInBlock(pState, new Vec3((double) 0.9F, 1.5D, (double) 0.9F));
             if (pLevel.isClientSide) {
                 RandomSource randomsource = pLevel.getRandom();
-                boolean flag = pEntity.xOld != pEntity.getX() || pEntity.zOld != pEntity.getZ();
+                boolean flag = pEntity.sectorPositionDelta().horizontalDistanceSqr() > 0.0D;
                 if (flag && randomsource.nextBoolean()) {
                     pLevel.addParticle(ParticleTypes.SNOWFLAKE, pEntity.particlePosition(0.0D, (double) (pPos.getY() + 1) - pEntity.getY(), 0.0D),
                             (double) (Mth.randomBetween(randomsource, -1.0F, 1.0F) * 0.083333336F),

@@ -8,7 +8,7 @@ import net.minecraft.world.level.WorldGenLevel;
 
 public class InsideWorldBoundsPredicate implements BlockPredicate {
     public static final Codec<InsideWorldBoundsPredicate> CODEC = RecordCodecBuilder.create((p_190473_) -> {
-        return p_190473_.group(Vec3i.offsetCodec(16).optionalFieldOf("offset", BlockPos.ZERO).forGetter((p_190475_) -> {
+        return p_190473_.group(net.minecraft.world.level.levelgen.WorldgenPlacementCodecs.optionalField(Vec3i.offsetCodec(16), "offset", Vec3i.ZERO).forGetter((p_190475_) -> {
                             return p_190475_.offset;
                         }))
                 .apply(p_190473_, InsideWorldBoundsPredicate::new);

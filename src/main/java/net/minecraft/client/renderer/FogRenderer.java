@@ -80,14 +80,13 @@ public class FogRenderer {
             RenderSystem.clearColor(fogRed, fogGreen, fogBlue, 0.0F);
         } else {
             float f4 = getSkyBlendFactor(pLevel.effects(), pRenderDistanceChunks);
-            Vec3 vec3 = pLevel.getSkyColor(pActiveRenderInfo.getPosition(), pPartialTicks);
+            Vec3 vec3 = pLevel.getSkyColor(pActiveRenderInfo.exactPosition(), pPartialTicks);
             float f6 = (float) vec3.x;
             float f8 = (float) vec3.y;
             float f10 = (float) vec3.z;
             float f11 = Mth.clamp(Mth.cos(pLevel.getTimeOfDay(pPartialTicks) * ((float) Math.PI * 2F)) * 2.0F + 0.5F, 0.0F, 1.0F);
             BiomeManager biomemanager = pLevel.getBiomeManager();
-            Vec3 vec31 = pActiveRenderInfo.getPosition().subtract(2.0D, 2.0D, 2.0D).scale(0.25D);
-            Vec3 vec32 = CubicSampler.gaussianSampleVec3(vec31, (p_109033_, p_109034_, p_109035_) -> {
+            Vec3 vec32 = ClientLevel.sampleBiomeColors(pActiveRenderInfo.exactPosition(), (p_109033_, p_109034_, p_109035_) -> {
                 return pLevel.effects().getBrightnessDependentFogColor(Vec3.fromRGB24(biomemanager.getNoiseBiomeAtQuart(p_109033_, p_109034_, p_109035_).value().getFogColor()), f11);
             });
             fogRed = (float) vec32.x();

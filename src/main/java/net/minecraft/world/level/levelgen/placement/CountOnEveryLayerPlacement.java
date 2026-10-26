@@ -3,6 +3,7 @@ package net.minecraft.world.level.levelgen.placement;
 import com.mojang.serialization.Codec;
 import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int128;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.util.valueproviders.IntProvider;
@@ -40,8 +41,8 @@ public class CountOnEveryLayerPlacement extends PlacementModifier {
             flag = false;
 
             for (int j = 0; j < this.count.sample(pRandom); ++j) {
-                long k = WorldBounds.addBlockOffset(pPos.getX(), pRandom.nextInt(16));
-                long l = WorldBounds.addBlockOffset(pPos.getZ(), pRandom.nextInt(16));
+                Int128 k = WorldBounds.addBlockOffset(pPos.getX(), pRandom.nextInt(16));
+                Int128 l = WorldBounds.addBlockOffset(pPos.getZ(), pRandom.nextInt(16));
                 int i1 = pContext.getHeight(Heightmap.Types.MOTION_BLOCKING, k, l);
                 int j1 = findOnGroundYPosition(pContext, k, i1, l, i);
                 if (j1 != Integer.MAX_VALUE) {
@@ -60,7 +61,7 @@ public class CountOnEveryLayerPlacement extends PlacementModifier {
         return PlacementModifierType.COUNT_ON_EVERY_LAYER;
     }
 
-    private static int findOnGroundYPosition(PlacementContext p_191613_, long p_191614_, int p_191615_, long p_191616_, int p_191617_) {
+    private static int findOnGroundYPosition(PlacementContext p_191613_, Int128 p_191614_, int p_191615_, Int128 p_191616_, int p_191617_) {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(p_191614_, p_191615_, p_191616_);
         int i = 0;
         BlockState blockstate = p_191613_.getBlockState(blockpos$mutableblockpos);

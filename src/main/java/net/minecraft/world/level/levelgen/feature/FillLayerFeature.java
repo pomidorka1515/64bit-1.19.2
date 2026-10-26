@@ -19,8 +19,8 @@ public class FillLayerFeature extends Feature<LayerConfiguration> {
 
         for (int i = 0; i < 16; ++i) {
             for (int j = 0; j < 16; ++j) {
-                long k = WorldBounds.addBlockOffset(blockpos.getX(), i);
-                long l = WorldBounds.addBlockOffset(blockpos.getZ(), j);
+                net.minecraft.core.Int128 k = WorldBounds.addBlockOffset(blockpos.getX(), i);
+                net.minecraft.core.Int128 l = WorldBounds.addBlockOffset(blockpos.getZ(), j);
                 int i1 = worldgenlevel.getMinBuildHeight() + layerconfiguration.height;
                 blockpos$mutableblockpos.set(k, i1, l);
                 if (worldgenlevel.getBlockState(blockpos$mutableblockpos).isAir()) {

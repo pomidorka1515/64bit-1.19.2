@@ -45,7 +45,7 @@ public class IntegratedServer extends MinecraftServer {
     private int previousSimulationDistance = 0;
 
     public IntegratedServer(Thread pServerThread, Minecraft pMinecraft, LevelStorageSource.LevelStorageAccess pStorageSource, PackRepository pPackRepository, WorldStem pWorldStem, Services pServices, ChunkProgressListenerFactory pProgressListenerFactory) {
-        super(pServerThread, pStorageSource, pPackRepository, pWorldStem, pMinecraft.getProxy(), pMinecraft.getFixerUpper(), pServices, pProgressListenerFactory);
+        super(pServerThread, pStorageSource, pPackRepository, pWorldStem, pMinecraft.getProxy(), pServices, pProgressListenerFactory);
         this.setSingleplayerProfile(pMinecraft.getUser().getGameProfile());
         this.setDemo(pMinecraft.isDemo());
         this.setPlayerList(new IntegratedPlayerList(this, this.registryAccess(), this.playerDataStorage));

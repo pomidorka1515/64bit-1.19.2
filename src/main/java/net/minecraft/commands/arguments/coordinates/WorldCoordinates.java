@@ -33,10 +33,6 @@ public class WorldCoordinates implements Coordinates {
         return result.withY(y);
     }
 
-    public Vec3 getPosition(CommandSourceStack source) {
-        return this.getExactPosition(source).toApproximateVec3();
-    }
-
     public Vec2 getRotation(CommandSourceStack pSource) {
         Vec2 vec2 = pSource.getRotation();
         return new Vec2((float) this.x.get((double) vec2.x), (float) this.y.get((double) vec2.y));

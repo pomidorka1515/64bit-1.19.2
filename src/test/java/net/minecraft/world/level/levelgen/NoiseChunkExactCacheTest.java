@@ -29,9 +29,13 @@ class NoiseChunkExactCacheTest {
 
     private static class ColumnDensity implements DensityFunction.SimpleFunction {
         final AtomicInteger calls = new AtomicInteger();
+        long lastX;
+        long lastZ;
 
         public double compute(DensityFunction.FunctionContext context) {
             this.calls.incrementAndGet();
+            this.lastX = context.blockX();
+            this.lastZ = context.blockZ();
             int height = 64 + (int) (context.blockX() & 12L) + (int) (context.blockZ() & 12L);
             return context.blockY() <= height ? 1.0D : 0.0D;
         }
@@ -39,6 +43,38 @@ class NoiseChunkExactCacheTest {
         public double minValue() { return 0.0D; }
         public double maxValue() { return 1.0D; }
         public KeyDispatchDataCodec<? extends DensityFunction> codec() { return DensityFunctions.Constant.CODEC; }
+    }
+
+    @Test
+    void exactCacheHitsDoNotAllocateCoordinateKeys() {
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_64_PRECISE);
+        NoiseChunk.Cache2D cache = new NoiseChunk.Cache2D(new ColumnDensity());
+        DensityFunction.FunctionContext context = new DensityFunction.SinglePointContext(Long.MIN_VALUE, 80, Long.MAX_VALUE);
+        com.sun.management.ThreadMXBean bean = (com.sun.management.ThreadMXBean) java.lang.management.ManagementFactory.getThreadMXBean();
+        org.junit.jupiter.api.Assumptions.assumeTrue(bean.isThreadAllocatedMemorySupported());
+        bean.setThreadAllocatedMemoryEnabled(true);
+        for (int i = 0; i < 100_000; ++i) cache.compute(context);
+        long thread = Thread.currentThread().getId();
+        long before = bean.getThreadAllocatedBytes(thread);
+        for (int i = 0; i < 10_000; ++i) cache.compute(context);
+        long allocated = bean.getThreadAllocatedBytes(thread) - before;
+        org.junit.jupiter.api.Assertions.assertTrue(allocated < 1024L, "cache hits allocated " + allocated + " bytes");
+    }
+
+    @Test
+    void exactAndLegacyCachesStayIndependentAcrossModeSwitches() {
+        ColumnDensity density = new ColumnDensity();
+        NoiseChunk.Cache2D cache = new NoiseChunk.Cache2D(density);
+        DensityFunction.FunctionContext context = new DensityFunction.SinglePointContext(0L, 80, 0L);
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_64_PRECISE);
+        cache.compute(context);
+        assertEquals(1, density.calls.get(), "zero must not be mistaken for an initialized key");
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_32);
+        cache.compute(context);
+        assertEquals(2, density.calls.get());
+        FarlandsMode.setMode(FarlandsMode.Mode.BIT_64_PRECISE);
+        cache.compute(context);
+        assertEquals(2, density.calls.get());
     }
 
     @Test
@@ -73,20 +109,53 @@ class NoiseChunkExactCacheTest {
     }
 
     @Test
+    void legacyCacheClampsBothEdgesButKeepsInteriorColumnsDistinct() {
+        for (FarlandsMode.Mode mode : FarlandsMode.Mode.values()) {
+            if (mode == FarlandsMode.Mode.BIT_64_PRECISE) continue;
+            FarlandsMode.setMode(mode);
+            for (long origin : new long[] {Long.MIN_VALUE + 256L, Long.MAX_VALUE - 256L}) {
+                ColumnDensity density = new ColumnDensity();
+                NoiseChunk.Cache2D cache = new NoiseChunk.Cache2D(density);
+                cache.compute(new DensityFunction.SinglePointContext(origin, 80, origin));
+                cache.compute(new DensityFunction.SinglePointContext(origin + 4L, 80, origin + 4L));
+                assertEquals(1, density.calls.get(), mode.toString());
+                cache.compute(new DensityFunction.SinglePointContext(0L, 80, 0L));
+                cache.compute(new DensityFunction.SinglePointContext(4L, 80, 0L));
+                assertEquals(3, density.calls.get(), "interior columns must not alias");
+            }
+        }
+    }
+
+    @Test
+    void legacySurfaceSamplingRetainsItsSignedLongChunkDomain() {
+        for (FarlandsMode.Mode mode : FarlandsMode.Mode.values()) {
+            if (mode == FarlandsMode.Mode.BIT_64_PRECISE) continue;
+            FarlandsMode.setMode(mode);
+            for (long origin : new long[] {Long.MAX_VALUE - 255L, Long.MIN_VALUE + 256L}) {
+                ColumnDensity density = new ColumnDensity();
+                NoiseGeneratorSettings settings = settings(density);
+                NoiseChunk chunk = chunk(origin, settings);
+                long expectedCoordinate = origin < 0 ? Long.MIN_VALUE >> 4 : Long.MAX_VALUE >> 4;
+                int expectedHeight = 64 + (int) (expectedCoordinate & 12L) * 2;
+                expectedHeight = Math.floorDiv(expectedHeight, settings.noiseSettings().getCellHeight())
+                        * settings.noiseSettings().getCellHeight();
+                assertEquals(expectedHeight, chunk.preliminarySurfaceLevel(origin, origin), mode.toString());
+                assertEquals(expectedCoordinate, density.lastX);
+                assertEquals(expectedCoordinate, density.lastZ);
+                int calls = density.calls.get();
+                assertEquals(expectedHeight, chunk.preliminarySurfaceLevel(origin + 4L, origin + 4L));
+                assertEquals(calls, density.calls.get(), "legacy clamped columns must share a cache entry");
+            }
+        }
+    }
+
+    @Test
     void exactPreliminarySurfaceUsesUnclampedCoordinatesAcrossChunkBoundaries() {
         FarlandsMode.setMode(FarlandsMode.Mode.BIT_64_PRECISE);
         ColumnDensity density = new ColumnDensity();
-        DensityFunction zero = DensityFunctions.zero();
-        NoiseRouter router = new NoiseRouter(zero, zero, zero, zero, zero, zero, zero, zero, zero, zero,
-                density, zero, zero, zero, zero);
-        NoiseGeneratorSettings base = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getOrThrow(NoiseGeneratorSettings.OVERWORLD);
-        NoiseGeneratorSettings settings = new NoiseGeneratorSettings(base.noiseSettings(), base.defaultBlock(),
-                base.defaultFluid(), router, base.surfaceRule(), List.of(), 63, false, false, false, false);
-        RandomState state = RandomState.create(settings, BuiltinRegistries.NOISE, 42L);
+        NoiseGeneratorSettings settings = settings(density);
         for (long origin : new long[] {Long.MAX_VALUE - 255L, Long.MIN_VALUE + 256L}) {
-            NoiseChunk chunk = new NoiseChunk(4, state, origin, origin, settings.noiseSettings(),
-                    DensityFunctions.BeardifierMarker.INSTANCE, settings,
-                    (x, y, z) -> new Aquifer.FluidStatus(63, Blocks.WATER.defaultBlockState()), Blender.empty());
+            NoiseChunk chunk = chunk(origin, settings);
             for (int offset = 0; offset < 32; offset += 4) {
                 long x = origin + offset;
                 int expected = 64 + (int) (x & 12L) + (int) (origin & 12L);
@@ -98,5 +167,93 @@ class NoiseChunkExactCacheTest {
                 assertEquals(calls, density.calls.get(), "same quart column must hit the cache");
             }
         }
+    }
+
+    private static NoiseGeneratorSettings settings(ColumnDensity density) {
+        DensityFunction zero = DensityFunctions.zero();
+        NoiseRouter router = new NoiseRouter(zero, zero, zero, zero, zero, zero, zero, zero, zero, zero,
+                density, zero, zero, zero, zero);
+        NoiseGeneratorSettings base = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getOrThrow(NoiseGeneratorSettings.OVERWORLD);
+        return new NoiseGeneratorSettings(base.noiseSettings(), base.defaultBlock(),
+                base.defaultFluid(), router, base.surfaceRule(), List.of(), 63, false, false, false, false);
+    }
+
+    @Test
+    void fullWidthChunkTransportCarriesAcrossLimbsAndSaturatesAtWorldEdge() {
+        net.minecraft.core.Int128[] origins = {
+                net.minecraft.core.Int128.of(5L, -16L),
+                net.minecraft.core.Int128.of(0L, Long.MIN_VALUE),
+                net.minecraft.core.Int128.of(-2L, 0L),
+                net.minecraft.core.Int128.fromLong(Long.MAX_VALUE - 15L),
+                net.minecraft.core.Int128.MAX.subtract(net.minecraft.core.Int128.fromLong(15L))};
+        for (FarlandsMode.Mode mode : FarlandsMode.Mode.values()) {
+            FarlandsMode.setMode(mode);
+            for (net.minecraft.core.Int128 origin : origins) {
+                NoiseGeneratorSettings settings = settings(new ColumnDensity());
+                RandomState state = RandomState.create(settings, BuiltinRegistries.NOISE, 42L);
+                NoiseChunk chunk = new NoiseChunk(4, state, origin, origin, settings.noiseSettings(),
+                        DensityFunctions.BeardifierMarker.INSTANCE, settings,
+                        (x, y, z) -> new Aquifer.FluidStatus(63, Blocks.WATER.defaultBlockState()), Blender.empty());
+                chunk.initializeForFirstCellX();
+                chunk.advanceCellX(0);
+                chunk.selectCellYZ(0, 0);
+                assertEquals(origin.hi(), chunk.blockXHi(), mode.toString());
+                assertEquals(origin.lo(), chunk.blockX(), mode.toString());
+                chunk.advanceCellX(3);
+                chunk.selectCellYZ(0, 3);
+                chunk.updateForX(origin.lo() + 15L, 0.75D);
+                chunk.updateForZ(origin.lo() + 15L, 0.75D);
+                net.minecraft.core.Int128 last = origin.addSaturated(net.minecraft.core.Int128.fromLong(15L));
+                assertEquals(last.hi(), chunk.blockXHi());
+                assertEquals(last.lo(), chunk.blockX());
+                assertEquals(last.hi(), chunk.blockZHi());
+                assertEquals(last.lo(), chunk.blockZ());
+                chunk.advanceCellX(4);
+                chunk.selectCellYZ(0, 4);
+                net.minecraft.core.Int128 next = origin.addSaturated(net.minecraft.core.Int128.fromLong(16L));
+                chunk.updateForX(next.lo(), 0.0D);
+                chunk.updateForZ(next.lo(), 0.0D);
+                assertEquals(next.hi(), chunk.blockXHi());
+                assertEquals(next.lo(), chunk.blockX());
+                assertEquals(next.hi(), chunk.blockZHi());
+                assertEquals(next.lo(), chunk.blockZ());
+                chunk.stopInterpolation();
+            }
+        }
+    }
+
+    @Test
+    void fullWidthPreliminarySurfaceCachesExactQuartColumns() {
+        for (FarlandsMode.Mode mode : FarlandsMode.Mode.values()) {
+            FarlandsMode.setMode(mode);
+            ColumnDensity density = new ColumnDensity();
+            NoiseChunk chunk = chunk(0L, settings(density));
+            int height = chunk.preliminarySurfaceLevel(17L, 32L, -19L, 48L);
+            int calls = density.calls.get();
+            assertEquals(height, chunk.preliminarySurfaceLevel(17L, 35L, -19L, 51L));
+            assertEquals(calls, density.calls.get(), mode.toString());
+            chunk.preliminarySurfaceLevel(18L, 32L, -19L, 48L);
+            org.junit.jupiter.api.Assertions.assertTrue(density.calls.get() > calls);
+        }
+    }
+
+    @Test
+    void cacheKeysIncludeBothHighLimbsInEveryMode() {
+        for (FarlandsMode.Mode mode : FarlandsMode.Mode.values()) {
+            FarlandsMode.setMode(mode);
+            ColumnDensity density = new ColumnDensity();
+            NoiseChunk.Cache2D cache = new NoiseChunk.Cache2D(density);
+            cache.compute(new DensityFunction.SinglePointContext(5L, 17L, 80, 7L, 19L));
+            cache.compute(new DensityFunction.SinglePointContext(6L, 17L, 80, 7L, 19L));
+            cache.compute(new DensityFunction.SinglePointContext(6L, 17L, 80, 8L, 19L));
+            assertEquals(3, density.calls.get(), mode.toString());
+        }
+    }
+
+    private static NoiseChunk chunk(long origin, NoiseGeneratorSettings settings) {
+        RandomState state = RandomState.create(settings, BuiltinRegistries.NOISE, 42L);
+        return new NoiseChunk(4, state, origin, origin, settings.noiseSettings(),
+                    DensityFunctions.BeardifierMarker.INSTANCE, settings,
+                    (x, y, z) -> new Aquifer.FluidStatus(63, Blocks.WATER.defaultBlockState()), Blender.empty());
     }
 }

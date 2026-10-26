@@ -1,4 +1,5 @@
 package net.minecraft.server.commands;
+import net.minecraft.world.level.WorldBounds;
 
 import com.google.common.collect.Lists;
 import com.mojang.brigadier.CommandDispatcher;
@@ -65,11 +66,10 @@ public class FillCommand {
     }
 
     private static int fillBlocks(CommandSourceStack pSource, BoundingBox pArea, BlockInput pNewBlock, FillCommand.Mode pMode, @Nullable Predicate<BlockInWorld> pReplacingPredicate) throws CommandSyntaxException {
-        long xSpan = pArea.getXSpan();
-        long zSpan = pArea.getZSpan();
+        double xSpan = WorldBounds.inclusiveBlockSpanDouble(pArea.minX(), pArea.maxX());
+        double zSpan = WorldBounds.inclusiveBlockSpanDouble(pArea.minZ(), pArea.maxZ());
         long ySpan = pArea.getYSpan();
-        long i = xSpan > Long.MAX_VALUE / zSpan || xSpan * zSpan > Long.MAX_VALUE / ySpan
-                ? Long.MAX_VALUE : xSpan * zSpan * ySpan;
+        double i = xSpan * zSpan * ySpan;
         if (i > 32768) {
             throw ERROR_AREA_TOO_LARGE.create(32768, i);
         } else {
@@ -110,10 +110,10 @@ public class FillCommand {
             return p_137435_;
         }),
         OUTLINE((p_137428_, p_137429_, p_137430_, p_137431_) -> {
-            return p_137429_.getX() != p_137428_.minX() && p_137429_.getX() != p_137428_.maxX() && p_137429_.getY() != p_137428_.minY() && p_137429_.getY() != p_137428_.maxY() && p_137429_.getZ() != p_137428_.minZ() && p_137429_.getZ() != p_137428_.maxZ() ? null : p_137430_;
+            return !p_137429_.getX().equals(p_137428_.minX()) && !p_137429_.getX().equals(p_137428_.maxX()) && p_137429_.getY() != p_137428_.minY() && p_137429_.getY() != p_137428_.maxY() && !p_137429_.getZ().equals(p_137428_.minZ()) && !p_137429_.getZ().equals(p_137428_.maxZ()) ? null : p_137430_;
         }),
         HOLLOW((p_137423_, p_137424_, p_137425_, p_137426_) -> {
-            return p_137424_.getX() != p_137423_.minX() && p_137424_.getX() != p_137423_.maxX() && p_137424_.getY() != p_137423_.minY() && p_137424_.getY() != p_137423_.maxY() && p_137424_.getZ() != p_137423_.minZ() && p_137424_.getZ() != p_137423_.maxZ() ? FillCommand.HOLLOW_CORE : p_137425_;
+            return !p_137424_.getX().equals(p_137423_.minX()) && !p_137424_.getX().equals(p_137423_.maxX()) && p_137424_.getY() != p_137423_.minY() && p_137424_.getY() != p_137423_.maxY() && !p_137424_.getZ().equals(p_137423_.minZ()) && !p_137424_.getZ().equals(p_137423_.maxZ()) ? FillCommand.HOLLOW_CORE : p_137425_;
         }),
         DESTROY((p_137418_, p_137419_, p_137420_, p_137421_) -> {
             p_137421_.destroyBlock(p_137419_, true);

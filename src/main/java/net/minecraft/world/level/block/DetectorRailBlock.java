@@ -150,7 +150,7 @@ public class DetectorRailBlock extends BaseRailBlock {
 
     private AABB getSearchBB(BlockPos pPos) {
         double d0 = 0.2D;
-        return new AABB((double) pPos.getX() + 0.2D, (double) pPos.getY(), (double) pPos.getZ() + 0.2D, (double) (WorldBounds.addBlockOffset(pPos.getX(), 1)) - 0.2D, (double) (pPos.getY() + 1) - 0.2D, (double) (WorldBounds.addBlockOffset(pPos.getZ(), 1)) - 0.2D);
+        return new AABB(0.2D, 0.0D, 0.2D, 0.8D, 0.8D, 0.8D).move(pPos);
     }
 
     public BlockState rotate(BlockState pState, Rotation pRotation) {

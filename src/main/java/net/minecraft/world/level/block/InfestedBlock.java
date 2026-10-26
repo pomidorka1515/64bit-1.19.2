@@ -37,7 +37,7 @@ public class InfestedBlock extends Block {
 
     private void spawnInfestation(ServerLevel pLevel, BlockPos pPos) {
         Silverfish silverfish = EntityType.SILVERFISH.create(pLevel);
-        silverfish.moveTo((double) pPos.getX() + 0.5D, (double) pPos.getY(), (double) pPos.getZ() + 0.5D, 0.0F, 0.0F);
+        silverfish.moveTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, pPos.getY(), pPos.getZ(), 0.5D), 0.0F, 0.0F);
         pLevel.addFreshEntity(silverfish);
         silverfish.spawnAnim();
     }

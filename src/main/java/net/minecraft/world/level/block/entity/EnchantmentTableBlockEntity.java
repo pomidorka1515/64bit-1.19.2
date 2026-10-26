@@ -48,8 +48,9 @@ public class EnchantmentTableBlockEntity extends BlockEntity implements Nameable
         pBlockEntity.oRot = pBlockEntity.rot;
         Player player = pLevel.getNearestPlayer(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, pPos.getY() + 0.5D, pPos.getZ(), 0.5D), 3.0D, false);
         if (player != null) {
-            double d0 = player.getX() - ((double) pPos.getX() + 0.5D);
-            double d1 = player.getZ() - ((double) pPos.getZ() + 0.5D);
+            net.minecraft.world.phys.SectorVec3 center = net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(pPos.getX(), 0.5D, pPos.getY() + 0.5D, pPos.getZ(), 0.5D);
+            double d0 = player.exactPosition().relativeX(center);
+            double d1 = player.exactPosition().relativeZ(center);
             pBlockEntity.tRot = (float) Mth.atan2(d1, d0);
             pBlockEntity.open += 0.1F;
             if (pBlockEntity.open < 0.5F || RANDOM.nextInt(40) == 0) {

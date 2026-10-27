@@ -20,15 +20,21 @@ import org.junit.jupiter.api.Test;
 
 class WorldBoundsTest {
     private static volatile long productSink;
-    private static final BigInteger MIN_128 = BigInteger.ONE.shiftLeft(1087).negate();
-    private static final BigInteger MAX_128 = BigInteger.ONE.shiftLeft(1087).subtract(BigInteger.ONE);
+    private static final BigInteger MIN_1088 = BigInteger.ONE.shiftLeft(1087).negate();
+    private static final BigInteger MAX_1088 = BigInteger.ONE.shiftLeft(1087).subtract(BigInteger.ONE);
 
     private static BigInteger wide(Int1088 value) {
         return new BigInteger(value.toString());
     }
 
-    private static BigInteger clamp128(BigInteger value) {
-        return value.max(MIN_128).min(MAX_128);
+    private static BigInteger clamp1088(BigInteger value) {
+        return value.max(MIN_1088).min(MAX_1088);
+    }
+
+    private static Int1088 randomCoordinate(Random random) {
+        long[] limbs = new long[Int1088.LIMBS];
+        for (int i = 0; i < limbs.length; ++i) limbs[i] = random.nextLong();
+        return Int1088.fromFixedLimbs(limbs);
     }
 
     private static long clampLong(BigInteger value) {
@@ -36,7 +42,7 @@ class WorldBoundsTest {
     }
 
     @Test
-    void relativeDifferencesUseTheSpanRatherThanHighHalfEquality() {
+    void relativeDifferencesUseTheSpanRatherThanLimbEquality() {
         Int1088 boundary = Int1088.of(0L, 123L);
         Int1088 before = boundary.subtract(Int1088.ONE);
         assertEquals(1.0D, WorldBounds.signedDifferenceExact(boundary, before));
@@ -60,6 +66,13 @@ class WorldBoundsTest {
         Int1088[] edges = {Int1088.MIN, Int1088.MIN.add(Int1088.ONE), Int1088.fromLong(Long.MIN_VALUE),
                 Int1088.fromLong(-1L), Int1088.ZERO, Int1088.ONE, Int1088.fromLong(Long.MAX_VALUE),
                 Int1088.of(Long.MIN_VALUE, 0L), Int1088.of(-1L, 0L), Int1088.of(0L, 1L), Int1088.MAX};
+        for (int limb = 1; limb < Int1088.LIMBS; ++limb) {
+            for (int sign : new int[] {-1, 1}) {
+                BigInteger boundary = BigInteger.ONE.shiftLeft(64 * limb).multiply(BigInteger.valueOf(sign));
+                assertFullWidthRange(Int1088.parseDecimal(boundary.subtract(BigInteger.ONE).toString()),
+                        Int1088.parseDecimal(boundary.add(BigInteger.ONE).toString()));
+            }
+        }
         for (Int1088 a : edges) {
             for (Int1088 b : edges) {
                 assertFullWidthRange(a, b);
@@ -67,9 +80,12 @@ class WorldBoundsTest {
         }
         Random random = new Random(0x5203L);
         for (int i = 0; i < 1000; ++i) {
-            Int1088 a = Int1088.of(random.nextLong(), random.nextLong());
-            assertFullWidthRange(a, Int1088.of(random.nextLong(), random.nextLong()));
-            assertFullWidthRange(a, Int1088.of(random.nextLong(), a.limb(1)));
+            Int1088 a = randomCoordinate(random);
+            assertFullWidthRange(a, randomCoordinate(random));
+            long[] nearby = new long[Int1088.LIMBS];
+            a.copyFixed(nearby, 0);
+            nearby[0] = random.nextLong();
+            assertFullWidthRange(a, Int1088.fromFixedLimbs(nearby));
             assertFullWidthRange(a, a.addSaturated(Int1088.fromLong(random.nextInt(1 << 22) - (1 << 21))));
         }
         assertEquals(Double.POSITIVE_INFINITY, WorldBounds.inclusiveBlockSpanDouble(Int1088.MIN, Int1088.MAX));
@@ -91,17 +107,17 @@ class WorldBoundsTest {
         assertEquals(ascending, WorldBounds.isWithinBlockRange(a, a, b));
         assertEquals(ascending, WorldBounds.isWithinBlockRange(b, a, b));
         BigInteger span = ascending ? second.subtract(first).add(BigInteger.ONE) : BigInteger.ZERO;
-        assertEquals(clamp128(span).toString(), WorldBounds.inclusiveBlockSpan(a, b).toString());
+        assertEquals(clamp1088(span).toString(), WorldBounds.inclusiveBlockSpan(a, b).toString());
         assertEquals(span.doubleValue(), WorldBounds.inclusiveBlockSpanDouble(a, b), Math.ulp(span.doubleValue()));
         BigInteger midpoint = first.add(second).add(BigInteger.ONE).shiftRight(1);
         assertEquals(midpoint.toString(), WorldBounds.middleBlockCoordinate(a, b).toString());
         BigInteger offset = ascending ? second.subtract(first) : BigInteger.ZERO;
-        assertEquals(clamp128(offset).toString(), WorldBounds.blockOffsetInRange(b, a, b).toString());
+        assertEquals(clamp1088(offset).toString(), WorldBounds.blockOffsetInRange(b, a, b).toString());
         assertEquals(Int1088.ZERO, WorldBounds.blockOffsetInRange(a, a, b));
         if (ascending) {
             Int1088 middle = WorldBounds.middleBlockCoordinate(a, b);
             assertTrue(WorldBounds.isWithinBlockRange(middle, a, b));
-            assertEquals(clamp128(wide(middle).subtract(first)).toString(),
+            assertEquals(clamp1088(wide(middle).subtract(first)).toString(),
                     WorldBounds.blockOffsetInRange(middle, a, b).toString());
         }
     }
@@ -111,7 +127,7 @@ class WorldBoundsTest {
         Int1088 anchor = Int1088.of(-19L, 123456789L);
         for (double offset : new double[] {-0x1p100, -0x1p63, -1.1D, -0.5D, 0.0D, 0.5D, 3.9D, 0x1p63, 0x1p100}) {
             BigInteger delta = new java.math.BigDecimal(offset).setScale(0, java.math.RoundingMode.FLOOR).toBigIntegerExact();
-            assertEquals(clamp128(wide(anchor).add(delta)).toString(), WorldBounds.addDoubleBlockOffset(anchor, offset).toString());
+            assertEquals(clamp1088(wide(anchor).add(delta)).toString(), WorldBounds.addDoubleBlockOffset(anchor, offset).toString());
         }
         for (double offset : new double[] {Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY}) {
             assertEquals(anchor, WorldBounds.addDoubleBlockOffset(anchor, offset));
@@ -131,17 +147,17 @@ class WorldBoundsTest {
                 assertFullWidthOffset(a, offset);
             }
             for (Int1088 b : edges) {
-                assertEquals(clamp128(wide(a).add(wide(b))).toString(), WorldBounds.addBlockOffset(a, b).toString());
+                assertEquals(clamp1088(wide(a).add(wide(b))).toString(), WorldBounds.addBlockOffset(a, b).toString());
                 for (long factor : offsets) {
                     for (long otherFactor : offsets) {
-                        BigInteger firstProduct = clamp128(wide(a).multiply(BigInteger.valueOf(factor)));
-                        BigInteger secondProduct = clamp128(wide(b).multiply(BigInteger.valueOf(otherFactor)));
-                        assertEquals(clamp128(firstProduct.subtract(secondProduct)).toString(),
+                        BigInteger firstProduct = clamp1088(wide(a).multiply(BigInteger.valueOf(factor)));
+                        BigInteger secondProduct = clamp1088(wide(b).multiply(BigInteger.valueOf(otherFactor)));
+                        assertEquals(clamp1088(firstProduct.subtract(secondProduct)).toString(),
                                 WorldBounds.crossComponent(a, factor, b, otherFactor).toString());
                     }
                 }
                 for (Int1088 c : edges) {
-                    assertEquals(clamp128(wide(a).add(wide(b)).subtract(wide(c))).toString(),
+                    assertEquals(clamp1088(wide(a).add(wide(b)).subtract(wide(c))).toString(),
                             WorldBounds.addSubtract(a, b, c).toString());
                 }
             }
@@ -153,18 +169,18 @@ class WorldBoundsTest {
         }
         Random random = new Random(0x5202L);
         for (int i = 0; i < 1000; ++i) {
-            Int1088 a = Int1088.of(random.nextLong(), random.nextLong());
-            Int1088 b = Int1088.of(random.nextLong(), random.nextLong());
-            Int1088 c = Int1088.of(random.nextLong(), random.nextLong());
+            Int1088 a = randomCoordinate(random);
+            Int1088 b = randomCoordinate(random);
+            Int1088 c = randomCoordinate(random);
             long factor = random.nextLong();
             long otherFactor = random.nextLong();
             assertFullWidthOffset(a, factor);
-            assertEquals(clamp128(wide(a).add(wide(b))).toString(), WorldBounds.addBlockOffset(a, b).toString());
-            assertEquals(clamp128(wide(a).add(wide(b)).subtract(wide(c))).toString(),
+            assertEquals(clamp1088(wide(a).add(wide(b))).toString(), WorldBounds.addBlockOffset(a, b).toString());
+            assertEquals(clamp1088(wide(a).add(wide(b)).subtract(wide(c))).toString(),
                     WorldBounds.addSubtract(a, b, c).toString());
-            BigInteger firstProduct = clamp128(wide(a).multiply(BigInteger.valueOf(factor)));
-            BigInteger secondProduct = clamp128(wide(b).multiply(BigInteger.valueOf(otherFactor)));
-            assertEquals(clamp128(firstProduct.subtract(secondProduct)).toString(),
+            BigInteger firstProduct = clamp1088(wide(a).multiply(BigInteger.valueOf(factor)));
+            BigInteger secondProduct = clamp1088(wide(b).multiply(BigInteger.valueOf(otherFactor)));
+            assertEquals(clamp1088(firstProduct.subtract(secondProduct)).toString(),
                     WorldBounds.crossComponent(a, factor, b, otherFactor).toString());
         }
         assertEquals(Int1088.ZERO, WorldBounds.crossComponent(Int1088.MAX, 2L, Int1088.MAX, 2L));
@@ -174,9 +190,9 @@ class WorldBoundsTest {
     private static void assertFullWidthOffset(Int1088 coordinate, long offset) {
         BigInteger value = wide(coordinate);
         BigInteger delta = BigInteger.valueOf(offset);
-        assertEquals(clamp128(value.add(delta)).toString(), WorldBounds.addBlockOffset(coordinate, offset).toString());
-        assertEquals(clamp128(value.subtract(delta)).toString(), WorldBounds.subtractBlockOffset(coordinate, offset).toString());
-        assertEquals(clamp128(value.multiply(delta)).toString(), WorldBounds.multiplySaturated(coordinate, offset).toString());
+        assertEquals(clamp1088(value.add(delta)).toString(), WorldBounds.addBlockOffset(coordinate, offset).toString());
+        assertEquals(clamp1088(value.subtract(delta)).toString(), WorldBounds.subtractBlockOffset(coordinate, offset).toString());
+        assertEquals(clamp1088(value.multiply(delta)).toString(), WorldBounds.multiplySaturated(coordinate, offset).toString());
     }
 
     @Test
@@ -310,7 +326,7 @@ class WorldBoundsTest {
         BigInteger maxChunk = maxBlock.shiftRight(4);
         Random random = new Random(0x5201L);
         for (int i = 0; i < 1000; ++i) {
-            Int1088 coordinate = Int1088.of(random.nextLong(), random.nextLong());
+            Int1088 coordinate = randomCoordinate(random);
             BigInteger value = new BigInteger(coordinate.toString());
             BigInteger clamped = value.max(minChunk).min(maxChunk);
             assertEquals(clamped.toString(), WorldBounds.clampChunk(coordinate).toString());

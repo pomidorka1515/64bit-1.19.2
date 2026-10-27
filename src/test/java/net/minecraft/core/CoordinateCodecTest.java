@@ -9,9 +9,29 @@ import java.util.List;
 import net.minecraft.nbt.LongArrayTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.level.ChunkPos;
 import org.junit.jupiter.api.Test;
 
 class CoordinateCodecTest {
+    @Test
+    void chunkCodecStoresBothAxesAsSeventeenLittleEndianLimbs() {
+        for (int limb = 0; limb < Int1088.LIMBS; ++limb) {
+            Int1088 x = Int1088.ONE.shiftLeftSaturated(64 * limb);
+            ChunkPos position = new ChunkPos(x, x.negate());
+            Tag encoded = ChunkPos.CODEC.encodeStart(NbtOps.INSTANCE, position).result().orElseThrow();
+            long[] expected = new long[34];
+            position.x().copyFixed(expected, 0);
+            position.z().copyFixed(expected, 17);
+            assertArrayEquals(expected, ((LongArrayTag) encoded).getAsLongArray());
+            assertEquals(position, ChunkPos.CODEC.parse(NbtOps.INSTANCE, encoded).result().orElseThrow());
+        }
+        for (int length : new int[] {0, 2, 4, 17, 33, 35, 68}) {
+            var decoded = ChunkPos.CODEC.parse(NbtOps.INSTANCE, new LongArrayTag(new long[length]));
+            assertTrue(decoded.error().isPresent(), "length " + length);
+            assertTrue(decoded.result().isEmpty());
+        }
+    }
+
     @Test
     void fixedLimbEncodingRetainsAllLimbsAndIntegerHeight() {
         for (Int1088 x : new Int1088[] {Int1088.MIN, Int1088.MAX, Int1088.ZERO,

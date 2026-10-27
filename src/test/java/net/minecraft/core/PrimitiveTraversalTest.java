@@ -9,6 +9,30 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PrimitiveTraversalTest {
     @Test
+    void cursorAndBlockTraversalCarryAcrossEveryLimbWithoutAliasing() {
+        for (int limb = 1; limb < Int1088.LIMBS; ++limb) {
+            java.math.BigInteger boundary = java.math.BigInteger.ONE.shiftLeft(64 * limb);
+            for (int sign : new int[] {-1, 1}) {
+                java.math.BigInteger start = boundary.multiply(java.math.BigInteger.valueOf(sign))
+                        .subtract(java.math.BigInteger.ONE);
+                Int1088 first = Int1088.parseDecimal(start.toString());
+                Int1088 last = Int1088.parseDecimal(start.add(java.math.BigInteger.TWO).toString());
+                Cursor3D cursor = new Cursor3D(first, 9, first, last, 9, first);
+                var blocks = BlockPos.betweenClosed(first, 9, first, last, 9, first).iterator();
+                for (int offset = 0; offset < 3; ++offset) {
+                    Int1088 expected = Int1088.parseDecimal(start.add(java.math.BigInteger.valueOf(offset)).toString());
+                    assertTrue(cursor.advance());
+                    assertEquals(expected, cursor.nextX());
+                    assertEquals(first, cursor.nextZ());
+                    assertEquals(new BlockPos(expected, 9, first), blocks.next().immutable());
+                }
+                assertFalse(cursor.advance());
+                assertFalse(blocks.hasNext());
+            }
+        }
+    }
+
+    @Test
     void cursorResetSwitchesBetweenLocalWideAndEmptyRanges() {
         Cursor3D cursor = new Cursor3D(0, 0, 0, 2, 2, 2);
         int count = 0;

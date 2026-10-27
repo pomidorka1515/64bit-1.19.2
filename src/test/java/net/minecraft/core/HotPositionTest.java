@@ -30,10 +30,17 @@ class HotPositionTest {
 
     @Test
     void primitiveSumMatchesValueArithmeticForFullWidthOperands() {
-        Random random = new Random(0x128L);
+        Random random = new Random(0x1088L);
+        System.out.println("full-width position sum seed: 0x1088");
         for (int i = 0; i < 10000; ++i) {
-            Int1088 a = Int1088.of(random.nextLong(), random.nextLong());
-            Int1088 b = Int1088.of(random.nextLong(), random.nextLong());
+            long[] x = new long[Int1088.LIMBS];
+            long[] z = new long[Int1088.LIMBS];
+            for (int limb = 0; limb < Int1088.LIMBS; ++limb) {
+                x[limb] = random.nextLong();
+                z[limb] = random.nextLong();
+            }
+            Int1088 a = Int1088.fromFixedLimbs(x);
+            Int1088 b = Int1088.fromFixedLimbs(z);
             Int1088 expected = a.addSaturated(b);
             BlockPos pos = new BlockPos(a, 12, b);
             BlockPos offset = new BlockPos(b, 3, a);

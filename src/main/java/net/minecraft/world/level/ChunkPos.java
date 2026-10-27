@@ -80,7 +80,8 @@ public class ChunkPos {
     public static Stream<ChunkPos> rangeClosed(ChunkPos start, ChunkPos end) {
         RangeCursor cursor = rangeClosedCursor(start, end);
         long size = Int1088Math.safeProduct(Int1088Math.distancePlusOne(start.x, end.x), Int1088Math.distancePlusOne(start.z, end.z));
-        return StreamSupport.stream(new Spliterators.AbstractSpliterator<ChunkPos>(size, 64) {
+        int characteristics = java.util.Spliterator.ORDERED | (size == Long.MAX_VALUE ? 0 : java.util.Spliterator.SIZED);
+        return StreamSupport.stream(new Spliterators.AbstractSpliterator<ChunkPos>(size, characteristics) {
             public boolean tryAdvance(Consumer<? super ChunkPos> consumer) {
                 if (!cursor.advance()) return false;
                 consumer.accept(cursor.toChunkPos());

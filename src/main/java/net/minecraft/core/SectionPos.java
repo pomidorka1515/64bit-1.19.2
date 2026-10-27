@@ -266,10 +266,15 @@ public class SectionPos extends Vec3i {
         Int1088 maxX = WorldBounds.clampChunk(pX2);
         Int1088 maxZ = WorldBounds.clampChunk(pZ2);
         boolean empty = pX1.compareTo(pX2) > 0 || pY1 > pY2 || pZ1.compareTo(pZ2) > 0;
+        Int1088 spanX = WorldBounds.inclusiveBlockSpan(minX, maxX);
+        Int1088 spanZ = WorldBounds.inclusiveBlockSpan(minZ, maxZ);
         long size = empty ? 0L : WorldBounds.multiplySaturated(
-                WorldBounds.multiplySaturated(spanLong(minX, maxX), (long) pY2 - pY1 + 1L), spanLong(minZ, maxZ));
+                WorldBounds.multiplySaturated(spanX.fitsLong() ? spanX.lowLimb() : Long.MAX_VALUE,
+                        (long) pY2 - pY1 + 1L), spanZ.fitsLong() ? spanZ.lowLimb() : Long.MAX_VALUE);
         Cursor3D cursor = new Cursor3D(minX, pY1, minZ, maxX, pY2, maxZ);
-        return StreamSupport.stream(new Spliterators.AbstractSpliterator<SectionPos>(size, 64) {
+        // A saturated size is only a hint, not an exact SIZED contract.
+        int characteristics = java.util.Spliterator.ORDERED | (size == Long.MAX_VALUE ? 0 : java.util.Spliterator.SIZED);
+        return StreamSupport.stream(new Spliterators.AbstractSpliterator<SectionPos>(size, characteristics) {
             public boolean tryAdvance(Consumer<? super SectionPos> pConsumer) {
                 if (empty || !cursor.advance()) {
                     return false;
@@ -278,11 +283,6 @@ public class SectionPos extends Vec3i {
                 return true;
             }
         }, false);
-    }
-
-    private static long spanLong(Int1088 min, Int1088 max) {
-        Int1088 span = WorldBounds.inclusiveBlockSpan(min, max);
-        return span.compareTo(Int1088.fromLong(Long.MAX_VALUE)) >= 0 ? Long.MAX_VALUE : span.lowLimb();
     }
 
     public static void aroundAndAtBlockPos(BlockPos pPos, Consumer<SectionPos> pConsumer) {

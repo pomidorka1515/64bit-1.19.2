@@ -185,13 +185,16 @@ public class BlockPos extends Vec3i {
         return () -> {
             return new AbstractIterator<BlockPos>() {
                 final BlockPos.MutableBlockPos nextPos = new BlockPos.MutableBlockPos();
+                final RandomCoordinate x = valid ? new RandomCoordinate(pMinX, pMaxX) : null;
+                final RandomCoordinate y = valid ? new RandomCoordinate(Int1088.fromLong(pMinY), Int1088.fromLong(pMaxY)) : null;
+                final RandomCoordinate z = valid ? new RandomCoordinate(pMinZ, pMaxZ) : null;
                 int counter = pAmount;
 
                 protected BlockPos computeNext() {
                     if (this.counter <= 0 || !valid) {
                         return this.endOfData();
                     } else {
-                        BlockPos blockpos = this.nextPos.set(randomCoordinate(pRandom, pMinX, pMaxX), (int) randomCoordinate(pRandom, Int1088.fromLong(pMinY), Int1088.fromLong(pMaxY)).lowLimb(), randomCoordinate(pRandom, pMinZ, pMaxZ));
+                        BlockPos blockpos = this.nextPos.setLimbs(this.x.sample(pRandom), (int) this.y.sample(pRandom)[0], this.z.sample(pRandom));
                         --this.counter;
                         return blockpos;
                     }
@@ -200,25 +203,40 @@ public class BlockPos extends Vec3i {
         };
     }
 
-    private static Int1088 randomCoordinate(RandomSource random, Int1088 min, Int1088 max) {
-        Int1088 width = max.subtract(min);
-        long[] limit = new long[Int1088.LIMBS];
-        width.copyFixed(limit, 0);
-        int top = Int1088.LIMBS - 1;
-        while (top > 0 && limit[top] == 0) --top;
-        int bits = 64 - Long.numberOfLeadingZeros(limit[top]);
-        long[] sample = new long[Int1088.LIMBS];
-        boolean greater;
-        do {
-            for (int i = 0; i <= top; ++i) sample[i] = random.nextLong();
-            if (bits < 64) sample[top] = bits == 0 ? 0 : sample[top] >>> (64 - bits);
-            greater = false;
-            for (int i = top; i >= 0; --i) {
-                int comparison = Long.compareUnsigned(sample[i], limit[i]);
-                if (comparison != 0) { greater = comparison > 0; break; }
-            }
-        } while (greater);
-        return min.add(Int1088.fromFixedLimbs(sample));
+    private static final class RandomCoordinate {
+        private final long[] origin;
+        private final long[] limit = new long[Int1088.LIMBS];
+        private final long[] sample = new long[Int1088.LIMBS];
+        private final int top, bits;
+
+        RandomCoordinate(Int1088 min, Int1088 max) {
+            this.origin = fixed(min);
+            max.copyFixed(this.limit, 0);
+            // Unsigned width, not a coordinate: MIN..MAX has width 2^1088-1.
+            Int1088Math.subtract(this.limit, 0, Int1088.LIMBS, this.origin, 0, Int1088.LIMBS, this.limit, 0);
+            int top = Int1088.LIMBS - 1;
+            while (top > 0 && this.limit[top] == 0) --top;
+            this.top = top;
+            this.bits = 64 - Long.numberOfLeadingZeros(this.limit[top]);
+        }
+
+        long[] sample(RandomSource random) {
+            java.util.Arrays.fill(this.sample, this.top + 1, Int1088.LIMBS, 0);
+            boolean greater;
+            do {
+                for (int i = 0; i <= this.top; ++i) this.sample[i] = random.nextLong();
+                if (this.bits < 64) this.sample[this.top] = this.bits == 0 ? 0 : this.sample[this.top] >>> (64 - this.bits);
+                greater = false;
+                for (int i = this.top; i >= 0; --i) {
+                    int comparison = Long.compareUnsigned(this.sample[i], this.limit[i]);
+                    if (comparison != 0) { greater = comparison > 0; break; }
+                }
+            } while (greater);
+            // Unsigned offset + origin is proven inside [min,max]; modular limb
+            // arithmetic here cannot wrap the resulting coordinate out of range.
+            Int1088Math.add(this.origin, 0, Int1088.LIMBS, this.sample, 0, Int1088.LIMBS, this.sample, 0);
+            return this.sample;
+        }
     }
 
     public static Iterable<BlockPos> withinManhattan(BlockPos pPos, int pXSize, int pYSize, int pZSize) {
@@ -341,27 +359,20 @@ public class BlockPos extends Vec3i {
             return java.util.Collections::emptyIterator;
         }
 
-        // Iterate endpoint-first instead of deriving a flattened count.  The old
-        // count used signed-long subtraction/multiplication and an int index, so
-        // an edge range could wrap into an effectively endless generator loop.
         return () -> new AbstractIterator<BlockPos>() {
             private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-            private final long[] x = fixed(pX1);
-            private final long[] z = fixed(pZ1);
-            private int y = pY1;
-            private boolean done;
+            private final Cursor3D range = new Cursor3D(pX1, pY1, pZ1, pX2, pY2, pZ2);
 
             protected BlockPos computeNext() {
-                if (this.done) {
+                if (!this.range.advance()) {
                     return this.endOfData();
                 }
 
-                this.cursor.setLimbs(this.x, this.y, this.z);
-                if (!sameLimbs(this.x, pX2)) increment(this.x);
-                else if (this.y != pY2) { pX1.copyFixed(this.x, 0); ++this.y; }
-                else if (!sameLimbs(this.z, pZ2)) { pX1.copyFixed(this.x, 0); this.y = pY1; increment(this.z); }
-                else this.done = true;
-
+                for (int i = 0; i < Int1088.LIMBS; ++i) {
+                    this.cursor.mutableX[i] = this.range.nextXLimb(i);
+                    this.cursor.mutableZ[i] = this.range.nextZLimb(i);
+                }
+                this.cursor.setY(this.range.nextY());
                 return this.cursor;
             }
         };
@@ -371,15 +382,6 @@ public class BlockPos extends Vec3i {
         long[] words = new long[Int1088.LIMBS];
         value.copyFixed(words, 0);
         return words;
-    }
-
-    private static boolean sameLimbs(long[] words, Int1088 value) {
-        for (int i = 0; i < Int1088.LIMBS; ++i) if (words[i] != value.limb(i)) return false;
-        return true;
-    }
-
-    private static void increment(long[] words) {
-        for (int i = 0; i < words.length; ++i) if (++words[i] != 0) break;
     }
 
     public static Iterable<BlockPos.MutableBlockPos> spiralAround(BlockPos p_121936_, int p_121937_, Direction p_121938_, Direction p_121939_) {

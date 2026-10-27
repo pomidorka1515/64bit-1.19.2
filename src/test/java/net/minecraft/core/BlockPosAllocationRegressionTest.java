@@ -71,15 +71,64 @@ class BlockPosAllocationRegressionTest {
         var bean = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
         org.junit.jupiter.api.Assumptions.assumeTrue(bean.isThreadAllocatedMemorySupported());
         bean.setThreadAllocatedMemoryEnabled(true);
-        Int1088 origin = Int1088.ONE.shiftLeftSaturated(1024);
-        var iterable = BlockPos.betweenClosed(origin, 0, origin, origin.addSaturated(Int1088.fromLong(15)), 15,
-                origin.addSaturated(Int1088.fromLong(15)));
-        for (int i = 0; i < 20; ++i) checksumSink = traverse(iterable);
+        for (Int1088 origin : new Int1088[] {Int1088.fromLong(-8), Int1088.fromLong(Long.MAX_VALUE - 7),
+                Int1088.ONE.shiftLeftSaturated(1024).subtractSaturated(Int1088.fromLong(8)),
+                Int1088.MIN, Int1088.MAX.subtractSaturated(Int1088.fromLong(15))}) {
+            var iterable = BlockPos.betweenClosed(origin, 0, origin, origin.addSaturated(Int1088.fromLong(15)), 15,
+                    origin.addSaturated(Int1088.fromLong(15)));
+            for (int i = 0; i < 20; ++i) checksumSink = traverse(iterable);
+            long thread = Thread.currentThread().getId();
+            long before = bean.getThreadAllocatedBytes(thread);
+            checksumSink = traverse(iterable);
+            long bytes = bean.getThreadAllocatedBytes(thread) - before;
+            assertTrue(bytes < 2048, "traversal allocated " + bytes + " bytes");
+        }
+    }
+
+    @Test
+    void randomTraversalAllocatesOnlyIteratorScratch() {
+        var bean = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
+        org.junit.jupiter.api.Assumptions.assumeTrue(bean.isThreadAllocatedMemorySupported());
+        bean.setThreadAllocatedMemoryEnabled(true);
+        var random = net.minecraft.util.RandomSource.create(0x108843);
+        for (Int1088[] bounds : new Int1088[][] {{Int1088.fromLong(-8), Int1088.fromLong(7)},
+                {Int1088.MIN, Int1088.MAX}}) {
+            var iterable = BlockPos.randomBetweenClosed(random, 10000, bounds[0], 0, bounds[0], bounds[1], 15, bounds[1]);
+            for (int i = 0; i < 20; ++i) checksumSink = traverse(iterable);
+            long thread = Thread.currentThread().getId();
+            long before = bean.getThreadAllocatedBytes(thread);
+            checksumSink = traverse(iterable);
+            long bytes = bean.getThreadAllocatedBytes(thread) - before;
+            assertTrue(bytes < 4096, "random traversal allocated " + bytes + " bytes");
+        }
+    }
+
+    @Test
+    void cursorAdvanceAndBoundaryClassificationDoNotAllocate() {
+        var bean = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
+        org.junit.jupiter.api.Assumptions.assumeTrue(bean.isThreadAllocatedMemorySupported());
+        bean.setThreadAllocatedMemoryEnabled(true);
+        Int1088 origin = Int1088.ONE.shiftLeftSaturated(1024).subtractSaturated(Int1088.fromLong(8));
+        Int1088 end = origin.addSaturated(Int1088.fromLong(15));
+        Cursor3D cursor = new Cursor3D(origin, 0, origin, end, 15, end);
+        for (int i = 0; i < 20; ++i) {
+            cursor.reset(origin, 0, origin, end, 15, end);
+            checksumSink = traverse(cursor);
+        }
         long thread = Thread.currentThread().getId();
         long before = bean.getThreadAllocatedBytes(thread);
-        checksumSink = traverse(iterable);
+        for (int i = 0; i < 20; ++i) {
+            cursor.reset(origin, 0, origin, end, 15, end);
+            checksumSink = traverse(cursor);
+        }
         long bytes = bean.getThreadAllocatedBytes(thread) - before;
-        assertTrue(bytes < 2048, "traversal allocated " + bytes + " bytes");
+        assertTrue(bytes < 1024, "cursor advance allocated " + bytes + " bytes");
+    }
+
+    private static long traverse(Cursor3D cursor) {
+        long checksum = 0;
+        while (cursor.advance()) checksum += cursor.nextXLimb(0) + cursor.nextZLimb(0) + cursor.nextY() + cursor.getNextType();
+        return checksum;
     }
 
     private static long traverse(Iterable<BlockPos> positions) {

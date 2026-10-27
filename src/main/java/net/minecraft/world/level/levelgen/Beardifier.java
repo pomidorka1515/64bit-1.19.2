@@ -5,7 +5,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import it.unimi.dsi.fastutil.objects.ObjectListIterator;
 import net.minecraft.Util;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.StructureManager;
@@ -33,8 +33,8 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
     private final ObjectListIterator<JigsawJunction> junctionIterator;
 
     public static Beardifier forStructuresInChunk(StructureManager pStructureManager, ChunkPos pChunkPos) {
-        Int128 i = pChunkPos.getMinBlockX();
-        Int128 j = pChunkPos.getMinBlockZ();
+        Int1088 i = pChunkPos.getMinBlockX();
+        Int1088 j = pChunkPos.getMinBlockZ();
         ObjectList<Beardifier.Rigid> objectlist = new ObjectArrayList<>(10);
         ObjectList<JigsawJunction> objectlist1 = new ObjectArrayList<>(32);
         pStructureManager.startsForStructure(pChunkPos, (p_223941_) -> {
@@ -52,8 +52,8 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
                         }
 
                         for (JigsawJunction jigsawjunction : poolelementstructurepiece.getJunctions()) {
-                            Int128 k = jigsawjunction.getSourceX();
-                            Int128 l = jigsawjunction.getSourceZ();
+                            Int1088 k = jigsawjunction.getSourceX();
+                            Int1088 l = jigsawjunction.getSourceZ();
                             if (k.compareTo(WorldBounds.subtractBlockOffset(i, 12L)) > 0 && l.compareTo(WorldBounds.subtractBlockOffset(j, 12L)) > 0 && k.compareTo(WorldBounds.addBlockOffset(i, 27L)) < 0 && l.compareTo(WorldBounds.addBlockOffset(j, 27L)) < 0) {
                                 objectlist1.add(jigsawjunction);
                             }
@@ -74,9 +74,7 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
     }
 
     public double compute(DensityFunction.FunctionContext pContext) {
-        long i = pContext.blockX();
         int j = pContext.blockY();
-        long k = pContext.blockZ();
 
         double d0;
         double d1;
@@ -84,9 +82,8 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
             Beardifier.Rigid beardifier$rigid = this.pieceIterator.next();
             BoundingBox boundingbox = beardifier$rigid.box();
             int l = beardifier$rigid.groundLevelDelta();
-            // Density contexts remain 64-bit: project generated-content sampling only.
-            double i1 = Math.max(0.0D, Math.max(net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.difference(boundingbox.minX().hi(), boundingbox.minX().lo(), pContext.blockXHi(), i), net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.difference(pContext.blockXHi(), i, boundingbox.maxX().hi(), boundingbox.maxX().lo())));
-            double j1 = Math.max(0.0D, Math.max(net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.difference(boundingbox.minZ().hi(), boundingbox.minZ().lo(), pContext.blockZHi(), k), net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.difference(pContext.blockZHi(), k, boundingbox.maxZ().hi(), boundingbox.maxZ().lo())));
+            double i1 = Math.max(0.0D, Math.max(-difference(pContext, true, boundingbox.minX()), difference(pContext, true, boundingbox.maxX())));
+            double j1 = Math.max(0.0D, Math.max(-difference(pContext, false, boundingbox.minZ()), difference(pContext, false, boundingbox.maxZ())));
             int k1 = boundingbox.minY() + l;
             int l1 = j - k1;
             int i3;
@@ -126,14 +123,34 @@ public class Beardifier implements DensityFunctions.BeardifierOrMarker {
 
         while (this.junctionIterator.hasNext()) {
             JigsawJunction jigsawjunction = this.junctionIterator.next();
-            double j2 = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.difference(pContext.blockXHi(), i, jigsawjunction.getSourceX().hi(), jigsawjunction.getSourceX().lo());
+            double j2 = difference(pContext, true, jigsawjunction.getSourceX());
             int k2 = j - jigsawjunction.getSourceGroundY();
-            double l2 = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.difference(pContext.blockZHi(), k, jigsawjunction.getSourceZ().hi(), jigsawjunction.getSourceZ().lo());
+            double l2 = difference(pContext, false, jigsawjunction.getSourceZ());
             d0 += getBeardContribution(j2, k2, l2, k2) * 0.4D;
         }
 
         this.junctionIterator.back(Integer.MAX_VALUE);
         return d0;
+    }
+
+    /** Exact local subtraction; remote differences saturate without aliasing a limb. */
+    private static double difference(DensityFunction.FunctionContext context, boolean x, Int1088 value) {
+        long low = 0L, borrow = 0L, sign = 0L, top = 0L;
+        boolean fits = true;
+        for (int index = 0; index < Int1088.LIMBS; ++index) {
+            long a = x ? context.blockXLimb(index) : context.blockZLimb(index);
+            long b = value.limb(index);
+            long first = a - b;
+            long result = first - borrow;
+            borrow = (Long.compareUnsigned(a, b) < 0 || borrow != 0 && first == 0L) ? 1L : 0L;
+            if (index == 0) { low = result; sign = result >> 63; }
+            else if (result != sign) fits = false;
+            top = result;
+        }
+        long sourceTop = x ? context.blockXLimb(Int1088.LIMBS - 1) : context.blockZLimb(Int1088.LIMBS - 1);
+        if (((sourceTop ^ value.limb(Int1088.LIMBS - 1)) & (sourceTop ^ top)) < 0L)
+            return sourceTop < 0L ? -Double.MAX_VALUE : Double.MAX_VALUE;
+        return fits ? (double) low : top < 0L ? -Double.MAX_VALUE : Double.MAX_VALUE;
     }
 
     public double minValue() {

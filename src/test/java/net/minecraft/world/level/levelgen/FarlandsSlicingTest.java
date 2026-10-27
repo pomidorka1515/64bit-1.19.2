@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.levelgen.synth.CoordinatePrecision;
@@ -31,9 +31,9 @@ class FarlandsSlicingTest {
             NoiseRouter noShifts = router.mapAll(function -> function instanceof DensityFunctions.ShiftedNoise noise
                     ? new DensityFunctions.ShiftedNoise(DensityFunctions.zero(), noise.shiftY(), DensityFunctions.zero(),
                             noise.xzScale(), noise.yScale(), noise.noise()) : function);
-            Int128 z = Int128.parseDecimal("156797324626531188726");
-            var cut = new DensityFunction.SinglePointContext(Int128.fromLong(-24), 80, z);
-            var survivor = new DensityFunction.SinglePointContext(Int128.ZERO, 80, z);
+            Int1088 z = Int1088.parseDecimal("156797324626531188726");
+            var cut = new DensityFunction.SinglePointContext(Int1088.fromLong(-24), 80, z);
+            var survivor = new DensityFunction.SinglePointContext(Int1088.ZERO, 80, z);
             assertTrue(Double.isNaN(router.finalDensity().compute(cut)));
             assertTrue(Double.isNaN(noContinents.finalDensity().compute(cut)));
             assertTrue(Double.isFinite(noShifts.finalDensity().compute(cut)));
@@ -42,10 +42,10 @@ class FarlandsSlicingTest {
 
             // Early onset: a finite sample becomes NaN within a million blocks
             // of the highest-frequency shift octave's nominal lattice limit.
-            var before = new DensityFunction.SinglePointContext(Int128.fromLong(-120), 80,
-                    Int128.parseDecimal("72473261583357402475"));
-            var after = new DensityFunction.SinglePointContext(Int128.fromLong(-120), 80,
-                    Int128.parseDecimal("72473261583358402475"));
+            var before = new DensityFunction.SinglePointContext(Int1088.fromLong(-120), 80,
+                    Int1088.parseDecimal("72473261583357402475"));
+            var after = new DensityFunction.SinglePointContext(Int1088.fromLong(-120), 80,
+                    Int1088.parseDecimal("72473261583358402475"));
             assertFalse(Double.isNaN(router.finalDensity().compute(before)));
             assertTrue(Double.isNaN(router.finalDensity().compute(after)));
         }

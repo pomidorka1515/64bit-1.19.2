@@ -5,7 +5,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -70,12 +70,6 @@ public class SurfaceSystem {
     public void buildSurface(RandomState p_224649_, BiomeManager p_224650_, Registry<Biome> p_224651_, boolean p_224652_, WorldGenerationContext p_224653_, final ChunkAccess p_224654_, NoiseChunk p_224655_, SurfaceRules.RuleSource p_224656_) {
         final BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
         final ChunkPos chunkpos = p_224654_.getPos();
-        Int128 minX = chunkpos.getMinBlockX();
-        long iHi = minX.hi();
-        long i = minX.lo();
-        Int128 minZ = chunkpos.getMinBlockZ();
-        long jHi = minZ.hi();
-        long j = minZ.lo();
         LevelHeightAccessor heightAccessor = p_224654_.getHeightAccessorForGeneration();
         int minBuildHeight = heightAccessor.getMinBuildHeight();
         int maxBuildHeight = heightAccessor.getMaxBuildHeight();
@@ -99,27 +93,23 @@ public class SurfaceSystem {
             }
         };
         SurfaceRules.Context surfacerules$context = new SurfaceRules.Context(this, p_224649_, p_224654_, p_224655_,
-                sample -> p_224650_.getBiome(new BlockPos(
-                        WorldBounds.addBlockOffset(chunkpos.getMinBlockX(), sample.getXLo() - i), sample.getY(),
-                        WorldBounds.addBlockOffset(chunkpos.getMinBlockZ(), sample.getZLo() - j))), p_224651_, p_224653_);
+                p_224650_::getBiome, p_224651_, p_224653_);
         SurfaceRules.SurfaceRule surfacerules$surfacerule = p_224656_.apply(surfacerules$context);
         BlockPos.MutableBlockPos blockpos$mutableblockpos1 = new BlockPos.MutableBlockPos();
 
         for (int k = 0; k < 16; ++k) {
             for (int l = 0; l < 16; ++l) {
-                // Chunk minima are 16-aligned, so a local 0..15 step cannot carry
-                // across the low limb.  Keep the high limb unchanged.
-                long i1 = i + k;
-                long j1 = j + l;
+                Int1088 i1 = chunkpos.getBlockX(k);
+                Int1088 j1 = chunkpos.getBlockZ(l);
                 int k1 = clampSurfaceHeight(WorldBounds.addSaturated(p_224654_.getHeight(Heightmap.Types.WORLD_SURFACE_WG, k, l), 1), minBuildHeight, maxBuildHeight);
                 blockpos$mutableblockpos.setX(chunkpos.getBlockX(k)).setZ(chunkpos.getBlockZ(l));
                 Holder<Biome> holder = p_224650_.getBiome(blockpos$mutableblockpos1.set(chunkpos.getBlockX(k), p_224652_ ? 0 : k1, chunkpos.getBlockZ(l)));
                 if (holder.is(Biomes.ERODED_BADLANDS)) {
-                    this.erodedBadlandsExtension(blockcolumn, iHi, i1, jHi, j1, k1, p_224654_);
+                    this.erodedBadlandsExtension(blockcolumn, i1, j1, k1, p_224654_);
                 }
 
                 int l1 = k1;
-                surfacerules$context.updateXZ(iHi, i1, jHi, j1);
+                surfacerules$context.updateXZ(i1, j1);
                 int i2 = 0;
                 int j2 = Integer.MIN_VALUE;
                 int k2 = Integer.MAX_VALUE;
@@ -172,7 +162,7 @@ public class SurfaceSystem {
                 }
 
                 if (holder.is(Biomes.FROZEN_OCEAN) || holder.is(Biomes.DEEP_FROZEN_OCEAN)) {
-                    this.frozenOceanExtension(surfacerules$context.getMinSurfaceLevel(), holder.value(), blockcolumn, blockpos$mutableblockpos1, iHi, i1, jHi, j1, k1, heightAccessor);
+                    this.frozenOceanExtension(surfacerules$context.getMinSurfaceLevel(), holder.value(), blockcolumn, blockpos$mutableblockpos1, i1, j1, k1, heightAccessor);
                 }
             }
         }
@@ -183,21 +173,21 @@ public class SurfaceSystem {
                 this.noiseRandom.at(p_189928_, 0, p_189929_).nextDouble());
     }
 
-    protected int getSurfaceDepth(long xHi, long xLo, long zHi, long zLo) {
-        if (WorldgenCoordinate.fitsLong(xHi, xLo) && WorldgenCoordinate.fitsLong(zHi, zLo))
-            return this.getSurfaceDepth(xLo, zLo);
-        return SurfaceArithmetic.depth(sampleNoise(this.surfaceNoise, xHi, xLo, 1.0D, zHi, zLo),
-                this.noiseRandom.at(xHi, xLo, 0, zHi, zLo).nextDouble());
+    protected int getSurfaceDepth(Int1088 x, Int1088 z) {
+        if (x.fitsLong() && z.fitsLong())
+            return this.getSurfaceDepth(x.limb(0), z.limb(0));
+        return SurfaceArithmetic.depth(sampleNoise(this.surfaceNoise, x, 1.0D, z),
+                this.noiseRandom.at(x, 0, z).nextDouble());
     }
 
     protected double getSurfaceSecondary(long p_202190_, long p_202191_) {
         return SurfaceArithmetic.noise(sampleNoise(this.surfaceSecondaryNoise, p_202190_, 1.0D, p_202191_));
     }
 
-    protected double getSurfaceSecondary(long xHi, long xLo, long zHi, long zLo) {
-        if (WorldgenCoordinate.fitsLong(xHi, xLo) && WorldgenCoordinate.fitsLong(zHi, zLo))
-            return this.getSurfaceSecondary(xLo, zLo);
-        return SurfaceArithmetic.noise(sampleNoise(this.surfaceSecondaryNoise, xHi, xLo, 1.0D, zHi, zLo));
+    protected double getSurfaceSecondary(Int1088 x, Int1088 z) {
+        if (x.fitsLong() && z.fitsLong())
+            return this.getSurfaceSecondary(x.limb(0), z.limb(0));
+        return SurfaceArithmetic.noise(sampleNoise(this.surfaceSecondaryNoise, x, 1.0D, z));
     }
 
     private static int clampSurfaceHeight(int height, int minBuildHeight, int maxBuildHeight) {
@@ -212,31 +202,27 @@ public class SurfaceSystem {
     @Deprecated
     public Optional<BlockState> topMaterial(SurfaceRules.RuleSource p_189972_, CarvingContext p_189973_, Function<BlockPos, Holder<Biome>> p_189974_, ChunkAccess p_189975_, NoiseChunk p_189976_, BlockPos p_189977_, boolean p_189978_) {
         SurfaceRules.Context surfacerules$context = new SurfaceRules.Context(this, p_189973_.randomState(), p_189975_, p_189976_,
-                sample -> p_189974_.apply(new BlockPos(
-                        WorldBounds.addBlockOffset(p_189977_.getX(), sample.getXLo() - p_189977_.getXLo()), sample.getY(),
-                        WorldBounds.addBlockOffset(p_189977_.getZ(), sample.getZLo() - p_189977_.getZLo()))),
+                p_189974_,
                 p_189973_.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY), p_189973_);
         SurfaceRules.SurfaceRule surfacerules$surfacerule = p_189972_.apply(surfacerules$context);
-        long iHi = p_189977_.getXHi();
-        long i = p_189977_.getXLo();
+        Int1088 i = p_189977_.getX();
         int j = p_189977_.getY();
-        long kHi = p_189977_.getZHi();
-        long k = p_189977_.getZLo();
-        surfacerules$context.updateXZ(iHi, i, kHi, k);
+        Int1088 k = p_189977_.getZ();
+        surfacerules$context.updateXZ(i, k);
         surfacerules$context.updateY(1, 1, p_189978_ ? WorldBounds.addSaturated(j, 1) : Integer.MIN_VALUE, i, j, k);
         BlockState blockstate = surfacerules$surfacerule.tryApply(i, j, k);
         return Optional.ofNullable(blockstate);
     }
 
-    private void erodedBadlandsExtension(BlockColumn p_189955_, long xHi, long p_189956_, long zHi, long p_189957_, int p_189958_, LevelHeightAccessor p_189959_) {
+    private void erodedBadlandsExtension(BlockColumn p_189955_, Int1088 p_189956_, Int1088 p_189957_, int p_189958_, LevelHeightAccessor p_189959_) {
         double d0 = 0.2D;
-        double d1 = Math.min(Math.abs(WorldBounds.clampNoise(sampleNoise(this.badlandsSurfaceNoise, xHi, p_189956_, 1.0D, zHi, p_189957_)) * 8.25D), WorldBounds.clampNoise(sampleNoise(this.badlandsPillarNoise, xHi, p_189956_, 0.2D, zHi, p_189957_)) * 15.0D);
+        double d1 = Math.min(Math.abs(WorldBounds.clampNoise(sampleNoise(this.badlandsSurfaceNoise, p_189956_, 1.0D, p_189957_)) * 8.25D), WorldBounds.clampNoise(sampleNoise(this.badlandsPillarNoise, p_189956_, 0.2D, p_189957_)) * 15.0D);
         if (!Double.isFinite(d1))
             return;
         if (!(d1 <= 0.0D)) {
             double d2 = 0.75D;
             double d3 = 1.5D;
-            double d4 = Math.abs(WorldBounds.clampNoise(sampleNoise(this.badlandsPillarRoofNoise, xHi, p_189956_, 0.75D, zHi, p_189957_)) * 1.5D);
+            double d4 = Math.abs(WorldBounds.clampNoise(sampleNoise(this.badlandsPillarRoofNoise, p_189956_, 0.75D, p_189957_)) * 1.5D);
             double d5 = 64.0D + Math.min(d1 * d1 * 2.5D, Math.ceil(d4 * 50.0D) + 24.0D);
             int i = WorldBounds.clampBuildHeight(Mth.floor(d5), p_189959_.getMinBuildHeight(), p_189959_.getMaxBuildHeight());
             if (p_189958_ <= i) {
@@ -264,19 +250,19 @@ public class SurfaceSystem {
         }
     }
 
-    private void frozenOceanExtension(int p_189935_, Biome p_189936_, BlockColumn p_189937_, BlockPos.MutableBlockPos p_189938_, long xHi, long p_189939_, long zHi, long p_189940_, int p_189941_, LevelHeightAccessor heightAccessor) {
+    private void frozenOceanExtension(int p_189935_, Biome p_189936_, BlockColumn p_189937_, BlockPos.MutableBlockPos p_189938_, Int1088 p_189939_, Int1088 p_189940_, int p_189941_, LevelHeightAccessor heightAccessor) {
         double d0 = 1.28D;
-        double d1 = Math.min(Math.abs(WorldBounds.clampNoise(sampleNoise(this.icebergSurfaceNoise, xHi, p_189939_, 1.0D, zHi, p_189940_)) * 8.25D), WorldBounds.clampNoise(sampleNoise(this.icebergPillarNoise, xHi, p_189939_, 1.28D, zHi, p_189940_)) * 15.0D);
+        double d1 = Math.min(Math.abs(WorldBounds.clampNoise(sampleNoise(this.icebergSurfaceNoise, p_189939_, 1.0D, p_189940_)) * 8.25D), WorldBounds.clampNoise(sampleNoise(this.icebergPillarNoise, p_189939_, 1.28D, p_189940_)) * 15.0D);
         if (!Double.isFinite(d1))
             return;
         if (!(d1 <= 1.8D)) {
             double d3 = 1.17D;
             double d4 = 1.5D;
-            double d5 = Math.abs(WorldBounds.clampNoise(sampleNoise(this.icebergPillarRoofNoise, xHi, p_189939_, 1.17D, zHi, p_189940_)) * 1.5D);
+            double d5 = Math.abs(WorldBounds.clampNoise(sampleNoise(this.icebergPillarRoofNoise, p_189939_, 1.17D, p_189940_)) * 1.5D);
             double d6 = Math.min(d1 * d1 * 1.2D, Math.ceil(d5 * 40.0D) + 14.0D);
             if (!Double.isFinite(d6))
                 d6 = 0.0D;
-            if (p_189936_.shouldMeltFrozenOceanIcebergSlightly(p_189938_.set(xHi, p_189939_, 63, zHi, p_189940_))) {
+            if (p_189936_.shouldMeltFrozenOceanIcebergSlightly(p_189938_.set(p_189939_, 63, p_189940_))) {
                 d6 -= 2.0D;
             }
 
@@ -290,7 +276,7 @@ public class SurfaceSystem {
             }
 
             double d7 = d6;
-            RandomSource randomsource = this.noiseRandom.at(xHi, p_189939_, 0, zHi, p_189940_);
+            RandomSource randomsource = this.noiseRandom.at(p_189939_, 0, p_189940_);
             int i = 2 + randomsource.nextInt(4);
             int j = this.seaLevel + 18 + randomsource.nextInt(10);
             int k = 0;
@@ -367,22 +353,22 @@ public class SurfaceSystem {
         return this.clayBands[index];
     }
 
-    protected BlockState getBand(long xHi, long xLo, int p_189932_, long zHi, long zLo) {
-        if (WorldgenCoordinate.fitsLong(xHi, xLo) && WorldgenCoordinate.fitsLong(zHi, zLo))
-            return this.getBand(xLo, p_189932_, zLo);
-        double offsetNoise = WorldBounds.clampNoise(sampleNoise(this.clayBandsOffsetNoise, xHi, xLo, 1.0D, zHi, zLo));
+    protected BlockState getBand(Int1088 x, int p_189932_, Int1088 z) {
+        if (x.fitsLong() && z.fitsLong())
+            return this.getBand(x.limb(0), p_189932_, z.limb(0));
+        double offsetNoise = WorldBounds.clampNoise(sampleNoise(this.clayBandsOffsetNoise, x, 1.0D, z));
         int i = Double.isFinite(offsetNoise) ? (int) Math.round(offsetNoise * 4.0D) : 0;
         int index = Math.floorMod(WorldBounds.addSaturated(p_189932_, i), this.clayBands.length);
         return this.clayBands[index];
     }
 
-    static double sampleNoise(NormalNoise noise, long xHi, long xLo, double scale, long zHi, long zLo) {
-        if (WorldgenCoordinate.fitsLong(xHi, xLo) && WorldgenCoordinate.fitsLong(zHi, zLo))
-            return sampleNoise(noise, xLo, scale, zLo);
+    static double sampleNoise(NormalNoise noise, Int1088 xValue, double scale, Int1088 zValue) {
+        if (xValue.fitsLong() && zValue.fitsLong())
+            return sampleNoise(noise, xValue.limb(0), scale, zValue.limb(0));
         if (FarlandsMode.usesPreciseCoordinates())
-            return noise.getValueScaled(xHi, xLo, scale, 0L, 0.0D, zHi, zLo);
-        double x = WorldgenCoordinate.toDouble(xHi, xLo) * scale;
-        double z = WorldgenCoordinate.toDouble(zHi, zLo) * scale;
+            return noise.getValueScaled(xValue, scale, 0L, 0.0D, zValue);
+        double x = WorldgenCoordinate.toDouble(xValue) * scale;
+        double z = WorldgenCoordinate.toDouble(zValue) * scale;
         x = Double.isNaN(x) ? 0.0D : Math.max(-0x1p63, Math.min(Math.nextDown(0x1p63), x));
         z = Double.isNaN(z) ? 0.0D : Math.max(-0x1p63, Math.min(Math.nextDown(0x1p63), z));
         return noise.getValue(x, 0.0D, z);

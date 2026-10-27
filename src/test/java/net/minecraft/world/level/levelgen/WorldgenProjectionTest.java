@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement;
@@ -18,23 +18,23 @@ class WorldgenProjectionTest {
         net.minecraft.server.Bootstrap.bootStrap();
     }
     @Test
-    void noiseHelpersUseFullMagnitudeBeforeApplyingExistingFiniteSafeguards() {
+    void wideNoiseHelpersPreserveFullMagnitudeWithoutLegacyClamps() {
         long[] lows = {Long.MIN_VALUE, Long.MIN_VALUE + 1L, -1L, 0L, 1L, Long.MAX_VALUE};
         long[] highs = {Long.MIN_VALUE, -7L, -1L, 0L, 7L, Long.MAX_VALUE};
         double[] scales = {0.0D, 0.125D, -2.0D, Double.MAX_VALUE, Double.POSITIVE_INFINITY, Double.NaN};
         for (long low : lows) {
             for (long high : highs) {
-                Int128 coordinate = Int128.of(high, low);
+                Int1088 coordinate = Int1088.of(low, high);
                 double magnitude = new java.math.BigInteger(coordinate.toString()).doubleValue();
-                assertEquals(bits(Math.max(-0x1p63, Math.min(Math.nextDown(0x1p63), magnitude))), bits(WorldBounds.noiseCoordinate(coordinate)));
+                assertEquals(bits(magnitude), bits(WorldBounds.noiseCoordinate(coordinate)));
                 for (double scale : scales) {
                     double product = magnitude * scale;
-                    double expected = Double.isNaN(product) ? 0.0D : Math.max(-0x1p63, Math.min(Math.nextDown(0x1p63), product));
+                    double expected = product;
                     assertEquals(bits(expected),
                             bits(WorldBounds.scaledNoiseCoordinate(coordinate, scale)));
                 }
-                assertEquals(high, coordinate.hi());
-                assertEquals(low, coordinate.lo());
+                assertEquals(high, coordinate.limb(1));
+                assertEquals(low, coordinate.lowLimb());
             }
         }
     }
@@ -42,21 +42,21 @@ class WorldgenProjectionTest {
     @Test
     void positionalRandomIncludesHighLimbsWithoutMutatingPlacementAnchors() {
         PositionalRandomFactory factory = new LegacyRandomSource(12345L).forkPositional();
-        BlockPos exact = new BlockPos(Int128.of(17L, Long.MIN_VALUE), 73, Int128.of(-9L, Long.MAX_VALUE));
-        BlockPos alias = new BlockPos(exact.getXLo(), exact.getY(), exact.getZLo());
+        BlockPos exact = new BlockPos(Int1088.of(Long.MIN_VALUE, 17L), 73, Int1088.of(Long.MAX_VALUE, -9L));
+        BlockPos alias = new BlockPos(exact.xLow(), exact.getY(), exact.zLow());
         assertNotEquals(exact, alias);
         assertNotEquals(factory.at(alias).nextLong(), factory.at(exact).nextLong());
-        assertEquals(Int128.of(17L, Long.MIN_VALUE), exact.getX());
-        assertEquals(Int128.of(-9L, Long.MAX_VALUE), exact.getZ());
+        assertEquals(Int1088.of(Long.MIN_VALUE, 17L), exact.getX());
+        assertEquals(Int1088.of(Long.MAX_VALUE, -9L), exact.getZ());
     }
 
     @Test
     void structureLocateKeepsHighHalvesDespiteSharedPlacementInputs() {
         RandomSpreadStructurePlacement placement = new RandomSpreadStructurePlacement(32, 8, RandomSpreadType.LINEAR, 1234);
-        ChunkPos exact = new ChunkPos(Int128.of(17L, 42L), Int128.of(-9L, -42L));
-        ChunkPos alias = new ChunkPos(exact.xLo(), exact.zLo());
-        assertEquals(placement.getPotentialStructureChunk(12345L, alias.xLo(), alias.zLo()),
-                placement.getPotentialStructureChunk(12345L, exact.xLo(), exact.zLo()));
+        ChunkPos exact = new ChunkPos(Int1088.of(42L, 17L), Int1088.of(-42L, -9L));
+        ChunkPos alias = new ChunkPos(exact.xLow(), exact.zLow());
+        assertEquals(placement.getPotentialStructureChunk(12345L, alias.xLow(), alias.zLow()),
+                placement.getPotentialStructureChunk(12345L, exact.xLow(), exact.zLow()));
         BlockPos located = placement.getLocatePos(exact);
         assertEquals(exact.getMinBlockX(), located.getX());
         assertEquals(exact.getMinBlockZ(), located.getZ());

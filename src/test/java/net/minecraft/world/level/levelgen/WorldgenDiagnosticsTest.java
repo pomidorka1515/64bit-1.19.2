@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.levelgen.synth.BlendedNoise;
@@ -30,17 +30,17 @@ class WorldgenDiagnosticsTest {
         var config = new GeneratorConfig(GeneratorMode.BIT_64, CoordinatePrecision.PRECISE);
         try (var ignored = GenerationContext.open(config)) {
             var random = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 0L);
-            var x = Int128.parseDecimal("289893046333429650128");
+            var x = Int1088.parseDecimal("289893046333429650128");
             String inward = null;
             String outward = null;
-            for (Int128 coordinate : List.of(x.subtract(Int128.of(0, 4)), x)) {
-                var pos = new BlockPos(coordinate, 244, Int128.fromLong(-200));
+            for (Int1088 coordinate : List.of(x.subtract(Int1088.fromLong(4)), x)) {
+                var pos = new BlockPos(coordinate, 244, Int1088.fromLong(-200));
                 var context = new DensityFunction.SinglePointContext(pos.getX(), pos.getY(), pos.getZ());
                 double before = random.router().finalDensity().compute(context);
                 List<String> lines = new ArrayList<>();
                 WorldgenDiagnostics.append(lines, random, pos, settings);
                 double raw = random.getOrCreateNoise(Noises.SPAGHETTI_ROUGHNESS)
-                        .getValueScaled(coordinate.hi(), coordinate.lo(), 1.0D, 244L, 1.0D, pos.getZHi(), pos.getZLo());
+                        .getValueScaled(coordinate, 1.0D, 244L, 1.0D, pos.getZ());
                 String roughness = lines.stream().filter(line -> line.startsWith("Roughness ")).findFirst().orElseThrow();
                 assertTrue(roughness.startsWith("Roughness " + BlendedNoise.formatDebugValue(raw)));
                 assertEquals(Double.doubleToLongBits(before), Double.doubleToLongBits(random.router().finalDensity().compute(context)));

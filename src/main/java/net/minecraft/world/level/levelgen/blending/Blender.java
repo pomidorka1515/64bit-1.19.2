@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction8;
 import net.minecraft.core.Holder;
@@ -37,8 +38,15 @@ import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.lang3.mutable.MutableObject;
 
 public class Blender {
+    private static Int1088 coordinate(DensityFunction.FunctionContext context, boolean x) {
+        try (net.minecraft.core.Int1088Scratch scratch = net.minecraft.core.Int1088Scratch.acquire()) {
+            int length = x ? context.blockXLimbCount() : context.blockZLimbCount();
+            for (int i = 0; i < length; i++) scratch.limbs()[i] = x ? context.blockXLimb(i) : context.blockZLimb(i);
+            return Int1088.fromLimbs(scratch.limbs(), 0, length);
+        }
+    }
     private static final Blender EMPTY = new Blender(new ChunkPosMap<>(), new ChunkPosMap<>()) {
-        public Blender.BlendingOutput blendOffsetAndFactor(int p_209724_, int p_209725_) {
+        public Blender.BlendingOutput blendOffsetAndFactor(Int1088 p_209724_, Int1088 p_209725_) {
             return new Blender.BlendingOutput(1.0D, 0.0D);
         }
 
@@ -78,8 +86,8 @@ public class Blender {
                 for (int j = -HEIGHT_BLENDING_RANGE_CHUNKS; j <= HEIGHT_BLENDING_RANGE_CHUNKS; ++j) {
                     for (int k = -HEIGHT_BLENDING_RANGE_CHUNKS; k <= HEIGHT_BLENDING_RANGE_CHUNKS; ++k) {
                         if (j * j + k * k <= i) {
-                            net.minecraft.core.Int128 l = WorldBounds.addChunkOffset(chunkpos.x(), j);
-                            net.minecraft.core.Int128 i1 = WorldBounds.addChunkOffset(chunkpos.z(), k);
+                            Int1088 l = WorldBounds.addChunkOffset(chunkpos.x(), j);
+                            Int1088 i1 = WorldBounds.addChunkOffset(chunkpos.z(), k);
                             BlendingData blendingdata = BlendingData.getOrUpdateBlendingData(p_190203_, l, i1);
                             if (blendingdata != null) {
                                 long2objectopenhashmap.put(new ChunkPos(l, i1), blendingdata);
@@ -102,8 +110,12 @@ public class Blender {
     }
 
     public Blender.BlendingOutput blendOffsetAndFactor(long p_209719_, long p_209720_) {
-        long i = QuartPos.fromBlock(p_209719_);
-        long j = QuartPos.fromBlock(p_209720_);
+        return blendOffsetAndFactor(Int1088.fromLong(p_209719_), Int1088.fromLong(p_209720_));
+    }
+
+    public Blender.BlendingOutput blendOffsetAndFactor(Int1088 x, Int1088 z) {
+        Int1088 i = x.shiftRight(2);
+        Int1088 j = z.shiftRight(2);
         double d0 = this.getBlendingDataValue(i, 0, j, BlendingData::getHeight);
         if (d0 != Double.MAX_VALUE) {
             return new Blender.BlendingOutput(0.0D, heightToOffset(d0));
@@ -112,8 +124,10 @@ public class Blender {
             MutableDouble mutabledouble1 = new MutableDouble(0.0D);
             MutableDouble mutabledouble2 = new MutableDouble(Double.POSITIVE_INFINITY);
             this.heightAndBiomeBlendingData.forEach((p_202249_, p_202250_) -> {
-                p_202250_.iterateHeights(QuartPos.fromBlock(p_202249_.getMinBlockX().lo()), QuartPos.fromBlock(p_202249_.getMinBlockZ().lo()), (p_190199_, p_190200_, p_190201_) -> {
-                    double d3 = Mth.length((double) (i - p_190199_), (double) (j - p_190200_));
+                Int1088 originX = p_202249_.getMinBlockX().shiftRight(2);
+                Int1088 originZ = p_202249_.getMinBlockZ().shiftRight(2);
+                p_202250_.iterateHeights(0L, 0L, (p_190199_, p_190200_, p_190201_) -> {
+                    double d3 = Mth.length(WorldBounds.signedDifference(i, WorldBounds.addBlockOffset(originX, p_190199_)), WorldBounds.signedDifference(j, WorldBounds.addBlockOffset(originZ, p_190200_)));
                     if (!(d3 > (double) HEIGHT_BLENDING_RANGE_CELLS)) {
                         if (d3 < mutabledouble2.doubleValue()) {
                             mutabledouble2.setValue(d3);
@@ -144,9 +158,9 @@ public class Blender {
     }
 
     public double blendDensity(DensityFunction.FunctionContext p_209721_, double p_209722_) {
-        long i = QuartPos.fromBlock(p_209721_.blockX());
+        Int1088 i = coordinate(p_209721_, true).shiftRight(2);
         int j = p_209721_.blockY() / 8;
-        long k = QuartPos.fromBlock(p_209721_.blockZ());
+        Int1088 k = coordinate(p_209721_, false).shiftRight(2);
         double d0 = this.getBlendingDataValue(i, j, k, BlendingData::getDensity);
         if (d0 != Double.MAX_VALUE) {
             return d0;
@@ -155,8 +169,10 @@ public class Blender {
             MutableDouble mutabledouble1 = new MutableDouble(0.0D);
             MutableDouble mutabledouble2 = new MutableDouble(Double.POSITIVE_INFINITY);
             this.densityBlendingData.forEach((p_202241_, p_202242_) -> {
-                p_202242_.iterateDensities(QuartPos.fromBlock(p_202241_.getMinBlockX().lo()), QuartPos.fromBlock(p_202241_.getMinBlockZ().lo()), j - 1, j + 1, (p_202230_, p_202231_, p_202232_, p_202233_) -> {
-                    double d3 = Mth.length((double) (i - p_202230_), (double) ((j - p_202231_) * 2), (double) (k - p_202232_));
+                Int1088 originX = p_202241_.getMinBlockX().shiftRight(2);
+                Int1088 originZ = p_202241_.getMinBlockZ().shiftRight(2);
+                p_202242_.iterateDensities(0L, 0L, j - 1, j + 1, (p_202230_, p_202231_, p_202232_, p_202233_) -> {
+                    double d3 = Mth.length(WorldBounds.signedDifference(i, WorldBounds.addBlockOffset(originX, p_202230_)), (double) ((j - p_202231_) * 2), WorldBounds.signedDifference(k, WorldBounds.addBlockOffset(originZ, p_202232_)));
                     if (!(d3 > 2.0D)) {
                         if (d3 < mutabledouble2.doubleValue()) {
                             mutabledouble2.setValue(d3);
@@ -178,24 +194,24 @@ public class Blender {
         }
     }
 
-    private double getBlendingDataValue(long p_190175_, int p_190176_, long p_190177_, Blender.CellValueGetter p_190178_) {
-        long i = QuartPos.toSection(p_190175_);
-        long j = QuartPos.toSection(p_190177_);
-        boolean flag = (p_190175_ & 3) == 0;
-        boolean flag1 = (p_190177_ & 3) == 0;
+    private double getBlendingDataValue(Int1088 p_190175_, int p_190176_, Int1088 p_190177_, Blender.CellValueGetter p_190178_) {
+        Int1088 i = p_190175_.shiftRight(2);
+        Int1088 j = p_190177_.shiftRight(2);
+        boolean flag = (p_190175_.limb(0) & 3) == 0;
+        boolean flag1 = (p_190177_.limb(0) & 3) == 0;
         double d0 = this.getBlendingDataValue(p_190178_, i, j, p_190175_, p_190176_, p_190177_);
         if (d0 == Double.MAX_VALUE) {
             if (flag && flag1) {
-                d0 = this.getBlendingDataValue(p_190178_, i - 1, j - 1, p_190175_, p_190176_, p_190177_);
+                d0 = this.getBlendingDataValue(p_190178_, WorldBounds.addChunkOffset(i, -1), WorldBounds.addChunkOffset(j, -1), p_190175_, p_190176_, p_190177_);
             }
 
             if (d0 == Double.MAX_VALUE) {
                 if (flag) {
-                    d0 = this.getBlendingDataValue(p_190178_, i - 1, j, p_190175_, p_190176_, p_190177_);
+                    d0 = this.getBlendingDataValue(p_190178_, WorldBounds.addChunkOffset(i, -1), j, p_190175_, p_190176_, p_190177_);
                 }
 
                 if (d0 == Double.MAX_VALUE && flag1) {
-                    d0 = this.getBlendingDataValue(p_190178_, i, j - 1, p_190175_, p_190176_, p_190177_);
+                    d0 = this.getBlendingDataValue(p_190178_, i, WorldBounds.addChunkOffset(j, -1), p_190175_, p_190176_, p_190177_);
                 }
             }
         }
@@ -203,16 +219,9 @@ public class Blender {
         return d0;
     }
 
-    private double getBlendingDataValue(Blender.CellValueGetter p_190212_, long p_190213_, long p_190214_, long p_190215_, int p_190216_, long p_190217_) {
-        // Keys retain exact loaded chunk identity; only this finite content sample is projected.
-        for (Map.Entry<ChunkPos, BlendingData> entry : this.heightAndBiomeBlendingData.entrySet()) {
-            ChunkPos pos = entry.getKey();
-            if ((pos.getMinBlockX().lo() >> 4) == p_190213_
-                    && (pos.getMinBlockZ().lo() >> 4) == p_190214_) {
-                return p_190212_.get(entry.getValue(), (int) (p_190215_ - QuartPos.fromSection(p_190213_)), p_190216_, (int) (p_190217_ - QuartPos.fromSection(p_190214_)));
-            }
-        }
-        return Double.MAX_VALUE;
+    private double getBlendingDataValue(Blender.CellValueGetter getter, Int1088 chunkX, Int1088 chunkZ, Int1088 x, int y, Int1088 z) {
+        BlendingData data = this.heightAndBiomeBlendingData.get(new ChunkPos(chunkX, chunkZ));
+        return data == null ? Double.MAX_VALUE : getter.get(data, (int) WorldBounds.signedDifferenceAsLong(x, chunkX.shiftLeftSaturated(2)), y, (int) WorldBounds.signedDifferenceAsLong(z, chunkZ.shiftLeftSaturated(2)));
     }
 
     public BiomeResolver getBiomeResolver(BiomeResolver p_190204_) {
@@ -223,12 +232,14 @@ public class Blender {
     }
 
     @Nullable
-    private Holder<Biome> blendBiome(long p_224707_, int p_224708_, long p_224709_) {
+    private Holder<Biome> blendBiome(Int1088 p_224707_, int p_224708_, Int1088 p_224709_) {
         MutableDouble mutabledouble = new MutableDouble(Double.POSITIVE_INFINITY);
         MutableObject<Holder<Biome>> mutableobject = new MutableObject<>();
         this.heightAndBiomeBlendingData.forEach((p_224716_, p_224717_) -> {
-            p_224717_.iterateBiomes(QuartPos.fromBlock(p_224716_.getMinBlockX().lo()), p_224708_, QuartPos.fromBlock(p_224716_.getMinBlockZ().lo()), (p_224723_, p_224724_, p_224725_) -> {
-                double d2 = Mth.length((double) (p_224707_ - p_224723_), (double) (p_224709_ - p_224724_));
+            Int1088 originX = p_224716_.getMinBlockX().shiftRight(2);
+            Int1088 originZ = p_224716_.getMinBlockZ().shiftRight(2);
+            p_224717_.iterateBiomes(0L, p_224708_, 0L, (p_224723_, p_224724_, p_224725_) -> {
+                double d2 = Mth.length(WorldBounds.signedDifference(p_224707_, WorldBounds.addBlockOffset(originX, p_224723_)), WorldBounds.signedDifference(p_224709_, WorldBounds.addBlockOffset(originZ, p_224724_)));
                 if (!(d2 > (double) HEIGHT_BLENDING_RANGE_CELLS)) {
                     if (d2 < mutabledouble.doubleValue()) {
                         mutableobject.setValue(p_224725_);
@@ -240,7 +251,7 @@ public class Blender {
         if (mutabledouble.doubleValue() == Double.POSITIVE_INFINITY) {
             return null;
         } else {
-            double d0 = SHIFT_NOISE.getValue((double) p_224707_, 0.0D, (double) p_224709_) * 12.0D;
+            double d0 = SHIFT_NOISE.getValueScaled(p_224707_, 1.0D, 0L, 0.0D, p_224709_) * 12.0D;
             double d1 = Mth.clamp((mutabledouble.doubleValue() + d0) / (double) (HEIGHT_BLENDING_RANGE_CELLS + 1), 0.0D, 1.0D);
             return d1 > 0.5D ? null : mutableobject.getValue();
         }
@@ -304,8 +315,8 @@ public class Blender {
         ImmutableMap.Builder<Direction8, BlendingData> builder = ImmutableMap.builder();
 
         for (Direction8 direction8 : Direction8.values()) {
-            net.minecraft.core.Int128 i = WorldBounds.addChunkOffset(chunkpos.x(), direction8.getStepX());
-            net.minecraft.core.Int128 j = WorldBounds.addChunkOffset(chunkpos.z(), direction8.getStepZ());
+            Int1088 i = WorldBounds.addChunkOffset(chunkpos.x(), direction8.getStepX());
+            Int1088 j = WorldBounds.addChunkOffset(chunkpos.z(), direction8.getStepZ());
             BlendingData blendingdata = p_197035_.getChunk(i, j).getBlendingData();
             if (blendingdata != null) {
                 builder.put(direction8, blendingdata);

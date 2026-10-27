@@ -72,7 +72,7 @@ public class FlatLevelSource extends ChunkGenerator {
         return CompletableFuture.completedFuture(pChunk);
     }
 
-    public int getBaseHeight(long pX, long pZ, Heightmap.Types pType, LevelHeightAccessor pLevel, RandomState pRandom) {
+    public int getBaseHeight(net.minecraft.core.Int1088 pX, net.minecraft.core.Int1088 pZ, Heightmap.Types pType, LevelHeightAccessor pLevel, RandomState pRandom) {
         List<BlockState> list = this.settings.getLayers();
 
         for (int i = Math.min(list.size(), pLevel.getMaxBuildHeight()) - 1; i >= 0; --i) {
@@ -85,7 +85,7 @@ public class FlatLevelSource extends ChunkGenerator {
         return pLevel.getMinBuildHeight();
     }
 
-    public NoiseColumn getBaseColumn(long pX, long pZ, LevelHeightAccessor pHeight, RandomState pRandom) {
+    public NoiseColumn getBaseColumn(net.minecraft.core.Int1088 pX, net.minecraft.core.Int1088 pZ, LevelHeightAccessor pHeight, RandomState pRandom) {
         return new NoiseColumn(pHeight.getMinBuildHeight(), this.settings.getLayers().stream().limit((long) pHeight.getHeight()).map((p_204549_) -> {
                                                                                                                                         return p_204549_ == null ? Blocks.AIR.defaultBlockState() : p_204549_;
                                                                                                                                     })

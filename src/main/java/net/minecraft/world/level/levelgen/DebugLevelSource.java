@@ -69,16 +69,16 @@ public class DebugLevelSource extends ChunkGenerator {
     public void applyBiomeDecoration(WorldGenLevel pLevel, ChunkAccess pChunk, StructureManager pStructureManager) {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
         ChunkPos chunkpos = pChunk.getPos();
-        net.minecraft.core.Int128 i = chunkpos.x();
-        net.minecraft.core.Int128 j = chunkpos.z();
+        net.minecraft.core.Int1088 i = chunkpos.x();
+        net.minecraft.core.Int1088 j = chunkpos.z();
 
         for (int k = 0; k < 16; ++k) {
             for (int l = 0; l < 16; ++l) {
-                net.minecraft.core.Int128 i1 = SectionPos.sectionToBlockCoord(i, k);
-                net.minecraft.core.Int128 j1 = SectionPos.sectionToBlockCoord(j, l);
+                net.minecraft.core.Int1088 i1 = SectionPos.sectionToBlockCoord(i, k);
+                net.minecraft.core.Int1088 j1 = SectionPos.sectionToBlockCoord(j, l);
                 pLevel.setBlock(blockpos$mutableblockpos.set(i1, 60, j1), BARRIER, 2);
                 // Project generated content only; the block write retains its exact anchor.
-                BlockState blockstate = i1.hi() == (i1.lo() >> 63) && j1.hi() == (j1.lo() >> 63) ? getBlockStateFor(i1.lo(), j1.lo()) : AIR;
+                BlockState blockstate = i1.fitsLong() && j1.fitsLong() ? getBlockStateFor(i1.lowLimb(), j1.lowLimb()) : AIR;
                 pLevel.setBlock(blockpos$mutableblockpos.set(i1, 70, j1), blockstate, 2);
             }
         }
@@ -88,11 +88,11 @@ public class DebugLevelSource extends ChunkGenerator {
         return CompletableFuture.completedFuture(pChunk);
     }
 
-    public int getBaseHeight(long pX, long pZ, Heightmap.Types pType, LevelHeightAccessor pLevel, RandomState pRandom) {
+    public int getBaseHeight(net.minecraft.core.Int1088 pX, net.minecraft.core.Int1088 pZ, Heightmap.Types pType, LevelHeightAccessor pLevel, RandomState pRandom) {
         return 0;
     }
 
-    public NoiseColumn getBaseColumn(long pX, long pZ, LevelHeightAccessor pHeight, RandomState pRandom) {
+    public NoiseColumn getBaseColumn(net.minecraft.core.Int1088 pX, net.minecraft.core.Int1088 pZ, LevelHeightAccessor pHeight, RandomState pRandom) {
         return new NoiseColumn(0, new BlockState[0]);
     }
 

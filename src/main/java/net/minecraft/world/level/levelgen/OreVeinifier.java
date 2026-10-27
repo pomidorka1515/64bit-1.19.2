@@ -34,7 +34,7 @@ public final class OreVeinifier {
                 if (d1 + d2 < (double) 0.4F) {
                     return blockstate;
                 } else {
-                    RandomSource randomsource = p_209671_.at(p_209666_.blockXHi(), p_209666_.blockX(), i, p_209666_.blockZHi(), p_209666_.blockZ());
+                    RandomSource randomsource = p_209671_.at(seedCoordinate(p_209666_, true), i, seedCoordinate(p_209666_, false));
                     if (randomsource.nextFloat() > 0.7F) {
                         return blockstate;
                     } else if (p_209669_.compute(p_209666_) >= 0.0D) {
@@ -52,6 +52,18 @@ public final class OreVeinifier {
                 return blockstate;
             }
         };
+    }
+
+    private static long seedCoordinate(DensityFunction.FunctionContext context, boolean x) {
+        long previous = x ? context.blockXLimb(0) : context.blockZLimb(0);
+        long seed = previous;
+        for (int index = 1; index < net.minecraft.core.Int1088.LIMBS; ++index) {
+            long limb = x ? context.blockXLimb(index) : context.blockZLimb(index);
+            long extra = limb ^ (previous >> 63);
+            if (extra != 0L) seed ^= RandomSupport.mixStafford13(extra + index * 0x9e3779b97f4a7c15L);
+            previous = limb;
+        }
+        return seed;
     }
 
     protected static enum VeinType {

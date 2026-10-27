@@ -1,5 +1,7 @@
 package net.minecraft.world.level.levelgen;
 
+import net.minecraft.core.Int1088;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.mojang.serialization.Codec;
@@ -97,15 +99,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
         });
         BiomeResolver biomeresolver = BelowZeroRetrogen.getBiomeResolver(pBlender.getBiomeResolver(this.biomeSource), pChunk);
         net.minecraft.world.level.biome.Climate.Sampler sampler = noisechunk.cachedClimateSampler(pRandom.router(), this.settings.value().spawnTarget());
-        if (pChunk.getPos().getMinBlockX().hi() != (pChunk.getPos().getMinBlockX().lo() >> 63)
-                || pChunk.getPos().getMinBlockZ().hi() != (pChunk.getPos().getMinBlockZ().lo() >> 63)) {
-            net.minecraft.core.Int128 qx = pChunk.getPos().getMinBlockX().shiftRight(2);
-            net.minecraft.core.Int128 qz = pChunk.getPos().getMinBlockZ().shiftRight(2);
-            // New-world generation has no old blending or below-zero retrogen data.
-            pChunk.fillBiomesFromNoise((bx, by, bz, s) -> this.biomeSource.getNoiseBiome(
-                    qx.add(net.minecraft.core.Int128.fromLong(bx & 3L)), by,
-                    qz.add(net.minecraft.core.Int128.fromLong(bz & 3L)), s), sampler);
-        } else pChunk.fillBiomesFromNoise(biomeresolver, sampler);
+        pChunk.fillBiomesFromNoise(biomeresolver, sampler);
     }
 
     private NoiseChunk createNoiseChunk(ChunkAccess pChunk, StructureManager pStructureManager, Blender pBlender, RandomState pRandom) {
@@ -134,11 +128,11 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
         return mutableobject.getValue();
     }
 
-    public int getBaseHeight(net.minecraft.core.Int128 x, net.minecraft.core.Int128 z, Heightmap.Types type, LevelHeightAccessor level, RandomState random) {
+    public int getBaseHeight(Int1088 x, Int1088 z, Heightmap.Types type, LevelHeightAccessor level, RandomState random) {
         return iterateNoiseColumn(level, random, x, z, null, type.isOpaque()).orElse(level.getMinBuildHeight());
     }
 
-    public NoiseColumn getBaseColumn(net.minecraft.core.Int128 x, net.minecraft.core.Int128 z, LevelHeightAccessor level, RandomState random) {
+    public NoiseColumn getBaseColumn(Int1088 x, Int1088 z, LevelHeightAccessor level, RandomState random) {
         MutableObject<NoiseColumn> column = new MutableObject<>();
         iterateNoiseColumn(level, random, x, z, column, null);
         return column.getValue();
@@ -242,11 +236,10 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
     }
 
     private OptionalInt iterateNoiseColumn(LevelHeightAccessor pLevel, RandomState pRandom, long pX, long pZ, @Nullable MutableObject<NoiseColumn> pColumn, @Nullable Predicate<BlockState> pStoppingState) {
-        return iterateNoiseColumn(pLevel, pRandom, net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ), pColumn, pStoppingState);
+        return iterateNoiseColumn(pLevel, pRandom, Int1088.fromLong(pX), Int1088.fromLong(pZ), pColumn, pStoppingState);
     }
 
-    private OptionalInt iterateNoiseColumn(LevelHeightAccessor pLevel, RandomState pRandom, net.minecraft.core.Int128 x, net.minecraft.core.Int128 z, @Nullable MutableObject<NoiseColumn> pColumn, @Nullable Predicate<BlockState> pStoppingState) {
-        long pX = x.lo(), pZ = z.lo();
+    private OptionalInt iterateNoiseColumn(LevelHeightAccessor pLevel, RandomState pRandom, Int1088 x, Int1088 z, @Nullable MutableObject<NoiseColumn> pColumn, @Nullable Predicate<BlockState> pStoppingState) {
         NoiseSettings noisesettings = this.settings.value().noiseSettings().clampToHeightAccessor(pLevel);
         int i = noisesettings.getCellHeight();
         int j = noisesettings.minY();
@@ -264,12 +257,8 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
             }
 
             int i1 = noisesettings.getCellWidth();
-            long j1 = Math.floorDiv(pX, i1);
-            long k1 = Math.floorDiv(pZ, i1);
-            int l1 = Math.floorMod(pX, i1);
-            int i2 = Math.floorMod(pZ, i1);
-            long j2 = j1 * i1;
-            long k2 = k1 * i1;
+            int l1 = (int) (x.limb(0) & (i1 - 1));
+            int i2 = (int) (z.limb(0) & (i1 - 1));
             double d0 = (double) l1 / (double) i1;
             double d1 = (double) i2 / (double) i1;
             int shift = Integer.numberOfTrailingZeros(i1);
@@ -284,8 +273,8 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
                     int j3 = (k + l2) * i + i3;
                     double d2 = (double) i3 / (double) i;
                     noisechunk.updateForY(j3, d2);
-                    noisechunk.updateForX(pX, d0);
-                    noisechunk.updateForZ(pZ, d1);
+                    noisechunk.updateForX(x, d0);
+                    noisechunk.updateForZ(z, d1);
                     BlockState blockstate = noisechunk.getInterpolatedState();
                     BlockState blockstate1 = blockstate == null ? this.defaultBlock : blockstate;
                     if (ablockstate != null) {
@@ -327,7 +316,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
                 return NoiseBasedChunkGenerator.this.biomeSource.getNoiseBiome(x, y, z, pRandom.sampler());
             }
 
-            public Holder<Biome> getNoiseBiome(net.minecraft.core.Int128 x, int y, net.minecraft.core.Int128 z) {
+            public Holder<Biome> getNoiseBiome(Int1088 x, int y, Int1088 z) {
                 return NoiseBasedChunkGenerator.this.biomeSource.getNoiseBiome(x, y, z, pRandom.sampler());
             }
         });
@@ -399,8 +388,8 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
         Heightmap heightmap = pChunk.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR_WG);
         Heightmap heightmap1 = pChunk.getOrCreateHeightmapUnprimed(Heightmap.Types.WORLD_SURFACE_WG);
         ChunkPos chunkpos = pChunk.getPos();
-        long i = chunkpos.getMinBlockX().lo();
-        long j = chunkpos.getMinBlockZ().lo();
+        Int1088 i = chunkpos.getMinBlockX();
+        Int1088 j = chunkpos.getMinBlockZ();
         Aquifer aquifer = noisechunk.aquifer();
         noisechunk.initializeForFirstCellX();
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
@@ -430,14 +419,14 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
                         noisechunk.updateForY(k2, d0);
 
                         for (int j3 = 0; j3 < k; ++j3) {
-                            long k3 = WorldBounds.addBlockOffset(i, k1 * k + j3);
-                            int l3 = (int) (k3 & 15);
+                            Int1088 k3 = WorldBounds.addBlockOffset(i, k1 * k + j3);
+                            int l3 = (int) (k3.limb(0) & 15);
                             double d1 = (double) j3 / (double) k;
                             noisechunk.updateForX(k3, d1);
 
                             for (int i4 = 0; i4 < k; ++i4) {
-                                long j4 = WorldBounds.addBlockOffset(j, l1 * k + i4);
-                                int k4 = (int) (j4 & 15);
+                                Int1088 j4 = WorldBounds.addBlockOffset(j, l1 * k + i4);
+                                int k4 = (int) (j4.limb(0) & 15);
                                 double d2 = (double) i4 / (double) k;
                                 noisechunk.updateForZ(j4, d2);
                                 BlockState blockstate = noisechunk.getInterpolatedState();
@@ -473,7 +462,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
         return pChunk;
     }
 
-    private BlockState debugPreliminarySurfaceLevel(NoiseChunk pChunk, long pX, int pY, long pZ, BlockState pState) {
+    private BlockState debugPreliminarySurfaceLevel(NoiseChunk pChunk, Int1088 pX, int pY, Int1088 pZ, BlockState pState) {
         return pState;
     }
 

@@ -91,11 +91,11 @@ public class BlendingData {
 
     @Nullable
     public static BlendingData getOrUpdateBlendingData(WorldGenRegion p_190305_, long p_190306_, long p_190307_) {
-        return getOrUpdateBlendingData(p_190305_, net.minecraft.core.Int128.fromLong(p_190306_), net.minecraft.core.Int128.fromLong(p_190307_));
+        return getOrUpdateBlendingData(p_190305_, net.minecraft.core.Int1088.fromLong(p_190306_), net.minecraft.core.Int1088.fromLong(p_190307_));
     }
 
     @Nullable
-    public static BlendingData getOrUpdateBlendingData(WorldGenRegion p_190305_, net.minecraft.core.Int128 p_190306_, net.minecraft.core.Int128 p_190307_) {
+    public static BlendingData getOrUpdateBlendingData(WorldGenRegion p_190305_, net.minecraft.core.Int1088 p_190306_, net.minecraft.core.Int1088 p_190307_) {
         ChunkAccess chunkaccess = p_190305_.getChunk(p_190306_, p_190307_);
         BlendingData blendingdata = chunkaccess.getBlendingData();
         if (blendingdata == null) {
@@ -107,15 +107,15 @@ public class BlendingData {
     }
 
     public static Set<Direction8> sideByGenerationAge(WorldGenLevel p_197066_, long p_197067_, long p_197068_, boolean p_197069_) {
-        return sideByGenerationAge(p_197066_, net.minecraft.core.Int128.fromLong(p_197067_), net.minecraft.core.Int128.fromLong(p_197068_), p_197069_);
+        return sideByGenerationAge(p_197066_, net.minecraft.core.Int1088.fromLong(p_197067_), net.minecraft.core.Int1088.fromLong(p_197068_), p_197069_);
     }
 
-    public static Set<Direction8> sideByGenerationAge(WorldGenLevel p_197066_, net.minecraft.core.Int128 p_197067_, net.minecraft.core.Int128 p_197068_, boolean p_197069_) {
+    public static Set<Direction8> sideByGenerationAge(WorldGenLevel p_197066_, net.minecraft.core.Int1088 p_197067_, net.minecraft.core.Int1088 p_197068_, boolean p_197069_) {
         Set<Direction8> set = EnumSet.noneOf(Direction8.class);
 
         for (Direction8 direction8 : Direction8.values()) {
-            net.minecraft.core.Int128 i = net.minecraft.world.level.WorldBounds.addChunkOffset(p_197067_, direction8.getStepX());
-            net.minecraft.core.Int128 j = net.minecraft.world.level.WorldBounds.addChunkOffset(p_197068_, direction8.getStepZ());
+            net.minecraft.core.Int1088 i = net.minecraft.world.level.WorldBounds.addChunkOffset(p_197067_, direction8.getStepX());
+            net.minecraft.core.Int1088 j = net.minecraft.world.level.WorldBounds.addChunkOffset(p_197068_, direction8.getStepZ());
             if (p_197066_.getChunk(i, j).isOldNoiseGeneration() == p_197069_) {
                 set.add(direction8);
             }

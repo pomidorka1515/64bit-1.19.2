@@ -1,5 +1,7 @@
 package net.minecraft.world.level.levelgen;
 
+import net.minecraft.core.Int1088;
+
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
@@ -152,7 +154,7 @@ public class SurfaceRules {
         }
 
         public SurfaceRules.SurfaceRule apply(final SurfaceRules.Context p_189482_) {
-            return (x, y, z) -> p_189482_.system.getBand(p_189482_.blockXHi, x, y, p_189482_.blockZHi, z);
+            return (x, y, z) -> p_189482_.system.getBand(x, y, z);
         }
     }
 
@@ -266,10 +268,8 @@ public class SurfaceRules {
         private ChunkPos lastPreliminarySurfaceCellOrigin = null;
         private final int[] preliminarySurfaceCache = new int[4];
         long lastUpdateXZ = -9223372036854775807L;
-        long blockX;
-        long blockXHi;
-        long blockZ;
-        long blockZHi;
+        Int1088 blockX = Int1088.ZERO;
+        Int1088 blockZ = Int1088.ZERO;
         int surfaceDepth;
         private long lastSurfaceDepth2Update = this.lastUpdateXZ - 1L;
         private double surfaceSecondary;
@@ -293,25 +293,21 @@ public class SurfaceRules {
         }
 
         protected void updateXZ(long pBlockX, long pBlockZ) {
-            this.updateXZ(pBlockX >> 63, pBlockX, pBlockZ >> 63, pBlockZ);
+            this.updateXZ(Int1088.fromLong(pBlockX), Int1088.fromLong(pBlockZ));
         }
 
-        protected void updateXZ(long xHi, long xLo, long zHi, long zLo) {
+        protected void updateXZ(Int1088 x, Int1088 z) {
             ++this.lastUpdateXZ;
             ++this.lastUpdateY;
-            this.blockXHi = xHi;
-            this.blockX = xLo;
-            this.blockZHi = zHi;
-            this.blockZ = zLo;
-            this.surfaceDepth = SurfaceArithmetic.boundDepth(this.system.getSurfaceDepth(xHi, xLo, zHi, zLo), this.context.getGenDepth());
+            this.blockX = x;
+            this.blockZ = z;
+            this.surfaceDepth = SurfaceArithmetic.boundDepth(this.system.getSurfaceDepth(x, z), this.context.getGenDepth());
         }
 
-        protected void updateY(int p_189577_, int p_189578_, int p_189579_, long i, int p_189581_, long k) {
+        protected void updateY(int p_189577_, int p_189578_, int p_189579_, Int1088 i, int p_189581_, Int1088 k) {
             ++this.lastUpdateY;
-            long xHi = this.blockXHi;
-            long zHi = this.blockZHi;
             this.biome = Suppliers.memoize(() -> {
-                return this.biomeGetter.apply(this.pos.set(xHi, i, p_189581_, zHi, k));
+                return this.biomeGetter.apply(this.pos.set(i, p_189581_, k));
             });
             this.blockY = p_189581_;
             this.waterHeight = p_189579_;
@@ -322,7 +318,7 @@ public class SurfaceRules {
         protected double getSurfaceSecondary() {
             if (this.lastSurfaceDepth2Update != this.lastUpdateXZ) {
                 this.lastSurfaceDepth2Update = this.lastUpdateXZ;
-                this.surfaceSecondary = this.system.getSurfaceSecondary(this.blockXHi, this.blockX, this.blockZHi, this.blockZ);
+                this.surfaceSecondary = this.system.getSurfaceSecondary(this.blockX, this.blockZ);
             }
 
             return this.surfaceSecondary;
@@ -345,36 +341,26 @@ public class SurfaceRules {
         protected int getMinSurfaceLevel() {
             if (this.lastMinSurfaceLevelUpdate != this.lastUpdateXZ) {
                 this.lastMinSurfaceLevelUpdate = this.lastUpdateXZ;
-                double xFraction = (double) ((float) (this.blockX & 15) / 16.0F);
-                double zFraction = (double) ((float) (this.blockZ & 15) / 16.0F);
+                double xFraction = (double) ((float) (this.blockX.limb(0) & 15) / 16.0F);
+                double zFraction = (double) ((float) (this.blockZ.limb(0) & 15) / 16.0F);
                 double interpolatedLevel;
-                if (WorldgenCoordinate.fitsLong(this.blockXHi, this.blockX) && WorldgenCoordinate.fitsLong(this.blockZHi, this.blockZ)) {
-                    long i = blockCoordToSurfaceCell(this.blockX);
-                    long j = blockCoordToSurfaceCell(this.blockZ);
+                {
+                    Int1088 i = this.blockX.shiftRight(4);
+                    Int1088 j = this.blockZ.shiftRight(4);
                     ChunkPos k = new ChunkPos(i, j);
                     if (!k.equals(lastPreliminarySurfaceCellOrigin)) {
                         this.lastPreliminarySurfaceCellOrigin = k;
-                        this.preliminarySurfaceCache[0] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(i), surfaceCellToBlockCoord(j));
-                        this.preliminarySurfaceCache[1] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(WorldBounds.addChunkOffset(i, 1L)), surfaceCellToBlockCoord(j));
-                        this.preliminarySurfaceCache[2] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(i), surfaceCellToBlockCoord(WorldBounds.addChunkOffset(j, 1L)));
-                        this.preliminarySurfaceCache[3] = this.noiseChunk.preliminarySurfaceLevel(surfaceCellToBlockCoord(WorldBounds.addChunkOffset(i, 1L)), surfaceCellToBlockCoord(WorldBounds.addChunkOffset(j, 1L)));
+                        Int1088 x = i.shiftLeftSaturated(4);
+                        Int1088 z = j.shiftLeftSaturated(4);
+                        Int1088 nextX = WorldBounds.addBlockOffset(x, 16L);
+                        Int1088 nextZ = WorldBounds.addBlockOffset(z, 16L);
+                        this.preliminarySurfaceCache[0] = this.noiseChunk.preliminarySurfaceLevel(x, z);
+                        this.preliminarySurfaceCache[1] = this.noiseChunk.preliminarySurfaceLevel(nextX, z);
+                        this.preliminarySurfaceCache[2] = this.noiseChunk.preliminarySurfaceLevel(x, nextZ);
+                        this.preliminarySurfaceCache[3] = this.noiseChunk.preliminarySurfaceLevel(nextX, nextZ);
                     }
 
                     interpolatedLevel = Mth.lerp2(xFraction, zFraction, (double) this.preliminarySurfaceCache[0], (double) this.preliminarySurfaceCache[1], (double) this.preliminarySurfaceCache[2], (double) this.preliminarySurfaceCache[3]);
-                } else {
-                    long xLow = this.blockX & -16L;
-                    long zLow = this.blockZ & -16L;
-                    long xHigh = this.blockXHi;
-                    long zHigh = this.blockZHi;
-                    long xNextLow = WorldgenCoordinate.addLow(xHigh, xLow, 16L);
-                    long xNextHigh = WorldgenCoordinate.addHigh(xHigh, xLow, 16L);
-                    long zNextLow = WorldgenCoordinate.addLow(zHigh, zLow, 16L);
-                    long zNextHigh = WorldgenCoordinate.addHigh(zHigh, zLow, 16L);
-                    int corner0 = this.noiseChunk.preliminarySurfaceLevel(xHigh, xLow, zHigh, zLow);
-                    int corner1 = this.noiseChunk.preliminarySurfaceLevel(xNextHigh, xNextLow, zHigh, zLow);
-                    int corner2 = this.noiseChunk.preliminarySurfaceLevel(xHigh, xLow, zNextHigh, zNextLow);
-                    int corner3 = this.noiseChunk.preliminarySurfaceLevel(xNextHigh, xNextLow, zNextHigh, zNextLow);
-                    interpolatedLevel = Mth.lerp2(xFraction, zFraction, (double) corner0, (double) corner1, (double) corner2, (double) corner3);
                 }
                 int l = Double.isFinite(interpolatedLevel) ? Mth.floor(interpolatedLevel) : this.context.getMinGenY();
                 this.minSurfaceLevel = SurfaceArithmetic.add(SurfaceArithmetic.add(l, this.surfaceDepth), -8);
@@ -407,8 +393,8 @@ public class SurfaceRules {
             }
 
             protected boolean compute() {
-                int i = (int) (this.context.blockX & 15);
-                int j = (int) (this.context.blockZ & 15);
+                int i = (int) (this.context.blockX.limb(0) & 15);
+                int j = (int) (this.context.blockZ.limb(0) & 15);
                 int k = Math.max(j - 1, 0);
                 int l = Math.min(j + 1, 15);
                 ChunkAccess chunkaccess = this.context.chunk;
@@ -432,7 +418,7 @@ public class SurfaceRules {
             }
 
             protected boolean compute() {
-                return this.context.biome.get().value().coldEnoughToSnow(this.context.pos.set(this.context.blockXHi, this.context.blockX, this.context.blockY, this.context.blockZHi, this.context.blockZ));
+                return this.context.biome.get().value().coldEnoughToSnow(this.context.pos.set(this.context.blockX, this.context.blockY, this.context.blockZ));
             }
         }
     }
@@ -521,7 +507,7 @@ public class SurfaceRules {
                 }
 
                 protected boolean compute() {
-                    double d0 = SurfaceSystem.sampleNoise(normalnoise, this.context.blockXHi, this.context.blockX, 1.0D, this.context.blockZHi, this.context.blockZ);
+                    double d0 = SurfaceSystem.sampleNoise(normalnoise, this.context.blockX, 1.0D, this.context.blockZ);
                     d0 = SurfaceArithmetic.noise(d0);
                     double min = Double.isFinite(NoiseThresholdConditionSource.this.minThreshold) ? NoiseThresholdConditionSource.this.minThreshold : 0.0D;
                     double max = Double.isFinite(NoiseThresholdConditionSource.this.maxThreshold) ? NoiseThresholdConditionSource.this.maxThreshold : 0.0D;
@@ -568,7 +554,7 @@ public class SurfaceRules {
 
     static record SequenceRule(List<SurfaceRules.SurfaceRule> rules) implements SurfaceRules.SurfaceRule {
         @Nullable
-        public BlockState tryApply(long p_189694_, int p_189695_, long p_189696_) {
+        public BlockState tryApply(Int1088 p_189694_, int p_189695_, Int1088 p_189696_) {
             for (SurfaceRules.SurfaceRule surfacerules$surfacerule : this.rules) {
                 BlockState blockstate = surfacerules$surfacerule.tryApply(p_189694_, p_189695_, p_189696_);
                 if (blockstate != null) {
@@ -603,7 +589,7 @@ public class SurfaceRules {
     }
 
     static record StateRule(BlockState state) implements SurfaceRules.SurfaceRule {
-        public BlockState tryApply(long p_189721_, int p_189722_, long p_189723_) {
+        public BlockState tryApply(Int1088 p_189721_, int p_189722_, Int1088 p_189723_) {
             return this.state;
         }
     }
@@ -657,7 +643,7 @@ public class SurfaceRules {
 
     protected interface SurfaceRule {
         @Nullable
-        BlockState tryApply(long p_189774_, int p_189775_, long p_189776_);
+        BlockState tryApply(Int1088 p_189774_, int p_189775_, Int1088 p_189776_);
     }
 
     static enum Temperature implements SurfaceRules
@@ -677,7 +663,7 @@ public class SurfaceRules {
 
     static record TestRule(SurfaceRules.Condition condition, SurfaceRules.SurfaceRule followup) implements SurfaceRules.SurfaceRule {
         @Nullable
-        public BlockState tryApply(long p_189805_, int p_189806_, long p_189807_) {
+        public BlockState tryApply(Int1088 p_189805_, int p_189806_, Int1088 p_189807_) {
             return !this.condition.test() ? null : this.followup.tryApply(p_189805_, p_189806_, p_189807_);
         }
     }
@@ -723,7 +709,7 @@ public class SurfaceRules {
                         return false;
                     } else {
                         double d0 = Mth.map((double) k, (double) i, (double) j, 1.0D, 0.0D);
-                        RandomSource randomsource = positionalrandomfactory.at(this.context.blockXHi, this.context.blockX, k, this.context.blockZHi, this.context.blockZ);
+                        RandomSource randomsource = positionalrandomfactory.at(this.context.blockX, k, this.context.blockZ);
                         return (double) randomsource.nextFloat() < d0;
                     }
                 }

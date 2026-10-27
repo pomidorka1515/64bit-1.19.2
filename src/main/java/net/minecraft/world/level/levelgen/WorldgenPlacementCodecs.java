@@ -6,7 +6,6 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
-import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -43,12 +42,4 @@ public final class WorldgenPlacementCodecs {
                 value -> value.equals(defaultValue) ? Optional.empty() : Optional.of(value));
     }
 
-    /** DynamicOps numeric readers otherwise silently truncate fractions and overflowing foreign numbers. */
-    public static long exactLong(Number value) {
-        try {
-            return new BigDecimal(value.toString()).longValueExact();
-        } catch (ArithmeticException | NumberFormatException exception) {
-            throw new IllegalArgumentException("Placement coordinate half must be an exact signed long", exception);
-        }
-    }
 }

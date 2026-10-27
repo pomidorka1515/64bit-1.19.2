@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.minecraft.SharedConstants;
+import net.minecraft.core.Int1088;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.util.KeyDispatchDataCodec;
@@ -34,9 +35,9 @@ class NoiseChunkExactCacheTest {
 
         public double compute(DensityFunction.FunctionContext context) {
             this.calls.incrementAndGet();
-            this.lastX = context.blockX();
-            this.lastZ = context.blockZ();
-            int height = 64 + (int) (context.blockX() & 12L) + (int) (context.blockZ() & 12L);
+            this.lastX = context.blockXLimb(0);
+            this.lastZ = context.blockZLimb(0);
+            int height = 64 + (int) (context.blockXLimb(0) & 12L) + (int) (context.blockZLimb(0) & 12L);
             return context.blockY() <= height ? 1.0D : 0.0D;
         }
 
@@ -180,15 +181,14 @@ class NoiseChunkExactCacheTest {
 
     @Test
     void fullWidthChunkTransportCarriesAcrossLimbsAndSaturatesAtWorldEdge() {
-        net.minecraft.core.Int128[] origins = {
-                net.minecraft.core.Int128.of(5L, -16L),
-                net.minecraft.core.Int128.of(0L, Long.MIN_VALUE),
-                net.minecraft.core.Int128.of(-2L, 0L),
-                net.minecraft.core.Int128.fromLong(Long.MAX_VALUE - 15L),
-                net.minecraft.core.Int128.MAX.subtract(net.minecraft.core.Int128.fromLong(15L))};
+        Int1088[] origins = {
+                Int1088.of(-16L, 5L), Int1088.of(Long.MIN_VALUE, 0L), Int1088.of(0L, -2L),
+                Int1088.fromLong(Long.MAX_VALUE - 15L),
+                Int1088.ONE.shiftLeftSaturated(1024).subtractSaturated(Int1088.fromLong(16L)),
+                Int1088.MAX.subtract(Int1088.fromLong(15L))};
         for (FarlandsMode.Mode mode : FarlandsMode.Mode.values()) {
             FarlandsMode.setMode(mode);
-            for (net.minecraft.core.Int128 origin : origins) {
+            for (Int1088 origin : origins) {
                 NoiseGeneratorSettings settings = settings(new ColumnDensity());
                 RandomState state = RandomState.create(settings, BuiltinRegistries.NOISE, 42L);
                 NoiseChunk chunk = new NoiseChunk(4, state, origin, origin, settings.noiseSettings(),
@@ -197,26 +197,19 @@ class NoiseChunkExactCacheTest {
                 chunk.initializeForFirstCellX();
                 chunk.advanceCellX(0);
                 chunk.selectCellYZ(0, 0);
-                assertEquals(origin.hi(), chunk.blockXHi(), mode.toString());
-                assertEquals(origin.lo(), chunk.blockX(), mode.toString());
+                assertContext(origin, origin, chunk);
                 chunk.advanceCellX(3);
                 chunk.selectCellYZ(0, 3);
-                chunk.updateForX(origin.lo() + 15L, 0.75D);
-                chunk.updateForZ(origin.lo() + 15L, 0.75D);
-                net.minecraft.core.Int128 last = origin.addSaturated(net.minecraft.core.Int128.fromLong(15L));
-                assertEquals(last.hi(), chunk.blockXHi());
-                assertEquals(last.lo(), chunk.blockX());
-                assertEquals(last.hi(), chunk.blockZHi());
-                assertEquals(last.lo(), chunk.blockZ());
+                Int1088 last = origin.addSaturated(Int1088.fromLong(15L));
+                chunk.updateForX(last, 0.75D);
+                chunk.updateForZ(last, 0.75D);
+                assertContext(last, last, chunk);
                 chunk.advanceCellX(4);
                 chunk.selectCellYZ(0, 4);
-                net.minecraft.core.Int128 next = origin.addSaturated(net.minecraft.core.Int128.fromLong(16L));
-                chunk.updateForX(next.lo(), 0.0D);
-                chunk.updateForZ(next.lo(), 0.0D);
-                assertEquals(next.hi(), chunk.blockXHi());
-                assertEquals(next.lo(), chunk.blockX());
-                assertEquals(next.hi(), chunk.blockZHi());
-                assertEquals(next.lo(), chunk.blockZ());
+                Int1088 next = origin.addSaturated(Int1088.fromLong(16L));
+                chunk.updateForX(next, 0.0D);
+                chunk.updateForZ(next, 0.0D);
+                assertContext(next, next, chunk);
                 chunk.stopInterpolation();
             }
         }
@@ -228,11 +221,11 @@ class NoiseChunkExactCacheTest {
             FarlandsMode.setMode(mode);
             ColumnDensity density = new ColumnDensity();
             NoiseChunk chunk = chunk(0L, settings(density));
-            int height = chunk.preliminarySurfaceLevel(17L, 32L, -19L, 48L);
+            int height = chunk.preliminarySurfaceLevel(Int1088.of(32L, 17L), Int1088.of(48L, -19L));
             int calls = density.calls.get();
-            assertEquals(height, chunk.preliminarySurfaceLevel(17L, 35L, -19L, 51L));
+            assertEquals(height, chunk.preliminarySurfaceLevel(Int1088.of(35L, 17L), Int1088.of(51L, -19L)));
             assertEquals(calls, density.calls.get(), mode.toString());
-            chunk.preliminarySurfaceLevel(18L, 32L, -19L, 48L);
+            chunk.preliminarySurfaceLevel(Int1088.of(32L, 18L), Int1088.of(48L, -19L));
             org.junit.jupiter.api.Assertions.assertTrue(density.calls.get() > calls);
         }
     }
@@ -243,10 +236,17 @@ class NoiseChunkExactCacheTest {
             FarlandsMode.setMode(mode);
             ColumnDensity density = new ColumnDensity();
             NoiseChunk.Cache2D cache = new NoiseChunk.Cache2D(density);
-            cache.compute(new DensityFunction.SinglePointContext(5L, 17L, 80, 7L, 19L));
-            cache.compute(new DensityFunction.SinglePointContext(6L, 17L, 80, 7L, 19L));
-            cache.compute(new DensityFunction.SinglePointContext(6L, 17L, 80, 8L, 19L));
+            cache.compute(new DensityFunction.SinglePointContext(Int1088.of(17L, 5L), 80, Int1088.of(19L, 7L)));
+            cache.compute(new DensityFunction.SinglePointContext(Int1088.of(17L, 6L), 80, Int1088.of(19L, 7L)));
+            cache.compute(new DensityFunction.SinglePointContext(Int1088.of(17L, 6L), 80, Int1088.of(19L, 8L)));
             assertEquals(3, density.calls.get(), mode.toString());
+        }
+    }
+
+    private static void assertContext(Int1088 x, Int1088 z, DensityFunction.FunctionContext context) {
+        for (int limb = 0; limb < Int1088.LIMBS; ++limb) {
+            assertEquals(x.limb(limb), context.blockXLimb(limb));
+            assertEquals(z.limb(limb), context.blockZLimb(limb));
         }
     }
 

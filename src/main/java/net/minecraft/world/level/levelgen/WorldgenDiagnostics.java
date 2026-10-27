@@ -136,8 +136,7 @@ final class WorldgenDiagnostics {
     }
 
     private double surface(ResourceKey<NormalNoise.NoiseParameters> key, double scale) {
-        return SurfaceSystem.sampleNoise(random.getOrCreateNoise(key), context.blockXHi(), context.blockX(), scale,
-                context.blockZHi(), context.blockZ());
+        return SurfaceSystem.sampleNoise(random.getOrCreateNoise(key), context.blockX(), scale, context.blockZ());
     }
 
     private double weird(ResourceKey<NormalNoise.NoiseParameters> key, double modulator,

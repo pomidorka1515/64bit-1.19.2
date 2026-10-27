@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.lang.reflect.Method;
 import net.minecraft.SharedConstants;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.ChunkPos;
@@ -37,18 +37,17 @@ class AquiferOverflowTest {
                 var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(NoiseGeneratorSettings.OVERWORLD).value();
                 var random = RandomState.create(settings, BuiltinRegistries.NOISE, 0L);
                 for (String coordinate : new String[] {"0", "2000000000000", "-225214492026149979000000"}) {
-                    Int128 x = Int128.parseDecimal(coordinate).shiftRight(4).shiftLeftSaturated(4);
+                    Int1088 x = Int1088.parseDecimal(coordinate).shiftRight(4).shiftLeftSaturated(4);
                     Aquifer.FluidPicker picker = (px, y, pz) -> y <= -54
                             ? new Aquifer.FluidStatus(-54, Blocks.LAVA.defaultBlockState())
                             : new Aquifer.FluidStatus(63, Blocks.WATER.defaultBlockState());
-                    var chunk = new NoiseChunk(4, random, x, Int128.ZERO, settings.noiseSettings(),
+                    var chunk = new NoiseChunk(4, random, x, Int1088.ZERO, settings.noiseSettings(),
                             DensityFunctions.BeardifierMarker.INSTANCE, settings, picker, Blender.empty());
-                    var aquifer = new Aquifer.NoiseBasedAquifer(chunk, new ChunkPos(x.shiftRight(4), Int128.ZERO),
+                    var aquifer = new Aquifer.NoiseBasedAquifer(chunk, new ChunkPos(x.shiftRight(4), Int1088.ZERO),
                             random.router(), random.aquiferRandom(), -64, 384, picker);
-                    boolean local = !WorldgenCoordinate.fitsLong(x.hi(), x.lo());
                     for (int y = -60; y <= 100; y += 8) {
-                        long px = local ? 0 : x.lo();
-                        var context = new DensityFunction.SinglePointContext(x.hi(), x.lo(), y, 0, 0);
+                        long px = 0;
+                        var context = new DensityFunction.SinglePointContext(x, y, Int1088.ZERO);
                         double density = random.router().finalDensity().compute(context);
                         double floodedness = random.router().fluidLevelFloodednessNoise().compute(context);
                         boolean broken = NoiseSampling.hasExtrapolation(() -> random.router().fluidLevelFloodednessNoise().compute(context));
@@ -86,7 +85,7 @@ class AquiferOverflowTest {
         var chunk = new NoiseChunk(4, random, 0L, 0L, settings.noiseSettings(),
                 DensityFunctions.BeardifierMarker.INSTANCE, settings, picker, Blender.empty()) {
             @Override
-            public int preliminarySurfaceLevel(long x, long z) {
+            public int preliminarySurfaceLevel(Int1088 x, Int1088 z) {
                 return 48;
             }
         };

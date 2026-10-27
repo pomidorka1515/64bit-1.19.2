@@ -3,7 +3,7 @@ package net.minecraft.world.level.levelgen;
 import static org.junit.jupiter.api.Assertions.*;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.LevelHeightAccessor;
@@ -29,7 +29,7 @@ class FullWidthWorldgenTest {
 
     @Test
     void columnsGenerateInEveryDimensionAndModeAtFullWidthAddresses() {
-        Int128[] addresses = {Int128.of(17L, 32L), Int128.of(-19L, -32L), Int128.MIN, Int128.MAX};
+        Int1088[] addresses = {Int1088.of(32L, 17L), Int1088.of(-32L, -19L), Int1088.ONE.shiftLeftSaturated(1024), Int1088.MIN, Int1088.MAX};
         for (var dimension : java.util.List.of(NoiseGeneratorSettings.OVERWORLD, NoiseGeneratorSettings.NETHER, NoiseGeneratorSettings.END)) {
             var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(dimension);
             NoiseBasedChunkGenerator generator = new NoiseBasedChunkGenerator(BuiltinRegistries.STRUCTURE_SETS, BuiltinRegistries.NOISE,
@@ -39,7 +39,7 @@ class FullWidthWorldgenTest {
               for (CoordinatePrecision precision : CoordinatePrecision.values()) {
                try (var ignored = GenerationContext.open(new GeneratorConfig(mode, precision))) {
                 RandomState state = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 1234L);
-                for (Int128 x : addresses) {
+                for (Int1088 x : addresses) {
                     var column = generator.getBaseColumn(x, x, height, state);
                     assertNotNull(column, dimension + " " + mode + " " + x);
                     assertNotNull(column.getBlock(height.getMinBuildHeight()));
@@ -54,12 +54,12 @@ class FullWidthWorldgenTest {
     void preciseNoiseIncludesHighLimbsAndRemainsLocallyVolumetric() {
         FarlandsMode.setMode(FarlandsMode.Mode.BIT_64_PRECISE);
         NormalNoise noise = NormalNoise.create(new LegacyRandomSource(1234L), -4, 1.0D, 0.5D);
-        double first = noise.getValueScaled(17L, 37L, 0.25D, 73L, 0.25D, -19L, 41L);
+        double first = noise.getValueScaled(Int1088.of(37L, 17L), 0.25D, 73L, 0.25D, Int1088.of(41L, -19L));
         assertTrue(Double.isFinite(first));
-        assertNotEquals(first, noise.getValueScaled(18L, 37L, 0.25D, 73L, 0.25D, -19L, 41L));
-        assertNotEquals(first, noise.getValueScaled(17L, 38L, 0.25D, 73L, 0.25D, -19L, 41L));
-        assertNotEquals(first, noise.getValueScaled(17L, 37L, 0.25D, 74L, 0.25D, -19L, 41L));
-        assertNotEquals(first, noise.getValueScaled(17L, 37L, 0.25D, 73L, 0.25D, -19L, 42L));
+        assertNotEquals(first, noise.getValueScaled(Int1088.of(37L, 18L), 0.25D, 73L, 0.25D, Int1088.of(41L, -19L)));
+        assertNotEquals(first, noise.getValueScaled(Int1088.of(38L, 17L), 0.25D, 73L, 0.25D, Int1088.of(41L, -19L)));
+        assertNotEquals(first, noise.getValueScaled(Int1088.of(37L, 17L), 0.25D, 74L, 0.25D, Int1088.of(41L, -19L)));
+        assertNotEquals(first, noise.getValueScaled(Int1088.of(37L, 17L), 0.25D, 73L, 0.25D, Int1088.of(42L, -19L)));
     }
 
     @Test
@@ -73,7 +73,7 @@ class FullWidthWorldgenTest {
                 FarlandsMode.setMode(mode);
                 var state = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 1234L);
                 var chunk = new net.minecraft.world.level.chunk.ProtoChunk(
-                        new net.minecraft.world.level.ChunkPos(Int128.of(17L, -1L), Int128.of(-19L, 0L)),
+                        new net.minecraft.world.level.ChunkPos(Int1088.of(-1L, 17L), Int1088.of(0L, -19L)),
                         net.minecraft.world.level.chunk.UpgradeData.EMPTY, height, BuiltinRegistries.BIOME, null);
                 var water = new Aquifer.FluidStatus(settings.value().seaLevel(), settings.value().defaultFluid());
                 var lava = new Aquifer.FluidStatus(-54, net.minecraft.world.level.block.Blocks.LAVA.defaultBlockState());
@@ -94,9 +94,9 @@ class FullWidthWorldgenTest {
     void floatingPointModesKeepTheirOwnFullMagnitudePolicies() {
         for (FarlandsMode.Mode mode : FarlandsMode.Mode.values()) {
             FarlandsMode.setMode(mode);
-            double full = FarlandsMode.scaledNoiseCoordinate(17L, 37L, 0.25D);
-            double expected = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(17L, 37L) * 0.25D;
-            if (mode == FarlandsMode.Mode.OFF || mode == FarlandsMode.Mode.BIT_64_PRECISE)
+            double full = ContextCoordinates.scaled(Int1088.of(37L, 17L), 0.25D, 0.0D);
+            double expected = Int1088.of(37L, 17L).toDoubleRounded() * 0.25D;
+            if (mode == FarlandsMode.Mode.OFF)
                 expected = Math.nextDown(0x1p63);
             assertEquals(expected, full, mode.toString());
             assertNotEquals(FarlandsMode.scaledNoiseCoordinate(37L, 0.25D), full);
@@ -107,12 +107,12 @@ class FullWidthWorldgenTest {
     void randomSpreadRegionDoesNotChangeAtSignedLongSeam() {
         var placement = new net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement(34, 8,
                 net.minecraft.world.level.levelgen.structure.placement.RandomSpreadType.LINEAR, 1234);
-        for (Int128 edge : new Int128[] {Int128.fromLong(Long.MAX_VALUE), Int128.fromLong(Long.MIN_VALUE)}) {
-            Int128 region = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.floorDivide(edge.hi(), edge.lo(), 34);
-            Int128 start = region.multiplySaturated(34);
+        for (Int1088 edge : new Int1088[] {Int1088.fromLong(Long.MAX_VALUE), Int1088.fromLong(Long.MIN_VALUE)}) {
+            Int1088 region = edge.floorDivideSaturated(34);
+            Int1088 start = region.multiplySaturated(34);
             var expected = placement.getPotentialStructureChunk(1234L, start, start);
             for (int offset = 0; offset < 34; ++offset) {
-                Int128 coordinate = start.addSaturated(Int128.fromLong(offset));
+                Int1088 coordinate = start.addSaturated(Int1088.fromLong(offset));
                 assertEquals(expected, placement.getPotentialStructureChunk(1234L, coordinate, coordinate));
             }
         }
@@ -123,10 +123,10 @@ class FullWidthWorldgenTest {
         var placement = new net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement(32, 8,
                 net.minecraft.world.level.levelgen.structure.placement.RandomSpreadType.LINEAR, 1234);
         for (long hi : new long[] {17L, -19L, Long.MIN_VALUE >> 4, Long.MAX_VALUE >> 4}) {
-            Int128 x = Int128.of(hi, -1L), z = Int128.of(hi, 0L);
+            Int1088 x = Int1088.of(-1L, hi), z = Int1088.of(0L, hi);
             var actual = placement.getPotentialStructureChunk(1234L, x, z);
-            var rx = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.floorDivide(x.hi(), x.lo(), 32);
-            var rz = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.floorDivide(z.hi(), z.lo(), 32);
+            var rx = x.floorDivideSaturated(32);
+            var rz = z.floorDivideSaturated(32);
             assertEquals(rx, actual.x().shiftRight(5));
             assertEquals(rz, actual.z().shiftRight(5));
         }

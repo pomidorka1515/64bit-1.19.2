@@ -3,6 +3,7 @@ package net.minecraft.world.level.levelgen;
 import com.mojang.serialization.Codec;
 import javax.annotation.Nullable;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.RegistryFileCodec;
 import net.minecraft.util.KeyDispatchDataCodec;
@@ -67,15 +68,23 @@ public interface DensityFunction {
     }
 
     public interface FunctionContext {
-        long blockX();
+        int blockXLimbCount();
 
-        default long blockXHi() { return blockX() >> 63; }
+        long blockXLimb(int index);
 
         int blockY();
 
-        long blockZ();
+        int blockZLimbCount();
 
-        default long blockZHi() { return blockZ() >> 63; }
+        long blockZLimb(int index);
+
+        default long blockXLow() { return blockXLimb(0); }
+
+        default long blockZLow() { return blockZLimb(0); }
+
+        default boolean blockXFitsLong() { return blockXLimbCount() == 1; }
+
+        default boolean blockZFitsLong() { return blockZLimbCount() == 1; }
 
         default Blender getBlender() {
             return Blender.empty();
@@ -119,16 +128,16 @@ public interface DensityFunction {
             return this.noise == null ? 2.0D : this.noise.maxValue();
         }
 
-        public double getValueScaled(long xHi, long xLo, double scale, long y, double yScale, long zHi, long zLo) {
-            return this.noise == null ? 0.0D : this.noise.getValueScaled(xHi, xLo, scale, y, yScale, zHi, zLo);
+        public double getValueScaled(long[] x, int xo, int xl, double scale, long y, double yScale, long[] z, int zo, int zl) {
+            return this.noise == null ? 0.0D : this.noise.getValueScaled(x, xo, xl, scale, y, yScale, z, zo, zl);
         }
 
-        public double getValueScaledShifted(long xHi, long xLo, double scale, double shiftX, double y, long zHi, long zLo, double shiftZ) {
-            return this.noise == null ? 0.0D : this.noise.getValueScaledShifted(xHi, xLo, scale, shiftX, y, zHi, zLo, shiftZ);
+        public double getValueScaledShifted(long[] x, int xo, int xl, double scale, double shiftX, double y, long[] z, int zo, int zl, double shiftZ) {
+            return this.noise == null ? 0.0D : this.noise.getValueScaledShifted(x, xo, xl, scale, shiftX, y, z, zo, zl, shiftZ);
         }
 
-        public double getValueScaledAxes(long xHi, long xLo, long yHi, long yLo, long zHi, long zLo, double scale) {
-            return this.noise == null ? 0.0D : this.noise.getValueScaledAxes(xHi, xLo, yHi, yLo, zHi, zLo, scale);
+        public double getValueScaledAxes(long[] x, int xo, int xl, long[] y, int yo, int yl, long[] z, int zo, int zl, double scale) {
+            return this.noise == null ? 0.0D : this.noise.getValueScaledAxes(x, xo, xl, y, yo, yl, z, zo, zl, scale);
         }
     }
 
@@ -142,25 +151,15 @@ public interface DensityFunction {
         }
     }
 
-    public static record SinglePointContext(long blockXHi, long blockX, int blockY, long blockZHi, long blockZ) implements DensityFunction.FunctionContext {
+    public static record SinglePointContext(Int1088 blockX, int blockY, Int1088 blockZ) implements DensityFunction.FunctionContext {
         public SinglePointContext(long x, int y, long z) {
-            this(x >> 63, x, y, z >> 63, z);
+            this(Int1088.fromLong(x), y, Int1088.fromLong(z));
         }
 
-        public SinglePointContext(net.minecraft.core.Int128 x, int y, net.minecraft.core.Int128 z) {
-            this(x.hi(), x.lo(), y, z.hi(), z.lo());
-        }
-        public long blockX() {
-            return this.blockX;
-        }
-
-        public int blockY() {
-            return this.blockY;
-        }
-
-        public long blockZ() {
-            return this.blockZ;
-        }
+        public int blockXLimbCount() { return this.blockX.limbCount(); }
+        public long blockXLimb(int index) { return this.blockX.limb(index); }
+        public int blockZLimbCount() { return this.blockZ.limbCount(); }
+        public long blockZLimb(int index) { return this.blockZ.limb(index); }
     }
 
     public interface Visitor {

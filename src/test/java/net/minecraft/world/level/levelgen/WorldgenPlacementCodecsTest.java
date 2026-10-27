@@ -8,10 +8,11 @@ import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.Dynamic;
 import java.util.List;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.feature.configurations.EndGatewayConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.SpikeConfiguration;
@@ -31,8 +32,8 @@ class WorldgenPlacementCodecsTest {
 
     @Test
     void optionalWorldAnchorsRoundTripWithoutProjectingIdentity() {
-        for (Int128 x : new Int128[] {Int128.MIN, Int128.MAX, Int128.of(17, Long.MIN_VALUE), Int128.fromLong(-1)}) {
-            BlockPos anchor = new BlockPos(x, 64, Int128.of(-9, Long.MAX_VALUE));
+        for (Int1088 x : new Int1088[] {Int1088.MIN, Int1088.MAX, Int1088.of(Long.MIN_VALUE, 17), Int1088.fromLong(-1)}) {
+            BlockPos anchor = new BlockPos(x, 64, Int1088.of(Long.MAX_VALUE, -9));
             var gateway = EndGatewayConfiguration.knownExit(anchor, true);
             var encoded = EndGatewayConfiguration.CODEC.encodeStart(NbtOps.INSTANCE, gateway).result().orElseThrow();
             assertEquals(anchor, EndGatewayConfiguration.CODEC.parse(NbtOps.INSTANCE, encoded).result().orElseThrow().getExit().orElseThrow());
@@ -41,8 +42,8 @@ class WorldgenPlacementCodecsTest {
             assertEquals(anchor, SpikeConfiguration.CODEC.parse(NbtOps.INSTANCE, spikeTag).result().orElseThrow().getCrystalBeamTarget());
             var junction = new JigsawJunction(x, 64, anchor.getZ(), 3, StructureTemplatePool.Projection.RIGID);
             var tag = (CompoundTag) junction.serialize(NbtOps.INSTANCE).getValue();
-            assertEquals(x.lo(), tag.getLong("source_x"));
-            assertEquals(x.hi(), tag.getLong("source_xHi"));
+            assertEquals(x, NbtUtils.readInt1088(tag, "source_x"));
+            assertFalse(tag.contains("source_xHi"));
             assertEquals(junction, JigsawJunction.deserialize(new Dynamic<>(NbtOps.INSTANCE, tag)));
         }
     }
@@ -65,7 +66,7 @@ class WorldgenPlacementCodecsTest {
         Vec3i offset = new Vec3i(3, 4, -5);
         placement.add("locate_offset", Vec3i.CODEC.encodeStart(JsonOps.INSTANCE, offset).result().orElseThrow());
         decoded = RandomSpreadStructurePlacement.CODEC.parse(JsonOps.INSTANCE, placement).result().orElseThrow();
-        ChunkPos chunk = new ChunkPos(Int128.of(17, 42), Int128.of(-9, -42));
+        ChunkPos chunk = new ChunkPos(Int1088.of(42, 17), Int1088.of(-42, -9));
         assertEquals(new BlockPos(chunk.getMinBlockX(), 0, chunk.getMinBlockZ()).offset(offset), decoded.getLocatePos(chunk));
         var roundTrip = RandomSpreadStructurePlacement.CODEC.encodeStart(JsonOps.INSTANCE, decoded).result().orElseThrow();
         assertEquals(decoded.getLocatePos(chunk), RandomSpreadStructurePlacement.CODEC.parse(JsonOps.INSTANCE, roundTrip).result().orElseThrow().getLocatePos(chunk));
@@ -79,23 +80,25 @@ class WorldgenPlacementCodecsTest {
     void predicatePlacementOffsetsRejectLegacyDataInsteadOfDefaulting() {
         var codec = net.minecraft.world.level.levelgen.blockpredicates.InsideWorldBoundsPredicate.CODEC;
         assertTrue(codec.parse(JsonOps.INSTANCE, json("{}")).result().isPresent());
-        assertTrue(codec.parse(JsonOps.INSTANCE, json("{\"offset\":[0,1,2,0,3]}")).result().isPresent());
+        JsonObject valid = json("{}");
+        valid.add("offset", Vec3i.CODEC.encodeStart(JsonOps.INSTANCE, new Vec3i(1, 2, 3)).result().orElseThrow());
+        assertTrue(codec.parse(JsonOps.INSTANCE, valid).result().isPresent());
         for (String invalid : new String[] {"[1,2,3]", "[0,16,0,0,0]", "null", "\"foreign\""}) {
             assertTrue(codec.parse(JsonOps.INSTANCE, json("{\"offset\":" + invalid + "}")).error().isPresent(), invalid);
         }
     }
 
     @Test
-    void foreignJigsawCoordinateHalvesCannotBeTruncatedOrDefaulted() {
-        JigsawJunction junction = new JigsawJunction(Int128.of(17, Long.MIN_VALUE), 64, Int128.of(-9, Long.MAX_VALUE), 3, StructureTemplatePool.Projection.RIGID);
+    void foreignJigsawCoordinatesCannotBeTruncatedOrDefaulted() {
+        JigsawJunction junction = new JigsawJunction(Int1088.of(Long.MIN_VALUE, 17), 64, Int1088.of(Long.MAX_VALUE, -9), 3, StructureTemplatePool.Projection.RIGID);
         JsonObject encoded = junction.serialize(JsonOps.INSTANCE).getValue().getAsJsonObject();
         assertEquals(junction, JigsawJunction.deserialize(new Dynamic<>(JsonOps.INSTANCE, encoded)));
         for (String invalid : new String[] {"1.5", "9223372036854775808", "-9223372036854775809", "\"0\"", "null"}) {
             JsonObject malformed = encoded.deepCopy();
-            malformed.add("source_xHi", JsonParser.parseString(invalid));
+            malformed.add("source_x", JsonParser.parseString(invalid));
             assertThrows(IllegalArgumentException.class, () -> JigsawJunction.deserialize(new Dynamic<>(JsonOps.INSTANCE, malformed)), invalid);
         }
-        encoded.remove("source_xHi");
+        encoded.remove("source_x");
         assertThrows(IllegalArgumentException.class, () -> JigsawJunction.deserialize(new Dynamic<>(JsonOps.INSTANCE, encoded)));
     }
 

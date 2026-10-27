@@ -7,7 +7,7 @@ import net.minecraft.util.RandomSource;
 
 public interface PositionalRandomFactory {
     default RandomSource at(BlockPos pPos) {
-        return this.at(pPos.getX().hi(), pPos.getXLo(), pPos.getY(), pPos.getZ().hi(), pPos.getZLo());
+        return this.at(pPos.getX(), pPos.getY(), pPos.getZ());
     }
 
     default RandomSource fromHashOf(ResourceLocation pName) {
@@ -19,9 +19,9 @@ public interface PositionalRandomFactory {
     /** Legacy content/seed domain: horizontal inputs are explicitly projected low 64 bits. */
     RandomSource at(long pX, int pY, long pZ);
 
-    default RandomSource at(long xHi, long xLo, int y, long zHi, long zLo) {
-        return at(net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(xHi, xLo), y,
-                net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(zHi, zLo));
+    default RandomSource at(net.minecraft.core.Int1088 x, int y, net.minecraft.core.Int1088 z) {
+        return at(net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(x), y,
+                net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(z));
     }
 
     @VisibleForTesting

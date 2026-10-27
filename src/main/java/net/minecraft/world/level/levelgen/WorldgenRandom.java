@@ -54,19 +54,19 @@ public class WorldgenRandom extends LegacyRandomSource {
         this.setSeed(i);
     }
 
-    public long setDecorationSeed(long seed, net.minecraft.core.Int128 x, net.minecraft.core.Int128 z) {
-        return setDecorationSeed(seed, net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(x.hi(), x.lo()),
-                net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(z.hi(), z.lo()));
+    public long setDecorationSeed(long seed, net.minecraft.core.Int1088 x, net.minecraft.core.Int1088 z) {
+        return setDecorationSeed(seed, net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(x),
+                net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(z));
     }
 
-    public void setLargeFeatureSeed(long seed, net.minecraft.core.Int128 x, net.minecraft.core.Int128 z) {
-        setLargeFeatureSeed(seed, net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(x.hi(), x.lo()),
-                net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(z.hi(), z.lo()));
+    public void setLargeFeatureSeed(long seed, net.minecraft.core.Int1088 x, net.minecraft.core.Int1088 z) {
+        setLargeFeatureSeed(seed, net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(x),
+                net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(z));
     }
 
-    public void setLargeFeatureWithSalt(long seed, net.minecraft.core.Int128 x, net.minecraft.core.Int128 z, long salt) {
-        setLargeFeatureWithSalt(seed, net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(x.hi(), x.lo()),
-                net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(z.hi(), z.lo()), salt);
+    public void setLargeFeatureWithSalt(long seed, net.minecraft.core.Int1088 x, net.minecraft.core.Int1088 z, long salt) {
+        setLargeFeatureWithSalt(seed, net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(x),
+                net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(z), salt);
     }
 
     public void setLargeFeatureSeed(long pBaseSeed, long pChunkX, long pChunkZ) {

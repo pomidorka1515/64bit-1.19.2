@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.chat.Component;
@@ -207,6 +208,24 @@ public final class NbtUtils {
                 return UUIDUtil.uuidFromIntArray(aint);
             }
         }
+    }
+
+    /** Reads a required fixed-width little-endian coordinate array. */
+    public static Int1088 readInt1088(CompoundTag pTag, String pKey) {
+        if (!pTag.contains(pKey, Tag.TAG_LONG_ARRAY)) {
+            throw new IllegalArgumentException("Expected LongArray[17] for key " + pKey);
+        }
+        long[] limbs = pTag.getLongArray(pKey);
+        if (limbs.length != Int1088.LIMBS) {
+            throw new IllegalArgumentException("Expected LongArray[17] for key " + pKey + ", found length " + limbs.length);
+        }
+        return Int1088.fromFixedLimbs(limbs);
+    }
+
+    public static void writeInt1088(CompoundTag pTag, String pKey, Int1088 pValue) {
+        long[] limbs = new long[Int1088.LIMBS];
+        pValue.copyFixed(limbs, 0);
+        pTag.putLongArray(pKey, limbs);
     }
 
     /** Reads a required pair of LONG tags; low-only and numeric coercions are rejected. */

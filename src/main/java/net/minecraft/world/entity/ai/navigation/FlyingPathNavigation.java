@@ -45,8 +45,8 @@ public class FlyingPathNavigation extends PathNavigation {
                 this.followThePath();
             } else if (this.path != null && !this.path.isDone()) {
                 net.minecraft.world.phys.SectorVec3 next = this.path.getNextExactEntityPos(this.mob);
-                if (this.mob.getBlockX() == next.blockX() && this.mob.getBlockY() == Mth.floor(next.y())
-                        && this.mob.getBlockZ() == next.blockZ()) {
+                if (this.mob.getBlockX().equals(next.blockX()) && this.mob.getBlockY() == Mth.floor(next.y())
+                        && this.mob.getBlockZ().equals(next.blockZ())) {
                     this.path.advance();
                 }
             }

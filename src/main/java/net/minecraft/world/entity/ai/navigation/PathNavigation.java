@@ -219,7 +219,7 @@ public abstract class PathNavigation {
                 SectorVec3 next = this.path.getNextExactEntityPos(this.mob);
                 SectorVec3 mobPosition = this.getTempMobSectorPos();
                 if (mobPosition.y() > next.y() && !this.mob.isOnGround()
-                        && mobPosition.blockX() == next.blockX() && mobPosition.blockZ() == next.blockZ()) {
+                        && mobPosition.blockX().equals(next.blockX()) && mobPosition.blockZ().equals(next.blockZ())) {
                     this.path.advance();
                 }
             }

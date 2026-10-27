@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.world.level.WorldBounds;
@@ -41,9 +41,9 @@ public class RandomOffsetPlacement extends PlacementModifier {
     }
 
     public Stream<BlockPos> getPositions(PlacementContext pContext, RandomSource pRandom, BlockPos pPos) {
-        Int128 i = WorldBounds.addBlockOffset(pPos.getX(), this.xzSpread.sample(pRandom));
+        Int1088 i = WorldBounds.addBlockOffset(pPos.getX(), this.xzSpread.sample(pRandom));
         int j = pPos.getY() + this.ySpread.sample(pRandom);
-        Int128 k = WorldBounds.addBlockOffset(pPos.getZ(), this.xzSpread.sample(pRandom));
+        Int1088 k = WorldBounds.addBlockOffset(pPos.getZ(), this.xzSpread.sample(pRandom));
         return Stream.of(new BlockPos(i, j, k));
     }
 

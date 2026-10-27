@@ -36,8 +36,8 @@ public class NoiseThresholdCountPlacement extends RepeatingPlacement {
 
     protected int count(RandomSource pRandom, BlockPos pPos) {
         double d0 = FarlandsMode.usesPreciseCoordinates()
-                ? Biome.BIOME_INFO_NOISE.getValueScaled(pPos.getXHi(), pPos.getXLo(), pPos.getZHi(), pPos.getZLo(), 1.0D / 200.0D, false)
-                : Biome.BIOME_INFO_NOISE.getValue(FarlandsMode.scaledNoiseCoordinate(pPos.getXHi(), pPos.getXLo(), 1.0D / 200.0D), FarlandsMode.scaledNoiseCoordinate(pPos.getZHi(), pPos.getZLo(), 1.0D / 200.0D), false);
+                ? Biome.BIOME_INFO_NOISE.getValueScaled(pPos.getX(), pPos.getZ(), 1.0D / 200.0D, false)
+                : Biome.BIOME_INFO_NOISE.getValue(net.minecraft.world.level.levelgen.ContextCoordinates.scaled(pPos.getX(), 1.0D / 200.0D, 0.0D), net.minecraft.world.level.levelgen.ContextCoordinates.scaled(pPos.getZ(), 1.0D / 200.0D, 0.0D), false);
         return d0 < this.noiseLevel ? this.belowNoise : this.aboveNoise;
     }
 

@@ -101,11 +101,9 @@ public class GeodeFeature extends Feature<GeodeConfiguration> {
 
         for (BlockPos blockpos3 : BlockPos.betweenClosed(blockpos.offset(i, i, i), blockpos.offset(j, j, j))) {
             // Noise sampling and block writes both retain the full address.
-            long blockX = blockpos3.getXLo();
-            long blockZ = blockpos3.getZLo();
-            double d8 = FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(blockpos3.getXHi(), blockX) || PreciseNoiseCoordinate.needsPrecisePath(blockpos3.getZHi(), blockZ))
-                    ? normalnoise.getValueScaled(blockpos3.getXHi(), blockX, 1.0D, blockpos3.getY(), 1.0D, blockpos3.getZHi(), blockZ) * geodeconfiguration.noiseMultiplier
-                    : normalnoise.getValue(net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(blockpos3.getXHi(), blockX), (double) blockpos3.getY(), net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(blockpos3.getZHi(), blockZ)) * geodeconfiguration.noiseMultiplier;
+            double d8 = FarlandsMode.usesPreciseCoordinates()
+                    ? normalnoise.getValueScaled(blockpos3.getX(), 1.0D, blockpos3.getY(), 1.0D, blockpos3.getZ()) * geodeconfiguration.noiseMultiplier
+                    : normalnoise.getValue(net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(blockpos3.getX()), (double) blockpos3.getY(), net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(blockpos3.getZ())) * geodeconfiguration.noiseMultiplier;
             double d6 = 0.0D;
             double d7 = 0.0D;
 

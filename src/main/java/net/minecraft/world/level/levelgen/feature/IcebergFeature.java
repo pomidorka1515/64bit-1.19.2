@@ -1,5 +1,7 @@
 package net.minecraft.world.level.levelgen.feature;
 
+import net.minecraft.world.level.WorldBounds;
+
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -168,12 +170,14 @@ public class IcebergFeature extends Feature<BlockStateConfiguration> {
 
     private double signedDistanceCircle(int pX, int pZ, BlockPos pCenter, int pRadius, RandomSource pRandom) {
         float f = 10.0F * Mth.clamp(pRandom.nextFloat(), 0.2F, 0.8F) / (float) pRadius;
-        return (double) f + Math.pow((double) (pX - pCenter.getXLo()), 2.0D) + Math.pow((double) (pZ - pCenter.getZLo()), 2.0D) - Math.pow((double) pRadius, 2.0D);
+        return (double) f + Math.pow(WorldBounds.signedDifference(net.minecraft.core.Int1088.fromLong(pX), pCenter.getX()), 2.0D) + Math.pow(WorldBounds.signedDifference(net.minecraft.core.Int1088.fromLong(pZ), pCenter.getZ()), 2.0D) - Math.pow((double) pRadius, 2.0D);
     }
 
     private double signedDistanceEllipse(int pX, int pZ, BlockPos pCenter, int pMajorRadius, int pMinorRadius, double pAngle) {
         // pCenter is an iceberg-local cutout offset, never a world position.
-        return Math.pow(((double) (pX - pCenter.getXLo()) * Math.cos(pAngle) - (double) (pZ - pCenter.getZLo()) * Math.sin(pAngle)) / (double) pMajorRadius, 2.0D) + Math.pow(((double) (pX - pCenter.getXLo()) * Math.sin(pAngle) + (double) (pZ - pCenter.getZLo()) * Math.cos(pAngle)) / (double) pMinorRadius, 2.0D) - 1.0D;
+        double dx = WorldBounds.signedDifference(net.minecraft.core.Int1088.fromLong(pX), pCenter.getX());
+        double dz = WorldBounds.signedDifference(net.minecraft.core.Int1088.fromLong(pZ), pCenter.getZ());
+        return Math.pow((dx * Math.cos(pAngle) - dz * Math.sin(pAngle)) / (double) pMajorRadius, 2.0D) + Math.pow((dx * Math.sin(pAngle) + dz * Math.cos(pAngle)) / (double) pMinorRadius, 2.0D) - 1.0D;
     }
 
     private int heightDependentRadiusRound(RandomSource pRandom, int pY, int pHeight, int pMajorAxis) {

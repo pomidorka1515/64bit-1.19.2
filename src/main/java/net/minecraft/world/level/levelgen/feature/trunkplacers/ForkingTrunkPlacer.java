@@ -8,7 +8,7 @@ import java.util.OptionalInt;
 import java.util.function.BiConsumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelSimulatedReader;
@@ -36,8 +36,8 @@ public class ForkingTrunkPlacer extends TrunkPlacer {
         int i = p_226119_ - p_226118_.nextInt(4) - 1;
         int j = 3 - p_226118_.nextInt(3);
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
-        Int128 k = p_226120_.getX();
-        Int128 l = p_226120_.getZ();
+        Int1088 k = p_226120_.getX();
+        Int1088 l = p_226120_.getZ();
         OptionalInt optionalint = OptionalInt.empty();
 
         for (int i1 = 0; i1 < p_226119_; ++i1) {

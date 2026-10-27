@@ -12,7 +12,7 @@ import java.util.stream.LongStream;
 import net.minecraft.SharedConstants;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
@@ -22,7 +22,7 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-class BonusChestFeatureInt128Test {
+class BonusChestFeatureInt1088Test {
     @BeforeAll
     static void bootstrap() {
         SharedConstants.tryDetectVersion();
@@ -32,8 +32,8 @@ class BonusChestFeatureInt128Test {
     @Test
     void visitsExactChunkFootprintInLegacyOrderWithoutChangingRandomConsumption() {
         for (BlockPos origin : List.of(new BlockPos(-19, 70, 35),
-                new BlockPos(Int128.of(123L, -1L), 70, Int128.of(-98L, 0L)),
-                new BlockPos(Int128.MIN, 70, Int128.MAX))) {
+                new BlockPos(Int1088.of(-1L, 123L), 70, Int1088.of(0L, -98L)),
+                new BlockPos(Int1088.MIN, 70, Int1088.MAX))) {
             ChunkPos chunk = new ChunkPos(origin);
             RandomSource random = RandomSource.create(42L);
             RandomSource expectedRandom = RandomSource.create(42L);
@@ -67,7 +67,7 @@ class BonusChestFeatureInt128Test {
 
     @Test
     void chestWriteKeepsExactHeightmapResult() {
-        BlockPos origin = new BlockPos(Int128.of(123L, -1L), 70, Int128.of(-98L, 0L));
+        BlockPos origin = new BlockPos(Int1088.of(-1L, 123L), 70, Int1088.of(0L, -98L));
         List<BlockPos> sampled = new ArrayList<>();
         WorldGenLevel level = level((method, args) -> switch (method) {
             case "getHeightmapPos" -> {

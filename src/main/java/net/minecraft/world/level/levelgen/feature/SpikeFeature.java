@@ -98,8 +98,8 @@ public class SpikeFeature extends Feature<SpikeConfiguration> {
         endcrystal.setBeamTarget(pConfig.getCrystalBeamTarget());
         endcrystal.setInvulnerable(pConfig.isCrystalInvulnerable());
         endcrystal.moveTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(
-                net.minecraft.core.Int128.fromLong(pSpike.getCenterX()), 0.5D, (double) (pSpike.getHeight() + 1),
-                net.minecraft.core.Int128.fromLong(pSpike.getCenterZ()), 0.5D), pRandom.nextFloat() * 360.0F, 0.0F);
+                net.minecraft.core.Int1088.fromLong(pSpike.getCenterX()), 0.5D, (double) (pSpike.getHeight() + 1),
+                net.minecraft.core.Int1088.fromLong(pSpike.getCenterZ()), 0.5D), pRandom.nextFloat() * 360.0F, 0.0F);
         pLevel.addFreshEntity(endcrystal);
         this.setBlock(pLevel, new BlockPos(pSpike.getCenterX(), pSpike.getHeight(), pSpike.getCenterZ()), Blocks.BEDROCK.defaultBlockState());
     }
@@ -140,8 +140,8 @@ public class SpikeFeature extends Feature<SpikeConfiguration> {
         }
 
         public boolean isCenterWithinChunk(BlockPos pPos) {
-            return SectionPos.blockToSectionCoord(pPos.getX()).equals(net.minecraft.core.Int128.fromLong(SectionPos.blockToSectionCoord(this.centerX)))
-                && SectionPos.blockToSectionCoord(pPos.getZ()).equals(net.minecraft.core.Int128.fromLong(SectionPos.blockToSectionCoord(this.centerZ)));
+            return SectionPos.blockToSectionCoord(pPos.getX()).equals(net.minecraft.core.Int1088.fromLong(SectionPos.blockToSectionCoord(this.centerX)))
+                && SectionPos.blockToSectionCoord(pPos.getZ()).equals(net.minecraft.core.Int1088.fromLong(SectionPos.blockToSectionCoord(this.centerZ)));
         }
 
         public int getCenterX() {

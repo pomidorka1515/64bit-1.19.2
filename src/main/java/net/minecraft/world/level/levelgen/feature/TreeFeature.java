@@ -11,7 +11,7 @@ import java.util.function.BiConsumer;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelAccessor;
@@ -176,17 +176,17 @@ public class TreeFeature extends Feature<TreeConfiguration> {
 
     @Nullable
     private static DiscreteVoxelShape updateLeaves(LevelAccessor pLevel, BoundingBox pBox, Set<BlockPos> pRootPositions, Set<BlockPos> pTrunkPositions, Set<BlockPos> pFoliagePositions) {
-        Int128 xSpan = pBox.getXSpan();
+        Int1088 xSpan = pBox.getXSpan();
         int ySpan = pBox.getYSpan();
-        Int128 zSpan = pBox.getZSpan();
-        Int128 maxSpan = Int128.fromLong(Integer.MAX_VALUE);
-        if (xSpan.compareTo(Int128.ZERO) <= 0 || xSpan.compareTo(maxSpan) > 0 || ySpan <= 0
-            || zSpan.compareTo(Int128.ZERO) <= 0 || zSpan.compareTo(maxSpan) > 0) {
+        Int1088 zSpan = pBox.getZSpan();
+        Int1088 maxSpan = Int1088.fromLong(Integer.MAX_VALUE);
+        if (xSpan.compareTo(Int1088.ZERO) <= 0 || xSpan.compareTo(maxSpan) > 0 || ySpan <= 0
+            || zSpan.compareTo(Int1088.ZERO) <= 0 || zSpan.compareTo(maxSpan) > 0) {
             return null;
         }
 
-        int xSize = (int) xSpan.lo();
-        int zSize = (int) zSpan.lo();
+        int xSize = (int) xSpan.lowLimb();
+        int zSize = (int) zSpan.lowLimb();
         if (!WorldBounds.isVoxelShapeSize(xSize, ySpan, zSize)) {
             return null;
         }
@@ -262,7 +262,7 @@ public class TreeFeature extends Feature<TreeConfiguration> {
 
     private static void fillShape(DiscreteVoxelShape shape, BoundingBox box, BlockPos pos) {
         // The caller established containment and int-sized spans before allocating the shape.
-        shape.fill((int) WorldBounds.blockOffsetInRange(pos.getX(), box.minX(), box.maxX()).lo(),
-            pos.getY() - box.minY(), (int) WorldBounds.blockOffsetInRange(pos.getZ(), box.minZ(), box.maxZ()).lo());
+        shape.fill((int) WorldBounds.blockOffsetInRange(pos.getX(), box.minX(), box.maxX()).lowLimb(),
+            pos.getY() - box.minY(), (int) WorldBounds.blockOffsetInRange(pos.getZ(), box.minZ(), box.maxZ()).lowLimb());
     }
 }

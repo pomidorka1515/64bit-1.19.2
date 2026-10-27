@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
@@ -22,7 +22,7 @@ import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-class CompileGateInt128Test {
+class CompileGateInt1088Test {
     @BeforeAll
     static void bootstrap() {
         SharedConstants.tryDetectVersion();
@@ -32,7 +32,7 @@ class CompileGateInt128Test {
     @Test
     void layerWritesStayExactAcrossLowWordCarry() {
         for (BlockPos origin : List.of(new BlockPos(-16, 70, 32),
-                new BlockPos(Int128.of(123, -1), 70, Int128.of(-98, -1)))) {
+                new BlockPos(Int1088.of(-1, 123), 70, Int1088.of(-1, -98)))) {
             List<BlockPos> writes = new ArrayList<>();
             WorldGenLevel level = level((method, args) -> switch (method) {
                 case "getMinBuildHeight" -> -64;
@@ -59,20 +59,20 @@ class CompileGateInt128Test {
     void voidPlatformDoesNotRepeatAtAliasedCoordinates() {
         WorldGenLevel level = level((method, args) -> { throw new AssertionError(method); });
         assertTrue(Feature.VOID_START_PLATFORM.place(new FeaturePlaceContext<>(Optional.empty(), level, null,
-                RandomSource.create(42), new BlockPos(Int128.of(1, 8), 70, Int128.fromLong(8)),
+                RandomSource.create(42), new BlockPos(Int1088.of(8, 1), 70, Int1088.fromLong(8)),
                 NoneFeatureConfiguration.INSTANCE)));
     }
 
     @Test
     void oreHeightQueriesRetainFullWidthAnchorInEveryMode() {
-        BlockPos origin = new BlockPos(Int128.of(123, 100), 70, Int128.of(-98, 200));
+        BlockPos origin = new BlockPos(Int1088.of(100, 123), 70, Int1088.of(200, -98));
         try {
             for (FarlandsMode.Mode mode : FarlandsMode.Mode.values()) {
                 FarlandsMode.setMode(mode);
                 List<BlockPos> queries = new ArrayList<>();
                 WorldGenLevel level = level((method, args) -> switch (method) {
                     case "getHeight" -> {
-                        queries.add(new BlockPos((Int128) args[1], 0, (Int128) args[2]));
+                        queries.add(new BlockPos((Int1088) args[1], 0, (Int1088) args[2]));
                         yield -64;
                     }
                     default -> throw new AssertionError(method);

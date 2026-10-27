@@ -37,13 +37,10 @@ public abstract class NoiseBasedStateProvider extends BlockStateProvider {
     }
 
     protected double getNoiseValue(BlockPos pPos, double pDelta) {
-        // Keep high limbs until the mode-specific sampling boundary.
-        long blockX = pPos.getXLo();
-        long blockZ = pPos.getZLo();
-        if (FarlandsMode.usesPreciseCoordinates() && (PreciseNoiseCoordinate.needsPrecisePath(pPos.getXHi(), blockX) || PreciseNoiseCoordinate.needsPrecisePath(pPos.getZHi(), blockZ))) {
-            return this.noise.getValueScaled(pPos.getXHi(), blockX, pDelta, pPos.getY(), pDelta, pPos.getZHi(), blockZ);
+        if (FarlandsMode.usesPreciseCoordinates()) {
+            return this.noise.getValueScaled(pPos.getX(), pDelta, pPos.getY(), pDelta, pPos.getZ());
         }
 
-        return this.noise.getValue(FarlandsMode.scaledNoiseCoordinate(pPos.getXHi(), blockX, pDelta), (double) pPos.getY() * pDelta, FarlandsMode.scaledNoiseCoordinate(pPos.getZHi(), blockZ, pDelta));
+        return this.noise.getValue(net.minecraft.world.level.levelgen.ContextCoordinates.scaled(pPos.getX(), pDelta, 0), (double) pPos.getY() * pDelta, net.minecraft.world.level.levelgen.ContextCoordinates.scaled(pPos.getZ(), pDelta, 0));
     }
 }

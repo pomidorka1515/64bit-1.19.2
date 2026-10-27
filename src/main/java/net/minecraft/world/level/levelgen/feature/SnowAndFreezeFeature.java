@@ -25,8 +25,8 @@ public class SnowAndFreezeFeature extends Feature<NoneFeatureConfiguration> {
 
         for (int i = 0; i < 16; ++i) {
             for (int j = 0; j < 16; ++j) {
-                net.minecraft.core.Int128 k = WorldBounds.addBlockOffset(blockpos.getX(), i);
-                net.minecraft.core.Int128 l = WorldBounds.addBlockOffset(blockpos.getZ(), j);
+                net.minecraft.core.Int1088 k = WorldBounds.addBlockOffset(blockpos.getX(), i);
+                net.minecraft.core.Int1088 l = WorldBounds.addBlockOffset(blockpos.getZ(), j);
                 int i1 = worldgenlevel.getHeight(Heightmap.Types.MOTION_BLOCKING, k, l);
                 blockpos$mutableblockpos.set(k, i1, l);
                 blockpos$mutableblockpos1.set(blockpos$mutableblockpos).move(Direction.DOWN, 1);

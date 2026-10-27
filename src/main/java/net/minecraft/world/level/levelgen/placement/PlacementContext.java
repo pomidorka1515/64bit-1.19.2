@@ -2,7 +2,7 @@ package net.minecraft.world.level.levelgen.placement;
 
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,10 +26,10 @@ public class PlacementContext extends WorldGenerationContext {
     }
 
     public int getHeight(Heightmap.Types p_191825_, long p_191826_, long p_191827_) {
-        return this.getHeight(p_191825_, Int128.fromLong(p_191826_), Int128.fromLong(p_191827_));
+        return this.getHeight(p_191825_, Int1088.fromLong(p_191826_), Int1088.fromLong(p_191827_));
     }
 
-    public int getHeight(Heightmap.Types type, Int128 x, Int128 z) {
+    public int getHeight(Heightmap.Types type, Int1088 x, Int1088 z) {
         return this.level.getHeight(type, x, z);
     }
 

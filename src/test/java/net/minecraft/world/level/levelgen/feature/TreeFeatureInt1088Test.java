@@ -11,7 +11,7 @@ import java.util.Set;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderSet;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.valueproviders.ConstantInt;
@@ -30,7 +30,7 @@ import net.minecraft.world.phys.shapes.DiscreteVoxelShape;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-class TreeFeatureInt128Test {
+class TreeFeatureInt1088Test {
     @BeforeAll
     static void bootstrap() {
         SharedConstants.tryDetectVersion();
@@ -39,8 +39,8 @@ class TreeFeatureInt128Test {
 
     @Test
     void leafUpdatesUseExactPositionsAndLocalVoxelIndices() throws Exception {
-        for (Int128 x : List.of(Int128.of(123L, -1L), Int128.MIN, Int128.MAX.add(Int128.fromLong(-2L)))) {
-            BlockPos root = new BlockPos(x, 70, Int128.of(-98L, -1L));
+        for (Int1088 x : List.of(Int1088.of(-1L, 123L), Int1088.MIN, Int1088.MAX.add(Int1088.fromLong(-2L)))) {
+            BlockPos root = new BlockPos(x, 70, Int1088.of(-1L, -98L));
             BlockPos leaf = root.east();
             Map<BlockPos, BlockState> states = new HashMap<>();
             states.put(root, Blocks.OAK_LOG.defaultBlockState());
@@ -54,7 +54,7 @@ class TreeFeatureInt128Test {
                         }
                         default -> throw new AssertionError(method.getName());
                     });
-            BoundingBox box = new BoundingBox(root.getX(), 70, root.getZ(), root.getX().add(Int128.fromLong(2L)), 70, root.getZ());
+            BoundingBox box = new BoundingBox(root.getX(), 70, root.getZ(), root.getX().add(Int1088.fromLong(2L)), 70, root.getZ());
             DiscreteVoxelShape shape = updateLeaves(level, box, Set.of(root), Set.of(), Set.of(leaf));
             assertNotNull(shape);
             assertTrue(shape.isFull(0, 0, 0));
@@ -65,13 +65,13 @@ class TreeFeatureInt128Test {
 
     @Test
     void oversizedLeafBoxesRejectBeforeAccessingWorld() throws Exception {
-        BoundingBox box = new BoundingBox(Int128.MIN, 0, Int128.ZERO, Int128.MAX, 0, Int128.ZERO);
+        BoundingBox box = new BoundingBox(Int1088.MIN, 0, Int1088.ZERO, Int1088.MAX, 0, Int1088.ZERO);
         assertNull(updateLeaves(null, box, Set.of(), Set.of(), Set.of()));
     }
 
     @Test
     void trunkPlacementIsTranslationInvariantAcrossHighHalves() {
-        BlockPos far = new BlockPos(Int128.of(123L, -1L), 70, Int128.of(-98L, -1L));
+        BlockPos far = new BlockPos(Int1088.of(-1L, 123L), 70, Int1088.of(-1L, -98L));
         BlockPos near = new BlockPos(31, 70, 31);
         for (TrunkPlacer placer : List.of(new FancyTrunkPlacer(3, 0, 0), new ForkingTrunkPlacer(3, 0, 0),
                 new DarkOakTrunkPlacer(3, 0, 0), new UpwardsBranchingTrunkPlacer(3, 0, 0,

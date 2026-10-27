@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelSimulatedReader;
@@ -39,11 +39,11 @@ public class DarkOakTrunkPlacer extends TrunkPlacer {
         Direction direction = Direction.Plane.HORIZONTAL.getRandomDirection(p_226088_);
         int i = p_226089_ - p_226088_.nextInt(4);
         int j = 2 - p_226088_.nextInt(3);
-        Int128 k = p_226090_.getX();
+        Int1088 k = p_226090_.getX();
         int l = p_226090_.getY();
-        Int128 i1 = p_226090_.getZ();
-        Int128 j1 = k;
-        Int128 k1 = i1;
+        Int1088 i1 = p_226090_.getZ();
+        Int1088 j1 = k;
+        Int1088 k1 = i1;
         int l1 = l + p_226089_ - 1;
 
         for (int i2 = 0; i2 < p_226089_; ++i2) {

@@ -2,7 +2,7 @@ package net.minecraft.world.level.levelgen.feature;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.WorldGenLevel;
@@ -26,8 +26,8 @@ public class SeagrassFeature extends Feature<ProbabilityFeatureConfiguration> {
         ProbabilityFeatureConfiguration probabilityfeatureconfiguration = p_160318_.config();
         int i = randomsource.nextInt(8) - randomsource.nextInt(8);
         int j = randomsource.nextInt(8) - randomsource.nextInt(8);
-        Int128 k = WorldBounds.addBlockOffset(blockpos.getX(), i);
-        Int128 l = WorldBounds.addBlockOffset(blockpos.getZ(), j);
+        Int1088 k = WorldBounds.addBlockOffset(blockpos.getX(), i);
+        Int1088 l = WorldBounds.addBlockOffset(blockpos.getZ(), j);
         int i1 = worldgenlevel.getHeight(Heightmap.Types.OCEAN_FLOOR, k, l);
         BlockPos blockpos1 = new BlockPos(k, i1, l);
         if (worldgenlevel.getBlockState(blockpos1).is(Blocks.WATER)) {

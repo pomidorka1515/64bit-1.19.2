@@ -3,7 +3,7 @@ package net.minecraft.world.level.levelgen.feature;
 import com.mojang.serialization.Codec;
 import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
@@ -78,8 +78,8 @@ public class RootSystemFeature extends Feature<RootSystemConfiguration> {
     }
 
     private static void placeDirt(BlockPos p_225223_, int p_225224_, WorldGenLevel p_225225_, RootSystemConfiguration p_225226_, RandomSource p_225227_) {
-        Int128 i = p_225223_.getX();
-        Int128 j = p_225223_.getZ();
+        Int1088 i = p_225223_.getX();
+        Int1088 j = p_225223_.getZ();
         BlockPos.MutableBlockPos blockpos$mutableblockpos = p_225223_.mutable();
 
         for (int k = p_225223_.getY(); k < p_225224_; ++k) {
@@ -87,7 +87,7 @@ public class RootSystemFeature extends Feature<RootSystemConfiguration> {
         }
     }
 
-    private static void placeRootedDirt(WorldGenLevel pLevel, RootSystemConfiguration pConfig, RandomSource pRandom, Int128 pX, Int128 pZ, BlockPos.MutableBlockPos pPos) {
+    private static void placeRootedDirt(WorldGenLevel pLevel, RootSystemConfiguration pConfig, RandomSource pRandom, Int1088 pX, Int1088 pZ, BlockPos.MutableBlockPos pPos) {
         int i = pConfig.rootRadius;
         Predicate<BlockState> predicate = (p_204762_) -> {
             return p_204762_.is(pConfig.rootReplaceable);

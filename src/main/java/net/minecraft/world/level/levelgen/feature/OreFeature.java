@@ -34,9 +34,9 @@ public class OreFeature extends Feature<OreConfiguration> {
         // both endpoints onto the same value, crushing the blob into a 2D planar sheet.
         // All other modes retain the legacy absolute-double endpoints untouched.
         boolean preciseEllipsoid = FarlandsMode.usesPreciseCoordinates();
-        boolean wide = blockpos.getXHi() != (blockpos.getXLo() >> 63) || blockpos.getZHi() != (blockpos.getZLo() >> 63);
-        long centerX = wide ? 0L : blockpos.getXLo();
-        long centerZ = wide ? 0L : blockpos.getZLo();
+        boolean wide = !blockpos.getX().fitsLong() || !blockpos.getZ().fitsLong();
+        long centerX = wide ? 0L : blockpos.getX().limb(0);
+        long centerZ = wide ? 0L : blockpos.getZ().limb(0);
         double d0;
         double d1;
         double d2;
@@ -47,15 +47,15 @@ public class OreFeature extends Feature<OreConfiguration> {
             d2 = Math.cos((double) f) * (double) f1;
             d3 = -d2;
         } else {
-            double absoluteX = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(blockpos.getXHi(), blockpos.getXLo());
-            double absoluteZ = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(blockpos.getZHi(), blockpos.getZLo());
+            double absoluteX = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(blockpos.getX());
+            double absoluteZ = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(blockpos.getZ());
             d0 = WorldBounds.clampAbsoluteDouble(absoluteX + Math.sin((double) f) * (double) f1);
             d1 = WorldBounds.clampAbsoluteDouble(absoluteX - Math.sin((double) f) * (double) f1);
             d2 = WorldBounds.clampAbsoluteDouble(absoluteZ + Math.cos((double) f) * (double) f1);
             d3 = WorldBounds.clampAbsoluteDouble(absoluteZ - Math.cos((double) f) * (double) f1);
             if (wide) {
                 // Keep floating-point rounding in non-precise modes, but do not
-                // subtract a rounded 128-bit endpoint from its clamped value:
+                // subtract a rounded wide endpoint from its clamped value:
                 // that would move the entire vein far outside the local frame.
                 d0 = (absoluteX + Math.sin((double) f) * (double) f1) - absoluteX;
                 d1 = (absoluteX - Math.sin((double) f) * (double) f1) - absoluteX;
@@ -189,9 +189,9 @@ public class OreFeature extends Feature<OreConfiguration> {
                                                 if (pLevel.ensureCanWrite(blockpos$mutableblockpos)) {
                                                     LevelChunkSection levelchunksection = bulksectionaccess.getSection(blockpos$mutableblockpos);
                                                     if (levelchunksection != null) {
-                                                        int i3 = SectionPos.sectionRelative(blockpos$mutableblockpos.getXLo());
+                                                        int i3 = SectionPos.sectionRelative(blockpos$mutableblockpos.getX());
                                                         int j3 = SectionPos.sectionRelative(j2);
-                                                        int k3 = SectionPos.sectionRelative(blockpos$mutableblockpos.getZLo());
+                                                        int k3 = SectionPos.sectionRelative(blockpos$mutableblockpos.getZ());
                                                         BlockState blockstate = levelchunksection.getBlockState(i3, j3, k3);
 
                                                         for (OreConfiguration.TargetBlockState oreconfiguration$targetblockstate : pConfig.targetStates) {

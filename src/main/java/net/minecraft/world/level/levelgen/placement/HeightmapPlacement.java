@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.levelgen.Heightmap;
 
@@ -26,8 +26,8 @@ public class HeightmapPlacement extends PlacementModifier {
     }
 
     public Stream<BlockPos> getPositions(PlacementContext pContext, RandomSource pRandom, BlockPos pPos) {
-        Int128 i = pPos.getX();
-        Int128 j = pPos.getZ();
+        Int1088 i = pPos.getX();
+        Int1088 j = pPos.getZ();
         int k = pContext.getHeight(this.heightmap, i, j);
         return k > pContext.getMinBuildHeight() ? Stream.of(new BlockPos(i, k, j)) : Stream.of();
     }

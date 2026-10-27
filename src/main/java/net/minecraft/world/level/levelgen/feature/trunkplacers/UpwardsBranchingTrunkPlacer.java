@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
@@ -77,8 +77,8 @@ public class UpwardsBranchingTrunkPlacer extends TrunkPlacer {
 
     private void placeBranch(LevelSimulatedReader p_226213_, BiConsumer<BlockPos, BlockState> p_226214_, RandomSource p_226215_, int p_226216_, TreeConfiguration p_226217_, List<FoliagePlacer.FoliageAttachment> p_226218_, BlockPos.MutableBlockPos p_226219_, int p_226220_, Direction p_226221_, int p_226222_, int p_226223_) {
         int i = p_226220_ + p_226222_;
-        Int128 j = p_226219_.getX();
-        Int128 k = p_226219_.getZ();
+        Int1088 j = p_226219_.getX();
+        Int1088 k = p_226219_.getZ();
 
         for (int l = p_226222_; l < p_226216_ && p_226223_ > 0; --p_226223_) {
             if (l >= 1) {

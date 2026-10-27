@@ -109,9 +109,6 @@ vanilla's `int` positions and `double` physics couldn't be patched in one spot. 
 
 ## installing
 
-these launcher steps describe the published 64-bit releases. for this in-progress 128-bit branch,
-build matching client/server jars from source and create a new world; do not use an old save.
-
 - grab the jar from the [latest release](https://github.com/pomidorka1515/64bit-1.19.2/releases)
 - get [prism launcher](https://prismlauncher.org) if you don't have it already
 - make a **vanilla** 1.19.2 instance

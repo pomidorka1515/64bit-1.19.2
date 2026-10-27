@@ -45,7 +45,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
@@ -237,7 +237,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
         this.serverLevelData.setThundering(pIsThundering);
     }
 
-    public Holder<Biome> getUncachedNoiseBiome(long pX, int pY, long pZ) {
+    public Holder<Biome> getUncachedNoiseBiome(Int1088 pX, int pY, Int1088 pZ) {
         return this.getChunkSource().getGenerator().getBiomeSource().getNoiseBiome(pX, pY, pZ, this.getChunkSource().randomState().sampler());
     }
 
@@ -377,8 +377,8 @@ public class ServerLevel extends Level implements WorldGenLevel {
     public void tickChunk(LevelChunk pChunk, int pRandomTickSpeed) {
         ChunkPos chunkpos = pChunk.getPos();
         boolean flag = this.isRaining();
-        Int128 i = chunkpos.getMinBlockX();
-        Int128 j = chunkpos.getMinBlockZ();
+        Int1088 i = chunkpos.getMinBlockX();
+        Int1088 j = chunkpos.getMinBlockZ();
         ProfilerFiller profilerfiller = this.getProfiler();
         profilerfiller.push("thunder");
         if (flag && this.isThundering() && this.random.nextInt(100000) == 0) {
@@ -434,7 +434,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
                     for (int k = 0; k < pRandomTickSpeed; ++k) {
                         BlockPos blockpos1 = this.getBlockRandomPos(i, l, j, 15);
                         profilerfiller.push("randomTick");
-                        BlockState blockstate = levelchunksection.getBlockState((int) (blockpos1.getXLo() & 15L), blockpos1.getY() - l, (int) (blockpos1.getZLo() & 15L));
+                        BlockState blockstate = levelchunksection.getBlockState((int) (blockpos1.getX().lowLimb() & 15L), blockpos1.getY() - l, (int) (blockpos1.getZ().lowLimb() & 15L));
                         if (blockstate.isRandomlyTicking()) {
                             blockstate.randomTick(this, blockpos1, this.random);
                         }
@@ -453,11 +453,11 @@ public class ServerLevel extends Level implements WorldGenLevel {
         profilerfiller.pop();
     }
 
-    public BlockPos getBlockRandomPos(Int128 pX, int pY, Int128 pZ, int pYMask) {
+    public BlockPos getBlockRandomPos(Int1088 pX, int pY, Int1088 pZ, int pYMask) {
         // Sample in a local frame to preserve Level's random sequence without narrowing the origin.
         BlockPos offset = super.getBlockRandomPos(0L, pY, 0L, pYMask);
-        return new BlockPos(WorldBounds.addBlockOffset(pX, offset.getXLo()), offset.getY(),
-                WorldBounds.addBlockOffset(pZ, offset.getZLo()));
+        return new BlockPos(WorldBounds.addBlockOffset(pX, offset.getX().lowLimb()), offset.getY(),
+                WorldBounds.addBlockOffset(pZ, offset.getZ().lowLimb()));
     }
 
     private Optional<BlockPos> findLightningRod(BlockPos pPos) {
@@ -845,19 +845,19 @@ public class ServerLevel extends Level implements WorldGenLevel {
         Vec3 pPosition = exactPosition.toExactVec3();
         int i = pEvent.getNotificationRadius();
         BlockPos blockpos = new BlockPos(exactPosition.blockX(), Mth.floor(exactPosition.y()), exactPosition.blockZ());
-        Int128 j = SectionPos.blockToSectionCoord(WorldBounds.subtractBlockOffset(blockpos.getX(), i));
+        Int1088 j = SectionPos.blockToSectionCoord(WorldBounds.subtractBlockOffset(blockpos.getX(), i));
         int k = SectionPos.blockToSectionCoord(blockpos.getY() - i);
-        Int128 l = SectionPos.blockToSectionCoord(WorldBounds.subtractBlockOffset(blockpos.getZ(), i));
-        Int128 i1 = SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(blockpos.getX(), i));
+        Int1088 l = SectionPos.blockToSectionCoord(WorldBounds.subtractBlockOffset(blockpos.getZ(), i));
+        Int1088 i1 = SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(blockpos.getX(), i));
         int j1 = SectionPos.blockToSectionCoord(blockpos.getY() + i);
-        Int128 k1 = SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(blockpos.getZ(), i));
+        Int1088 k1 = SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(blockpos.getZ(), i));
         List<GameEvent.Message> list = new ArrayList<>();
         boolean flag = false;
 
         boolean moreX = j.compareTo(i1) <= 0;
-        for (Int128 l1 = j; moreX; moreX = l1.compareTo(i1) < 0, l1 = WorldBounds.addChunkOffset(l1, 1L)) {
+        for (Int1088 l1 = j; moreX; moreX = l1.compareTo(i1) < 0, l1 = WorldBounds.addChunkOffset(l1, 1L)) {
             boolean moreZ = l.compareTo(k1) <= 0;
-            for (Int128 i2 = l; moreZ; moreZ = i2.compareTo(k1) < 0, i2 = WorldBounds.addChunkOffset(i2, 1L)) {
+            for (Int1088 i2 = l; moreZ; moreZ = i2.compareTo(k1) < 0, i2 = WorldBounds.addChunkOffset(i2, 1L)) {
                 ChunkAccess chunkaccess = this.getChunkSource().getChunkNow(l1, i2);
                 if (chunkaccess != null) {
                     for (int j2 = k; j2 <= j1; ++j2) {
@@ -1131,10 +1131,10 @@ public class ServerLevel extends Level implements WorldGenLevel {
     }
 
     public boolean setChunkForced(long pChunkX, long pChunkZ, boolean pAdd) {
-        return this.setChunkForced(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ), pAdd);
+        return this.setChunkForced(Int1088.fromLong(pChunkX), Int1088.fromLong(pChunkZ), pAdd);
     }
 
-    public boolean setChunkForced(Int128 pChunkX, Int128 pChunkZ, boolean pAdd) {
+    public boolean setChunkForced(Int1088 pChunkX, Int1088 pChunkZ, boolean pAdd) {
         ForcedChunksSavedData forcedchunkssaveddata = this.getDataStorage().computeIfAbsent(ForcedChunksSavedData::load, ForcedChunksSavedData::new, "chunks");
         ChunkPos chunkpos = new ChunkPos(pChunkX, pChunkZ);
         boolean flag;
@@ -1450,9 +1450,9 @@ public class ServerLevel extends Level implements WorldGenLevel {
 
     public static void makeObsidianPlatform(ServerLevel pServerLevel) {
         BlockPos blockpos = END_SPAWN_POINT;
-        Int128 i = blockpos.getX();
+        Int1088 i = blockpos.getX();
         int j = blockpos.getY() - 2;
-        Int128 k = blockpos.getZ();
+        Int1088 k = blockpos.getZ();
         BlockPos.betweenClosed(WorldBounds.subtractBlockOffset(i, 2), j + 1, WorldBounds.subtractBlockOffset(k, 2), WorldBounds.addBlockOffset(i, 2), j + 3, WorldBounds.addBlockOffset(k, 2)).forEach((p_207578_) -> {
             pServerLevel.setBlockAndUpdate(p_207578_, Blocks.AIR.defaultBlockState());
         });

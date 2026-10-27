@@ -48,7 +48,7 @@ import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
 import net.minecraft.Util;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
@@ -138,7 +138,7 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     int viewDistance;
 
     public ChunkMap(ServerLevel pLevel, LevelStorageSource.LevelStorageAccess pLevelStorageAccess, StructureTemplateManager pStructureManager, Executor pDispatcher, BlockableEventLoop<Runnable> pMainThreadExecutor, LightChunkGetter pLightChunk, ChunkGenerator pGenerator, ChunkProgressListener pProgressListener, ChunkStatusUpdateListener pChunkStatusListener, int pViewDistance, boolean pSync) {
-        super(pLevelStorageAccess.getDimensionPath(pLevel.dimension()).resolve("region"), pSync);
+        super(pLevelStorageAccess.getDimensionPath(pLevel.dimension()), pSync);
         this.structureTemplateManager = pStructureManager;
         Path path = pLevelStorageAccess.getDimensionPath(pLevel.dimension());
         this.storageName = path.getFileName().toString();
@@ -191,37 +191,33 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     }
 
     public static boolean isChunkInRange(long p_200879_, long p_200880_, long p_200881_, long p_200882_, long p_200883_) {
-        return isChunkInRange(Int128.fromLong(p_200879_), Int128.fromLong(p_200880_),
-                Int128.fromLong(p_200881_), Int128.fromLong(p_200882_), p_200883_);
+        return isChunkInRange(Int1088.fromLong(p_200879_), Int1088.fromLong(p_200880_),
+                Int1088.fromLong(p_200881_), Int1088.fromLong(p_200882_), p_200883_);
     }
 
-    public static boolean isChunkInRange(Int128 p_200879_, Int128 p_200880_, Int128 p_200881_, Int128 p_200882_, long p_200883_) {
-        return isChunkInRange(p_200879_.hi(), p_200879_.lo(), p_200880_.hi(), p_200880_.lo(), p_200881_, p_200882_, p_200883_);
-    }
-
-    private static boolean isChunkInRange(ChunkPos pos, Int128 centerX, Int128 centerZ, long radius) {
-        return isChunkInRange(pos.xHi(), pos.xLo(), pos.zHi(), pos.zLo(), centerX, centerZ, radius);
-    }
-
-    private static boolean isChunkInRange(long xHi, long xLo, long zHi, long zLo, Int128 centerX, Int128 centerZ, long p_200883_) {
+    public static boolean isChunkInRange(Int1088 x, Int1088 z, Int1088 centerX, Int1088 centerZ, long p_200883_) {
         if (p_200883_ < 1L)
             return false;
-        double dx = Math.max(0.0D, (double) net.minecraft.core.Int128Math.distance(xHi, xLo, centerX.hi(), centerX.lo()) - 1.0D);
-        double dz = Math.max(0.0D, (double) net.minecraft.core.Int128Math.distance(zHi, zLo, centerZ.hi(), centerZ.lo()) - 1.0D);
+        double dx = Math.max(0.0D, WorldBounds.distance(x, centerX) - 1.0D);
+        double dz = Math.max(0.0D, WorldBounds.distance(z, centerZ) - 1.0D);
         double far = Math.max(0.0D, Math.max(dx, dz) - 1.0D);
         double near = Math.min(dx, dz);
         double radius = (double) p_200883_ - 1.0D;
         return near * near + far * far <= radius * radius;
     }
 
-    private static boolean isChunkOnRangeBorder(Int128 p_183829_, Int128 p_183830_, Int128 p_183831_, Int128 p_183832_, int p_183833_) {
+    private static boolean isChunkInRange(ChunkPos pos, Int1088 centerX, Int1088 centerZ, long radius) {
+        return isChunkInRange(pos.x(), pos.z(), centerX, centerZ, radius);
+    }
+
+    private static boolean isChunkOnRangeBorder(Int1088 p_183829_, Int1088 p_183830_, Int1088 p_183831_, Int1088 p_183832_, int p_183833_) {
         if (!isChunkInRange(p_183829_, p_183830_, p_183831_, p_183832_, p_183833_)) {
             return false;
         }
-        Int128 plusX = WorldBounds.tryAddChunkOffset(p_183829_, 1L);
-        Int128 plusZ = WorldBounds.tryAddChunkOffset(p_183830_, 1L);
-        Int128 minusX = WorldBounds.tryAddChunkOffset(p_183829_, -1L);
-        Int128 minusZ = WorldBounds.tryAddChunkOffset(p_183830_, -1L);
+        Int1088 plusX = WorldBounds.tryAddChunkOffset(p_183829_, 1L);
+        Int1088 plusZ = WorldBounds.tryAddChunkOffset(p_183830_, 1L);
+        Int1088 minusX = WorldBounds.tryAddChunkOffset(p_183829_, -1L);
+        Int1088 minusZ = WorldBounds.tryAddChunkOffset(p_183830_, -1L);
         return plusX == null || !isChunkInRange(plusX, p_183830_, p_183831_, p_183832_, p_183833_)
                 || plusZ == null || !isChunkInRange(p_183829_, plusZ, p_183831_, p_183832_, p_183833_)
                 || minusX == null || !isChunkInRange(minusX, p_183830_, p_183831_, p_183832_, p_183833_)
@@ -229,17 +225,17 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     }
 
     /** Visits a small, edge-clipped rectangular chunk range without overflowing. */
-    private static void forEachChunkBox(Int128 centerX1, Int128 centerZ1, Int128 centerX2, Int128 centerZ2,
+    private static void forEachChunkBox(Int1088 centerX1, Int1088 centerZ1, Int1088 centerX2, Int1088 centerZ2,
             long edgeRadius, Consumer<ChunkPos> action) {
         if (edgeRadius < 0L) {
             return;
         }
-        Int128 minX = WorldBounds.addChunkOffset(centerX1.compareTo(centerX2) <= 0 ? centerX1 : centerX2, -edgeRadius);
-        Int128 minZ = WorldBounds.addChunkOffset(centerZ1.compareTo(centerZ2) <= 0 ? centerZ1 : centerZ2, -edgeRadius);
-        Int128 maxX = WorldBounds.addChunkOffset(centerX1.compareTo(centerX2) >= 0 ? centerX1 : centerX2, edgeRadius);
-        Int128 maxZ = WorldBounds.addChunkOffset(centerZ1.compareTo(centerZ2) >= 0 ? centerZ1 : centerZ2, edgeRadius);
-        for (Int128 x = minX;; x = WorldBounds.addChunkOffset(x, 1L)) {
-            for (Int128 z = minZ;; z = WorldBounds.addChunkOffset(z, 1L)) {
+        Int1088 minX = WorldBounds.addChunkOffset(centerX1.compareTo(centerX2) <= 0 ? centerX1 : centerX2, -edgeRadius);
+        Int1088 minZ = WorldBounds.addChunkOffset(centerZ1.compareTo(centerZ2) <= 0 ? centerZ1 : centerZ2, -edgeRadius);
+        Int1088 maxX = WorldBounds.addChunkOffset(centerX1.compareTo(centerX2) >= 0 ? centerX1 : centerX2, edgeRadius);
+        Int1088 maxZ = WorldBounds.addChunkOffset(centerZ1.compareTo(centerZ2) >= 0 ? centerZ1 : centerZ2, edgeRadius);
+        for (Int1088 x = minX;; x = WorldBounds.addChunkOffset(x, 1L)) {
+            for (Int1088 z = minZ;; z = WorldBounds.addChunkOffset(z, 1L)) {
                 action.accept(new ChunkPos(x, z));
                 if (z.equals(maxZ))
                     break;
@@ -295,8 +291,8 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     private CompletableFuture<Either<List<ChunkAccess>, ChunkHolder.ChunkLoadingFailure>> getChunkRangeFuture(ChunkPos p_140211_, int p_140212_, IntFunction<ChunkStatus> p_140213_) {
         List<CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>>> list = new ArrayList<>();
         List<ChunkHolder> list1 = new ArrayList<>();
-        Int128 i = p_140211_.x();
-        Int128 j = p_140211_.z();
+        Int1088 i = p_140211_.x();
+        Int1088 j = p_140211_.z();
 
         for (int k = -p_140212_; k <= p_140212_; ++k) {
             for (int l = -p_140212_; l <= p_140212_; ++l) {
@@ -972,8 +968,8 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
     void updatePlayerStatus(ServerPlayer pPlayer, boolean pTrack) {
         boolean flag = this.skipPlayer(pPlayer);
         boolean flag1 = this.playerMap.ignoredOrUnknown(pPlayer);
-        Int128 i = SectionPos.blockToSectionCoord(pPlayer.getBlockX());
-        Int128 j = SectionPos.blockToSectionCoord(pPlayer.getBlockZ());
+        Int1088 i = SectionPos.blockToSectionCoord(pPlayer.getBlockX());
+        Int1088 j = SectionPos.blockToSectionCoord(pPlayer.getBlockZ());
         if (pTrack) {
             this.playerMap.addPlayer(new ChunkPos(i, j), pPlayer, flag);
             this.updatePlayerPos(pPlayer);
@@ -1011,8 +1007,8 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
             }
         }
 
-        Int128 i2 = SectionPos.blockToSectionCoord(pPlayer.getBlockX());
-        Int128 j2 = SectionPos.blockToSectionCoord(pPlayer.getBlockZ());
+        Int1088 i2 = SectionPos.blockToSectionCoord(pPlayer.getBlockX());
+        Int1088 j2 = SectionPos.blockToSectionCoord(pPlayer.getBlockZ());
         SectionPos sectionpos = pPlayer.getLastSectionPos();
         SectionPos sectionpos1 = SectionPos.of(pPlayer);
         ChunkPos i = sectionpos.chunk();
@@ -1043,8 +1039,8 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
             }
         }
 
-        Int128 k = sectionpos.x();
-        Int128 l = sectionpos.z();
+        Int1088 k = sectionpos.x();
+        Int1088 l = sectionpos.z();
         if (WorldBounds.distance(k, i2) <= (long) this.viewDistance * 2L
                 && WorldBounds.distance(l, j2) <= (long) this.viewDistance * 2L) {
             forEachChunkBox(k, l, i2, j2, (long) this.viewDistance + 1L, (chunkpos) -> {

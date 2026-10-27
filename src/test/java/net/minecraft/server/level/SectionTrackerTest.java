@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.HashSet;
 import java.util.Set;
 import net.minecraft.SharedConstants;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.WorldBounds;
@@ -27,7 +27,7 @@ class SectionTrackerTest {
         assertPropagationStaysInWorld(WorldBounds.MIN_CHUNK);
     }
 
-    private static void assertPropagationStaysInWorld(Int128 edge) {
+    private static void assertPropagationStaysInWorld(Int1088 edge) {
         TestTracker tracker = new TestTracker();
         tracker.update(SectionPos.of(edge, 0, edge), 0, true);
         tracker.runAll();
@@ -40,23 +40,23 @@ class SectionTrackerTest {
     @Test
     void queuedSourcesKeepBothHighHalvesAndCrossLowWordSeams() {
         TestTracker tracker = new TestTracker();
-        Set<SectionPos> sources = Set.of(SectionPos.of(Int128.of(1L, -1L), 0, Int128.of(2L, -1L)),
-                SectionPos.of(Int128.of(3L, -1L), 0, Int128.of(2L, -1L)),
-                SectionPos.of(Int128.of(1L, -1L), 0, Int128.of(4L, -1L)));
+        Set<SectionPos> sources = Set.of(SectionPos.of(Int1088.of(-1L, 1L), 0, Int1088.of(-1L, 2L)),
+                SectionPos.of(Int1088.of(-1L, 3L), 0, Int1088.of(-1L, 2L)),
+                SectionPos.of(Int1088.of(-1L, 1L), 0, Int1088.of(-1L, 4L)));
         sources.forEach(source -> tracker.update(source, 0, true));
         tracker.runAll();
         assertEquals(sources, tracker.seen);
-        assertTrue(tracker.visited.contains(SectionPos.of(Int128.of(2L, 0L), 0, Int128.of(3L, 0L))));
+        assertTrue(tracker.visited.contains(SectionPos.of(Int1088.of(0L, 2L), 0, Int1088.of(0L, 3L))));
     }
 
     @Test
     void trackingRangeIsTranslationInvariantAndRejectsLowWordAliases() {
-        for (Int128 center : new Int128[] {Int128.ZERO, Int128.of(123L, -1L), Int128.of(-123L, 0L),
+        for (Int1088 center : new Int1088[] {Int1088.ZERO, Int1088.of(-1L, 123L), Int1088.of(0L, -123L),
                 WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK}) {
             for (int dx = -12; dx <= 12; ++dx) {
                 for (int dz = -12; dz <= 12; ++dz) {
-                    Int128 x = WorldBounds.tryAddChunkOffset(center, dx);
-                    Int128 z = WorldBounds.tryAddChunkOffset(center, dz);
+                    Int1088 x = WorldBounds.tryAddChunkOffset(center, dx);
+                    Int1088 z = WorldBounds.tryAddChunkOffset(center, dz);
                     if (x == null || z == null) continue;
                     for (int radius : new int[] {0, 1, 2, 8}) {
                         assertEquals(ChunkMap.isChunkInRange(dx, dz, 0L, 0L, radius),
@@ -64,8 +64,8 @@ class SectionTrackerTest {
                     }
                 }
             }
-            Int128 alias = center.equals(WorldBounds.MAX_CHUNK)
-                    ? center.subtract(Int128.of(1L, 0L)) : center.add(Int128.of(1L, 0L));
+            Int1088 alias = center.equals(WorldBounds.MAX_CHUNK)
+                    ? center.subtract(Int1088.of(0L, 1L)) : center.add(Int1088.of(0L, 1L));
             assertFalse(ChunkMap.isChunkInRange(alias, center, center, center, 8L));
             assertFalse(ChunkMap.isChunkInRange(center, alias, center, center, 8L));
         }

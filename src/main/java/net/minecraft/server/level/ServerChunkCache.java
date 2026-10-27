@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.SectionPos;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.progress.ChunkProgressListener;
@@ -111,11 +111,11 @@ public class ServerChunkCache extends ChunkSource {
 
     @Nullable
     public ChunkAccess getChunk(long pChunkX, long pChunkZ, ChunkStatus pRequiredStatus, boolean pLoad) {
-        return this.getChunk(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ), pRequiredStatus, pLoad);
+        return this.getChunk(Int1088.fromLong(pChunkX), Int1088.fromLong(pChunkZ), pRequiredStatus, pLoad);
     }
 
     @Nullable
-    public ChunkAccess getChunk(Int128 pChunkX, Int128 pChunkZ, ChunkStatus pRequiredStatus, boolean pLoad) {
+    public ChunkAccess getChunk(Int1088 pChunkX, Int1088 pChunkZ, ChunkStatus pRequiredStatus, boolean pLoad) {
         if (Thread.currentThread() != this.mainThread) {
             return CompletableFuture.supplyAsync(() -> {
                                         return this.getChunk(pChunkX, pChunkZ, pRequiredStatus, pLoad);
@@ -150,11 +150,11 @@ public class ServerChunkCache extends ChunkSource {
 
     @Nullable
     public LevelChunk getChunkNow(long pChunkX, long pChunkZ) {
-        return this.getChunkNow(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ));
+        return this.getChunkNow(Int1088.fromLong(pChunkX), Int1088.fromLong(pChunkZ));
     }
 
     @Nullable
-    public LevelChunk getChunkNow(Int128 pChunkX, Int128 pChunkZ) {
+    public LevelChunk getChunkNow(Int1088 pChunkX, Int1088 pChunkZ) {
         ChunkAccess chunkaccess = this.getChunkNow(pChunkX, pChunkZ, ChunkStatus.FULL);
         return chunkaccess instanceof LevelChunk ? (LevelChunk) chunkaccess : null;
     }
@@ -167,11 +167,11 @@ public class ServerChunkCache extends ChunkSource {
     */
     @Nullable
     public ChunkAccess getChunkNow(long pChunkX, long pChunkZ, ChunkStatus status) {
-        return this.getChunkNow(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ), status);
+        return this.getChunkNow(Int1088.fromLong(pChunkX), Int1088.fromLong(pChunkZ), status);
     }
 
     @Nullable
-    public ChunkAccess getChunkNow(Int128 pChunkX, Int128 pChunkZ, ChunkStatus status) {
+    public ChunkAccess getChunkNow(Int1088 pChunkX, Int1088 pChunkZ, ChunkStatus status) {
         if (Thread.currentThread() != this.mainThread) {
             return null;
         }
@@ -209,10 +209,10 @@ public class ServerChunkCache extends ChunkSource {
     }
 
     public CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> getChunkFuture(long p_8432_, long p_8433_, ChunkStatus p_8434_, boolean p_8435_) {
-        return this.getChunkFuture(Int128.fromLong(p_8432_), Int128.fromLong(p_8433_), p_8434_, p_8435_);
+        return this.getChunkFuture(Int1088.fromLong(p_8432_), Int1088.fromLong(p_8433_), p_8434_, p_8435_);
     }
 
-    public CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> getChunkFuture(Int128 p_8432_, Int128 p_8433_, ChunkStatus p_8434_, boolean p_8435_) {
+    public CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> getChunkFuture(Int1088 p_8432_, Int1088 p_8433_, ChunkStatus p_8434_, boolean p_8435_) {
         boolean flag = Thread.currentThread() == this.mainThread;
         CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> completablefuture;
         if (flag) {
@@ -229,7 +229,7 @@ public class ServerChunkCache extends ChunkSource {
         return completablefuture;
     }
 
-    private CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> getChunkFutureMainThread(Int128 p_8457_, Int128 p_8458_, ChunkStatus p_8459_, boolean p_8460_) {
+    private CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> getChunkFutureMainThread(Int1088 p_8457_, Int1088 p_8458_, ChunkStatus p_8459_, boolean p_8460_) {
         ChunkPos chunkpos = new ChunkPos(p_8457_, p_8458_);
         int j = 33 + ChunkStatus.getDistance(p_8459_);
         ChunkHolder chunkholder = this.getVisibleChunkIfPresent(chunkpos);
@@ -255,20 +255,20 @@ public class ServerChunkCache extends ChunkSource {
     }
 
     public boolean hasChunk(long pX, long pZ) {
-        return this.hasChunk(Int128.fromLong(pX), Int128.fromLong(pZ));
+        return this.hasChunk(Int1088.fromLong(pX), Int1088.fromLong(pZ));
     }
 
-    public boolean hasChunk(Int128 pX, Int128 pZ) {
+    public boolean hasChunk(Int1088 pX, Int1088 pZ) {
         ChunkHolder chunkholder = this.getVisibleChunkIfPresent(new ChunkPos(pX, pZ));
         int i = 33 + ChunkStatus.getDistance(ChunkStatus.FULL);
         return !this.chunkAbsent(chunkholder, i);
     }
 
     public BlockGetter getChunkForLighting(long pChunkX, long pChunkZ) {
-        return this.getChunkForLighting(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ));
+        return this.getChunkForLighting(Int1088.fromLong(pChunkX), Int1088.fromLong(pChunkZ));
     }
 
-    public BlockGetter getChunkForLighting(Int128 pChunkX, Int128 pChunkZ) {
+    public BlockGetter getChunkForLighting(Int1088 pChunkX, Int1088 pChunkZ) {
         ChunkPos i = new ChunkPos(pChunkX, pChunkZ);
         ChunkHolder chunkholder = this.getVisibleChunkIfPresent(i);
         if (chunkholder == null) {

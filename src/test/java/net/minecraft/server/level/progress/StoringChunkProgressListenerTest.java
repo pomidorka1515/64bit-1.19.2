@@ -3,7 +3,7 @@ package net.minecraft.server.level.progress;
 import java.lang.management.ManagementFactory;
 import java.util.List;
 import net.minecraft.SharedConstants;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldBounds;
@@ -27,12 +27,12 @@ class StoringChunkProgressListenerTest {
     void rawStatusProbesMatchOffsetKeysIncludingCarryAndClamping() {
         StoringChunkProgressListener listener = new StoringChunkProgressListener(2);
         int radius = listener.getDiameter() / 2;
-        List<Int128> coordinates = List.of(Int128.ZERO, Int128.fromLong(-1L),
-                Int128.fromLong(Long.MAX_VALUE), Int128.fromLong(Long.MIN_VALUE),
-                Int128.of(7L, -1L), Int128.of(-8L, 0L),
+        List<Int1088> coordinates = List.of(Int1088.ZERO, Int1088.fromLong(-1L),
+                Int1088.fromLong(Long.MAX_VALUE), Int1088.fromLong(Long.MIN_VALUE),
+                Int1088.of(-1L, 7L), Int1088.of(0L, -8L),
                 WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK);
-        for (Int128 x : coordinates) {
-            for (Int128 z : coordinates) {
+        for (Int1088 x : coordinates) {
+            for (Int1088 z : coordinates) {
                 listener.start();
                 ChunkPos center = new ChunkPos(x, z);
                 listener.updateSpawnPos(center);
@@ -76,8 +76,8 @@ class StoringChunkProgressListenerTest {
         StoringChunkProgressListener listener = new StoringChunkProgressListener(2);
         int radius = listener.getDiameter() / 2;
         listener.start();
-        listener.updateSpawnPos(new ChunkPos(Int128.of(7L, -1L), Int128.of(-8L, 0L)));
-        listener.onStatusChange(new ChunkPos(Int128.of(8L, 0L), Int128.of(-9L, -1L)), ChunkStatus.FULL);
+        listener.updateSpawnPos(new ChunkPos(Int1088.of(-1L, 7L), Int1088.of(0L, -8L)));
+        listener.onStatusChange(new ChunkPos(Int1088.of(0L, 8L), Int1088.of(-1L, -9L)), ChunkStatus.FULL);
         for (int i = 0; i < 30; ++i) lookupChecksum = probeLoop(listener, radius);
         long thread = Thread.currentThread().getId();
         long before = allocations.getThreadAllocatedBytes(thread);

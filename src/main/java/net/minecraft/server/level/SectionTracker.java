@@ -1,7 +1,7 @@
 package net.minecraft.server.level;
 
 import net.minecraft.core.SectionPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.lighting.DynamicGraphMinFixedPoint;
 
@@ -24,13 +24,13 @@ public abstract class SectionTracker extends DynamicGraphMinFixedPoint<SectionPo
             return;
 
         for (int x = -1; x <= 1; ++x) {
-            Int128 neighborX = WorldBounds.tryAddChunkOffset(sectionPos.x(), x);
+            Int1088 neighborX = WorldBounds.tryAddChunkOffset(sectionPos.x(), x);
             if (neighborX == null)
                 continue;
 
             for (int y = -1; y <= 1; ++y) {
                 for (int z = -1; z <= 1; ++z) {
-                    Int128 neighborZ = WorldBounds.tryAddChunkOffset(sectionPos.z(), z);
+                    Int1088 neighborZ = WorldBounds.tryAddChunkOffset(sectionPos.z(), z);
                     if (neighborZ == null)
                         continue;
 
@@ -49,13 +49,13 @@ public abstract class SectionTracker extends DynamicGraphMinFixedPoint<SectionPo
 
         int computedLevel = level;
         for (int x = -1; x <= 1; ++x) {
-            Int128 neighborX = WorldBounds.tryAddChunkOffset(sectionPos.x(), x);
+            Int1088 neighborX = WorldBounds.tryAddChunkOffset(sectionPos.x(), x);
             if (neighborX == null)
                 continue;
 
             for (int y = -1; y <= 1; ++y) {
                 for (int z = -1; z <= 1; ++z) {
-                    Int128 neighborZ = WorldBounds.tryAddChunkOffset(sectionPos.z(), z);
+                    Int1088 neighborZ = WorldBounds.tryAddChunkOffset(sectionPos.z(), z);
                     if (neighborZ == null)
                         continue;
 

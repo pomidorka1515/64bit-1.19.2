@@ -1,7 +1,6 @@
 package net.minecraft.server.level.progress;
 
 import javax.annotation.Nullable;
-import net.minecraft.core.Int128Math;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ChunkPosMap;
 import net.minecraft.world.level.WorldBounds;
@@ -15,6 +14,9 @@ public class StoringChunkProgressListener implements ChunkProgressListener {
     private final int radius;
     private final int diameter;
     private boolean started;
+    private boolean cachedStatusValid;
+    private int cachedX, cachedZ;
+    @Nullable private ChunkStatus cachedStatus;
 
     public StoringChunkProgressListener(int pRadius) {
         this.delegate = new LoggerChunkProgressListener(pRadius);
@@ -28,11 +30,13 @@ public class StoringChunkProgressListener implements ChunkProgressListener {
         if (this.started) {
             this.delegate.updateSpawnPos(pCenter);
             this.spawnPos = pCenter;
+            this.cachedStatusValid = false;
         }
     }
 
     public void onStatusChange(ChunkPos pChunkPosition, @Nullable ChunkStatus pNewStatus) {
         if (this.started) {
+            this.cachedStatusValid = false;
             this.delegate.onStatusChange(pChunkPosition, pNewStatus);
             if (pNewStatus == null) {
                 this.statuses.remove(pChunkPosition);
@@ -45,6 +49,7 @@ public class StoringChunkProgressListener implements ChunkProgressListener {
     public void start() {
         this.started = true;
         this.statuses.clear();
+        this.cachedStatusValid = false;
         this.delegate.start();
     }
 
@@ -67,28 +72,17 @@ public class StoringChunkProgressListener implements ChunkProgressListener {
 
     @Nullable
     public ChunkStatus getStatus(int pX, int pZ) {
+        if (this.cachedStatusValid && this.cachedX == pX && this.cachedZ == pZ) {
+            return this.cachedStatus;
+        }
         long dx = (long) pX - this.radius;
         long dz = (long) pZ - this.radius;
-        long xLo = this.spawnPos.xLo() + dx;
-        long xHi = this.spawnPos.xHi() + (dx >> 63) + Int128Math.addCarry(this.spawnPos.xLo(), dx, xLo);
-        long zLo = this.spawnPos.zLo() + dz;
-        long zHi = this.spawnPos.zHi() + (dz >> 63) + Int128Math.addCarry(this.spawnPos.zLo(), dz, zLo);
-        // Match ChunkPos's chunk-domain saturation, without materializing offset keys.
-        // Both chunk limits end on a complete low-limb interval, so high limbs suffice.
-        if (xHi < WorldBounds.MIN_CHUNK.hi()) {
-            xHi = WorldBounds.MIN_CHUNK.hi();
-            xLo = WorldBounds.MIN_CHUNK.lo();
-        } else if (xHi > WorldBounds.MAX_CHUNK.hi()) {
-            xHi = WorldBounds.MAX_CHUNK.hi();
-            xLo = WorldBounds.MAX_CHUNK.lo();
-        }
-        if (zHi < WorldBounds.MIN_CHUNK.hi()) {
-            zHi = WorldBounds.MIN_CHUNK.hi();
-            zLo = WorldBounds.MIN_CHUNK.lo();
-        } else if (zHi > WorldBounds.MAX_CHUNK.hi()) {
-            zHi = WorldBounds.MAX_CHUNK.hi();
-            zLo = WorldBounds.MAX_CHUNK.lo();
-        }
-        return this.statuses.get(xHi, xLo, zHi, zLo);
+        ChunkStatus status = this.statuses.get(WorldBounds.addChunkOffset(this.spawnPos.x(), dx),
+                WorldBounds.addChunkOffset(this.spawnPos.z(), dz));
+        this.cachedX = pX;
+        this.cachedZ = pZ;
+        this.cachedStatus = status;
+        this.cachedStatusValid = true;
+        return status;
     }
 }

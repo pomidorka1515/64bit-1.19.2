@@ -10,7 +10,7 @@ import java.util.function.IntSupplier;
 import javax.annotation.Nullable;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.thread.ProcessorHandle;
 import net.minecraft.util.thread.ProcessorMailbox;
@@ -86,11 +86,11 @@ public class ThreadedLevelLightEngine extends LevelLightEngine implements AutoCl
         }, ThreadedLevelLightEngine.TaskType.PRE_UPDATE, Util.name(() -> { super.queueSectionData(p_9339_, p_9340_, p_9341_, p_9342_); }, () -> { return "queueData " + p_9340_; }));
     }
 
-    private void addTask(Int128 p_9313_, Int128 p_9314_, ThreadedLevelLightEngine.TaskType p_9315_, Runnable p_9316_) {
+    private void addTask(Int1088 p_9313_, Int1088 p_9314_, ThreadedLevelLightEngine.TaskType p_9315_, Runnable p_9316_) {
         this.addTask(p_9313_, p_9314_, this.chunkMap.getChunkQueueLevel(new ChunkPos(p_9313_, p_9314_)), p_9315_, p_9316_);
     }
 
-    private void addTask(Int128 p_9318_, Int128 p_9319_, IntSupplier p_9320_, ThreadedLevelLightEngine.TaskType p_9321_, Runnable p_9322_) {
+    private void addTask(Int1088 p_9318_, Int1088 p_9319_, IntSupplier p_9320_, ThreadedLevelLightEngine.TaskType p_9321_, Runnable p_9322_) {
         this.sorterMailbox.tell(ChunkTaskPriorityQueueSorter.message(() -> {
             this.lightTasks.add(Pair.of(p_9321_, p_9322_));
             if (this.lightTasks.size() >= this.taskPerBatch) {

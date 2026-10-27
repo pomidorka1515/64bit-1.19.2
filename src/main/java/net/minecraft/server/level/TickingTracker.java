@@ -23,7 +23,7 @@ public class TickingTracker extends ChunkTracker {
     }
 
     private SortedArraySet<Ticket<?>> getTickets(ChunkPos pChunkPos) {
-        SortedArraySet<Ticket<?>> cached = this.tickets.get(pChunkPos.xHi(), pChunkPos.xLo(), pChunkPos.zHi(), pChunkPos.zLo());
+        SortedArraySet<Ticket<?>> cached = this.tickets.get(pChunkPos.x(), pChunkPos.z());
         if (cached != null) {
             return cached;
         }
@@ -85,7 +85,7 @@ public class TickingTracker extends ChunkTracker {
     }
 
     protected int getLevelFromSource(ChunkPos pPos) {
-        SortedArraySet<Ticket<?>> sortedarrayset = this.tickets.get(pPos.xHi(), pPos.xLo(), pPos.zHi(), pPos.zLo());
+        SortedArraySet<Ticket<?>> sortedarrayset = this.tickets.get(pPos.x(), pPos.z());
         return sortedarrayset != null && !sortedarrayset.isEmpty() ? sortedarrayset.first().getTicketLevel() : Integer.MAX_VALUE;
     }
 
@@ -106,7 +106,7 @@ public class TickingTracker extends ChunkTracker {
     }
 
     public String getTicketDebugString(ChunkPos p_184176_) {
-        SortedArraySet<Ticket<?>> sortedarrayset = this.tickets.get(p_184176_.xHi(), p_184176_.xLo(), p_184176_.zHi(), p_184176_.zLo());
+        SortedArraySet<Ticket<?>> sortedarrayset = this.tickets.get(p_184176_.x(), p_184176_.z());
         return sortedarrayset != null && !sortedarrayset.isEmpty() ? sortedarrayset.first().toString() : "no_ticket";
     }
 }

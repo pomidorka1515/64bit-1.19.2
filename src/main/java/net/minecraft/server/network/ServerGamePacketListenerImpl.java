@@ -461,9 +461,9 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
 
     private boolean noBlocksAround(Entity entity) {
         net.minecraft.world.phys.SectorAABB box = entity.getSectorBoundingBox().inflate(0.0625D, 0.0625D, 0.0625D).expandTowards(0.0D, -0.55D, 0.0D);
-        for (net.minecraft.core.Int128 x = box.minBlockXForRange();; x = WorldBounds.addBlockOffset(x, 1L)) {
+        for (net.minecraft.core.Int1088 x = box.minBlockXForRange();; x = WorldBounds.addBlockOffset(x, 1L)) {
             for (int y = box.minBlockYForRange(); y < box.maxBlockYExclusive(); ++y) {
-                for (net.minecraft.core.Int128 z = box.minBlockZForRange();; z = WorldBounds.addBlockOffset(z, 1L)) {
+                for (net.minecraft.core.Int1088 z = box.minBlockZForRange();; z = WorldBounds.addBlockOffset(z, 1L)) {
                     if (!entity.level.getBlockState(new BlockPos(x, y, z)).isAir())
                         return false;
                     if (!WorldBounds.canAdvanceBlock(z, box.maxBlockZForRangeInclusive()))

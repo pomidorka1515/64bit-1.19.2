@@ -312,7 +312,7 @@ public class ServerPlayer extends Player {
             if (!pCompound.contains("SpawnY", 3)) {
                 throw new IllegalArgumentException("Missing or invalid player SpawnY");
             }
-            this.respawnPosition = new BlockPos(NbtUtils.readInt128(pCompound, "SpawnX"), pCompound.getInt("SpawnY"), NbtUtils.readInt128(pCompound, "SpawnZ"));
+            this.respawnPosition = new BlockPos(NbtUtils.readInt1088(pCompound, "SpawnX"), pCompound.getInt("SpawnY"), NbtUtils.readInt1088(pCompound, "SpawnZ"));
             this.respawnForced = pCompound.getBoolean("SpawnForced");
             this.respawnAngle = pCompound.getFloat("SpawnAngle");
             if (pCompound.contains("SpawnDimension")) {
@@ -347,9 +347,9 @@ public class ServerPlayer extends Player {
         pCompound.put("recipeBook", this.recipeBook.toNbt());
         pCompound.putString("Dimension", this.level.dimension().location().toString());
         if (this.respawnPosition != null) {
-            NbtUtils.writeInt128(pCompound, "SpawnX", this.respawnPosition.getX());
+            NbtUtils.writeInt1088(pCompound, "SpawnX", this.respawnPosition.getX());
             pCompound.putInt("SpawnY", this.respawnPosition.getY());
-            NbtUtils.writeInt128(pCompound, "SpawnZ", this.respawnPosition.getZ());
+            NbtUtils.writeInt1088(pCompound, "SpawnZ", this.respawnPosition.getZ());
             pCompound.putBoolean("SpawnForced", this.respawnForced);
             pCompound.putFloat("SpawnAngle", this.respawnAngle);
             ResourceLocation.CODEC.encodeStart(NbtOps.INSTANCE, this.respawnDimension.location()).resultOrPartial(LOGGER::error).ifPresent((p_9134_) -> {

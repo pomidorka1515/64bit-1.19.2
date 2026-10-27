@@ -204,7 +204,7 @@ public abstract class DistanceManager {
     }
 
     private SortedArraySet<Ticket<?>> getTickets(ChunkPos p_140858_) {
-        SortedArraySet<Ticket<?>> cached = this.tickets.get(p_140858_.xHi(), p_140858_.xLo(), p_140858_.zHi(), p_140858_.zLo());
+        SortedArraySet<Ticket<?>> cached = this.tickets.get(p_140858_.x(), p_140858_.z());
         if (cached != null) {
             return cached;
         }
@@ -236,7 +236,7 @@ public abstract class DistanceManager {
 
     public void removePlayer(SectionPos pSectionPos, ServerPlayer pPlayer) {
         ChunkPos chunkpos = pSectionPos.chunk();
-        ObjectSet<ServerPlayer> objectset = this.playersPerChunk.get(chunkpos.xHi(), chunkpos.xLo(), chunkpos.zHi(), chunkpos.zLo());
+        ObjectSet<ServerPlayer> objectset = this.playersPerChunk.get(chunkpos.x(), chunkpos.z());
         objectset.remove(pPlayer);
         if (objectset.isEmpty()) {
             this.playersPerChunk.remove(chunkpos);
@@ -259,7 +259,7 @@ public abstract class DistanceManager {
     }
 
     protected String getTicketDebugString(ChunkPos p_140839_) {
-        SortedArraySet<Ticket<?>> sortedarrayset = this.tickets.get(p_140839_.xHi(), p_140839_.xLo(), p_140839_.zHi(), p_140839_.zLo());
+        SortedArraySet<Ticket<?>> sortedarrayset = this.tickets.get(p_140839_.x(), p_140839_.z());
         return sortedarrayset != null && !sortedarrayset.isEmpty() ? sortedarrayset.first().toString() : "no_ticket";
     }
 

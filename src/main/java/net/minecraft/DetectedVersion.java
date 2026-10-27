@@ -30,7 +30,7 @@ public class DetectedVersion implements WorldVersion {
 
     private DetectedVersion() {
         this.id = UUID.randomUUID().toString().replaceAll("-", "");
-        this.name = "1.19.2";
+        this.name = "1.19.2 (1088-bit)";
         this.stable = true;
         this.worldVersion = new DataVersion(3120, ForkSaveFormat.SERIES);
         this.protocolVersion = SharedConstants.getProtocolVersion();
@@ -42,7 +42,7 @@ public class DetectedVersion implements WorldVersion {
 
     private DetectedVersion(JsonObject pJson) {
         this.id = GsonHelper.getAsString(pJson, "id");
-        this.name = GsonHelper.getAsString(pJson, "name");
+        this.name = GsonHelper.getAsString(pJson, "name") + " (1088-bit)";
         this.releaseTarget = GsonHelper.getAsString(pJson, "release_target");
         this.stable = GsonHelper.getAsBoolean(pJson, "stable");
         this.worldVersion = new DataVersion(GsonHelper.getAsInt(pJson, "world_version"), ForkSaveFormat.SERIES);

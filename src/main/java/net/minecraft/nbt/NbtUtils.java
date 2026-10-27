@@ -21,7 +21,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
 import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.core.UUIDUtil;
@@ -228,32 +227,15 @@ public final class NbtUtils {
         pTag.putLongArray(pKey, limbs);
     }
 
-    /** Reads a required pair of LONG tags; low-only and numeric coercions are rejected. */
-    public static Int128 readInt128(CompoundTag pTag, String pKey) {
-        String highKey = pKey + "Hi";
-        if (!pTag.contains(pKey, Tag.TAG_LONG)) {
-            throw new IllegalArgumentException("Expected required LONG tag: " + pKey);
-        }
-        if (!pTag.contains(highKey, Tag.TAG_LONG)) {
-            throw new IllegalArgumentException("Expected required LONG tag: " + highKey);
-        }
-        return Int128.of(pTag.getLong(highKey), pTag.getLong(pKey));
-    }
-
-    public static void writeInt128(CompoundTag pTag, String pKey, Int128 pValue) {
-        pTag.putLong(pKey, pValue.lo());
-        pTag.putLong(pKey + "Hi", pValue.hi());
-    }
-
     public static BlockPos readBlockPos(CompoundTag pTag) {
-        return new BlockPos(readInt128(pTag, "X"), pTag.getInt("Y"), readInt128(pTag, "Z"));
+        return new BlockPos(readInt1088(pTag, "X"), pTag.getInt("Y"), readInt1088(pTag, "Z"));
     }
 
     public static CompoundTag writeBlockPos(BlockPos pPos) {
         CompoundTag compoundtag = new CompoundTag();
-        writeInt128(compoundtag, "X", pPos.getX());
+        writeInt1088(compoundtag, "X", pPos.getX());
         compoundtag.putInt("Y", pPos.getY());
-        writeInt128(compoundtag, "Z", pPos.getZ());
+        writeInt1088(compoundtag, "Z", pPos.getZ());
         return compoundtag;
     }
 

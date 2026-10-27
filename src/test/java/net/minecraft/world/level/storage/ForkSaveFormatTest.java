@@ -44,8 +44,11 @@ class ForkSaveFormatTest {
                 data.putString("ForkFormat", ForkSaveFormat.FORMAT_MARKER);
                 yield data;
             }
-            case LEGACY_64BIT_FORK -> metadata(0x4C534301, "mcp-long-coordinates");
-            case VANILLA -> metadata(19133, "main");
+            case FOREIGN -> {
+                CompoundTag data = metadata(0x4C534302, "mcp-int128-coordinates");
+                data.putString("ForkFormat", "int128-coordinates-v1");
+                yield data;
+            }
             case UNKNOWN -> metadata(ForkSaveFormat.STORAGE_VERSION, ForkSaveFormat.SERIES);
         };
     }
@@ -81,10 +84,10 @@ class ForkSaveFormatTest {
                 assertTrue(error.getMessage().contains(format.name()));
             }
         }
-        assertEquals(ForkSaveFormat.Format.VANILLA, ForkSaveFormat.inspect(metadata(19132, "main")));
-        CompoundTag mixed = metadata(ForkSaveFormat.Format.LEGACY_64BIT_FORK);
+        assertEquals(ForkSaveFormat.Format.UNKNOWN, ForkSaveFormat.inspect(metadata(19132, "main")));
+        CompoundTag mixed = metadata(ForkSaveFormat.Format.FOREIGN);
         mixed.putString("ForkFormat", ForkSaveFormat.FORMAT_MARKER);
-        assertEquals(ForkSaveFormat.Format.UNKNOWN, ForkSaveFormat.inspect(mixed));
+        assertEquals(ForkSaveFormat.Format.FOREIGN, ForkSaveFormat.inspect(mixed));
     }
 
     @Test
@@ -96,7 +99,7 @@ class ForkSaveFormatTest {
             }
         }
         write("level.dat", metadata(19132, "main"));
-        assertReadOnlyRejection(ForkSaveFormat.Format.VANILLA);
+        assertReadOnlyRejection(ForkSaveFormat.Format.UNKNOWN);
     }
 
     @Test
@@ -114,16 +117,16 @@ class ForkSaveFormatTest {
         }
         CompoundTag data = metadata(ForkSaveFormat.Format.CURRENT);
         data.putInt("version", ForkSaveFormat.STORAGE_VERSION + 1);
-        assertUnknownRejection(data);
+        assertForeignRejection(data);
         data = metadata(ForkSaveFormat.Format.CURRENT);
         data.getCompound("Version").putString("Series", "mcp-long-coordinates");
-        assertUnknownRejection(data);
+        assertForeignRejection(data);
         data = metadata(ForkSaveFormat.Format.CURRENT);
         data.putString("ForkFormat", ForkSaveFormat.FORMAT_MARKER + "-unknown");
-        assertUnknownRejection(data);
-        data = metadata(ForkSaveFormat.Format.LEGACY_64BIT_FORK);
+        assertForeignRejection(data);
+        data = metadata(ForkSaveFormat.Format.FOREIGN);
         data.putString("ForkFormat", ForkSaveFormat.FORMAT_MARKER);
-        assertUnknownRejection(data);
+        assertForeignRejection(data);
     }
 
     private void assertUnknownRejection(CompoundTag data) throws Exception {
@@ -131,6 +134,13 @@ class ForkSaveFormatTest {
         assertThrows(IOException.class, () -> ForkSaveFormat.validate(data));
         write("level.dat", data);
         assertReadOnlyRejection(ForkSaveFormat.Format.UNKNOWN);
+    }
+
+    private void assertForeignRejection(CompoundTag data) throws Exception {
+        assertEquals(ForkSaveFormat.Format.FOREIGN, ForkSaveFormat.inspect(data));
+        assertThrows(IOException.class, () -> ForkSaveFormat.validate(data));
+        write("level.dat", data);
+        assertReadOnlyRejection(ForkSaveFormat.Format.FOREIGN);
     }
 
     @Test

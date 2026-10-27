@@ -5,15 +5,15 @@ import net.minecraft.nbt.CompoundTag;
 
 public final class ForkSaveFormat {
     // Deliberately outside vanilla's Anvil/McRegion storage-version IDs.
-    public static final int STORAGE_VERSION = 0x4C534302;
-    public static final String SERIES = "mcp-int128-coordinates";
-    public static final String FORMAT_MARKER = "int128-coordinates-v1";
+    public static final int STORAGE_VERSION = 0x4C534303;
+    public static final String SERIES = "mcp-int1088-coordinates";
+    public static final String FORMAT_MARKER = "int1088-coordinates-v1";
 
     private ForkSaveFormat() {
     }
 
     public static Format inspect(CompoundTag data) {
-        if (!data.contains("version", 3) || !data.contains("Version", 10)) {
+        if (!data.contains("version", 3) || !data.contains("Version", 10) || !data.contains("ForkFormat", 8)) {
             return Format.UNKNOWN;
         }
 
@@ -25,21 +25,10 @@ public final class ForkSaveFormat {
         int storageVersion = data.getInt("version");
         String series = version.getString("Series");
         if (storageVersion == STORAGE_VERSION && SERIES.equals(series)
-                && data.contains("ForkFormat", 8) && FORMAT_MARKER.equals(data.getString("ForkFormat"))) {
+                && FORMAT_MARKER.equals(data.getString("ForkFormat"))) {
             return Format.CURRENT;
         }
-
-        // Old formats have no ForkFormat tag; mixed or partial markers are unknown.
-        if (!data.contains("ForkFormat")) {
-            if (storageVersion == 0x4C534301 && "mcp-long-coordinates".equals(series)) {
-                return Format.LEGACY_64BIT_FORK;
-            }
-            if ((storageVersion == 19132 || storageVersion == 19133) && "main".equals(series)) {
-                return Format.VANILLA;
-            }
-        }
-
-        return Format.UNKNOWN;
+        return Format.FOREIGN;
     }
 
     public static void validate(CompoundTag data) throws IOException {
@@ -51,8 +40,7 @@ public final class ForkSaveFormat {
 
     public enum Format {
         CURRENT,
-        LEGACY_64BIT_FORK,
-        VANILLA,
+        FOREIGN,
         UNKNOWN
     }
 }

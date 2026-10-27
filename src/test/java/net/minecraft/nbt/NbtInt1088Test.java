@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Random;
 import net.minecraft.core.Int1088;
+import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -67,6 +68,29 @@ class NbtInt1088Test {
         assertEquals(42, value.limb(16));
         assertEquals(value, decoded);
         assertNotEquals(value, NbtUtils.readInt1088(tag, "X"));
+    }
+
+    @Test
+    void blockPositionsRoundTripAndRejectLegacyCoordinates() {
+        for (BlockPos pos : new BlockPos[] {
+                new BlockPos(Int1088.MIN, Integer.MIN_VALUE, Int1088.MAX),
+                new BlockPos(Int1088.of(0, 1), 64, Int1088.fromLong(-1))}) {
+            CompoundTag encoded = NbtUtils.writeBlockPos(pos);
+            assertEquals(pos, NbtUtils.readBlockPos(encoded));
+            for (String axis : new String[] {"X", "Z"}) {
+                CompoundTag missing = encoded.copy();
+                missing.remove(axis);
+                CompoundTag before = missing.copy();
+                assertThrows(IllegalArgumentException.class, () -> NbtUtils.readBlockPos(missing));
+                assertEquals(before, missing);
+            }
+        }
+        CompoundTag tag = new CompoundTag();
+        tag.putLong("X", 0);
+        tag.putLong("XHi", 0);
+        tag.putInt("Y", 0);
+        NbtUtils.writeInt1088(tag, "Z", Int1088.ZERO);
+        assertThrows(IllegalArgumentException.class, () -> NbtUtils.readBlockPos(tag));
     }
 
     @Test

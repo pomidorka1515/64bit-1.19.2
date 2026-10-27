@@ -69,11 +69,19 @@ public class LocationPredicate {
         return this.matches(pLevel, net.minecraft.world.phys.SectorVec3.fromApproximate(pX, pY, pZ));
     }
 
-    private static boolean matchesCoordinate(MinMaxBounds.Doubles bounds, net.minecraft.core.Int128 block, double fraction) {
+    private static boolean matchesCoordinate(MinMaxBounds.Doubles bounds, net.minecraft.core.Int1088 block, double fraction) {
         if (bounds.isAny()) return true;
-        java.math.BigDecimal value = new java.math.BigDecimal(block.toString()).add(new java.math.BigDecimal(fraction));
-        return (bounds.getMin() == null || value.compareTo(new java.math.BigDecimal(bounds.getMin())) >= 0)
-                && (bounds.getMax() == null || value.compareTo(new java.math.BigDecimal(bounds.getMax())) <= 0);
+        return (bounds.getMin() == null || compareCoordinate(block, fraction, bounds.getMin()) >= 0)
+                && (bounds.getMax() == null || compareCoordinate(block, fraction, bounds.getMax()) <= 0);
+    }
+
+    private static int compareCoordinate(net.minecraft.core.Int1088 block, double fraction, double bound) {
+        if (Double.isNaN(bound)) return -1;
+        if (bound == Double.POSITIVE_INFINITY) return -1;
+        if (bound == Double.NEGATIVE_INFINITY) return 1;
+        double floor = Math.floor(bound);
+        int comparison = block.compareTo(net.minecraft.core.Int1088.fromDoubleFloorSaturated(floor));
+        return comparison != 0 ? comparison : Double.compare(fraction, bound - floor);
     }
 
     public boolean matches(ServerLevel pLevel, net.minecraft.world.phys.SectorVec3 position) {

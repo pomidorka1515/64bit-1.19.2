@@ -217,10 +217,14 @@ public class EntitySelector {
 
     private SectorVec3 exactOrigin(CommandSourceStack source) {
         SectorVec3 result = source.getExactPosition();
-        if (this.exactX != null)
-            result = result.withXDecimal(this.exactX);
-        if (this.exactZ != null)
-            result = result.withZDecimal(this.exactZ);
+        if (this.exactX != null) {
+            var coordinate = net.minecraft.commands.arguments.coordinates.WorldCoordinate.absoluteDecimal(this.exactX, false);
+            result = SectorVec3.fromBlockAndFraction(coordinate.getAbsoluteBlock(), coordinate.getAbsoluteFraction(), result.y(), result.blockZ(), result.subZ());
+        }
+        if (this.exactZ != null) {
+            var coordinate = net.minecraft.commands.arguments.coordinates.WorldCoordinate.absoluteDecimal(this.exactZ, false);
+            result = SectorVec3.fromBlockAndFraction(result.blockX(), result.subX(), result.y(), coordinate.getAbsoluteBlock(), coordinate.getAbsoluteFraction());
+        }
         return this.exactY == null ? result : result.withY(this.exactY);
     }
 

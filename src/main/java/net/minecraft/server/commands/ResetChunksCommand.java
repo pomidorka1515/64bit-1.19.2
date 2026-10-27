@@ -53,15 +53,15 @@ public class ResetChunksCommand {
         serverchunkcache.chunkMap.debugReloadGenerator();
         net.minecraft.world.phys.SectorVec3 exact = pSource.getExactPosition();
         ChunkPos chunkpos = new ChunkPos(net.minecraft.core.SectionPos.blockToSectionCoord(exact.blockX()), net.minecraft.core.SectionPos.blockToSectionCoord(exact.blockZ()));
-        net.minecraft.core.Int128 i = WorldBounds.addChunkOffset(chunkpos.z(), -(long) pRange);
-        net.minecraft.core.Int128 j = WorldBounds.addChunkOffset(chunkpos.z(), pRange);
-        net.minecraft.core.Int128 k = WorldBounds.addChunkOffset(chunkpos.x(), -(long) pRange);
-        net.minecraft.core.Int128 l = WorldBounds.addChunkOffset(chunkpos.x(), pRange);
+        net.minecraft.core.Int1088 i = WorldBounds.addChunkOffset(chunkpos.z(), -(long) pRange);
+        net.minecraft.core.Int1088 j = WorldBounds.addChunkOffset(chunkpos.z(), pRange);
+        net.minecraft.core.Int1088 k = WorldBounds.addChunkOffset(chunkpos.x(), -(long) pRange);
+        net.minecraft.core.Int1088 l = WorldBounds.addChunkOffset(chunkpos.x(), pRange);
 
         boolean moreZ = i.compareTo(j) <= 0;
-        for (net.minecraft.core.Int128 i1 = i; moreZ; moreZ = i1.compareTo(j) < 0, i1 = WorldBounds.addChunkOffset(i1, 1L)) {
+        for (net.minecraft.core.Int1088 i1 = i; moreZ; moreZ = i1.compareTo(j) < 0, i1 = WorldBounds.addChunkOffset(i1, 1L)) {
             boolean moreX = k.compareTo(l) <= 0;
-            for (net.minecraft.core.Int128 j1 = k; moreX; moreX = j1.compareTo(l) < 0, j1 = WorldBounds.addChunkOffset(j1, 1L)) {
+            for (net.minecraft.core.Int1088 j1 = k; moreX; moreX = j1.compareTo(l) < 0, j1 = WorldBounds.addChunkOffset(j1, 1L)) {
                 ChunkPos chunkpos1 = new ChunkPos(j1, i1);
                 LevelChunk levelchunk = (LevelChunk) serverchunkcache.getChunk(j1, i1, ChunkStatus.FULL, false);
                 if (levelchunk != null && (!pSkipOldChunks || !levelchunk.isOldNoiseGeneration())) {
@@ -83,9 +83,9 @@ public class ResetChunksCommand {
             }, processormailbox::tell);
 
             boolean moreStageZ = i.compareTo(j) <= 0;
-            for (net.minecraft.core.Int128 i2 = i; moreStageZ; moreStageZ = i2.compareTo(j) < 0, i2 = WorldBounds.addChunkOffset(i2, 1L)) {
+            for (net.minecraft.core.Int1088 i2 = i; moreStageZ; moreStageZ = i2.compareTo(j) < 0, i2 = WorldBounds.addChunkOffset(i2, 1L)) {
                 boolean moreStageX = k.compareTo(l) <= 0;
-                for (net.minecraft.core.Int128 j2 = k; moreStageX; moreStageX = j2.compareTo(l) < 0, j2 = WorldBounds.addChunkOffset(j2, 1L)) {
+                for (net.minecraft.core.Int1088 j2 = k; moreStageX; moreStageX = j2.compareTo(l) < 0, j2 = WorldBounds.addChunkOffset(j2, 1L)) {
                     ChunkPos chunkpos2 = new ChunkPos(j2, i2);
                     LevelChunk levelchunk1 = (LevelChunk) serverchunkcache.getChunk(j2, i2, ChunkStatus.FULL, false);
                     if (levelchunk1 != null && (!pSkipOldChunks || !levelchunk1.isOldNoiseGeneration())) {
@@ -94,9 +94,9 @@ public class ResetChunksCommand {
 
                         // Generation requires a square, center-indexed neighborhood even at a world edge.
                         for (int zOffset = -k2; zOffset <= k2; ++zOffset) {
-                            net.minecraft.core.Int128 l2 = WorldBounds.addChunkOffset(chunkpos2.z(), zOffset);
+                            net.minecraft.core.Int1088 l2 = WorldBounds.addChunkOffset(chunkpos2.z(), zOffset);
                             for (int xOffset = -k2; xOffset <= k2; ++xOffset) {
-                                net.minecraft.core.Int128 i3 = WorldBounds.addChunkOffset(chunkpos2.x(), xOffset);
+                                net.minecraft.core.Int1088 i3 = WorldBounds.addChunkOffset(chunkpos2.x(), xOffset);
                                 ChunkAccess chunkaccess = serverchunkcache.getChunk(i3, l2, chunkstatus.getParent(), true);
                                 ChunkAccess chunkaccess1;
                                 if (chunkaccess instanceof ImposterProtoChunk) {
@@ -135,9 +135,9 @@ public class ResetChunksCommand {
         long l3 = System.currentTimeMillis();
 
         moreZ = i.compareTo(j) <= 0;
-        for (net.minecraft.core.Int128 i4 = i; moreZ; moreZ = i4.compareTo(j) < 0, i4 = WorldBounds.addChunkOffset(i4, 1L)) {
+        for (net.minecraft.core.Int1088 i4 = i; moreZ; moreZ = i4.compareTo(j) < 0, i4 = WorldBounds.addChunkOffset(i4, 1L)) {
             boolean moreX = k.compareTo(l) <= 0;
-            for (net.minecraft.core.Int128 l1 = k; moreX; moreX = l1.compareTo(l) < 0, l1 = WorldBounds.addChunkOffset(l1, 1L)) {
+            for (net.minecraft.core.Int1088 l1 = k; moreX; moreX = l1.compareTo(l) < 0, l1 = WorldBounds.addChunkOffset(l1, 1L)) {
                 ChunkPos chunkpos3 = new ChunkPos(l1, i4);
                 LevelChunk levelchunk2 = (LevelChunk) serverchunkcache.getChunk(l1, i4, ChunkStatus.FULL, false);
                 if (levelchunk2 != null && (!pSkipOldChunks || !levelchunk2.isOldNoiseGeneration())) {

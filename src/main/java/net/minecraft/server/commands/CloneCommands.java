@@ -113,9 +113,9 @@ public class CloneCommands {
                     List<CloneCommands.CloneBlockInfo> list2 = Lists.newArrayList();
                     Deque<BlockPos> deque = Lists.newLinkedList();
 
-                    for (net.minecraft.core.Int128 j = boundingbox.minZ();; j = WorldBounds.addBlockOffset(j, 1L)) {
+                    for (net.minecraft.core.Int1088 j = boundingbox.minZ();; j = WorldBounds.addBlockOffset(j, 1L)) {
                         for (int k = boundingbox.minY(); k <= boundingbox.maxY(); ++k) {
-                            for (net.minecraft.core.Int128 l = boundingbox.minX();; l = WorldBounds.addBlockOffset(l, 1L)) {
+                            for (net.minecraft.core.Int1088 l = boundingbox.minX();; l = WorldBounds.addBlockOffset(l, 1L)) {
                                 BlockPos blockpos2 = new BlockPos(l, k, j);
                                 BlockPos blockpos3 = new BlockPos(WorldBounds.addBlockOffset(boundingbox1.minX(), WorldBounds.blockOffsetInRange(l, boundingbox.minX(), boundingbox.maxX())),
                                         boundingbox1.minY() + (k - boundingbox.minY()), WorldBounds.addBlockOffset(boundingbox1.minZ(), WorldBounds.blockOffsetInRange(j, boundingbox.minZ(), boundingbox.maxZ())));

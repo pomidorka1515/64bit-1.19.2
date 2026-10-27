@@ -3,9 +3,7 @@ package net.minecraft.commands.arguments.coordinates;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.network.chat.Component;
 
 public class WorldCoordinate {
@@ -15,17 +13,62 @@ public class WorldCoordinate {
     private final boolean relative;
     private final double value;
     private final String literal;
-    private final Int128 absoluteBlock;
+    private final Int1088 absoluteBlock;
+    private final double fraction;
 
     public WorldCoordinate(boolean relative, double value) {
-        this(relative, value, Double.toString(value));
+        this(relative, value, relative ? Double.toString(value) : plainDouble(value));
+    }
+
+    private static String plainDouble(double value) {
+        if (!Double.isFinite(value)) throw new NumberFormatException("Non-finite coordinate");
+        String text = Double.toString(value);
+        int e = text.indexOf('E');
+        if (e < 0) return text;
+        int exponent = Integer.parseInt(text.substring(e + 1));
+        String mantissa = text.substring(0, e);
+        boolean negative = mantissa.startsWith("-");
+        if (negative) mantissa = mantissa.substring(1);
+        int point = mantissa.indexOf('.');
+        String digits = mantissa.replace(".", "");
+        int index = point + exponent;
+        String plain = index <= 0 ? "0." + "0".repeat(-index) + digits
+                : index >= digits.length() ? digits + "0".repeat(index - digits.length())
+                : digits.substring(0, index) + "." + digits.substring(index);
+        return negative ? "-" + plain : plain;
     }
 
     private WorldCoordinate(boolean relative, double value, String literal) {
         this.relative = relative;
         this.value = value;
         this.literal = literal;
-        this.absoluteBlock = relative ? null : Int128.parseDecimal(new BigDecimal(literal).setScale(0, RoundingMode.FLOOR).toPlainString());
+        if (relative) {
+            this.absoluteBlock = null;
+            this.fraction = 0;
+        } else {
+            if (!isDecimal(literal)) throw new NumberFormatException(literal);
+            int dot = literal.indexOf('.');
+            String integer = dot < 0 ? literal : literal.substring(0, dot);
+            if (integer.isEmpty() || integer.equals("-") || integer.equals("+")) integer += "0";
+            Int1088 block = Int1088.parseDecimal(integer);
+            double part = dot < 0 ? 0.0D : Double.parseDouble("0" + literal.substring(dot));
+            boolean negative = literal.startsWith("-");
+            boolean nonzero = dot >= 0 && literal.substring(dot + 1).chars().anyMatch(c -> c != '0');
+            if (negative && block.equals(Int1088.MIN) && nonzero) throw new NumberFormatException(literal);
+            if (negative && nonzero) {
+                block = block.subtractSaturated(Int1088.ONE);
+                part = part == 1.0D ? 0.0D : complementedFraction(literal.substring(dot + 1));
+                if (part == 1.0D) part = Math.nextDown(1.0D);
+            } else if (part == 1.0D) {
+                if (block.equals(Int1088.MAX)) part = Math.nextDown(1.0D);
+                else {
+                    block = block.addSaturated(Int1088.ONE);
+                    part = 0.0D;
+                }
+            }
+            this.absoluteBlock = block;
+            this.fraction = part;
+        }
     }
 
     public double get(double pCoord) {
@@ -39,8 +82,12 @@ public class WorldCoordinate {
         return this.literal;
     }
 
-    public Int128 getAbsoluteBlock() {
+    public Int1088 getAbsoluteBlock() {
         return this.absoluteBlock;
+    }
+
+    public double getAbsoluteFraction() {
+        return this.fraction;
     }
 
     public static WorldCoordinate parseDouble(StringReader pReader, boolean pCenterCorrect) throws CommandSyntaxException {
@@ -60,11 +107,13 @@ public class WorldCoordinate {
                     if (!isDecimal(literal))
                         throw new NumberFormatException(literal);
                     double d0 = Double.parseDouble(literal);
-                    if (!Double.isFinite(d0))
+                    if (flag && !Double.isFinite(d0))
                         throw new NumberFormatException(literal);
+                    if (!flag && !Double.isFinite(d0)) d0 = Math.copySign(Double.MAX_VALUE, d0);
                     if (!s.contains(".") && !flag && pCenterCorrect) {
                         d0 += 0.5D;
-                        literal = new BigDecimal(literal).add(BigDecimal.valueOf(0.5D)).toPlainString();
+                        Int1088 integer = Int1088.parseDecimal(literal);
+                        literal = integer.signum() < 0 ? (integer.equals(Int1088.fromLong(-1)) ? "-0" : integer.addSaturated(Int1088.ONE).toString()) + ".5" : integer + ".5";
                     }
                     return new WorldCoordinate(flag, d0, literal);
                 } catch (NumberFormatException exception) {
@@ -86,7 +135,7 @@ public class WorldCoordinate {
             String token = pReader.canRead() && pReader.peek() != ' ' ? readCoordinateToken(pReader) : "";
             try {
                 String literal = token.isEmpty() ? "0" : token;
-                double d0 = flag ? Double.parseDouble(literal) : Int128.parseDecimal(literal).toDoubleSaturated();
+                double d0 = flag ? Double.parseDouble(literal) : Int1088.parseDecimal(literal).toDoubleSaturated();
                 if (!Double.isFinite(d0))
                     throw new NumberFormatException(literal);
                 return new WorldCoordinate(flag, d0, literal);
@@ -104,12 +153,18 @@ public class WorldCoordinate {
     }
 
     private static boolean isDecimal(String token) {
-        try {
-            new BigDecimal(token);
-            return true;
-        } catch (NumberFormatException exception) {
-            return false;
+        return token.matches("[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)");
+    }
+
+    private static double complementedFraction(String digits) {
+        char[] complement = new char[digits.length()];
+        int carry = 1;
+        for (int i = digits.length() - 1; i >= 0; i--) {
+            int digit = 9 - (digits.charAt(i) - '0') + carry;
+            complement[i] = (char)('0' + digit % 10);
+            carry = digit / 10;
         }
+        return Double.parseDouble("0." + new String(complement));
     }
 
     public static boolean isRelative(StringReader pReader) {
@@ -135,14 +190,14 @@ public class WorldCoordinate {
                 return false;
             } else {
                 return this.relative ? Double.compare(worldcoordinate.value, this.value) == 0
-                        : new BigDecimal(this.literal).compareTo(new BigDecimal(worldcoordinate.literal)) == 0;
+                        : this.absoluteBlock.equals(worldcoordinate.absoluteBlock) && Double.compare(this.fraction, worldcoordinate.fraction) == 0;
             }
         }
     }
 
     public int hashCode() {
         if (!this.relative)
-            return new BigDecimal(this.literal).stripTrailingZeros().hashCode();
+            return 31 * this.absoluteBlock.hashCode() + Double.hashCode(this.fraction);
         int i = this.relative ? 1 : 0;
         long j = Double.doubleToLongBits(this.value);
         return 31 * i + (int) (j ^ j >>> 32);
@@ -155,9 +210,10 @@ public class WorldCoordinate {
     public static WorldCoordinate absoluteDecimal(String value, boolean centerCorrect) {
         if (!isDecimal(value))
             throw new IllegalArgumentException("Invalid coordinate: " + value);
-        BigDecimal decimal = new BigDecimal(value);
-        if (centerCorrect && value.indexOf('.') < 0)
-            decimal = decimal.add(BigDecimal.valueOf(0.5D));
-        return new WorldCoordinate(false, decimal.doubleValue(), decimal.toPlainString());
+        try {
+            return parseDouble(new StringReader(value), centerCorrect);
+        } catch (CommandSyntaxException exception) {
+            throw new IllegalArgumentException("Invalid coordinate: " + value, exception);
+        }
     }
 }

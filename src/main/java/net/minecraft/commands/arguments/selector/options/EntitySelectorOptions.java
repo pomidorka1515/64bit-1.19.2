@@ -119,7 +119,7 @@ public class EntitySelectorOptions {
             String value = p_121413_.getReader().getString().substring(start, p_121413_.getReader().getCursor()).trim();
             try {
                p_121413_.setExactX(value);
-            } catch (NumberFormatException exception) {
+             } catch (IllegalArgumentException exception) {
                p_121413_.getReader().setCursor(start);
                throw EntitySelectorParser.ERROR_EXPECTED_OPTION_VALUE.createWithContext(p_121413_.getReader(), "x");
             } }, (p_121411_) -> { return p_121411_.getX() == null; }, Component.translatable("argument.entity.options.x.description"));
@@ -133,7 +133,7 @@ public class EntitySelectorOptions {
             String value = p_121405_.getReader().getString().substring(start, p_121405_.getReader().getCursor()).trim();
             try {
                p_121405_.setExactZ(value);
-            } catch (NumberFormatException exception) {
+             } catch (IllegalArgumentException exception) {
                p_121405_.getReader().setCursor(start);
                throw EntitySelectorParser.ERROR_EXPECTED_OPTION_VALUE.createWithContext(p_121405_.getReader(), "z");
             } }, (p_121403_) -> { return p_121403_.getZ() == null; }, Component.translatable("argument.entity.options.z.description"));

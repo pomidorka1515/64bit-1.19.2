@@ -5,7 +5,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -102,10 +102,10 @@ public class ForceLoadCommand {
     }
 
     private static int changeForceLoad(CommandSourceStack pSource, ColumnPos pFrom, ColumnPos pTo, boolean pAdd) throws CommandSyntaxException {
-        Int128 i1 = SectionPos.blockToSectionCoord(pFrom.x().compareTo(pTo.x()) <= 0 ? pFrom.x() : pTo.x());
-        Int128 j1 = SectionPos.blockToSectionCoord(pFrom.z().compareTo(pTo.z()) <= 0 ? pFrom.z() : pTo.z());
-        Int128 k1 = SectionPos.blockToSectionCoord(pFrom.x().compareTo(pTo.x()) >= 0 ? pFrom.x() : pTo.x());
-        Int128 l1 = SectionPos.blockToSectionCoord(pFrom.z().compareTo(pTo.z()) >= 0 ? pFrom.z() : pTo.z());
+        Int1088 i1 = SectionPos.blockToSectionCoord(pFrom.x().compareTo(pTo.x()) <= 0 ? pFrom.x() : pTo.x());
+        Int1088 j1 = SectionPos.blockToSectionCoord(pFrom.z().compareTo(pTo.z()) <= 0 ? pFrom.z() : pTo.z());
+        Int1088 k1 = SectionPos.blockToSectionCoord(pFrom.x().compareTo(pTo.x()) >= 0 ? pFrom.x() : pTo.x());
+        Int1088 l1 = SectionPos.blockToSectionCoord(pFrom.z().compareTo(pTo.z()) >= 0 ? pFrom.z() : pTo.z());
         double xSpan = WorldBounds.inclusiveBlockSpanDouble(i1, k1);
         double zSpan = WorldBounds.inclusiveBlockSpanDouble(j1, l1);
         double i2 = xSpan * zSpan;
@@ -117,8 +117,8 @@ public class ForceLoadCommand {
             ChunkPos chunkpos = null;
             int j2 = 0;
 
-            for (Int128 k2 = i1;; k2 = WorldBounds.addChunkOffset(k2, 1L)) {
-                for (Int128 l2 = j1;; l2 = WorldBounds.addChunkOffset(l2, 1L)) {
+            for (Int1088 k2 = i1;; k2 = WorldBounds.addChunkOffset(k2, 1L)) {
+                for (Int1088 l2 = j1;; l2 = WorldBounds.addChunkOffset(l2, 1L)) {
                     boolean flag = serverlevel.setChunkForced(k2, l2, pAdd);
                     if (flag) {
                         ++j2;

@@ -151,13 +151,7 @@ public class CommandSourceStack implements SharedSuggestionProvider {
     }
 
     private static SectorVec3 scaleExact(SectorVec3 position, double scale) {
-        if (!Double.isFinite(scale) || scale == 0.0D)
-            throw new IllegalArgumentException("Invalid dimension scale: " + scale);
-        // Dimension scales used by vanilla are powers of two. Scaling the split
-        // components independently avoids forming a huge global double.
-        java.math.BigDecimal x = new java.math.BigDecimal(position.blockX().toString()).add(java.math.BigDecimal.valueOf(position.subX())).multiply(java.math.BigDecimal.valueOf(scale));
-        java.math.BigDecimal z = new java.math.BigDecimal(position.blockZ().toString()).add(java.math.BigDecimal.valueOf(position.subZ())).multiply(java.math.BigDecimal.valueOf(scale));
-        return SectorVec3.fromDecimal(x.toPlainString(), position.y(), z.toPlainString());
+        return CoordinateScale.scale(position, scale);
     }
 
     public CommandSourceStack facing(Entity target, EntityAnchorArgument.Anchor targetAnchor) {

@@ -121,9 +121,25 @@ public class WorldBorderCommand {
             throw ERROR_SAME_CENTER.create();
         worldborder.setCenter(position);
         source.sendSuccess(Component.translatable("commands.worldborder.center.success",
-                new java.math.BigDecimal(position.blockX().toString()).add(java.math.BigDecimal.valueOf(position.subX())).setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
-                new java.math.BigDecimal(position.blockZ().toString()).add(java.math.BigDecimal.valueOf(position.subZ())).setScale(2, java.math.RoundingMode.HALF_UP).toPlainString()), true);
+                formatCenter(position.blockX(), position.subX()),
+                formatCenter(position.blockZ(), position.subZ())), true);
         return 0;
+    }
+
+    private static String formatCenter(net.minecraft.core.Int1088 block, double fraction) {
+        boolean negative = block.signum() < 0;
+        int cents = negative ? (int)Math.ceil(fraction * 100.0D - 0.5D) : (int)Math.floor(fraction * 100.0D + 0.5D);
+        if (cents == 100) {
+            block = block.addSaturated(net.minecraft.core.Int1088.ONE);
+            cents = 0;
+        }
+        if (negative && cents != 0) {
+            block = block.addSaturated(net.minecraft.core.Int1088.ONE);
+            cents = 100 - cents;
+        }
+        String integer = block.toString();
+        if (negative && block.signum() == 0) integer = "-0";
+        return integer + "." + (cents < 10 ? "0" : "") + cents;
     }
 
     private static int setSize(CommandSourceStack pSource, double pNewSize, long pTime) throws CommandSyntaxException {

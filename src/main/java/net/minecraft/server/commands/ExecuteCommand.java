@@ -414,9 +414,9 @@ public class ExecuteCommand {
         } else {
             int j = 0;
 
-            for (net.minecraft.core.Int128 k = boundingbox.minZ();; k = WorldBounds.addBlockOffset(k, 1L)) {
+            for (net.minecraft.core.Int1088 k = boundingbox.minZ();; k = WorldBounds.addBlockOffset(k, 1L)) {
                 for (int l = boundingbox.minY(); l <= boundingbox.maxY(); ++l) {
-                    for (net.minecraft.core.Int128 i1 = boundingbox.minX();; i1 = WorldBounds.addBlockOffset(i1, 1L)) {
+                    for (net.minecraft.core.Int1088 i1 = boundingbox.minX();; i1 = WorldBounds.addBlockOffset(i1, 1L)) {
                         BlockPos blockpos1 = new BlockPos(i1, l, k);
                         BlockPos blockpos2 = new BlockPos(WorldBounds.addBlockOffset(boundingbox1.minX(), WorldBounds.blockOffsetInRange(i1, boundingbox.minX(), boundingbox.maxX())),
                                 boundingbox1.minY() + (l - boundingbox.minY()), WorldBounds.addBlockOffset(boundingbox1.minZ(), WorldBounds.blockOffsetInRange(k, boundingbox.minZ(), boundingbox.maxZ())));

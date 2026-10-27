@@ -124,7 +124,7 @@ public class LocateCommand {
         return (int) i;
     }
 
-    private static double dist(net.minecraft.core.Int128 x0, net.minecraft.core.Int128 z0, net.minecraft.core.Int128 x1, net.minecraft.core.Int128 z1) {
+    private static double dist(net.minecraft.core.Int1088 x0, net.minecraft.core.Int1088 z0, net.minecraft.core.Int1088 x1, net.minecraft.core.Int1088 z1) {
         double dx = net.minecraft.world.level.WorldBounds.signedDifference(x1, x0);
         double dz = net.minecraft.world.level.WorldBounds.signedDifference(z1, z0);
         return Math.hypot(dx, dz);

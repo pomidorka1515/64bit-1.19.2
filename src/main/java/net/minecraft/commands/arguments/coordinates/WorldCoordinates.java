@@ -22,11 +22,11 @@ public class WorldCoordinates implements Coordinates {
         SectorVec3 origin = source.getExactPosition();
         SectorVec3 result = origin;
         if (!this.x.isRelative())
-            result = result.withXDecimal(this.x.getLiteral());
+            result = SectorVec3.fromBlockAndFraction(this.x.getAbsoluteBlock(), this.x.getAbsoluteFraction(), result.y(), result.blockZ(), result.subZ());
         else
             result = result.add(this.x.getValue(), 0.0D, 0.0D);
         if (!this.z.isRelative())
-            result = result.withZDecimal(this.z.getLiteral());
+            result = SectorVec3.fromBlockAndFraction(result.blockX(), result.subX(), result.y(), this.z.getAbsoluteBlock(), this.z.getAbsoluteFraction());
         else
             result = result.add(0.0D, 0.0D, this.z.getValue());
         double y = this.y.isRelative() ? origin.y() + this.y.getValue() : this.y.getValue();

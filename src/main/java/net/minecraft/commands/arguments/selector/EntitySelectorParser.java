@@ -404,9 +404,9 @@ public class EntitySelectorParser {
     }
 
     public void setExactX(String value) {
-        net.minecraft.commands.arguments.coordinates.WorldCoordinate.absoluteDecimal(value, false);
+        net.minecraft.commands.arguments.coordinates.WorldCoordinate coordinate = net.minecraft.commands.arguments.coordinates.WorldCoordinate.absoluteDecimal(value, false);
         this.exactX = value;
-        this.x = Double.parseDouble(value);
+        this.x = coordinate.getValue();
     }
 
     public void setY(double pY) {
@@ -418,9 +418,9 @@ public class EntitySelectorParser {
     }
 
     public void setExactZ(String value) {
-        net.minecraft.commands.arguments.coordinates.WorldCoordinate.absoluteDecimal(value, false);
+        net.minecraft.commands.arguments.coordinates.WorldCoordinate coordinate = net.minecraft.commands.arguments.coordinates.WorldCoordinate.absoluteDecimal(value, false);
         this.exactZ = value;
-        this.z = Double.parseDouble(value);
+        this.z = coordinate.getValue();
     }
 
     public void setDeltaX(double pDeltaX) {

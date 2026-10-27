@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -49,32 +49,31 @@ public class ClientChunkCache extends ChunkSource {
     }
 
     private static boolean isValidChunk(@Nullable LevelChunk pChunk, long pX, long pZ) {
-        return isValidChunk(pChunk, net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ));
+        return isValidChunk(pChunk, net.minecraft.core.Int1088.fromLong(pX), net.minecraft.core.Int1088.fromLong(pZ));
     }
 
-    private static boolean isValidChunk(@Nullable LevelChunk pChunk, net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ) {
+    private static boolean isValidChunk(@Nullable LevelChunk pChunk, net.minecraft.core.Int1088 pX, net.minecraft.core.Int1088 pZ) {
         if (pChunk == null) {
             return false;
         } else {
             ChunkPos chunkpos = pChunk.getPos();
-            return chunkpos.xHi() == pX.hi() && chunkpos.xLo() == pX.lo()
-                    && chunkpos.zHi() == pZ.hi() && chunkpos.zLo() == pZ.lo();
+            return chunkpos.x().equals(pX) && chunkpos.z().equals(pZ);
         }
     }
 
     public boolean isInViewRange(long chunkX, long chunkZ) {
-        return this.isInViewRange(net.minecraft.core.Int128.fromLong(chunkX), net.minecraft.core.Int128.fromLong(chunkZ));
+        return this.isInViewRange(net.minecraft.core.Int1088.fromLong(chunkX), net.minecraft.core.Int1088.fromLong(chunkZ));
     }
 
-    public boolean isInViewRange(net.minecraft.core.Int128 chunkX, net.minecraft.core.Int128 chunkZ) {
+    public boolean isInViewRange(net.minecraft.core.Int1088 chunkX, net.minecraft.core.Int1088 chunkZ) {
         return this.storage.inRange(chunkX, chunkZ);
     }
 
     public void drop(long i2, long j) {
-        this.drop(net.minecraft.core.Int128.fromLong(i2), net.minecraft.core.Int128.fromLong(j));
+        this.drop(net.minecraft.core.Int1088.fromLong(i2), net.minecraft.core.Int1088.fromLong(j));
     }
 
-    public void drop(net.minecraft.core.Int128 i2, net.minecraft.core.Int128 j) {
+    public void drop(net.minecraft.core.Int1088 i2, net.minecraft.core.Int1088 j) {
         if (this.storage.inRange(i2, j)) {
             int i = this.storage.getIndex(i2, j);
             LevelChunk levelchunk = this.storage.getChunk(i);
@@ -86,11 +85,11 @@ public class ClientChunkCache extends ChunkSource {
 
     @Nullable
     public LevelChunk getChunk(long pChunkX, long pChunkZ, ChunkStatus pRequiredStatus, boolean pLoad) {
-        return this.getChunk(net.minecraft.core.Int128.fromLong(pChunkX), net.minecraft.core.Int128.fromLong(pChunkZ), pRequiredStatus, pLoad);
+        return this.getChunk(net.minecraft.core.Int1088.fromLong(pChunkX), net.minecraft.core.Int1088.fromLong(pChunkZ), pRequiredStatus, pLoad);
     }
 
     @Nullable
-    public LevelChunk getChunk(net.minecraft.core.Int128 pChunkX, net.minecraft.core.Int128 pChunkZ, ChunkStatus pRequiredStatus, boolean pLoad) {
+    public LevelChunk getChunk(net.minecraft.core.Int1088 pChunkX, net.minecraft.core.Int1088 pChunkZ, ChunkStatus pRequiredStatus, boolean pLoad) {
         if (this.storage.inRange(pChunkX, pChunkZ)) {
             LevelChunk levelchunk = this.storage.getChunk(this.storage.getIndex(pChunkX, pChunkZ));
             if (isValidChunk(levelchunk, pChunkX, pChunkZ)) {
@@ -107,11 +106,11 @@ public class ClientChunkCache extends ChunkSource {
 
     @Nullable
     public LevelChunk replaceWithPacketData(long pX, long pZ, FriendlyByteBuf pBuffer, CompoundTag pTag, Consumer<ClientboundLevelChunkPacketData.BlockEntityTagOutput> pConsumer) {
-        return this.replaceWithPacketData(net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ), pBuffer, pTag, pConsumer);
+        return this.replaceWithPacketData(net.minecraft.core.Int1088.fromLong(pX), net.minecraft.core.Int1088.fromLong(pZ), pBuffer, pTag, pConsumer);
     }
 
     @Nullable
-    public LevelChunk replaceWithPacketData(net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ, FriendlyByteBuf pBuffer, CompoundTag pTag, Consumer<ClientboundLevelChunkPacketData.BlockEntityTagOutput> pConsumer) {
+    public LevelChunk replaceWithPacketData(net.minecraft.core.Int1088 pX, net.minecraft.core.Int1088 pZ, FriendlyByteBuf pBuffer, CompoundTag pTag, Consumer<ClientboundLevelChunkPacketData.BlockEntityTagOutput> pConsumer) {
         if (!this.storage.inRange(pX, pZ)) {
             LOGGER.warn("Ignoring chunk since it's not in the view range: {}, {}", pX, pZ);
             return null;
@@ -136,10 +135,10 @@ public class ClientChunkCache extends ChunkSource {
     }
 
     public void updateViewCenter(long pX, long pZ) {
-        this.updateViewCenter(net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ));
+        this.updateViewCenter(net.minecraft.core.Int1088.fromLong(pX), net.minecraft.core.Int1088.fromLong(pZ));
     }
 
-    public void updateViewCenter(net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ) {
+    public void updateViewCenter(net.minecraft.core.Int1088 pX, net.minecraft.core.Int1088 pZ) {
         this.storage.viewCenterX = pX;
         this.storage.viewCenterZ = pZ;
     }
@@ -182,24 +181,17 @@ public class ClientChunkCache extends ChunkSource {
         Minecraft.getInstance().levelRenderer.setSectionDirty(pPos.x(), pPos.y(), pPos.z());
     }
 
-    boolean isCurrentChunk(Int128 x, Int128 z, @Nullable LevelChunk expected) {
+    boolean isCurrentChunk(Int1088 x, Int1088 z, @Nullable LevelChunk expected) {
         return expected != null && this.getChunk(x, z, ChunkStatus.FULL, false) == expected;
     }
 
-    static boolean inTrackingRange(Int128 x, Int128 z, Int128 centerX, Int128 centerZ, int radius) {
+    static boolean inTrackingRange(Int1088 x, Int1088 z, Int1088 centerX, Int1088 centerZ, int radius) {
         return radius >= 0 && WorldBounds.distance(x, centerX) <= radius
                 && WorldBounds.distance(z, centerZ) <= radius;
     }
 
-    static int storageModulo(Int128 value, int range) {
-        return storageModulo(value.hi(), value.lo(), range);
-    }
-
-    private static int storageModulo(long hi, long lo, int range) {
-        // Signed hi * 2^64 + unsigned lo, reduced before multiplication.
-        long radix = (Long.remainderUnsigned(-1L, range) + 1L) % range;
-        return (int) ((Math.floorMod(hi, (long) range) * radix
-                + Long.remainderUnsigned(lo, range)) % range);
+    static int storageModulo(Int1088 value, int range) {
+        return Math.floorMod(value.remainder(range), range);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -207,8 +199,8 @@ public class ClientChunkCache extends ChunkSource {
         final AtomicReferenceArray<LevelChunk> chunks;
         final int chunkRadius;
         private final int viewRange;
-        volatile net.minecraft.core.Int128 viewCenterX = net.minecraft.core.Int128.ZERO;
-        volatile net.minecraft.core.Int128 viewCenterZ = net.minecraft.core.Int128.ZERO;
+        volatile net.minecraft.core.Int1088 viewCenterX = net.minecraft.core.Int1088.ZERO;
+        volatile net.minecraft.core.Int1088 viewCenterZ = net.minecraft.core.Int1088.ZERO;
         int chunkCount;
 
         Storage(int p_104474_) {
@@ -218,21 +210,21 @@ public class ClientChunkCache extends ChunkSource {
         }
 
         int getIndex(long pX, long pZ) {
-            return this.getIndex(net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ));
+            return this.getIndex(net.minecraft.core.Int1088.fromLong(pX), net.minecraft.core.Int1088.fromLong(pZ));
         }
 
-        int getIndex(net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ) {
+        int getIndex(net.minecraft.core.Int1088 pX, net.minecraft.core.Int1088 pZ) {
             long x = floorMod(pX);
             long z = floorMod(pZ);
             return (int) (z * (long) this.viewRange + x);
         }
 
         int getIndex(ChunkPos pos) {
-            return storageModulo(pos.zHi(), pos.zLo(), this.viewRange) * this.viewRange
-                    + storageModulo(pos.xHi(), pos.xLo(), this.viewRange);
+            return storageModulo(pos.z(), this.viewRange) * this.viewRange
+                    + storageModulo(pos.x(), this.viewRange);
         }
 
-        private long floorMod(net.minecraft.core.Int128 value) {
+        private long floorMod(net.minecraft.core.Int1088 value) {
             return storageModulo(value, this.viewRange);
         }
 
@@ -258,16 +250,15 @@ public class ClientChunkCache extends ChunkSource {
         }
 
         boolean inRange(long pX, long pZ) {
-            return this.inRange(net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ));
+            return this.inRange(net.minecraft.core.Int1088.fromLong(pX), net.minecraft.core.Int1088.fromLong(pZ));
         }
 
-        boolean inRange(net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ) {
+        boolean inRange(net.minecraft.core.Int1088 pX, net.minecraft.core.Int1088 pZ) {
             return inTrackingRange(pX, pZ, this.viewCenterX, this.viewCenterZ, this.chunkRadius);
         }
 
         boolean inRange(ChunkPos pos) {
-            return net.minecraft.core.Int128Math.distance(pos.xHi(), pos.xLo(), this.viewCenterX.hi(), this.viewCenterX.lo()) <= this.chunkRadius
-                    && net.minecraft.core.Int128Math.distance(pos.zHi(), pos.zLo(), this.viewCenterZ.hi(), this.viewCenterZ.lo()) <= this.chunkRadius;
+            return inTrackingRange(pos.x(), pos.z(), this.viewCenterX, this.viewCenterZ, this.chunkRadius);
         }
 
         @Nullable

@@ -8,7 +8,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.ToIntFunction;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
@@ -29,19 +29,19 @@ public class BlockTintCache {
     }
 
     public int getColor(BlockPos pPos) {
-        Int128 i = SectionPos.blockToSectionCoord(pPos.getX());
-        Int128 j = SectionPos.blockToSectionCoord(pPos.getZ());
         BlockTintCache.LatestCacheInfo blocktintcache$latestcacheinfo = this.latestChunkOnThread.get();
-        if (!i.equals(blocktintcache$latestcacheinfo.x) || !j.equals(blocktintcache$latestcacheinfo.z)
+        if (!sameSection(pPos.getX(), blocktintcache$latestcacheinfo.x) || !sameSection(pPos.getZ(), blocktintcache$latestcacheinfo.z)
                 || blocktintcache$latestcacheinfo.cache == null || blocktintcache$latestcacheinfo.cache.invalid) {
+            Int1088 i = SectionPos.blockToSectionCoord(pPos.getX());
+            Int1088 j = SectionPos.blockToSectionCoord(pPos.getZ());
             blocktintcache$latestcacheinfo.x = i;
             blocktintcache$latestcacheinfo.z = j;
             blocktintcache$latestcacheinfo.cache = this.findOrCreateChunkCache(i, j);
         }
 
         int[] aint = blocktintcache$latestcacheinfo.cache.getLayer(pPos.getY());
-        int k = (int) (pPos.getX().lo() & 15);
-        int l = (int) (pPos.getZ().lo() & 15);
+        int k = (int) (pPos.getX().lowLimb() & 15);
+        int l = (int) (pPos.getZ().lowLimb() & 15);
         int i1 = l << 4 | k;
         int j1 = aint[i1];
         if (j1 != -1) {
@@ -53,18 +53,29 @@ public class BlockTintCache {
         }
     }
 
-    public void invalidateForChunk(long pChunkX, long pChunkZ) {
-        this.invalidateForChunk(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ));
+    private static boolean sameSection(Int1088 block, @Nullable Int1088 section) {
+        if (section == null) return false;
+        if (block.fitsLong() && section.fitsLong()) return (block.lowLimb() >> 4) == section.lowLimb();
+        for (int i = 0; i < Int1088.LIMBS; ++i) {
+            long shifted = i == Int1088.LIMBS - 1 ? block.limb(i) >> 4
+                    : (block.limb(i) >>> 4) | (block.limb(i + 1) << 60);
+            if (shifted != section.limb(i)) return false;
+        }
+        return true;
     }
 
-    public void invalidateForChunk(Int128 pChunkX, Int128 pChunkZ) {
+    public void invalidateForChunk(long pChunkX, long pChunkZ) {
+        this.invalidateForChunk(Int1088.fromLong(pChunkX), Int1088.fromLong(pChunkZ));
+    }
+
+    public void invalidateForChunk(Int1088 pChunkX, Int1088 pChunkZ) {
         try {
             this.lock.writeLock().lock();
 
             for (int i = -1; i <= 1; ++i) {
                 for (int j = -1; j <= 1; ++j) {
-                    Int128 x = WorldBounds.tryAddChunkOffset(pChunkX, i);
-                    Int128 z = WorldBounds.tryAddChunkOffset(pChunkZ, j);
+                    Int1088 x = WorldBounds.tryAddChunkOffset(pChunkX, i);
+                    Int1088 z = WorldBounds.tryAddChunkOffset(pChunkZ, j);
                     if (x != null && z != null) {
                         CacheData removed = this.cache.remove(new ChunkPos(x, z));
                         if (removed != null)
@@ -87,7 +98,7 @@ public class BlockTintCache {
         }
     }
 
-    private BlockTintCache.CacheData findOrCreateChunkCache(Int128 pChunkX, Int128 pChunkZ) {
+    private BlockTintCache.CacheData findOrCreateChunkCache(Int1088 pChunkX, Int1088 pChunkZ) {
         ChunkPos i = new ChunkPos(pChunkX, pChunkZ);
         this.lock.readLock().lock();
 
@@ -165,8 +176,8 @@ public class BlockTintCache {
 
     @OnlyIn(Dist.CLIENT)
     static class LatestCacheInfo {
-        public Int128 x;
-        public Int128 z;
+        public Int1088 x;
+        public Int1088 z;
         @Nullable
         BlockTintCache.CacheData cache;
 

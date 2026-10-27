@@ -29,7 +29,7 @@ import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.resources.sounds.EntityBoundSoundInstance;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.core.Cursor3D;
 import net.minecraft.core.Direction;
@@ -343,10 +343,10 @@ public class ClientLevel extends Level {
     }
 
     public void animateTick(long pPosX, int pPosY, long pPosZ) {
-        this.animateTick(Int128.fromLong(pPosX), pPosY, Int128.fromLong(pPosZ));
+        this.animateTick(Int1088.fromLong(pPosX), pPosY, Int1088.fromLong(pPosZ));
     }
 
-    public void animateTick(Int128 pPosX, int pPosY, Int128 pPosZ) {
+    public void animateTick(Int1088 pPosX, int pPosY, Int1088 pPosZ) {
         int i = 32;
         RandomSource randomsource = RandomSource.create();
         Block block = this.getMarkerParticleTarget();
@@ -373,13 +373,13 @@ public class ClientLevel extends Level {
     }
 
     public void doAnimateTick(long pPosX, int pPosY, long pPosZ, int pRange, RandomSource pRandom, @Nullable Block pBlock, BlockPos.MutableBlockPos pBlockPos) {
-        this.doAnimateTick(Int128.fromLong(pPosX), pPosY, Int128.fromLong(pPosZ), pRange, pRandom, pBlock, pBlockPos);
+        this.doAnimateTick(Int1088.fromLong(pPosX), pPosY, Int1088.fromLong(pPosZ), pRange, pRandom, pBlock, pBlockPos);
     }
 
-    public void doAnimateTick(Int128 pPosX, int pPosY, Int128 pPosZ, int pRange, RandomSource pRandom, @Nullable Block pBlock, BlockPos.MutableBlockPos pBlockPos) {
-        Int128 i = WorldBounds.addBlockOffset(pPosX, this.random.nextInt(pRange) - this.random.nextInt(pRange));
+    public void doAnimateTick(Int1088 pPosX, int pPosY, Int1088 pPosZ, int pRange, RandomSource pRandom, @Nullable Block pBlock, BlockPos.MutableBlockPos pBlockPos) {
+        Int1088 i = WorldBounds.addBlockOffset(pPosX, this.random.nextInt(pRange) - this.random.nextInt(pRange));
         int j = pPosY + this.random.nextInt(pRange) - this.random.nextInt(pRange);
-        Int128 k = WorldBounds.addBlockOffset(pPosZ, this.random.nextInt(pRange) - this.random.nextInt(pRange));
+        Int1088 k = WorldBounds.addBlockOffset(pPosZ, this.random.nextInt(pRange) - this.random.nextInt(pRange));
         pBlockPos.set(i, j, k);
         BlockState blockstate = this.getBlockState(pBlockPos);
         blockstate.getBlock().animateTick(blockstate, this, pBlockPos, pRandom);
@@ -562,18 +562,18 @@ public class ClientLevel extends Level {
     }
 
     public void setSectionDirtyWithNeighbors(long pSectionX, int pSectionY, long pSectionZ) {
-        this.setSectionDirtyWithNeighbors(Int128.fromLong(pSectionX), pSectionY, Int128.fromLong(pSectionZ));
+        this.setSectionDirtyWithNeighbors(Int1088.fromLong(pSectionX), pSectionY, Int1088.fromLong(pSectionZ));
     }
 
-    public void setSectionDirtyWithNeighbors(Int128 pSectionX, int pSectionY, Int128 pSectionZ) {
+    public void setSectionDirtyWithNeighbors(Int1088 pSectionX, int pSectionY, Int1088 pSectionZ) {
         this.levelRenderer.setSectionDirtyWithNeighbors(pSectionX, pSectionY, pSectionZ);
     }
 
     public void setLightReady(long pX, long pZ) {
-        this.setLightReady(Int128.fromLong(pX), Int128.fromLong(pZ));
+        this.setLightReady(Int1088.fromLong(pX), Int1088.fromLong(pZ));
     }
 
-    public void setLightReady(Int128 pX, Int128 pZ) {
+    public void setLightReady(Int1088 pX, Int1088 pZ) {
         LevelChunk levelchunk = this.chunkSource.getChunk(pX, pZ, ChunkStatus.FULL, false);
         if (levelchunk != null) {
             levelchunk.setClientLightReady(true);
@@ -626,7 +626,7 @@ public class ClientLevel extends Level {
         return this.players;
     }
 
-    public Holder<Biome> getUncachedNoiseBiome(long pX, int pY, long pZ) {
+    public Holder<Biome> getUncachedNoiseBiome(Int1088 pX, int pY, Int1088 pZ) {
         return this.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getHolderOrThrow(Biomes.PLAINS);
     }
 
@@ -690,18 +690,18 @@ public class ClientLevel extends Level {
 
     /** Samples only a small local quart window, then adds the full-width quart anchor. */
     public static Vec3 sampleBiomeColors(SectorVec3 position, BiomeColorFetcher fetcher) {
-        Int128 quartX = position.blockX().shiftRight(2);
-        Int128 quartZ = position.blockZ().shiftRight(2);
-        Vec3 local = new Vec3(((position.blockX().lo() & 3L) + position.subX() - 2.0D) * 0.25D,
+        Int1088 quartX = position.blockX().shiftRight(2);
+        Int1088 quartZ = position.blockZ().shiftRight(2);
+        Vec3 local = new Vec3(((position.blockX().lowLimb() & 3L) + position.subX() - 2.0D) * 0.25D,
                 (position.y() - 2.0D) * 0.25D,
-                ((position.blockZ().lo() & 3L) + position.subZ() - 2.0D) * 0.25D);
+                ((position.blockZ().lowLimb() & 3L) + position.subZ() - 2.0D) * 0.25D);
         return CubicSampler.gaussianSampleVec3(local, (x, y, z) -> fetcher.fetch(
-                quartX.addSaturated(Int128.fromLong(x)), y, quartZ.addSaturated(Int128.fromLong(z))));
+                quartX.addSaturated(Int1088.fromLong(x)), y, quartZ.addSaturated(Int1088.fromLong(z))));
     }
 
     @FunctionalInterface
     public interface BiomeColorFetcher {
-        Vec3 fetch(Int128 x, int y, Int128 z);
+        Vec3 fetch(Int1088 x, int y, Int1088 z);
     }
 
     public Vec3 getCloudColor(float pPartialTick) {
@@ -855,9 +855,9 @@ public class ClientLevel extends Level {
         private final boolean hardcore;
         private final GameRules gameRules;
         private final boolean isFlat;
-        private Int128 xSpawn = Int128.ZERO;
+        private Int1088 xSpawn = Int1088.ZERO;
         private int ySpawn;
-        private Int128 zSpawn = Int128.ZERO;
+        private Int1088 zSpawn = Int1088.ZERO;
         private float spawnAngle;
         private long gameTime;
         private long dayTime;
@@ -872,7 +872,7 @@ public class ClientLevel extends Level {
             this.gameRules = new GameRules();
         }
 
-        public Int128 getXSpawn() {
+        public Int1088 getXSpawn() {
             return this.xSpawn;
         }
 
@@ -880,7 +880,7 @@ public class ClientLevel extends Level {
             return this.ySpawn;
         }
 
-        public Int128 getZSpawn() {
+        public Int1088 getZSpawn() {
             return this.zSpawn;
         }
 
@@ -896,7 +896,7 @@ public class ClientLevel extends Level {
             return this.dayTime;
         }
 
-        public void setXSpawn(Int128 pX) {
+        public void setXSpawn(Int1088 pX) {
             this.xSpawn = pX;
         }
 
@@ -904,7 +904,7 @@ public class ClientLevel extends Level {
             this.ySpawn = pY;
         }
 
-        public void setZSpawn(Int128 pZ) {
+        public void setZSpawn(Int1088 pZ) {
             this.zSpawn = pZ;
         }
 

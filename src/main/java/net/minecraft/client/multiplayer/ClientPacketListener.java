@@ -73,7 +73,7 @@ import net.minecraft.client.searchtree.SearchRegistry;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
@@ -603,11 +603,11 @@ public class ClientPacketListener implements ClientGamePacketListener {
         this.queueLightUpdate(pPacket.getX(), pPacket.getZ(), pPacket.getLightData());
     }
 
-    private void updateLevelChunk(Int128 pX, Int128 pZ, ClientboundLevelChunkPacketData pData) {
+    private void updateLevelChunk(Int1088 pX, Int1088 pZ, ClientboundLevelChunkPacketData pData) {
         this.level.getChunkSource().replaceWithPacketData(pX, pZ, pData.getReadBuffer(), pData.getHeightmaps(), pData.getBlockEntitiesTagsConsumer(pX, pZ));
     }
 
-    private void queueLightUpdate(Int128 pX, Int128 pZ, ClientboundLightUpdatePacketData pData) {
+    private void queueLightUpdate(Int1088 pX, Int1088 pZ, ClientboundLightUpdatePacketData pData) {
         ClientLevel queuedLevel = this.level;
         ClientChunkCache cache = queuedLevel.getChunkSource();
         LevelChunk expected = cache.getChunk(pX, pZ, ChunkStatus.FULL, false);
@@ -621,7 +621,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
         });
     }
 
-    private void enableChunkLight(LevelChunk pChunk, Int128 pX, Int128 pZ) {
+    private void enableChunkLight(LevelChunk pChunk, Int1088 pX, Int1088 pZ) {
         LevelLightEngine levellightengine = this.level.getChunkSource().getLightEngine();
         LevelChunkSection[] alevelchunksection = pChunk.getSections();
         ChunkPos chunkpos = pChunk.getPos();
@@ -639,8 +639,8 @@ public class ClientPacketListener implements ClientGamePacketListener {
 
     public void handleForgetLevelChunk(ClientboundForgetLevelChunkPacket pPacket) {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
-        Int128 i = pPacket.getX();
-        Int128 j = pPacket.getZ();
+        Int1088 i = pPacket.getX();
+        Int1088 j = pPacket.getZ();
         ClientChunkCache clientchunkcache = this.level.getChunkSource();
         if (clientchunkcache.getChunk(i, j, ChunkStatus.FULL, false) == null)
             return;
@@ -2014,8 +2014,8 @@ public class ClientPacketListener implements ClientGamePacketListener {
         PacketUtils.ensureRunningOnSameThread(pPacket, this, this.minecraft);
         if (!this.level.getChunkSource().isInViewRange(pPacket.getX(), pPacket.getZ()))
             return;
-        Int128 i = pPacket.getX();
-        Int128 j = pPacket.getZ();
+        Int1088 i = pPacket.getX();
+        Int1088 j = pPacket.getZ();
         ClientboundLightUpdatePacketData clientboundlightupdatepacketdata = pPacket.getLightData();
         ClientLevel queuedLevel = this.level;
         ClientChunkCache cache = queuedLevel.getChunkSource();
@@ -2029,7 +2029,7 @@ public class ClientPacketListener implements ClientGamePacketListener {
         });
     }
 
-    private void applyLightData(Int128 pX, Int128 pZ, ClientboundLightUpdatePacketData pData) {
+    private void applyLightData(Int1088 pX, Int1088 pZ, ClientboundLightUpdatePacketData pData) {
         LevelLightEngine levellightengine = this.level.getChunkSource().getLightEngine();
         BitSet bitset = pData.getSkyYMask();
         BitSet bitset1 = pData.getEmptySkyYMask();
@@ -2077,14 +2077,14 @@ public class ClientPacketListener implements ClientGamePacketListener {
         this.level.handleBlockChangedAck(pPacket.sequence());
     }
 
-    private void readSectionList(Int128 pX, Int128 pY, LevelLightEngine pLightEngine, LightLayer pLightLayer, BitSet pYMask, BitSet pEmptyYMask, Iterator<byte[]> pUpdatesIterator, boolean pTrusted) {
+    private void readSectionList(Int1088 pX, Int1088 pZ, LevelLightEngine pLightEngine, LightLayer pLightLayer, BitSet pYMask, BitSet pEmptyYMask, Iterator<byte[]> pUpdatesIterator, boolean pTrusted) {
         for (int i = 0; i < pLightEngine.getLightSectionCount(); ++i) {
             int j = pLightEngine.getMinLightSection() + i;
             boolean flag = pYMask.get(i);
             boolean flag1 = pEmptyYMask.get(i);
             if (flag || flag1) {
-                pLightEngine.queueSectionData(pLightLayer, SectionPos.of(pX, j, pY), flag ? new DataLayer((byte[]) pUpdatesIterator.next().clone()) : new DataLayer(), pTrusted);
-                this.level.setSectionDirtyWithNeighbors(pX, j, pY);
+                pLightEngine.queueSectionData(pLightLayer, SectionPos.of(pX, j, pZ), flag ? new DataLayer((byte[]) pUpdatesIterator.next().clone()) : new DataLayer(), pTrusted);
+                this.level.setSectionDirtyWithNeighbors(pX, j, pZ);
             }
         }
     }

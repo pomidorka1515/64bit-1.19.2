@@ -149,9 +149,9 @@ public class LevelChunk extends ChunkAccess {
 
     public BlockState getBlockState(BlockPos pPos) {
         // Only local section bits and the legacy debug-world pattern use this projection.
-        long i = pPos.getX().lo();
+        long i = pPos.getX().lowLimb();
         int j = pPos.getY();
-        long k = pPos.getZ().lo();
+        long k = pPos.getZ().lowLimb();
         if (this.level.isDebug()) {
             BlockState blockstate = null;
             if (j == 60) {
@@ -186,7 +186,7 @@ public class LevelChunk extends ChunkAccess {
     }
 
     public FluidState getFluidState(BlockPos pPos) {
-        return this.getFluidState(pPos.getX().lo(), pPos.getY(), pPos.getZ().lo());
+        return this.getFluidState(pPos.getX().lowLimb(), pPos.getY(), pPos.getZ().lowLimb());
     }
 
     public FluidState getFluidState(long pX, int pY, long pZ) {

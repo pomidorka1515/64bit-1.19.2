@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
@@ -111,7 +111,7 @@ public class StructureManager {
     * region still has to use its bounded cache and may load from that cache.
     */
     @Nullable
-    private ChunkAccess getChunkForStructureQuery(Int128 chunkX, Int128 chunkZ, ChunkStatus status) {
+    private ChunkAccess getChunkForStructureQuery(Int1088 chunkX, Int1088 chunkZ, ChunkStatus status) {
         if (this.level instanceof ServerLevel serverLevel) {
             return serverLevel.getChunkSource().getChunkNow(chunkX, chunkZ, status);
         }

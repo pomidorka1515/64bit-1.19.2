@@ -7,7 +7,7 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.junit.jupiter.api.BeforeAll;
@@ -23,7 +23,7 @@ class HeightmapPositionTest {
     @Test
     void heightmapPositionUsesGenerationHeightLookupWithoutRequestingLaterChunkStatus() {
         for (BlockPos pos : List.of(new BlockPos(160, 0, 128),
-                new BlockPos(Int128.of(123, -1), 17, Int128.of(-98, 0)))) {
+                new BlockPos(Int1088.of(-1, 123), 17, Int1088.of(0, -98)))) {
             WorldGenLevel level = (WorldGenLevel) Proxy.newProxyInstance(WorldGenLevel.class.getClassLoader(),
                     new Class<?>[]{WorldGenLevel.class}, (proxy, method, args) -> {
                         if (method.getName().equals("getHeightmapPos")) {

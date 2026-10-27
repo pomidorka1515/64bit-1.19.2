@@ -3,7 +3,7 @@ package net.minecraft.world.level.chunk;
 import java.io.IOException;
 import java.util.function.BooleanSupplier;
 import javax.annotation.Nullable;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.lighting.LevelLightEngine;
@@ -20,35 +20,35 @@ public abstract class ChunkSource implements LightChunkGetter, AutoCloseable {
     }
 
     @Nullable
-    public LevelChunk getChunkNow(Int128 pChunkX, Int128 pChunkZ) {
+    public LevelChunk getChunkNow(Int1088 pChunkX, Int1088 pChunkZ) {
         return (LevelChunk) this.getChunk(pChunkX, pChunkZ, ChunkStatus.FULL, false);
     }
 
     @Nullable
     public BlockGetter getChunkForLighting(long pChunkX, long pChunkZ) {
-        return this.getChunkForLighting(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ));
+        return this.getChunkForLighting(Int1088.fromLong(pChunkX), Int1088.fromLong(pChunkZ));
     }
 
     @Nullable
-    public BlockGetter getChunkForLighting(Int128 pChunkX, Int128 pChunkZ) {
+    public BlockGetter getChunkForLighting(Int1088 pChunkX, Int1088 pChunkZ) {
         return this.getChunk(pChunkX, pChunkZ, ChunkStatus.EMPTY, false);
     }
 
     public boolean hasChunk(long pChunkX, long pChunkZ) {
-        return this.hasChunk(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ));
+        return this.hasChunk(Int1088.fromLong(pChunkX), Int1088.fromLong(pChunkZ));
     }
 
-    public boolean hasChunk(Int128 pChunkX, Int128 pChunkZ) {
+    public boolean hasChunk(Int1088 pChunkX, Int1088 pChunkZ) {
         return this.getChunk(pChunkX, pChunkZ, ChunkStatus.FULL, false) != null;
     }
 
     @Nullable
     public ChunkAccess getChunk(long pChunkX, long pChunkZ, ChunkStatus pRequiredStatus, boolean pLoad) {
-        return this.getChunk(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ), pRequiredStatus, pLoad);
+        return this.getChunk(Int1088.fromLong(pChunkX), Int1088.fromLong(pChunkZ), pRequiredStatus, pLoad);
     }
 
     @Nullable
-    public abstract ChunkAccess getChunk(Int128 pChunkX, Int128 pChunkZ, ChunkStatus pRequiredStatus, boolean pLoad);
+    public abstract ChunkAccess getChunk(Int1088 pChunkX, Int1088 pChunkZ, ChunkStatus pRequiredStatus, boolean pLoad);
 
     public abstract void tick(BooleanSupplier pHasTimeLeft, boolean pTickChunks);
 

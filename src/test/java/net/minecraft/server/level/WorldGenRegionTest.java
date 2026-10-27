@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldBounds;
 import org.junit.jupiter.api.Test;
@@ -18,12 +18,12 @@ class WorldGenRegionTest {
 
     @Test
     void clampedWindowsKeepCorrectIndicesAtEveryEdgeAndCorner() {
-        Int128[] coordinates = {WorldBounds.MIN_CHUNK, WorldBounds.addChunkOffset(WorldBounds.MIN_CHUNK, 1L),
-                WorldBounds.addChunkOffset(WorldBounds.MIN_CHUNK, 7L), Int128.ZERO,
+        Int1088[] coordinates = {WorldBounds.MIN_CHUNK, WorldBounds.addChunkOffset(WorldBounds.MIN_CHUNK, 1L),
+                WorldBounds.addChunkOffset(WorldBounds.MIN_CHUNK, 7L), Int1088.ZERO,
                 WorldBounds.addChunkOffset(WorldBounds.MAX_CHUNK, -7L),
                 WorldBounds.addChunkOffset(WorldBounds.MAX_CHUNK, -1L), WorldBounds.MAX_CHUNK};
-        for (Int128 x : coordinates) {
-            for (Int128 z : coordinates) {
+        for (Int1088 x : coordinates) {
+            for (Int1088 z : coordinates) {
                 assertCacheLookups(new ChunkPos(x, z), 8);
             }
         }
@@ -34,7 +34,7 @@ class WorldGenRegionTest {
         for (int radius : new int[] {0, 1, 2, 8}) {
             assertCacheLookups(new ChunkPos(0L, 0L), radius);
             assertCacheLookups(new ChunkPos(1L << 54, -(1L << 54)), radius);
-            assertCacheLookups(new ChunkPos(Int128.of(123L, -1L), Int128.of(-123L, 0L)), radius);
+            assertCacheLookups(new ChunkPos(Int1088.ONE.shiftLeftSaturated(1024), Int1088.ONE.shiftLeftSaturated(1024).negate()), radius);
         }
     }
 
@@ -55,8 +55,6 @@ class WorldGenRegionTest {
                 "the center must use its own slot with the required generation status");
         for (ChunkPos requested : cache) {
             int index = WorldGenRegion.getChunkIndex(center, size, requested.x(), requested.z());
-            assertEquals(index, WorldGenRegion.getChunkIndex(center, size,
-                    requested.xHi(), requested.xLo(), requested.zHi(), requested.zLo()));
             assertTrue(index >= 0 && index < cache.size());
             assertEquals(requested, cache.get(index), "wrong chunk in window centered at " + center);
             // Edge duplicates must select the slot nearest the center: that

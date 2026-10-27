@@ -366,18 +366,18 @@ public abstract class ChunkAccess implements BlockGetter, BiomeManager.NoiseBiom
         return this.carverBiomeSettings;
     }
 
-    public Holder<Biome> getNoiseBiome(long pX, int pY, long pZ) {
+    public Holder<Biome> getNoiseBiome(net.minecraft.core.Int1088 pX, int pY, net.minecraft.core.Int1088 pZ) {
         try {
             int i = QuartPos.fromBlock(this.getMinBuildHeight());
             int k = i + QuartPos.fromBlock(this.getHeight()) - 1;
             int l = Mth.clamp(pY, i, k);
             int j = this.getSectionIndex(QuartPos.toBlock(l));
-            return this.sections[j].getNoiseBiome(pX & 3, l & 3, pZ & 3);
+            return this.sections[j].getNoiseBiome(pX.lowLimb() & 3, l & 3, pZ.lowLimb() & 3);
         } catch (Throwable throwable) {
             CrashReport crashreport = CrashReport.forThrowable(throwable, "Getting biome");
             CrashReportCategory crashreportcategory = crashreport.addCategory("Biome being got");
             crashreportcategory.setDetail("Location", () -> {
-                return CrashReportCategory.formatLocation(this, pX, pY, pZ);
+                return CrashReportCategory.formatLocation(this, new BlockPos(pX, pY, pZ));
             });
             throw new ReportedException(crashreport);
         }
@@ -385,9 +385,8 @@ public abstract class ChunkAccess implements BlockGetter, BiomeManager.NoiseBiom
 
     public void fillBiomesFromNoise(BiomeResolver pResolver, Climate.Sampler pSampler) {
         ChunkPos chunkpos = this.getPos();
-        // Noise generation retains its explicit low-64 block-coordinate seam.
-        long i = QuartPos.fromBlock(chunkpos.getMinBlockX().lo());
-        long j = QuartPos.fromBlock(chunkpos.getMinBlockZ().lo());
+        net.minecraft.core.Int1088 i = chunkpos.getMinBlockX().shiftRight(2);
+        net.minecraft.core.Int1088 j = chunkpos.getMinBlockZ().shiftRight(2);
         LevelHeightAccessor levelheightaccessor = this.getHeightAccessorForGeneration();
 
         for (int k = levelheightaccessor.getMinSection(); k < levelheightaccessor.getMaxSection(); ++k) {

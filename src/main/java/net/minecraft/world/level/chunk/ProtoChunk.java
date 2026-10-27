@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
@@ -116,9 +116,9 @@ public class ProtoChunk extends ChunkAccess {
 
     @Nullable
     public BlockState setBlockState(BlockPos pPos, BlockState pState, boolean pIsMoving) {
-        long i = pPos.getX().lo();
+        long i = pPos.getX().lowLimb();
         int j = pPos.getY();
-        long k = pPos.getZ().lo();
+        long k = pPos.getZ().lowLimb();
         if (j >= this.getMinBuildHeight() && j < this.getMaxBuildHeight()) {
             int l = this.getSectionIndex(j);
             if (this.sections[l].hasOnlyAir() && pState.is(Blocks.AIR)) {
@@ -218,7 +218,7 @@ public class ProtoChunk extends ChunkAccess {
         this.setUnsaved(true);
     }
 
-    public Holder<Biome> getNoiseBiome(long pX, int pY, long pZ) {
+    public Holder<Biome> getNoiseBiome(net.minecraft.core.Int1088 pX, int pY, net.minecraft.core.Int1088 pZ) {
         if (!this.getStatus().isOrAfter(ChunkStatus.BIOMES) && (this.belowZeroRetrogen == null || !this.belowZeroRetrogen.targetStatus().isOrAfter(ChunkStatus.BIOMES))) {
             throw new IllegalStateException("Asking for biomes before we have biomes");
         } else {
@@ -227,9 +227,9 @@ public class ProtoChunk extends ChunkAccess {
     }
 
     public static short packOffsetCoordinates(BlockPos pPos) {
-        long i = pPos.getX().lo();
+        long i = pPos.getX().lowLimb();
         int j = pPos.getY();
-        long k = pPos.getZ().lo();
+        long k = pPos.getZ().lowLimb();
         int l = (int) (i & 15);
         int i1 = j & 15;
         int j1 = (int) (k & 15);
@@ -237,9 +237,9 @@ public class ProtoChunk extends ChunkAccess {
     }
 
     public static BlockPos unpackOffsetCoordinates(short pPackedPos, int pYOffset, ChunkPos pChunkPos) {
-        Int128 i = pChunkPos.getBlockX(pPackedPos & 15);
+        Int1088 i = pChunkPos.getBlockX(pPackedPos & 15);
         int j = SectionPos.sectionToBlockCoord(pYOffset, pPackedPos >>> 4 & 15);
-        Int128 k = pChunkPos.getBlockZ(pPackedPos >>> 8 & 15);
+        Int1088 k = pChunkPos.getBlockZ(pPackedPos >>> 8 & 15);
         return new BlockPos(i, j, k);
     }
 

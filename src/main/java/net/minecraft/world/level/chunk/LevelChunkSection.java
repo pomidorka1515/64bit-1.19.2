@@ -183,7 +183,7 @@ public class LevelChunkSection {
         return this.biomes.get(pX, pY, pZ);
     }
 
-    public void fillBiomesFromNoise(BiomeResolver pResolver, Climate.Sampler pSampler, long pX, long pZ) {
+    public void fillBiomesFromNoise(BiomeResolver pResolver, Climate.Sampler pSampler, net.minecraft.core.Int1088 pX, net.minecraft.core.Int1088 pZ) {
         PalettedContainer<Holder<Biome>> palettedcontainer = this.biomes.recreate();
         int i = QuartPos.fromBlock(this.bottomBlockY());
         int j = 4;
@@ -191,7 +191,7 @@ public class LevelChunkSection {
         for (int k = 0; k < 4; ++k) {
             for (int l = 0; l < 4; ++l) {
                 for (int i1 = 0; i1 < 4; ++i1) {
-                    palettedcontainer.getAndSetUnchecked(k, l, i1, pResolver.getNoiseBiome(pX + k, i + l, pZ + i1, pSampler));
+                    palettedcontainer.getAndSetUnchecked(k, l, i1, pResolver.getNoiseBiome(pX.addSaturated(net.minecraft.core.Int1088.fromLong(k)), i + l, pZ.addSaturated(net.minecraft.core.Int1088.fromLong(i1)), pSampler));
                 }
             }
         }

@@ -38,7 +38,7 @@ import net.minecraft.ReportedException;
 import net.minecraft.SharedConstants;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
@@ -173,13 +173,13 @@ public abstract class ChunkGenerator {
                 long k1 = Math.round(Math.cos(d0) * d1);
                 long l1 = Math.round(Math.sin(d0) * d1);
                 Pair<BlockPos, Holder<Biome>> pair = this.biomeSource.findBiomeHorizontal(SectionPos.sectionToBlockCoord(k1, 8), 0, SectionPos.sectionToBlockCoord(l1, 8), 112, holderset::contains, randomsource, pRandom.sampler());
+                ChunkPos ringPos = new ChunkPos(k1, l1);
                 if (pair != null) {
                     BlockPos blockpos = pair.getFirst();
-                    k1 = SectionPos.blockToSectionCoord(blockpos.getX()).lo();
-                    l1 = SectionPos.blockToSectionCoord(blockpos.getZ()).lo();
+                    ringPos = new ChunkPos(SectionPos.blockToSectionCoord(blockpos.getX()), SectionPos.blockToSectionCoord(blockpos.getZ()));
                 }
 
-                list.add(new ChunkPos(k1, l1));
+                list.add(ringPos);
                 d0 += (Math.PI * 2D) / (double) k;
                 ++l;
                 if (l == k) {
@@ -248,8 +248,8 @@ public abstract class ChunkGenerator {
 
             if (!list.isEmpty()) {
                 // Search around the exact chunk, including its high limbs.
-                Int128 i = SectionPos.blockToSectionCoord(pPos.getX());
-                Int128 j = SectionPos.blockToSectionCoord(pPos.getZ());
+                Int1088 i = SectionPos.blockToSectionCoord(pPos.getX());
+                Int1088 j = SectionPos.blockToSectionCoord(pPos.getZ());
 
                 for (int k = 0; k <= pSearchRadius; ++k) {
                     boolean flag = false;
@@ -305,7 +305,7 @@ public abstract class ChunkGenerator {
     }
 
     @Nullable
-    private static Pair<BlockPos, Holder<Structure>> getNearestGeneratedStructure(Set<Holder<Structure>> pStructureHoldersSet, LevelReader pLevel, StructureManager pStructureManager, Int128 pX, Int128 pZ, int pRadius, boolean pSkipKnownStructures, long pSeed, RandomSpreadStructurePlacement pSpreadPlacement) {
+    private static Pair<BlockPos, Holder<Structure>> getNearestGeneratedStructure(Set<Holder<Structure>> pStructureHoldersSet, LevelReader pLevel, StructureManager pStructureManager, Int1088 pX, Int1088 pZ, int pRadius, boolean pSkipKnownStructures, long pSeed, RandomSpreadStructurePlacement pSpreadPlacement) {
         int i = pSpreadPlacement.spacing();
 
         for (int j = -pRadius; j <= pRadius; ++j) {
@@ -314,8 +314,8 @@ public abstract class ChunkGenerator {
             for (int k = -pRadius; k <= pRadius; ++k) {
                 boolean flag1 = k == -pRadius || k == pRadius;
                 if (flag || flag1) {
-                    Int128 l = WorldBounds.addChunkOffset(pX, (long) i * j);
-                    Int128 i1 = WorldBounds.addChunkOffset(pZ, (long) i * k);
+                    Int1088 l = WorldBounds.addChunkOffset(pX, (long) i * j);
+                    Int1088 i1 = WorldBounds.addChunkOffset(pZ, (long) i * k);
                     ChunkPos chunkpos = pSpreadPlacement.getPotentialStructureChunk(pSeed, l, i1);
                     Pair<BlockPos, Holder<Structure>> pair = getStructureGeneratingAt(pStructureHoldersSet, pLevel, pStructureManager, pSkipKnownStructures, pSpreadPlacement, chunkpos);
                     if (pair != null) {
@@ -489,8 +489,8 @@ public abstract class ChunkGenerator {
 
     private static BoundingBox getWritableArea(ChunkAccess pChunk) {
         ChunkPos chunkpos = pChunk.getPos();
-        Int128 i = chunkpos.getMinBlockX();
-        Int128 j = chunkpos.getMinBlockZ();
+        Int1088 i = chunkpos.getMinBlockX();
+        Int1088 j = chunkpos.getMinBlockZ();
         LevelHeightAccessor levelheightaccessor = pChunk.getHeightAccessorForGeneration();
         int k = levelheightaccessor.getMinBuildHeight() + 1;
         int l = levelheightaccessor.getMaxBuildHeight() - 1;
@@ -614,19 +614,19 @@ public abstract class ChunkGenerator {
     public void createReferences(WorldGenLevel pLevel, StructureManager pStructureManager, ChunkAccess pChunk) {
         int i = 8;
         ChunkPos chunkpos = pChunk.getPos();
-        Int128 j = chunkpos.x();
-        Int128 k = chunkpos.z();
-        Int128 l = chunkpos.getMinBlockX();
-        Int128 i1 = chunkpos.getMinBlockZ();
+        Int1088 j = chunkpos.x();
+        Int1088 k = chunkpos.z();
+        Int1088 l = chunkpos.getMinBlockX();
+        Int1088 i1 = chunkpos.getMinBlockZ();
         SectionPos sectionpos = SectionPos.bottomOf(pChunk);
 
-        Int128 firstX = WorldBounds.addChunkOffset(j, -8L);
-        Int128 lastX = WorldBounds.addChunkOffset(j, 8L);
-        Int128 firstZ = WorldBounds.addChunkOffset(k, -8L);
-        Int128 lastZ = WorldBounds.addChunkOffset(k, 8L);
+        Int1088 firstX = WorldBounds.addChunkOffset(j, -8L);
+        Int1088 lastX = WorldBounds.addChunkOffset(j, 8L);
+        Int1088 firstZ = WorldBounds.addChunkOffset(k, -8L);
+        Int1088 lastZ = WorldBounds.addChunkOffset(k, 8L);
 
-        for (Int128 j1 = firstX;; j1 = WorldBounds.addChunkOffset(j1, 1L)) {
-            for (Int128 k1 = firstZ;; k1 = WorldBounds.addChunkOffset(k1, 1L)) {
+        for (Int1088 j1 = firstX;; j1 = WorldBounds.addChunkOffset(j1, 1L)) {
+            for (Int1088 k1 = firstZ;; k1 = WorldBounds.addChunkOffset(k1, 1L)) {
                 if (pLevel.hasChunk(j1, k1)) {
                     ChunkPos l1 = new ChunkPos(j1, k1);
 
@@ -672,23 +672,23 @@ public abstract class ChunkGenerator {
 
     public abstract int getMinY();
 
-    public abstract int getBaseHeight(long pX, long pZ, Heightmap.Types pType, LevelHeightAccessor pLevel, RandomState pRandom);
-
-    public abstract NoiseColumn getBaseColumn(long pX, long pZ, LevelHeightAccessor pHeight, RandomState pRandom);
-
-    public int getBaseHeight(Int128 x, Int128 z, Heightmap.Types type, LevelHeightAccessor level, RandomState random) {
-        return getBaseHeight(x.lo(), z.lo(), type, level, random);
+    public int getBaseHeight(long pX, long pZ, Heightmap.Types pType, LevelHeightAccessor pLevel, RandomState pRandom) {
+        return getBaseHeight(Int1088.fromLong(pX), Int1088.fromLong(pZ), pType, pLevel, pRandom);
     }
 
-    public NoiseColumn getBaseColumn(Int128 x, Int128 z, LevelHeightAccessor level, RandomState random) {
-        return getBaseColumn(x.lo(), z.lo(), level, random);
+    public NoiseColumn getBaseColumn(long pX, long pZ, LevelHeightAccessor pHeight, RandomState pRandom) {
+        return getBaseColumn(Int1088.fromLong(pX), Int1088.fromLong(pZ), pHeight, pRandom);
     }
 
-    public int getFirstFreeHeight(Int128 x, Int128 z, Heightmap.Types type, LevelHeightAccessor level, RandomState random) {
+    public abstract int getBaseHeight(Int1088 x, Int1088 z, Heightmap.Types type, LevelHeightAccessor level, RandomState random);
+
+    public abstract NoiseColumn getBaseColumn(Int1088 x, Int1088 z, LevelHeightAccessor level, RandomState random);
+
+    public int getFirstFreeHeight(Int1088 x, Int1088 z, Heightmap.Types type, LevelHeightAccessor level, RandomState random) {
         return getBaseHeight(x, z, type, level, random);
     }
 
-    public int getFirstOccupiedHeight(Int128 x, Int128 z, Heightmap.Types type, LevelHeightAccessor level, RandomState random) {
+    public int getFirstOccupiedHeight(Int1088 x, Int1088 z, Heightmap.Types type, LevelHeightAccessor level, RandomState random) {
         return getBaseHeight(x, z, type, level, random) - 1;
     }
 

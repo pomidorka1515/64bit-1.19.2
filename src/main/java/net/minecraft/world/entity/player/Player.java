@@ -741,8 +741,9 @@ public abstract class Player extends LivingEntity {
             this.setShoulderEntityRight(pCompound.getCompound("ShoulderEntityRight"));
         }
 
-        if (pCompound.contains("LastDeathLocation", 10)) {
-            this.setLastDeathLocation(GlobalPos.CODEC.parse(NbtOps.INSTANCE, pCompound.get("LastDeathLocation")).resultOrPartial(LOGGER::error));
+        if (pCompound.contains("LastDeathLocation")) {
+            this.setLastDeathLocation(Optional.of(GlobalPos.CODEC.parse(NbtOps.INSTANCE, pCompound.get("LastDeathLocation"))
+                    .getOrThrow(false, message -> { throw new IllegalArgumentException("Invalid LastDeathLocation: " + message); })));
         }
     }
 
@@ -771,12 +772,9 @@ public abstract class Player extends LivingEntity {
             pCompound.put("ShoulderEntityRight", this.getShoulderEntityRight());
         }
 
-        this.getLastDeathLocation().flatMap((p_219745_) -> {
-                                       return GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, p_219745_).resultOrPartial(LOGGER::error);
-                                   })
-                .ifPresent((p_219753_) -> {
-                    pCompound.put("LastDeathLocation", p_219753_);
-                });
+        this.getLastDeathLocation().ifPresent(location -> pCompound.put("LastDeathLocation",
+                GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, location)
+                        .getOrThrow(false, message -> { throw new IllegalArgumentException("Invalid LastDeathLocation: " + message); })));
     }
 
     public boolean isInvulnerableTo(DamageSource pSource) {

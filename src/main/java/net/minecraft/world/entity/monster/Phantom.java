@@ -147,7 +147,7 @@ public class Phantom extends FlyingMob implements Enemy {
 
     public void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
-        if (pCompound.contains("AX")) {
+        if (pCompound.contains("AX") || pCompound.contains("AY") || pCompound.contains("AZ")) {
             this.anchorPoint = new BlockPos(net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "AX"), pCompound.getInt("AY"), net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "AZ"));
         }
 

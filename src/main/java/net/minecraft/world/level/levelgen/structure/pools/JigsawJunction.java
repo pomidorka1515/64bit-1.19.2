@@ -4,6 +4,9 @@ import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.DynamicOps;
 import net.minecraft.core.Int1088;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
 import java.util.Objects;
 
 public class JigsawJunction {
@@ -59,6 +62,12 @@ public class JigsawJunction {
     }
 
     private static <T> Int1088 readCoordinate(Dynamic<T> dynamic, String key) {
+        if (dynamic.getValue() instanceof Tag) {
+            if (!(dynamic.getValue() instanceof CompoundTag tag)) {
+                throw new IllegalArgumentException("Expected coordinate compound for " + key);
+            }
+            return NbtUtils.readInt1088(tag, key);
+        }
         return dynamic.get(key).result().flatMap(value -> Int1088.CODEC.parse(value).result())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid " + key));
     }

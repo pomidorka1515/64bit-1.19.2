@@ -100,7 +100,7 @@ public class Vex extends Monster {
 
     public void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
-        if (pCompound.contains("BoundX")) {
+        if (pCompound.contains("BoundX") || pCompound.contains("BoundY") || pCompound.contains("BoundZ")) {
             this.boundOrigin = new BlockPos(net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "BoundX"), pCompound.getInt("BoundY"), net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "BoundZ"));
         }
 

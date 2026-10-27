@@ -140,6 +140,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.portal.PortalInfo;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.ExactVec3;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Score;
@@ -291,11 +292,33 @@ public class ServerPlayer extends Player {
         return p_9238_ <= 16 ? p_9238_ - 1 : 17;
     }
 
+    private static SectorVec3 readNetherEntryPosition(CompoundTag tag) {
+        if (!tag.contains("SubX", 6) || !tag.contains("y", 6) || !tag.contains("SubZ", 6)) {
+            throw new IllegalArgumentException("Invalid enteredNetherPosition fractions or height");
+        }
+        double subX = tag.getDouble("SubX");
+        double subZ = tag.getDouble("SubZ");
+        double y = tag.getDouble("y");
+        if (!(subX >= 0.0D && subX < 1.0D) || !(subZ >= 0.0D && subZ < 1.0D) || !Double.isFinite(y)) {
+            throw new IllegalArgumentException("Invalid enteredNetherPosition fractions or height");
+        }
+        return SectorVec3.fromBlockAndFraction(NbtUtils.readInt1088(tag, "x"), subX, y, NbtUtils.readInt1088(tag, "z"), subZ);
+    }
+
+    private static CompoundTag writeNetherEntryPosition(SectorVec3 position) {
+        CompoundTag tag = new CompoundTag();
+        NbtUtils.writeInt1088(tag, "x", position.blockX());
+        tag.putDouble("y", position.y());
+        NbtUtils.writeInt1088(tag, "z", position.blockZ());
+        tag.putDouble("SubX", position.subX());
+        tag.putDouble("SubZ", position.subZ());
+        return tag;
+    }
+
     public void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
-        if (pCompound.contains("enteredNetherPosition", 10)) {
-            CompoundTag compoundtag = pCompound.getCompound("enteredNetherPosition");
-            this.enteredNetherPosition = new Vec3(compoundtag.getDouble("x"), compoundtag.getDouble("y"), compoundtag.getDouble("z"));
+        if (pCompound.contains("enteredNetherPosition")) {
+            this.enteredNetherPosition = new ExactVec3(readNetherEntryPosition(pCompound.getCompound("enteredNetherPosition")));
         }
 
         this.seenCredits = pCompound.getBoolean("seenCredits");
@@ -326,11 +349,7 @@ public class ServerPlayer extends Player {
         this.storeGameTypes(pCompound);
         pCompound.putBoolean("seenCredits", this.seenCredits);
         if (this.enteredNetherPosition != null) {
-            CompoundTag compoundtag = new CompoundTag();
-            compoundtag.putDouble("x", this.enteredNetherPosition.x);
-            compoundtag.putDouble("y", this.enteredNetherPosition.y);
-            compoundtag.putDouble("z", this.enteredNetherPosition.z);
-            pCompound.put("enteredNetherPosition", compoundtag);
+            pCompound.put("enteredNetherPosition", writeNetherEntryPosition(this.enteredNetherPosition.exactPosition()));
         }
 
         Entity entity1 = this.getRootVehicle();

@@ -89,13 +89,16 @@ public abstract class BaseSpawner {
                         return;
                     }
 
+                    if (compoundtag.contains("Pos") && !compoundtag.contains("ExactPos")) {
+                        throw new IllegalArgumentException("Explicit spawner coordinates require ExactPos LongArray[17] axes");
+                    }
                     ListTag listtag = compoundtag.getList("Pos", 6);
                     int j = listtag.size();
                     RandomSource randomsource = pServerLevel.getRandom();
                     double d0 = j >= 1 ? 0.0D : (randomsource.nextDouble() - randomsource.nextDouble()) * (double) this.spawnRange + 0.5D;
                     double d1 = j >= 2 ? listtag.getDouble(1) : (double) (pPos.getY() + randomsource.nextInt(3) - 1);
                     double d2 = j >= 3 ? 0.0D : (randomsource.nextDouble() - randomsource.nextDouble()) * (double) this.spawnRange + 0.5D;
-                    SectorVec3 position = compoundtag.contains("ExactPos", 10)
+                    SectorVec3 position = compoundtag.contains("ExactPos")
                             ? getExactSpawnPosition(compoundtag.getCompound("ExactPos"))
                             : getSpawnPosition(pPos, listtag, d0, d1, d2);
                     if (pServerLevel.noCollision(optional.get().getAABB(position))) {
@@ -163,18 +166,21 @@ public abstract class BaseSpawner {
     }
 
     static SectorVec3 getExactSpawnPosition(CompoundTag tag) {
+        if (!tag.contains("SubX", 6) || !tag.contains("Y", 6) || !tag.contains("SubZ", 6)
+                || !(tag.getDouble("SubX") >= 0.0D && tag.getDouble("SubX") < 1.0D)
+                || !(tag.getDouble("SubZ") >= 0.0D && tag.getDouble("SubZ") < 1.0D)
+                || !Double.isFinite(tag.getDouble("Y"))) {
+            throw new IllegalArgumentException("Invalid ExactPos spawner fractions or height");
+        }
         return SectorVec3.fromBlockAndFraction(NbtUtils.readInt1088(tag, "BlockX"), tag.getDouble("SubX"), tag.getDouble("Y"),
                 NbtUtils.readInt1088(tag, "BlockZ"), tag.getDouble("SubZ"));
     }
 
     static SectorVec3 getSpawnPosition(BlockPos origin, ListTag explicitPosition, double offsetX, double y, double offsetZ) {
-        // Explicit NBT coordinates are legacy doubles; only unspecified axes are relative to the spawner.
-        SectorVec3 explicit = SectorVec3.fromApproximate(explicitPosition.size() >= 1 ? explicitPosition.getDouble(0) : 0.0D,
-                y, explicitPosition.size() >= 3 ? explicitPosition.getDouble(2) : 0.0D);
-        return SectorVec3.fromBlockAndFraction(explicitPosition.size() >= 1 ? explicit.blockX() : origin.getX(),
-                explicitPosition.size() >= 1 ? explicit.subX() : offsetX, y,
-                explicitPosition.size() >= 3 ? explicit.blockZ() : origin.getZ(),
-                explicitPosition.size() >= 3 ? explicit.subZ() : offsetZ);
+        if (!explicitPosition.isEmpty()) {
+            throw new IllegalArgumentException("Explicit spawner coordinates require ExactPos LongArray[17] axes");
+        }
+        return SectorVec3.fromBlockAndFraction(origin.getX(), offsetX, y, origin.getZ(), offsetZ);
     }
 
     private void delay(Level pLevel, BlockPos pPos) {
@@ -264,7 +270,10 @@ public abstract class BaseSpawner {
     public Entity getOrCreateDisplayEntity(Level pLevel) {
         if (this.displayEntity == null) {
             CompoundTag tag = this.nextSpawnData.getEntityToSpawn();
-            SectorVec3 position = tag.contains("ExactPos", 10)
+            if (tag.contains("Pos") && !tag.contains("ExactPos")) {
+                throw new IllegalArgumentException("Explicit spawner coordinates require ExactPos LongArray[17] axes");
+            }
+            SectorVec3 position = tag.contains("ExactPos")
                     ? getExactSpawnPosition(tag.getCompound("ExactPos"))
                     : getSpawnPosition(BlockPos.ZERO, tag.getList("Pos", 6), 0.0D, 0.0D, 0.0D);
             this.displayEntity = EntityType.loadEntityRecursive(tag, pLevel, position, Function.identity());

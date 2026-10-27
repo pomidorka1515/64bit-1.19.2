@@ -83,15 +83,40 @@ class SpawningPrecisionTest {
     }
 
     @Test
-    void partialExplicitSpawnerPositionDoesNotApproximateUnspecifiedAxis() {
+    void partialExplicitDoublePositionIsRejectedInsteadOfReconstructingAnExactAxis() {
         ListTag explicit = new ListTag();
         explicit.add(DoubleTag.valueOf(-2.25D));
         Int1088 huge = Int1088.of(0L, 123L);
-        SectorVec3 position = BaseSpawner.getSpawnPosition(new BlockPos(huge, 64, huge), explicit, 0.0D, 65.0D, 0.375D);
-        assertEquals(Int1088.fromLong(-3L), position.blockX());
-        assertEquals(0.75D, position.subX());
-        assertEquals(huge, position.blockZ());
-        assertEquals(0.375D, position.subZ());
+        assertThrows(IllegalArgumentException.class, () -> BaseSpawner.getSpawnPosition(
+                new BlockPos(huge, 64, huge), explicit, 0.0D, 65.0D, 0.375D));
+    }
+
+    @Test
+    void malformedExactSpawnerDataNeverFallsBackToApproximatePos() {
+        for (Int1088 coordinate : new Int1088[] {Int1088.ONE.shiftLeftSaturated(127),
+                Int1088.ONE.shiftLeftSaturated(1024), Int1088.MIN, Int1088.MAX}) {
+            CompoundTag exact = new CompoundTag();
+            NbtUtils.writeInt1088(exact, "BlockX", coordinate);
+            NbtUtils.writeInt1088(exact, "BlockZ", coordinate);
+            exact.putDouble("SubX", 0.25D);
+            exact.putDouble("SubZ", 0.75D);
+            exact.putDouble("Y", 64.5D);
+            assertEquals(coordinate, BaseSpawner.getExactSpawnPosition(exact).blockX());
+            for (String key : new String[] {"BlockX", "BlockZ", "SubX", "SubZ", "Y"}) {
+                CompoundTag invalid = exact.copy();
+                invalid.remove(key);
+                assertThrows(IllegalArgumentException.class, () -> BaseSpawner.getExactSpawnPosition(invalid));
+            }
+        }
+        BaseSpawner spawner = new BaseSpawner() {
+            public void broadcastEvent(Level level, BlockPos pos, int eventId) {}
+        };
+        CompoundTag tag = new CompoundTag();
+        tag.putString("id", "minecraft:marker");
+        tag.putString("ExactPos", "malformed");
+        spawner.setNextSpawnData(null, BlockPos.ZERO, new SpawnData(tag, java.util.Optional.empty()));
+        assertThrows(IllegalArgumentException.class, () -> spawner.getOrCreateDisplayEntity(
+                net.minecraft.world.entity.EntityLoadingTestLevel.create()));
     }
 
     @Test

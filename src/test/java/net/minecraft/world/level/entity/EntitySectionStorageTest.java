@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
@@ -29,7 +29,7 @@ class EntitySectionStorageTest {
     void chunkLookupUsesAndMaintainsDirectIndex() {
         EntitySectionStorage<EntityAccess> storage = new EntitySectionStorage<>(EntityAccess.class,
                 chunk -> Visibility.TICKING);
-        SectionPos first = SectionPos.of(Int128.of(123L, -1L), 4, Int128.of(-123L, 0L));
+        SectionPos first = SectionPos.of(Int1088.of(-1L, 123L), 4, Int1088.of(0L, -123L));
         SectionPos second = SectionPos.of(first.x(), 5, first.z());
         ChunkPos chunk = new ChunkPos(first.x(), first.z());
         storage.getOrCreateSection(first);
@@ -56,15 +56,17 @@ class EntitySectionStorageTest {
         storage.getOrCreateSection(SectionPos.of(farAway)).add(farAway);
 
         List<EntityAccess> found = new ArrayList<>();
-        storage.getEntitiesInSections(Int128.ONE, Int128.ONE, 4, 4, Int128.ONE, Int128.ONE, found::add);
+        storage.getEntitiesInSections(Int1088.ONE, Int1088.ONE, 4, 4, Int1088.ONE, Int1088.ONE, found::add);
         assertEquals(List.of(nearby), found);
     }
 
     @Test
-    void fullWidthChunkIndexAndQueriesKeepHighHalfAliasesSeparate() {
-        ChunkPos visible = new ChunkPos(Int128.of(1L, 7L), Int128.of(2L, 9L));
-        ChunkPos hidden = new ChunkPos(Int128.of(3L, 7L), Int128.of(2L, 9L));
-        ChunkPos otherZ = new ChunkPos(Int128.of(1L, 7L), Int128.of(4L, 9L));
+    void fullWidthChunkIndexAndQueriesKeepHighLimbAliasesSeparate() {
+        Int1088 x = Int1088.ONE.shiftLeftSaturated(1000).addSaturated(Int1088.fromLong(7));
+        Int1088 z = Int1088.ONE.shiftLeftSaturated(999).addSaturated(Int1088.fromLong(9));
+        ChunkPos visible = new ChunkPos(x, z);
+        ChunkPos hidden = new ChunkPos(x.addSaturated(Int1088.ONE.shiftLeftSaturated(900)), z);
+        ChunkPos otherZ = new ChunkPos(x, z.addSaturated(Int1088.ONE.shiftLeftSaturated(900)));
         List<ChunkPos> visibilityLookups = new ArrayList<>();
         EntitySectionStorage<EntityAccess> storage = new EntitySectionStorage<>(EntityAccess.class, chunk -> {
             visibilityLookups.add((ChunkPos) chunk);

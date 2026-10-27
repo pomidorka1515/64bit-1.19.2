@@ -3,7 +3,7 @@ package net.minecraft.world.level.entity;
 import java.util.UUID;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.phys.AABB;
 
 public interface LevelEntityGetter<T extends EntityAccess> {
@@ -16,8 +16,8 @@ public interface LevelEntityGetter<T extends EntityAccess> {
     Iterable<T> getAll();
 
     /** Visits entities in exact full-width section bounds. */
-    default void getInSections(Int128 minSectionX, Int128 maxSectionX, int minSectionY, int maxSectionY,
-            Int128 minSectionZ, Int128 maxSectionZ, Consumer<T> consumer) {
+    default void getInSections(Int1088 minSectionX, Int1088 maxSectionX, int minSectionY, int maxSectionY,
+            Int1088 minSectionZ, Int1088 maxSectionZ, Consumer<T> consumer) {
         for (T entity : this.getAll()) consumer.accept(entity);
     }
 

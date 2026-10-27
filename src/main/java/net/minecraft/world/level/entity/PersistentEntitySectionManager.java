@@ -317,11 +317,11 @@ public class PersistentEntitySectionManager<T extends EntityAccess> implements A
     }
 
     public boolean canPositionTick(ChunkPos p_202166_) {
-        return this.chunkVisibility.get(p_202166_.xHi(), p_202166_.xLo(), p_202166_.zHi(), p_202166_.zLo()).isTicking();
+        return this.chunkVisibility.get(p_202166_.x(), p_202166_.z()).isTicking();
     }
 
     public boolean areEntitiesLoaded(ChunkPos p_157508_) {
-        return this.chunkLoadStatuses.get(p_157508_.xHi(), p_157508_.xLo(), p_157508_.zHi(), p_157508_.zLo()) == PersistentEntitySectionManager.ChunkLoadStatus.LOADED;
+        return this.chunkLoadStatuses.get(p_157508_.x(), p_157508_.z()) == PersistentEntitySectionManager.ChunkLoadStatus.LOADED;
     }
 
     public void dumpSections(Writer p_157549_) throws IOException {

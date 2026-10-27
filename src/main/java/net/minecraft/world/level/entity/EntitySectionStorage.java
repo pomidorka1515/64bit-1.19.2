@@ -16,7 +16,7 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
 import net.minecraft.core.SectionPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.util.VisibleForDebug;
 import net.minecraft.world.level.ChunkPos;
@@ -58,19 +58,19 @@ public class EntitySectionStorage<T extends EntityAccess> {
                     SectionPos.blockToSectionCoord(WorldBounds.addBlockOffset(exact.maxBlockZ(), 2)), pConsumer);
             return;
         }
-        Int128 minSectionX = Int128.fromDoubleFloorSaturated(pBoundingBox.minX - 2.0D).shiftRight(4);
+        Int1088 minSectionX = Int1088.fromDoubleFloorSaturated(pBoundingBox.minX - 2.0D).shiftRight(4);
         int minSectionY = net.minecraft.util.Mth.floor((pBoundingBox.minY - 4.0D) / 16.0D);
-        Int128 minSectionZ = Int128.fromDoubleFloorSaturated(pBoundingBox.minZ - 2.0D).shiftRight(4);
-        Int128 maxSectionX = Int128.fromDoubleFloorSaturated(pBoundingBox.maxX + 2.0D).shiftRight(4);
+        Int1088 minSectionZ = Int1088.fromDoubleFloorSaturated(pBoundingBox.minZ - 2.0D).shiftRight(4);
+        Int1088 maxSectionX = Int1088.fromDoubleFloorSaturated(pBoundingBox.maxX + 2.0D).shiftRight(4);
         int maxSectionY = net.minecraft.util.Mth.floor(pBoundingBox.maxY / 16.0D);
-        Int128 maxSectionZ = Int128.fromDoubleFloorSaturated(pBoundingBox.maxZ + 2.0D).shiftRight(4);
+        Int1088 maxSectionZ = Int1088.fromDoubleFloorSaturated(pBoundingBox.maxZ + 2.0D).shiftRight(4);
         this.forEachAccessibleNonEmptySection(minSectionX, maxSectionX, minSectionY, maxSectionY,
                 minSectionZ, maxSectionZ, pConsumer);
     }
 
-    private void forEachAccessibleNonEmptySection(Int128 minSectionX, Int128 maxSectionX,
+    private void forEachAccessibleNonEmptySection(Int1088 minSectionX, Int1088 maxSectionX,
             int minSectionY, int maxSectionY,
-            Int128 minSectionZ, Int128 maxSectionZ,
+            Int1088 minSectionZ, Int1088 maxSectionZ,
             Consumer<EntitySection<T>> consumer) {
         if (minSectionX.compareTo(maxSectionX) > 0 || minSectionY > maxSectionY || minSectionZ.compareTo(maxSectionZ) > 0)
             return;
@@ -84,8 +84,8 @@ public class EntitySectionStorage<T extends EntityAccess> {
                 * WorldBounds.inclusiveBlockSpanDouble(minSectionZ, maxSectionZ);
         if (Double.isFinite(requestedSections) && requestedSections <= (double) this.sectionIds.size()) {
             for (int y = minSectionY;; ++y) {
-                for (Int128 z = minSectionZ;; z = WorldBounds.addBlockOffset(z, 1L)) {
-                    for (Int128 x = minSectionX;; x = WorldBounds.addBlockOffset(x, 1L)) {
+                for (Int1088 z = minSectionZ;; z = WorldBounds.addBlockOffset(z, 1L)) {
+                    for (Int1088 x = minSectionX;; x = WorldBounds.addBlockOffset(x, 1L)) {
                         this.acceptIfAccessible(SectionPos.of(x, y, z), consumer);
                         if (x.equals(maxSectionX))
                             break;
@@ -99,9 +99,9 @@ public class EntitySectionStorage<T extends EntityAccess> {
             return;
         }
 
-        SectionPos from = SectionPos.of(Int128.MIN, minSectionY, Int128.MIN);
+        SectionPos from = SectionPos.of(Int1088.MIN, minSectionY, Int1088.MIN);
         SectionPos to = maxSectionY == Integer.MAX_VALUE ? null
-                                                          : SectionPos.of(Int128.MIN, maxSectionY + 1, Int128.MIN);
+                                                          : SectionPos.of(Int1088.MIN, maxSectionY + 1, Int1088.MIN);
         ObjectBidirectionalIterator<SectionPos> iterator = (to == null
                         ? this.sectionIds.tailSet(from)
                         : this.sectionIds.subSet(from, to))
@@ -123,7 +123,7 @@ public class EntitySectionStorage<T extends EntityAccess> {
     }
 
     public Stream<SectionPos> getExistingSectionPositionsInChunk(ChunkPos chunkPos) {
-        ObjectSet<SectionPos> positions = this.sectionsByChunk.get(chunkPos.xHi(), chunkPos.xLo(), chunkPos.zHi(), chunkPos.zLo());
+        ObjectSet<SectionPos> positions = this.sectionsByChunk.get(chunkPos.x(), chunkPos.z());
         return positions == null ? Stream.empty() : positions.stream();
     }
 
@@ -157,8 +157,8 @@ public class EntitySectionStorage<T extends EntityAccess> {
     }
 
     /** Visits accessible sections using exact full-width X/Z section coordinates. */
-    public void getEntitiesInSections(Int128 minSectionX, Int128 maxSectionX, int minSectionY, int maxSectionY,
-            Int128 minSectionZ, Int128 maxSectionZ, Consumer<T> consumer) {
+    public void getEntitiesInSections(Int1088 minSectionX, Int1088 maxSectionX, int minSectionY, int maxSectionY,
+            Int1088 minSectionZ, Int1088 maxSectionZ, Consumer<T> consumer) {
         this.forEachAccessibleNonEmptySection(minSectionX, maxSectionX, minSectionY, maxSectionY,
                 minSectionZ, maxSectionZ, section -> section.getEntities().forEach(consumer));
     }

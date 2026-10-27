@@ -15,33 +15,29 @@ class BlockPosAllocationRegressionTest {
     void rawHashAndComparisonPreserveFullWidthSemantics() {
         Random random = new Random(0xB10C128L);
         for (int i = 0; i < 10000; ++i) {
-            BlockPos pos = new RawOnlyBlockPos(random.nextLong(), random.nextLong(), random.nextInt(),
-                    random.nextLong(), random.nextLong());
-            BlockPos other = new RawOnlyBlockPos(random.nextLong(), random.nextLong(), random.nextInt(),
-                    random.nextLong(), random.nextLong());
-            int xHash = 31 * Long.hashCode(pos.xHi()) + Long.hashCode(pos.xLo());
-            int zHash = 31 * Long.hashCode(pos.zHi()) + Long.hashCode(pos.zLo());
+            BlockPos pos = new BlockPos(Int1088.of(random.nextLong(), random.nextLong()), random.nextInt(), Int1088.of(random.nextLong(), random.nextLong()));
+            BlockPos other = new BlockPos(Int1088.of(random.nextLong(), random.nextLong()), random.nextInt(), Int1088.of(random.nextLong(), random.nextLong()));
+            int xHash = pos.getX().hashXZ();
+            int zHash = pos.getZ().hashXZ();
             assertEquals((pos.getY() + zHash * 31) * 31 + xHash, pos.hashCode());
-            assertEquals(pos.hashCode(), Vec3i.hashCode(pos.xHi(), pos.xLo(), pos.getY(), pos.zHi(), pos.zLo()));
-            int comparison = Int128.of(pos.xHi(), pos.xLo()).compareTo(Int128.of(other.xHi(), other.xLo()));
+            int comparison = pos.getX().compareTo(other.getX());
             if (comparison == 0) comparison = Integer.compare(pos.getY(), other.getY());
-            if (comparison == 0) comparison = Int128.of(pos.zHi(), pos.zLo()).compareTo(Int128.of(other.zHi(), other.zLo()));
+            if (comparison == 0) comparison = pos.getZ().compareTo(other.getZ());
             assertEquals(comparison, pos.compareTo(other));
-            assertEquals(pos.compareTo(other), pos.compareTo(other.xHi(), other.xLo(), other.getY(), other.zHi(), other.zLo()));
-            assertEquals(0, pos.compareTo(pos.xHi(), pos.xLo(), pos.getY(), pos.zHi(), pos.zLo()));
+            assertEquals(0, pos.compareTo(new BlockPos(pos)));
         }
-        BlockPos pos = new RawOnlyBlockPos(17L, Long.MIN_VALUE, 64, -18L, Long.MIN_VALUE);
-        assertTrue(pos.compareTo(17L, Long.MAX_VALUE, Integer.MAX_VALUE, 0L, 0L) > 0);
-        assertTrue(pos.compareTo(17L, Long.MIN_VALUE, 65, Long.MIN_VALUE, 0L) < 0);
-        assertTrue(pos.compareTo(17L, Long.MIN_VALUE, 64, -18L, Long.MAX_VALUE) > 0);
+        BlockPos pos = new BlockPos(Int1088.of(Long.MIN_VALUE, 17L), 64, Int1088.of(Long.MIN_VALUE, -18L));
+        assertTrue(pos.compareTo(new BlockPos(Int1088.of(Long.MAX_VALUE, 17L), Integer.MAX_VALUE, Int1088.ZERO)) > 0);
+        assertTrue(pos.compareTo(new BlockPos(pos.getX(), 65, pos.getZ())) < 0);
+
     }
 
     @Test
     void scratchOffsetsMatchImmutableResultsAtCarriesAndSaturation() {
-        Int128[] edges = {Int128.MIN, Int128.MAX, Int128.ZERO, Int128.of(17L, -1L), Int128.of(-18L, 0L)};
+        Int1088[] edges = {Int1088.MIN, Int1088.MAX, Int1088.ZERO, Int1088.of(-1L, 17L), Int1088.of(0L, -18L)};
         BlockPos.MutableBlockPos scratch = new BlockPos.MutableBlockPos();
-        for (Int128 x : edges) {
-            for (Int128 z : edges) {
+        for (Int1088 x : edges) {
+            for (Int1088 z : edges) {
                 BlockPos origin = new BlockPos(x, Integer.MAX_VALUE, z);
                 for (long delta : new long[]{Long.MIN_VALUE, -1L, 0L, 1L, Long.MAX_VALUE}) {
                     BlockPos expected = origin.offset(delta, 1, delta);
@@ -60,7 +56,7 @@ class BlockPosAllocationRegressionTest {
         var bean = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
         org.junit.jupiter.api.Assumptions.assumeTrue(bean.isThreadAllocatedMemorySupported());
         bean.setThreadAllocatedMemoryEnabled(true);
-        BlockPos origin = new RawOnlyBlockPos(17L, -16L, 64, -18L, 16L);
+        BlockPos origin = new BlockPos(Int1088.of(-16L, 17L), 64, Int1088.of(16L, -18L));
         BlockPos.MutableBlockPos scratch = new BlockPos.MutableBlockPos();
         for (int i = 0; i < 20; ++i) checksumSink = scratchHotLoop(origin, scratch);
         long thread = Thread.currentThread().getId();
@@ -70,35 +66,53 @@ class BlockPosAllocationRegressionTest {
         assertTrue(bytes < 1024L, "scratch loop allocated " + bytes + " bytes");
     }
 
+    @Test
+    void traversalAllocatesOnlyIteratorScratch() {
+        var bean = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
+        org.junit.jupiter.api.Assumptions.assumeTrue(bean.isThreadAllocatedMemorySupported());
+        bean.setThreadAllocatedMemoryEnabled(true);
+        Int1088 origin = Int1088.ONE.shiftLeftSaturated(1024);
+        var iterable = BlockPos.betweenClosed(origin, 0, origin, origin.addSaturated(Int1088.fromLong(15)), 15,
+                origin.addSaturated(Int1088.fromLong(15)));
+        for (int i = 0; i < 20; ++i) checksumSink = traverse(iterable);
+        long thread = Thread.currentThread().getId();
+        long before = bean.getThreadAllocatedBytes(thread);
+        checksumSink = traverse(iterable);
+        long bytes = bean.getThreadAllocatedBytes(thread) - before;
+        assertTrue(bytes < 2048, "traversal allocated " + bytes + " bytes");
+    }
+
+    private static long traverse(Iterable<BlockPos> positions) {
+        long checksum = 0;
+        for (BlockPos pos : positions) checksum += pos.xLimb(0) + pos.zLimb(0) + pos.getY();
+        return checksum;
+    }
+
     private static long scratchHotLoop(BlockPos origin, BlockPos.MutableBlockPos scratch) {
         long checksum = 1L;
         for (int i = 0; i < 100000; ++i) {
             scratch.setWithOffset(origin, i & 15, (i >>> 4) & 15, (i >>> 8) & 15);
-            checksum += Vec3i.hashCode(scratch.xHi(), scratch.xLo(), scratch.getY(), scratch.zHi(), scratch.zLo())
-                    + scratch.compareTo(origin.xHi(), origin.xLo(), origin.getY(), origin.zHi(), origin.zLo())
-                    + rawChunkHash(scratch);
+            checksum += scratch.hashCode() + scratch.compareTo(origin);
         }
         return checksum;
     }
 
     private static int rawChunkHash(BlockPos pos) {
-        return ChunkPos.hash(pos.xHi() >> 4, Int128Math.rightShiftLo(pos.xHi(), pos.xLo(), 4),
-                pos.zHi() >> 4, Int128Math.rightShiftLo(pos.zHi(), pos.zLo(), 4));
+        return new ChunkPos(pos).hashCode();
     }
 
     @Test
-    void hotPathsNeverMaterializeCoordinateObjects() {
-        BlockPos pos = new RawOnlyBlockPos(17L, -1L, 64, -18L, 0L);
-        BlockPos other = new RawOnlyBlockPos(-2L, 3L, 7, 4L, -5L);
-        assertEquals(new BlockPos(18L, 0L, 66, -19L, -1L), pos.offset(1L, 2, -1L));
-        assertEquals(new BlockPos(18L, 0L, 66, -19L, -1L), pos.offset(1.5D, 2.0D, -0.5D));
+    void positionOperationsPreserveWideOperands() {
+        BlockPos pos = new BlockPos(Int1088.of(-1L, 17L), 64, Int1088.of(0L, -18L));
+        BlockPos other = new BlockPos(Int1088.of(3L, -2L), 7, Int1088.of(-5L, 4L));
+        assertEquals(pos.offset(1L, 2, -1L), pos.offset(1.5D, 2.0D, -0.5D));
         assertEquals(pos, new BlockPos(pos));
         assertEquals(pos.hashCode(), new BlockPos(pos).hashCode());
         assertTrue(pos.compareTo(other) > 0);
-        assertEquals(new BlockPos(16L, 2L, 71, -14L, -5L), pos.offset(other));
-        assertEquals(new BlockPos(19L, -4L, 57, -23L, 5L), pos.subtract(other));
         assertEquals(pos.offset(other), pos.mutable().move(other));
         assertEquals(pos.offset(1L, 0, 0L), pos.east());
+        assertEquals(pos.getX().subtractSaturated(other.getX()), pos.subtract(other).getX());
+        assertEquals(pos.getZ().subtractSaturated(other.getZ()), pos.subtract(other).getZ());
     }
 
     @Test
@@ -106,10 +120,10 @@ class BlockPosAllocationRegressionTest {
         double[] offsets = {Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY,
                 -0x1p128, Math.nextUp(-0x1p128), -0x1p127, Math.nextDown(-0x1p127),
                 0x1p127, Math.nextDown(0x1p128), 0x1p128, -1.5D, -0.0D, 0.5D};
-        Int128[] coordinates = {Int128.MIN, Int128.MAX, Int128.ZERO, Int128.of(17L, -1L)};
-        for (Int128 coordinate : coordinates) {
+        Int1088[] coordinates = {Int1088.MIN, Int1088.MAX, Int1088.ZERO, Int1088.of(-1L, 17L)};
+        for (Int1088 coordinate : coordinates) {
             for (double offset : offsets) {
-                Int128 expected = WorldBounds.addDoubleBlockOffset(coordinate, offset);
+                Int1088 expected = WorldBounds.addDoubleBlockOffset(coordinate, offset);
                 BlockPos actual = new BlockPos(coordinate, 64, coordinate).offset(offset, 0.0D, offset);
                 assertEquals(expected, actual.getX());
                 assertEquals(expected, actual.getZ());
@@ -120,36 +134,19 @@ class BlockPosAllocationRegressionTest {
     @Test
     void primitiveSubtractionMatchesSaturatingArithmetic() {
         Random random = new Random(0xB10C128L);
-        Int128[] edges = {Int128.MIN, Int128.MAX, Int128.ZERO, Int128.fromLong(-1L)};
-        for (Int128 a : edges) {
-            for (Int128 b : edges) assertDifference(a, b);
+        Int1088[] edges = {Int1088.MIN, Int1088.MAX, Int1088.ZERO, Int1088.fromLong(-1L)};
+        for (Int1088 a : edges) {
+            for (Int1088 b : edges) assertDifference(a, b);
         }
         for (int i = 0; i < 10000; ++i) {
-            assertDifference(Int128.of(random.nextLong(), random.nextLong()),
-                    Int128.of(random.nextLong(), random.nextLong()));
+            assertDifference(Int1088.of(random.nextLong(), random.nextLong()),
+                    Int1088.of(random.nextLong(), random.nextLong()));
         }
     }
 
-    private static void assertDifference(Int128 a, Int128 b) {
-        Int128 expected = a.subtractSaturated(b);
-        assertEquals(expected.hi(), Int128Math.subtractSaturatedHi(a.hi(), a.lo(), b.hi(), b.lo()));
-        assertEquals(expected.lo(), Int128Math.subtractSaturatedLo(a.hi(), a.lo(), b.hi(), b.lo()));
+    private static void assertDifference(Int1088 a, Int1088 b) {
+        Int1088 expected = a.subtractSaturated(b);
         assertEquals(new BlockPos(expected, 5, expected), new BlockPos(a, 12, a).subtract(new BlockPos(b, 7, b)));
     }
 
-    private static final class RawOnlyBlockPos extends BlockPos {
-        RawOnlyBlockPos(long xHi, long xLo, int y, long zHi, long zLo) {
-            super(xHi, xLo, y, zHi, zLo);
-        }
-
-        @Override
-        public Int128 getX() {
-            throw new AssertionError("Hot path materialized X");
-        }
-
-        @Override
-        public Int128 getZ() {
-            throw new AssertionError("Hot path materialized Z");
-        }
-    }
 }

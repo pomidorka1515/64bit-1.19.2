@@ -3,8 +3,8 @@ package net.minecraft.core;
 import com.google.common.base.MoreObjects;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import it.unimi.dsi.fastutil.HashCommon;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import javax.annotation.concurrent.Immutable;
@@ -13,28 +13,37 @@ import net.minecraft.world.level.WorldBounds;
 
 @Immutable
 public class Vec3i implements Comparable<Vec3i> {
-    /** Exactly five longs [xHi, xLo, y, zHi, zLo]; legacy three-long positions are rejected. */
+    /** Exactly thirty-five longs [x limb 0..16, y, z limb 0..16]; the old five-long pair form is rejected. */
     public static final Codec<Vec3i> CODEC = Codec.LONG_STREAM.comapFlatMap(stream -> {
-        long[] coordinates = stream.limit(6L).toArray();
-        if (coordinates.length != 5) {
-            return DataResult.error("Vec3i requires exactly 5 longs [xHi, xLo, y, zHi, zLo]");
+        long[] coordinates = stream.limit(36L).toArray();
+        if (coordinates.length != 2 * Int1088.LIMBS + 1) {
+            return DataResult.error("Vec3i requires exactly 35 longs [17 x limbs, y, 17 z limbs]");
         }
-        if (coordinates[2] < Integer.MIN_VALUE || coordinates[2] > Integer.MAX_VALUE) {
+        long y = coordinates[Int1088.LIMBS];
+        if (y < Integer.MIN_VALUE || y > Integer.MAX_VALUE) {
             return DataResult.error("Vec3i y coordinate must fit in an int");
         }
-        return DataResult.success(new Vec3i(coordinates[0], coordinates[1], (int) coordinates[2], coordinates[3], coordinates[4]));
-    }, value -> LongStream.of(value.getXHi(), value.getXLo(), value.getY(), value.getZHi(), value.getZLo()));
+        long[] xLimbs = new long[Int1088.LIMBS];
+        long[] zLimbs = new long[Int1088.LIMBS];
+        System.arraycopy(coordinates, 0, xLimbs, 0, Int1088.LIMBS);
+        System.arraycopy(coordinates, Int1088.LIMBS + 1, zLimbs, 0, Int1088.LIMBS);
+        return DataResult.success(new Vec3i(Int1088.fromFixedLimbs(xLimbs), (int) y, Int1088.fromFixedLimbs(zLimbs)));
+    }, value -> {
+        long[] coordinates = new long[2 * Int1088.LIMBS + 1];
+        value.getX().copyFixed(coordinates, 0);
+        coordinates[Int1088.LIMBS] = value.getY();
+        value.getZ().copyFixed(coordinates, Int1088.LIMBS + 1);
+        return LongStream.of(coordinates);
+    });
     public static final Vec3i ZERO = new Vec3i(0, 0, 0);
-    private long xHi;
-    private long xLo;
+    private Int1088 xValue;
     private int y;
-    private long zHi;
-    private long zLo;
+    private Int1088 zValue;
 
     private static Function<Vec3i, DataResult<Vec3i>> checkOffsetAxes(int p_194646_) {
         return (p_194649_) -> {
-            Int128 min = Int128.fromLong(-(long) p_194646_);
-            Int128 max = Int128.fromLong(p_194646_);
+            Int1088 min = Int1088.fromLong(-(long) p_194646_);
+            Int1088 max = Int1088.fromLong(p_194646_);
             return p_194649_.getX().compareTo(min) > 0 && p_194649_.getX().compareTo(max) < 0 && p_194649_.getY() > -(long) p_194646_ && p_194649_.getY() < p_194646_ && p_194649_.getZ().compareTo(min) > 0 && p_194649_.getZ().compareTo(max) < 0 ? DataResult.success(p_194649_) : DataResult.error("Position out of range, expected at most " + p_194646_ + ": " + p_194649_);
         };
     }
@@ -44,25 +53,27 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public Vec3i(long pX, int pY, long pZ) {
-        this(pX >> 63, pX, pY, pZ >> 63, pZ);
+        this(Int1088.fromLong(pX), pY, Int1088.fromLong(pZ));
     }
 
-    public Vec3i(Int128 pX, int pY, Int128 pZ) {
-        this(pX.hi(), pX.lo(), pY, pZ.hi(), pZ.lo());
-    }
-
-    /** Full-width primitive constructor; no temporary coordinate objects. */
-    public Vec3i(long xHi, long xLo, int pY, long zHi, long zLo) {
-        this.xHi = xHi;
-        this.xLo = xLo;
+    public Vec3i(Int1088 pX, int pY, Int1088 pZ) {
+        this.xValue = pX;
         this.y = pY;
-        this.zHi = zHi;
-        this.zLo = zLo;
+        this.zValue = pZ;
+    }
+
+    /** Copies a fixed-width little-endian limb view, sign-extending any unused words. */
+    protected Vec3i(long[] pX, int pY, long[] pZ) {
+        this(Int1088.fromFixedLimbs(pX), pY, Int1088.fromFixedLimbs(pZ));
+    }
+
+    /** Full-width primitive factory; no temporary coordinate objects at the call site. */
+    public static Vec3i fromLimbs(long[] pX, int pY, long[] pZ) {
+        return new Vec3i(pX, pY, pZ);
     }
 
     public Vec3i(double pX, double pY, double pZ) {
-        this(Int128Math.doubleFloorHi(pX), Int128Math.doubleFloorLo(pX), Mth.floor(pY),
-                Int128Math.doubleFloorHi(pZ), Int128Math.doubleFloorLo(pZ));
+        this(Int1088.fromDoubleFloorSaturated(pX), Mth.floor(pY), Int1088.fromDoubleFloorSaturated(pZ));
     }
 
     public boolean equals(Object pOther) {
@@ -72,78 +83,54 @@ public class Vec3i implements Comparable<Vec3i> {
             return false;
         } else {
             Vec3i vec3i = (Vec3i) pOther;
-            if (this.getXHi() != vec3i.getXHi() || this.getXLo() != vec3i.getXLo()) {
-                return false;
-            } else if (this.getY() != vec3i.getY()) {
-                return false;
-            } else {
-                return this.getZHi() == vec3i.getZHi() && this.getZLo() == vec3i.getZLo();
-            }
+            return this.getY() == vec3i.getY() && sameX(this, vec3i) && sameZ(this, vec3i);
         }
     }
 
     public int hashCode() {
-        return hashCode(this.xHi(), this.xLo(), this.getY(), this.zHi(), this.zLo());
-    }
-
-    /** Hashes full-width coordinates without materializing a position or Int128 values. */
-    public static int hashCode(long xHi, long xLo, int y, long zHi, long zLo) {
-        int xHash = 31 * Long.hashCode(xHi) + Long.hashCode(xLo);
-        int zHash = 31 * Long.hashCode(zHi) + Long.hashCode(zLo);
-        return (y + zHash * 31) * 31 + xHash;
+        return (this.getY() + hashZ(this) * 31) * 31 + hashX(this);
     }
 
     public int compareTo(Vec3i pOther) {
-        return this.compareTo(pOther.xHi(), pOther.xLo(), pOther.getY(), pOther.zHi(), pOther.zLo());
+        int result = compareX(this, pOther);
+        if (result == 0) result = Integer.compare(this.getY(), pOther.getY());
+        return result == 0 ? compareZ(this, pOther) : result;
     }
 
-    /** Compares a raw position in the same X/Y/Z order as the object overload. */
-    public int compareTo(long xHi, long xLo, int y, long zHi, long zLo) {
-        int result = Int128Math.compare(this.xHi(), this.xLo(), xHi, xLo);
-        if (result == 0) result = Integer.compare(this.getY(), y);
-        return result == 0 ? Int128Math.compare(this.zHi(), this.zLo(), zHi, zLo) : result;
-    }
-
-    /** Value-object API boundary; internal arithmetic should use the raw limb accessors. */
-    public Int128 getX() {
-        return Int128.of(this.xHi, this.xLo);
+    /** Value-object API boundary; internal arithmetic should use the limb accessors. */
+    public Int1088 getX() {
+        return this.xValue;
     }
 
     public int getY() {
         return this.y;
     }
 
-    /** Value-object API boundary; internal arithmetic should use the raw limb accessors. */
-    public Int128 getZ() {
-        return Int128.of(this.zHi, this.zLo);
+    /** Value-object API boundary; internal arithmetic should use the limb accessors. */
+    public Int1088 getZ() {
+        return this.zValue;
     }
 
-    public Int128 x() { return this.getX(); }
+    public Int1088 x() { return this.getX(); }
     public int y() { return this.getY(); }
-    public Int128 z() { return this.getZ(); }
-    public long getXHi() { return this.xHi; }
-    public long getXLo() { return this.xLo; }
-    public long getZHi() { return this.zHi; }
-    public long getZLo() { return this.zLo; }
-    public long xHi() { return this.getXHi(); }
-    public long xLo() { return this.getXLo(); }
-    public long zHi() { return this.getZHi(); }
-    public long zLo() { return this.getZLo(); }
+    public Int1088 z() { return this.getZ(); }
+
+    public long xLimb(int pIndex) { return this.getX().limb(pIndex); }
+    public long zLimb(int pIndex) { return this.getZ().limb(pIndex); }
+    public int xLimbCount() { return this.getX().limbCount(); }
+    public int zLimbCount() { return this.getZ().limbCount(); }
+    public boolean xFitsLong() { return this.getX().fitsLong(); }
+    public boolean zFitsLong() { return this.getZ().fitsLong(); }
+    public long xLow() { return this.getX().lowLimb(); }
+    public long zLow() { return this.getZ().lowLimb(); }
 
     protected Vec3i setX(long pX) {
-        return this.setX(pX >> 63, pX);
-    }
-
-    protected Vec3i setX(Int128 pX) {
-        this.xHi = pX.hi();
-        this.xLo = pX.lo();
+        this.xValue = Int1088.fromLong(pX);
         return this;
     }
 
-    /** Allocation-free variant of {@link #setX(Int128)} for hot callers holding raw halves. */
-    protected Vec3i setX(long pHi, long pLo) {
-        this.xHi = pHi;
-        this.xLo = pLo;
+    protected Vec3i setX(Int1088 pX) {
+        this.xValue = pX;
         return this;
     }
 
@@ -153,62 +140,49 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     protected Vec3i setZ(long pZ) {
-        return this.setZ(pZ >> 63, pZ);
-    }
-
-    protected Vec3i setZ(Int128 pZ) {
-        this.zHi = pZ.hi();
-        this.zLo = pZ.lo();
+        this.zValue = Int1088.fromLong(pZ);
         return this;
     }
 
-    /** Allocation-free variant of {@link #setZ(Int128)} for hot callers holding raw halves. */
-    protected Vec3i setZ(long pHi, long pLo) {
-        this.zHi = pHi;
-        this.zLo = pLo;
+    protected Vec3i setZ(Int1088 pZ) {
+        this.zValue = pZ;
         return this;
     }
 
     public Vec3i offset(double pDx, double pDy, double pDz) {
         return pDx == 0.0D && pDy == 0.0D && pDz == 0.0D ? this : new Vec3i(
-                Int128Math.addFlooredBlockOffsetHi(this.xHi(), this.xLo(), pDx),
-                Int128Math.addFlooredBlockOffsetLo(this.xHi(), this.xLo(), pDx), Mth.floor((double) this.getY() + pDy),
-                Int128Math.addFlooredBlockOffsetHi(this.zHi(), this.zLo(), pDz),
-                Int128Math.addFlooredBlockOffsetLo(this.zHi(), this.zLo(), pDz));
+                WorldBounds.addDoubleBlockOffset(this.getX(), pDx), Double.isFinite(pDy) ? Mth.floor((double) this.getY() + pDy) : this.getY(),
+                WorldBounds.addDoubleBlockOffset(this.getZ(), pDz));
     }
 
     public Vec3i offset(long pDx, int pDy, long pDz) {
-        return this.offset(pDx >> 63, pDx, pDy, pDz >> 63, pDz);
+        return this.offset(Int1088.fromLong(pDx), pDy, Int1088.fromLong(pDz));
     }
 
     public Vec3i offset(Vec3i pVector) {
-        return this.offset(pVector.xHi(), pVector.xLo(), pVector.getY(), pVector.zHi(), pVector.zLo());
+        return this.offset(pVector.getX(), pVector.getY(), pVector.getZ());
     }
 
-    public Vec3i offset(Int128 pDx, int pDy, Int128 pDz) {
-        return this.offset(pDx.hi(), pDx.lo(), pDy, pDz.hi(), pDz.lo());
-    }
-
-    private Vec3i offset(long dxHi, long dxLo, int dy, long dzHi, long dzLo) {
-        return dxHi == 0L && dxLo == 0L && dy == 0 && dzHi == 0L && dzLo == 0L ? this
-                : new Vec3i(Int128Math.addSaturatedHi(this.xHi(), this.xLo(), dxHi, dxLo),
-                        Int128Math.addSaturatedLo(this.xHi(), this.xLo(), dxHi, dxLo), this.getY() + dy,
-                        Int128Math.addSaturatedHi(this.zHi(), this.zLo(), dzHi, dzLo),
-                        Int128Math.addSaturatedLo(this.zHi(), this.zLo(), dzHi, dzLo));
+    public Vec3i offset(Int1088 pDx, int pDy, Int1088 pDz) {
+        if (pDx.signum() == 0 && pDy == 0 && pDz.signum() == 0) {
+            return this;
+        }
+        return new Vec3i(this.getX().addSaturated(pDx), WorldBounds.addSaturated(this.getY(), pDy),
+                this.getZ().addSaturated(pDz));
     }
 
     public Vec3i subtract(Vec3i pVector) {
-        return new Vec3i(Int128Math.subtractSaturatedHi(this.xHi(), this.xLo(), pVector.xHi(), pVector.xLo()),
-                Int128Math.subtractSaturatedLo(this.xHi(), this.xLo(), pVector.xHi(), pVector.xLo()), this.getY() - pVector.getY(),
-                Int128Math.subtractSaturatedHi(this.zHi(), this.zLo(), pVector.zHi(), pVector.zLo()),
-                Int128Math.subtractSaturatedLo(this.zHi(), this.zLo(), pVector.zHi(), pVector.zLo()));
+        return new Vec3i(this.getX().subtractSaturated(pVector.getX()),
+                (int) Math.max(Integer.MIN_VALUE, Math.min(Integer.MAX_VALUE, (long) this.getY() - pVector.getY())),
+                this.getZ().subtractSaturated(pVector.getZ()));
     }
 
     public Vec3i multiply(int pScalar) {
         if (pScalar == 1) {
             return this;
         } else {
-            return pScalar == 0 ? ZERO : new Vec3i(WorldBounds.multiplySaturated(this.getX(), pScalar), this.getY() * pScalar, WorldBounds.multiplySaturated(this.getZ(), pScalar));
+            return pScalar == 0 ? ZERO : new Vec3i(this.getX().multiplySaturated(pScalar),
+                    WorldBounds.multiplySaturated(this.getY(), pScalar), this.getZ().multiplySaturated(pScalar));
         }
     }
 
@@ -281,50 +255,126 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public Vec3i cross(Vec3i pVector) {
-        return new Vec3i(WorldBounds.crossComponent(pVector.getZ(), this.getY(), this.getZ(), pVector.getY()), crossY(this.getZ(), pVector.getX(), this.getX(), pVector.getZ()), WorldBounds.crossComponent(this.getX(), pVector.getY(), pVector.getX(), this.getY()));
+        return new Vec3i(crossComponent(pVector.getZ(), this.getY(), this.getZ(), pVector.getY()),
+                crossY(this.getZ(), pVector.getX(), this.getX(), pVector.getZ()),
+                crossComponent(this.getX(), pVector.getY(), pVector.getX(), this.getY()));
     }
 
-    // Keep the complete 256-bit determinant until the final vertical int clamp.
-    private static int crossY(Int128 a, Int128 b, Int128 c, Int128 d) {
-        long[] first = wideProduct(a, b);
-        long[] second = wideProduct(c, d);
+    /**
+     * Full a*b - c*d determinant, reduced only at the final 1088-bit boundary.
+     * Saturating each product separately would lose cancellation.
+     */
+    private static Int1088 crossComponent(Int1088 a, long b, Int1088 c, long d) {
+        return saturateWide(wideDifference(wideProduct(a, Int1088.fromLong(b)),
+                wideProduct(c, Int1088.fromLong(d))));
+    }
+
+    /** Keep the complete 2176-bit determinant until the final vertical int clamp. */
+    private static int crossY(Int1088 a, Int1088 b, Int1088 c, Int1088 d) {
+        return clampWideToInt(wideDifference(wideProduct(a, b), wideProduct(c, d)));
+    }
+
+    private static final int WIDE_LIMBS = 2 * Int1088.LIMBS;
+    private static final int DIGITS = 4 * Int1088.LIMBS;
+
+    /** Exact signed 1088 x 1088 product in 34 little-endian limbs (two's complement). */
+    private static long[] wideProduct(Int1088 a, Int1088 b) {
+        int[] ad = new int[DIGITS];
+        int[] bd = new int[DIGITS];
+        digits(a, ad);
+        digits(b, bd);
+        long[] digits = new long[2 * DIGITS];
+        for (int i = 0; i < DIGITS; ++i) {
+            int ai = ad[i];
+            if (ai == 0) continue;
+            for (int j = 0; j < DIGITS; ++j) {
+                int bj = bd[j];
+                if (bj != 0) digits[i + j] += (long) ai * bj;
+            }
+        }
+        long carry = 0L;
+        for (int i = 0; i < digits.length; ++i) {
+            long value = digits[i] + carry;
+            digits[i] = value & 0xffffL;
+            carry = value >>> 16;
+        }
+        long[] out = new long[WIDE_LIMBS];
+        for (int word = 0; word < WIDE_LIMBS; ++word) {
+            int base = word * 4;
+            out[word] = digits[base] | digits[base + 1] << 16 | digits[base + 2] << 32 | digits[base + 3] << 48;
+        }
+        // The digit multiplication treats both operands as unsigned. Correct the
+        // upper half for each signed operand, modulo the exact double width.
+        if (a.signum() < 0) subtractUpper(out, b);
+        if (b.signum() < 0) subtractUpper(out, a);
+        return out;
+    }
+
+    private static void subtractUpper(long[] product, Int1088 operand) {
         long borrow = 0L;
-        for (int i = 0; i < 4; i++) {
-            long difference = first[i] - second[i];
-            long nextBorrow = Long.compareUnsigned(first[i], second[i]) < 0 ? 1L : 0L;
+        for (int i = 0; i < Int1088.LIMBS; ++i) {
+            int index = i + Int1088.LIMBS;
+            long a = product[index], b = operand.limb(i);
+            long difference = a - b;
             long result = difference - borrow;
+            borrow = Long.compareUnsigned(a, b) < 0 || Long.compareUnsigned(difference, borrow) < 0 ? 1L : 0L;
+            product[index] = result;
+        }
+    }
+
+    private static void digits(Int1088 value, int[] out) {
+        for (int word = 0; word < Int1088.LIMBS; ++word) {
+            long limb = value.limb(word);
+            int base = word * 4;
+            out[base] = (int) limb & 0xffff;
+            out[base + 1] = (int) (limb >>> 16) & 0xffff;
+            out[base + 2] = (int) (limb >>> 32) & 0xffff;
+            out[base + 3] = (int) (limb >>> 48) & 0xffff;
+        }
+    }
+
+    private static long[] wideDifference(long[] first, long[] second) {
+        long[] out = new long[WIDE_LIMBS];
+        long borrow = 0L;
+        for (int i = 0; i < WIDE_LIMBS; ++i) {
+            long a = first[i];
+            long b = second[i];
+            long difference = a - b;
+            long nextBorrow = Long.compareUnsigned(a, b) < 0 ? 1L : 0L;
             if (Long.compareUnsigned(difference, borrow) < 0) nextBorrow = 1L;
-            first[i] = result;
+            out[i] = difference - borrow;
             borrow = nextBorrow;
         }
-        long sign = first[3] >> 63;
-        if (first[3] != sign || first[2] != sign || first[1] != sign || first[0] != (long) (int) first[0]) {
-            return sign < 0 ? Integer.MIN_VALUE : Integer.MAX_VALUE;
-        }
-        return (int) first[0];
+        return out;
     }
 
-    private static long[] wideProduct(Int128 a, Int128 b) {
-        long[] result = new long[4];
-        long[] shifted = {a.lo(), a.hi(), a.hi() >> 63, a.hi() >> 63};
-        for (int bit = 0; bit < 128; bit++) {
-            if (b.testBit(bit)) {
-                long carry = 0L;
-                for (int i = 0; i < 4; i++) {
-                    long operand = bit == 127 ? ~shifted[i] : shifted[i];
-                    if (bit == 127 && i == 0) carry = 1L;
-                    long sum = result[i] + operand;
-                    long nextCarry = Long.compareUnsigned(sum, result[i]) < 0 ? 1L : 0L;
-                    long total = sum + carry;
-                    if (Long.compareUnsigned(total, sum) < 0) nextCarry = 1L;
-                    result[i] = total;
-                    carry = nextCarry;
-                }
+    private static Int1088 saturateWide(long[] wide) {
+        long extension = wide[Int1088.LIMBS - 1] >> 63;
+        boolean fits = true;
+        for (int i = Int1088.LIMBS; i < WIDE_LIMBS; ++i) {
+            if (wide[i] != extension) {
+                fits = false;
+                break;
             }
-            for (int i = 3; i > 0; i--) shifted[i] = (shifted[i] << 1) | (shifted[i - 1] >>> 63);
-            shifted[0] <<= 1;
         }
-        return result;
+        if (fits) {
+            long[] limbs = new long[Int1088.LIMBS];
+            System.arraycopy(wide, 0, limbs, 0, Int1088.LIMBS);
+            return Int1088.fromFixedLimbs(limbs);
+        }
+        return wide[WIDE_LIMBS - 1] < 0L ? Int1088.MIN : Int1088.MAX;
+    }
+
+    private static int clampWideToInt(long[] wide) {
+        long extension = wide[0] >> 63;
+        boolean fits = (long) (int) wide[0] == wide[0];
+        for (int i = 1; fits && i < WIDE_LIMBS; ++i) {
+            fits = wide[i] == extension;
+        }
+        if (fits) {
+            return (int) wide[0];
+        }
+        return wide[WIDE_LIMBS - 1] < 0L ? Integer.MIN_VALUE : Integer.MAX_VALUE;
     }
 
     public boolean closerThan(Vec3i pVector, double pDistance) {
@@ -347,9 +397,9 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public double distSqr(Vec3i pVector) {
-        double dx = net.minecraft.world.level.WorldBounds.signedDifference(this.getX(), pVector.getX());
+        double dx = WorldBounds.signedDifference(this.getX(), pVector.getX());
         double dy = (double) this.getY() - (double) pVector.getY();
-        double dz = net.minecraft.world.level.WorldBounds.signedDifference(this.getZ(), pVector.getZ());
+        double dz = WorldBounds.signedDifference(this.getZ(), pVector.getZ());
         return dx * dx + dy * dy + dz * dz;
     }
 
@@ -378,22 +428,15 @@ public class Vec3i implements Comparable<Vec3i> {
         return (int) (f + f1 + f2);
     }
 
-    private static double differenceFromDouble(Int128 coordinate, double value) {
+    private static double differenceFromDouble(Int1088 coordinate, double value) {
         if (!Double.isFinite(value)) {
             return -value;
         }
-        if (value >= 0x1.0p127) {
-            // Subtract the exact edge first: MAX is one block below 2^127.
-            return WorldBounds.signedDifference(coordinate, Int128.MAX) - 1.0D - (value - 0x1.0p127);
-        }
-        if (value < -0x1.0p127) {
-            return WorldBounds.signedDifference(coordinate, Int128.MIN) + (-0x1.0p127 - value);
-        }
-        return WorldBounds.signedDifference(coordinate, Int128.fromDoubleFloorSaturated(value)) - (value - Math.floor(value));
+        return WorldBounds.signedDifference(coordinate, Int1088.fromDoubleFloorSaturated(value)) - (value - Math.floor(value));
     }
 
-    public Int128 get(Direction.Axis pAxis) {
-        return pAxis == Direction.Axis.X ? this.getX() : pAxis == Direction.Axis.Z ? this.getZ() : Int128.fromLong(this.getY());
+    public Int1088 get(Direction.Axis pAxis) {
+        return pAxis == Direction.Axis.X ? this.getX() : pAxis == Direction.Axis.Z ? this.getZ() : Int1088.fromLong(this.getY());
     }
 
     public String toString() {
@@ -402,5 +445,57 @@ public class Vec3i implements Comparable<Vec3i> {
 
     public String toShortString() {
         return this.getX() + ", " + this.getY() + ", " + this.getZ();
+    }
+
+    private static boolean sameX(Vec3i first, Vec3i second) {
+        int count = Math.max(first.xLimbCount(), second.xLimbCount());
+        for (int i = 0; i < count; ++i) {
+            if (first.xLimb(i) != second.xLimb(i)) return false;
+        }
+        return true;
+    }
+
+    private static boolean sameZ(Vec3i first, Vec3i second) {
+        int count = Math.max(first.zLimbCount(), second.zLimbCount());
+        for (int i = 0; i < count; ++i) {
+            if (first.zLimb(i) != second.zLimb(i)) return false;
+        }
+        return true;
+    }
+
+    private static int compareX(Vec3i first, Vec3i second) {
+        int result = Long.compare(first.xLimb(Int1088.LIMBS - 1), second.xLimb(Int1088.LIMBS - 1));
+        for (int i = Int1088.LIMBS - 2; result == 0 && i >= 0; --i) {
+            result = Long.compareUnsigned(first.xLimb(i), second.xLimb(i));
+        }
+        return result;
+    }
+
+    private static int compareZ(Vec3i first, Vec3i second) {
+        int result = Long.compare(first.zLimb(Int1088.LIMBS - 1), second.zLimb(Int1088.LIMBS - 1));
+        for (int i = Int1088.LIMBS - 2; result == 0 && i >= 0; --i) {
+            result = Long.compareUnsigned(first.zLimb(i), second.zLimb(i));
+        }
+        return result;
+    }
+
+    private static int hashX(Vec3i value) {
+        return hashXZ(value, true);
+    }
+
+    private static int hashZ(Vec3i value) {
+        return hashXZ(value, false);
+    }
+
+    /** Mirrors {@link Int1088Math#hashXZ} over the sign-extended limb view, without allocating. */
+    private static int hashXZ(Vec3i value, boolean xAxis) {
+        long hash = 0xcbf29ce484222325L;
+        for (int i = 0; i < Int1088.LIMBS; ++i) {
+            long word = xAxis ? value.xLimb(i) : value.zLimb(i);
+            long mixed = HashCommon.murmurHash3(word + 0x9e3779b97f4a7c15L * (i + 1));
+            hash = (hash ^ mixed) * 0x100000001b3L;
+        }
+        long result = HashCommon.murmurHash3(hash);
+        return (int) (result ^ (result >>> 32));
     }
 }

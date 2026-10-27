@@ -6,7 +6,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import java.util.EnumSet;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.entity.Mob;
@@ -61,7 +61,7 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
     }
 
     public Target getGoal(double pX, double pY, double pZ) {
-        return this.getTargetFromNode(super.getNode(Int128.fromDoubleFloorSaturated(pX), Mth.floor(pY), Int128.fromDoubleFloorSaturated(pZ)));
+        return this.getTargetFromNode(super.getNode(Int1088.fromDoubleFloorSaturated(pX), Mth.floor(pY), Int1088.fromDoubleFloorSaturated(pZ)));
     }
 
     public int getNeighbors(Node[] p_77266_, Node p_77267_) {
@@ -208,7 +208,7 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
     }
 
     @Nullable
-    protected Node getNode(Int128 pX, int pY, Int128 pZ) {
+    protected Node getNode(Int1088 pX, int pY, Int1088 pZ) {
         Node node = null;
         BlockPathTypes blockpathtypes = this.getCachedBlockPathType(pX, pY, pZ);
         float f = this.mob.getPathfindingMalus(blockpathtypes);
@@ -226,13 +226,13 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
         return node;
     }
 
-    private BlockPathTypes getCachedBlockPathType(Int128 pX, int pY, Int128 pZ) {
+    private BlockPathTypes getCachedBlockPathType(Int1088 pX, int pY, Int1088 pZ) {
         return this.pathTypeByPosCache.computeIfAbsent(new BlockPos(pX, pY, pZ), (p_164692_) -> {
             return this.getBlockPathType(this.level, pX, pY, pZ, this.mob, this.entityWidth, this.entityHeight, this.entityDepth, this.canOpenDoors(), this.canPassDoors());
         });
     }
 
-    public BlockPathTypes getBlockPathType(BlockGetter pBlockaccess, Int128 pX, int pY, Int128 pZ, Mob pEntityliving, int pXSize, int pYSize, int pZSize, boolean pCanBreakDoors, boolean pCanEnterDoors) {
+    public BlockPathTypes getBlockPathType(BlockGetter pBlockaccess, Int1088 pX, int pY, Int1088 pZ, Mob pEntityliving, int pXSize, int pYSize, int pZSize, boolean pCanBreakDoors, boolean pCanEnterDoors) {
         EnumSet<BlockPathTypes> enumset = EnumSet.noneOf(BlockPathTypes.class);
         BlockPathTypes blockpathtypes = BlockPathTypes.BLOCKED;
         BlockPos blockpos = pEntityliving.blockPosition();
@@ -256,7 +256,7 @@ public class FlyNodeEvaluator extends WalkNodeEvaluator {
         }
     }
 
-    public BlockPathTypes getBlockPathType(BlockGetter pLevel, Int128 pX, int pY, Int128 pZ) {
+    public BlockPathTypes getBlockPathType(BlockGetter pLevel, Int1088 pX, int pY, Int1088 pZ) {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
         BlockPathTypes blockpathtypes = getBlockPathTypeRaw(pLevel, blockpos$mutableblockpos.set(pX, pY, pZ));
         if (blockpathtypes == BlockPathTypes.OPEN && pY >= pLevel.getMinBuildHeight() + 1) {

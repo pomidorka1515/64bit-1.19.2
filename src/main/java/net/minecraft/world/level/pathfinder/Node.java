@@ -2,14 +2,14 @@ package net.minecraft.world.level.pathfinder;
 
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.phys.Vec3;
 
 public class Node {
-    public final Int128 x;
+    public final Int1088 x;
     public final int y;
-    public final Int128 z;
+    public final Int1088 z;
     private final int hash;
     public int heapIdx = -1;
     public float g;
@@ -23,26 +23,21 @@ public class Node {
     public BlockPathTypes type = BlockPathTypes.BLOCKED;
 
     public Node(long pX, int pY, long pZ) {
-        this(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+        this(Int1088.fromLong(pX), pY, Int1088.fromLong(pZ));
     }
 
-    public Node(Int128 pX, int pY, Int128 pZ) {
+    public Node(Int1088 pX, int pY, Int1088 pZ) {
         this.x = pX;
         this.y = pY;
         this.z = pZ;
         this.hash = createHash(pX, pY, pZ);
     }
 
-    public long xHi() { return this.x.hi(); }
-    public long xLo() { return this.x.lo(); }
-    public long zHi() { return this.z.hi(); }
-    public long zLo() { return this.z.lo(); }
-
     public Node cloneAndMove(long pX, int pY, long pZ) {
-        return this.cloneAndMove(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+        return this.cloneAndMove(Int1088.fromLong(pX), pY, Int1088.fromLong(pZ));
     }
 
-    public Node cloneAndMove(Int128 pX, int pY, Int128 pZ) {
+    public Node cloneAndMove(Int1088 pX, int pY, Int1088 pZ) {
         Node node = new Node(pX, pY, pZ);
         node.heapIdx = this.heapIdx;
         node.g = this.g;
@@ -57,10 +52,10 @@ public class Node {
     }
 
     public static int createHash(long pX, int pY, long pZ) {
-        return createHash(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+        return createHash(Int1088.fromLong(pX), pY, Int1088.fromLong(pZ));
     }
 
-    public static int createHash(Int128 pX, int pY, Int128 pZ) {
+    public static int createHash(Int1088 pX, int pY, Int1088 pZ) {
         int i = pX.hashCode();
         i = 31 * i + pY;
         return 31 * i + pZ.hashCode();
@@ -143,11 +138,9 @@ public class Node {
     }
 
     public void writeToStream(FriendlyByteBuf pBuffer) {
-        pBuffer.writeLong(this.x.hi());
-        pBuffer.writeLong(this.x.lo());
+        pBuffer.writeInt1088(this.x);
         pBuffer.writeInt(this.y);
-        pBuffer.writeLong(this.z.hi());
-        pBuffer.writeLong(this.z.lo());
+        pBuffer.writeInt1088(this.z);
         pBuffer.writeFloat(this.walkedDistance);
         pBuffer.writeFloat(this.costMalus);
         pBuffer.writeBoolean(this.closed);
@@ -156,8 +149,7 @@ public class Node {
     }
 
     public static Node createFromStream(FriendlyByteBuf pBuf) {
-        Node node = new Node(Int128.of(pBuf.readLong(), pBuf.readLong()), pBuf.readInt(),
-                Int128.of(pBuf.readLong(), pBuf.readLong()));
+        Node node = new Node(pBuf.readInt1088(), pBuf.readInt(), pBuf.readInt1088());
         node.walkedDistance = pBuf.readFloat();
         node.costMalus = pBuf.readFloat();
         node.closed = pBuf.readBoolean();
@@ -170,6 +162,6 @@ public class Node {
     * Complete node identity for evaluator cache lookups. The former packed
     * 32-bit key discarded high X/Z bits and merged distinct Far Lands nodes.
     */
-    static record NodeKey(Int128 x, int y, Int128 z) {
+    static record NodeKey(Int1088 x, int y, Int1088 z) {
     }
 }

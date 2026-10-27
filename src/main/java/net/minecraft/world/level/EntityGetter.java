@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
@@ -128,16 +128,16 @@ public interface EntityGetter {
         LevelEntityGetter<Entity> entityGetter = this.getEntityGetterForSectorQueries();
         if (entityGetter == null)
             return List.of();
-        Int128 minBlockX = WorldBounds.addBlockOffset(exactBox.minBlockXForRange(), -1L);
-        Int128 maxBlockX = WorldBounds.addBlockOffset(exactBox.maxBlockXForRangeInclusive(), 1L);
-        Int128 minBlockZ = WorldBounds.addBlockOffset(exactBox.minBlockZForRange(), -1L);
-        Int128 maxBlockZ = WorldBounds.addBlockOffset(exactBox.maxBlockZForRangeInclusive(), 1L);
+        Int1088 minBlockX = WorldBounds.addBlockOffset(exactBox.minBlockXForRange(), -1L);
+        Int1088 maxBlockX = WorldBounds.addBlockOffset(exactBox.maxBlockXForRangeInclusive(), 1L);
+        Int1088 minBlockZ = WorldBounds.addBlockOffset(exactBox.minBlockZForRange(), -1L);
+        Int1088 maxBlockZ = WorldBounds.addBlockOffset(exactBox.maxBlockZForRangeInclusive(), 1L);
         int minBlockY = WorldBounds.addSaturated(exactBox.minBlockYForRange(), -1);
         int maxBlockY = WorldBounds.addSaturated(exactBox.maxBlockYExclusive(), 1);
-        Int128 minChunkX = minBlockX.shiftRight(4);
-        Int128 maxChunkX = maxBlockX.shiftRight(4);
-        Int128 minChunkZ = minBlockZ.shiftRight(4);
-        Int128 maxChunkZ = maxBlockZ.shiftRight(4);
+        Int1088 minChunkX = minBlockX.shiftRight(4);
+        Int1088 maxChunkX = maxBlockX.shiftRight(4);
+        Int1088 minChunkZ = minBlockZ.shiftRight(4);
+        Int1088 maxChunkZ = maxBlockZ.shiftRight(4);
         int minSectionY = Math.floorDiv(minBlockY, 16);
         int maxSectionY = Math.floorDiv(maxBlockY, 16);
         List<Entity> result = Lists.newArrayList();
@@ -158,8 +158,8 @@ public interface EntityGetter {
     private static void addIfInSectorQuery(List<Entity> result, @Nullable Entity excluded, Entity candidate,
             AABB localBox, SectorPhysicsOrigin origin,
             Predicate<? super Entity> predicate,
-            Int128 minChunkX, Int128 maxChunkX, int minSectionY, int maxSectionY,
-            Int128 minChunkZ, Int128 maxChunkZ) {
+            Int1088 minChunkX, Int1088 maxChunkX, int minSectionY, int maxSectionY,
+            Int1088 minChunkZ, Int1088 maxChunkZ) {
         if (candidate == excluded || !predicate.test(candidate)
                 || !isInSectorQueryRange(candidate, minChunkX, maxChunkX, minSectionY, maxSectionY,
                         minChunkZ, maxChunkZ))
@@ -196,17 +196,17 @@ public interface EntityGetter {
         return builder.build();
     }
 
-    private static boolean isInSectorQueryRange(Entity entity, Int128 minChunkX, Int128 maxChunkX,
+    private static boolean isInSectorQueryRange(Entity entity, Int1088 minChunkX, Int1088 maxChunkX,
             int minSectionY, int maxSectionY,
-            Int128 minChunkZ, Int128 maxChunkZ) {
+            Int1088 minChunkZ, Int1088 maxChunkZ) {
         SectorAABB box = entity.getSectorBoundingBoxForCulling();
         if (box == null) {
             return false;
         }
-        Int128 minEntityChunkX = box.minBlockXForRange().shiftRight(4);
-        Int128 maxEntityChunkX = box.maxBlockXForRangeInclusive().shiftRight(4);
-        Int128 minEntityChunkZ = box.minBlockZForRange().shiftRight(4);
-        Int128 maxEntityChunkZ = box.maxBlockZForRangeInclusive().shiftRight(4);
+        Int1088 minEntityChunkX = box.minBlockXForRange().shiftRight(4);
+        Int1088 maxEntityChunkX = box.maxBlockXForRangeInclusive().shiftRight(4);
+        Int1088 minEntityChunkZ = box.minBlockZForRange().shiftRight(4);
+        Int1088 maxEntityChunkZ = box.maxBlockZForRangeInclusive().shiftRight(4);
         int minEntitySectionY = Math.floorDiv(box.minBlockYForRange(), 16);
         int maxEntitySectionY = Math.floorDiv(box.maxBlockYExclusive(), 16);
         return maxEntityChunkX.compareTo(minChunkX) >= 0 && minEntityChunkX.compareTo(maxChunkX) <= 0

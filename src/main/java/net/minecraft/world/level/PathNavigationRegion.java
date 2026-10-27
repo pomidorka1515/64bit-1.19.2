@@ -3,7 +3,7 @@ package net.minecraft.world.level;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.Entity;
@@ -19,8 +19,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class PathNavigationRegion implements BlockGetter, CollisionGetter {
-    protected final Int128 centerX;
-    protected final Int128 centerZ;
+    protected final Int1088 centerX;
+    protected final Int1088 centerZ;
     protected final ChunkAccess[][] chunks;
     protected boolean allEmpty;
     protected final Level level;
@@ -29,8 +29,8 @@ public class PathNavigationRegion implements BlockGetter, CollisionGetter {
         this.level = pLevel;
         this.centerX = SectionPos.blockToSectionCoord(pCenterPos.getX());
         this.centerZ = SectionPos.blockToSectionCoord(pCenterPos.getZ());
-        Int128 i = SectionPos.blockToSectionCoord(pOffsetPos.getX());
-        Int128 j = SectionPos.blockToSectionCoord(pOffsetPos.getZ());
+        Int1088 i = SectionPos.blockToSectionCoord(pOffsetPos.getX());
+        Int1088 j = SectionPos.blockToSectionCoord(pOffsetPos.getZ());
         int width = snapshotSize(this.centerX, i);
         int depth = snapshotSize(this.centerZ, j);
         if ((long) width * depth > Integer.MAX_VALUE)
@@ -40,9 +40,9 @@ public class PathNavigationRegion implements BlockGetter, CollisionGetter {
         this.allEmpty = true;
 
         for (int x = 0; x < width; ++x) {
-            Int128 chunkX = WorldBounds.addChunkOffset(this.centerX, x);
+            Int1088 chunkX = WorldBounds.addChunkOffset(this.centerX, x);
             for (int z = 0; z < depth; ++z) {
-                Int128 chunkZ = WorldBounds.addChunkOffset(this.centerZ, z);
+                Int1088 chunkZ = WorldBounds.addChunkOffset(this.centerZ, z);
                 this.chunks[x][z] = chunksource.getChunkNow(chunkX, chunkZ);
             }
         }
@@ -59,7 +59,7 @@ public class PathNavigationRegion implements BlockGetter, CollisionGetter {
     }
 
     /** Bounds allocation by local span, independently of either coordinate's high word. */
-    private static int snapshotSize(Int128 first, Int128 last) {
+    private static int snapshotSize(Int1088 first, Int1088 last) {
         if (first.compareTo(last) > 0)
             throw new IllegalArgumentException("Reversed pathfinding snapshot range");
         long span = WorldBounds.signedDifferenceAsLong(last, first);
@@ -82,7 +82,7 @@ public class PathNavigationRegion implements BlockGetter, CollisionGetter {
     * throwaway chunks a severe server-tick spike.
     */
     @Nullable
-    private ChunkAccess getChunk(Int128 pX, Int128 pZ) {
+    private ChunkAccess getChunk(Int1088 pX, Int1088 pZ) {
         long i = WorldBounds.signedDifferenceAsLong(pX, this.centerX);
         long j = WorldBounds.signedDifferenceAsLong(pZ, this.centerZ);
         return i >= 0 && i < this.chunks.length && j >= 0 && j < this.chunks[(int) i].length
@@ -96,11 +96,11 @@ public class PathNavigationRegion implements BlockGetter, CollisionGetter {
 
     @Nullable
     public BlockGetter getChunkForCollisions(long pChunkX, long pChunkZ) {
-        return this.getChunk(Int128.fromLong(pChunkX), Int128.fromLong(pChunkZ));
+        return this.getChunk(Int1088.fromLong(pChunkX), Int1088.fromLong(pChunkZ));
     }
 
     @Nullable
-    public BlockGetter getChunkForCollisions(Int128 pChunkX, Int128 pChunkZ) {
+    public BlockGetter getChunkForCollisions(Int1088 pChunkX, Int1088 pChunkZ) {
         return this.getChunk(pChunkX, pChunkZ);
     }
 

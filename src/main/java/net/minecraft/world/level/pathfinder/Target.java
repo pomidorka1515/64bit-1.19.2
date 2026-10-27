@@ -1,7 +1,7 @@
 package net.minecraft.world.level.pathfinder;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 
 public class Target extends Node {
     private float bestHeuristic = Float.MAX_VALUE;
@@ -16,7 +16,7 @@ public class Target extends Node {
         super(pX, pY, pZ);
     }
 
-    public Target(Int128 pX, int pY, Int128 pZ) {
+    public Target(Int1088 pX, int pY, Int1088 pZ) {
         super(pX, pY, pZ);
     }
 
@@ -40,8 +40,7 @@ public class Target extends Node {
     }
 
     public static Target createFromStream(FriendlyByteBuf pBuffer) {
-        Target target = new Target(Int128.of(pBuffer.readLong(), pBuffer.readLong()), pBuffer.readInt(),
-                Int128.of(pBuffer.readLong(), pBuffer.readLong()));
+        Target target = new Target(pBuffer.readInt1088(), pBuffer.readInt(), pBuffer.readInt1088());
         target.walkedDistance = pBuffer.readFloat();
         target.costMalus = pBuffer.readFloat();
         target.closed = pBuffer.readBoolean();

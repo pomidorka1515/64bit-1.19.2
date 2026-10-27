@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.VisibleForDebug;
 import net.minecraft.world.entity.Entity;
@@ -156,11 +155,9 @@ public class Path {
             this.targetNodes.forEach((p_164708_) -> {
                 p_164708_.writeToStream(pBuffer);
             });
-            pBuffer.writeLong(this.target.getXHi());
-            pBuffer.writeLong(this.target.getXLo());
+            pBuffer.writeInt1088(this.target.getX());
             pBuffer.writeInt(this.target.getY());
-            pBuffer.writeLong(this.target.getZHi());
-            pBuffer.writeLong(this.target.getZLo());
+            pBuffer.writeInt1088(this.target.getZ());
             pBuffer.writeInt(this.nodes.size());
 
             for (Node node : this.nodes) {
@@ -191,8 +188,7 @@ public class Path {
             set.add(Target.createFromStream(pBuf));
         }
 
-        BlockPos blockpos = new BlockPos(Int128.of(pBuf.readLong(), pBuf.readLong()), pBuf.readInt(),
-                Int128.of(pBuf.readLong(), pBuf.readLong()));
+        BlockPos blockpos = new BlockPos(pBuf.readInt1088(), pBuf.readInt(), pBuf.readInt1088());
         List<Node> list = Lists.newArrayList();
         int l = pBuf.readInt();
 

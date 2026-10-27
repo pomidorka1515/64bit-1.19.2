@@ -6,7 +6,7 @@ import java.util.NoSuchElementException;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Cursor3D;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.Blocks;
@@ -47,19 +47,25 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
     private boolean leased;
     private final VoxelShape.TranslationPool translations = new VoxelShape.TranslationPool();
     private SectorAABB rangeBox;
-    private Int128 minX, maxX, minZ, maxZ;
+    private Int1088 minX, maxX, minZ, maxZ;
     private int minY, maxY;
+    // A validated sweep spans at most 65 blocks on either horizontal axis.
+    // Materialize addresses once per immutable box, not once per visited block.
+    private final Int1088[] blockXs = new Int1088[65];
+    private final Int1088[] blockZs = new Int1088[65];
+    private final Int1088[] chunkXs = new Int1088[65];
+    private final Int1088[] chunkZs = new Int1088[65];
+    private boolean hasRangeCoordinates;
     /*
     * Collision sweeps usually touch only a few chunks, but a boundary sweep
      * can revisit them thousands of times. Four open-addressed slots cache
      * hits and misses; occupancy distinguishes unloaded chunks from empty slots.
      * Larger sweeps evict a home slot and remain exact (with more lookups).
     */
-    private final long[] chunkKeys = new long[16];
-    private final Int128[] chunkCoordinates = new Int128[8];
+    private final Int1088[] chunkCoordinates = new Int1088[8];
     private final BlockGetter[] chunks = new BlockGetter[4];
     private int occupied;
-    private long cachedXHi, cachedXLo, cachedZHi, cachedZLo;
+    private Int1088 cachedX, cachedZ;
     private boolean hasCachedChunk;
     @Nullable
     private BlockGetter cachedChunk;
@@ -131,6 +137,7 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
         // Immutable bounds can be reused by repeated probes. This retains only
         // geometry, never a level/entity or a chunk lookup across operations.
         if (this.rangeBox != exactBox) {
+            this.hasRangeCoordinates = false;
             this.minX = exactBox.minBlockXForCollision();
             this.maxX = exactBox.maxBlockXForCollision();
             this.minY = exactBox.minBlockYForCollision();
@@ -139,7 +146,7 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
             this.maxZ = exactBox.maxBlockZForCollision();
             this.rangeBox = exactBox;
         }
-        Int128 minX = this.minX, maxX = this.maxX, minZ = this.minZ, maxZ = this.maxZ;
+        Int1088 minX = this.minX, maxX = this.maxX, minZ = this.minZ, maxZ = this.maxZ;
         int minY = this.minY, maxY = this.maxY;
         // Validate both the traversal span and its distance from the one local
         // origin. A small box at a distant address is not a safe local sweep.
@@ -147,11 +154,28 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
                 || !isSafeCursorRange(minX, maxX, minY, maxY, minZ, maxZ);
         // Keep hostile ranges out of the cursor even though it now advances
         // by endpoints rather than by an overflowing linear index.
-        if (!this.invalidRange) this.cursor.reset(minX, minY, minZ, maxX, maxY, maxZ);
+        if (!this.invalidRange) {
+            if (!this.hasRangeCoordinates) {
+                fillCoordinates(this.blockXs, this.chunkXs, minX, maxX);
+                fillCoordinates(this.blockZs, this.chunkZs, minZ, maxZ);
+                this.hasRangeCoordinates = true;
+            }
+            this.cursor.reset(minX, minY, minZ, maxX, maxY, maxZ);
+        }
     }
 
-    private static boolean isSafeCursorRange(Int128 minX, Int128 maxX, int minY, int maxY,
-            Int128 minZ, Int128 maxZ) {
+    private static void fillCoordinates(Int1088[] blocks, Int1088[] chunks, Int1088 min, Int1088 max) {
+        Arrays.fill(blocks, null);
+        Arrays.fill(chunks, null);
+        int span = (int) WorldBounds.signedDifferenceAsLong(max, min);
+        for (int i = 0; i <= span; ++i) {
+            blocks[i] = WorldBounds.addBlockOffset(min, i);
+            chunks[i] = blocks[i].shiftRight(4);
+        }
+    }
+
+    private static boolean isSafeCursorRange(Int1088 minX, Int1088 maxX, int minY, int maxY,
+            Int1088 minZ, Int1088 maxZ) {
         // Preserve the 64-block horizontal sanity limit and int-sized volume
         // budget independently of the shared precision bound.
         if (maxX.compareTo(minX) < 0 || maxZ.compareTo(minZ) < 0 || maxY < minY
@@ -169,44 +193,30 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
     }
 
     @Nullable
-    private BlockGetter getChunk(long xHi, long xLo, long zHi, long zLo) {
-        long chunkXHi = xHi >> 4;
-        long chunkXLo = (xLo >>> 4) | (xHi << 60);
-        long chunkZHi = zHi >> 4;
-        long chunkZLo = (zLo >>> 4) | (zHi << 60);
-        if (this.hasCachedChunk && this.cachedXHi == chunkXHi && this.cachedXLo == chunkXLo
-                && this.cachedZHi == chunkZHi && this.cachedZLo == chunkZLo) {
+    private BlockGetter getChunk(Int1088 chunkX, Int1088 chunkZ) {
+        if (this.hasCachedChunk && this.cachedX.equals(chunkX) && this.cachedZ.equals(chunkZ)) {
             return this.cachedChunk;
         }
         this.hasCachedChunk = true;
-        this.cachedXHi = chunkXHi;
-        this.cachedXLo = chunkXLo;
-        this.cachedZHi = chunkZHi;
-        this.cachedZLo = chunkZLo;
-        int slot = (int) (chunkXHi ^ chunkXLo ^ chunkZHi ^ (chunkZLo * 3L)) & 3;
+        this.cachedX = chunkX;
+        this.cachedZ = chunkZ;
+        int slot = (chunkX.hashCode() ^ (chunkZ.hashCode() * 3)) & 3;
         int insertion = slot;
         for (int probe = 0; probe < 4; ++probe) {
-            int key = slot << 2;
             if ((this.occupied & (1 << slot)) == 0) {
                 insertion = slot;
                 break;
             }
-            if (this.chunkKeys[key] == chunkXHi && this.chunkKeys[key + 1] == chunkXLo
-                    && this.chunkKeys[key + 2] == chunkZHi && this.chunkKeys[key + 3] == chunkZLo) {
+            if (this.chunkCoordinates[slot << 1].equals(chunkX)
+                    && this.chunkCoordinates[(slot << 1) + 1].equals(chunkZ)) {
                 return this.cachedChunk = this.chunks[slot];
             }
             slot = (slot + 1) & 3;
         }
 
         int coordinate = insertion << 1;
-        Int128 chunkX = this.chunkCoordinates[coordinate];
-        if (chunkX == null || chunkX.hi() != chunkXHi || chunkX.lo() != chunkXLo) {
-            this.chunkCoordinates[coordinate] = chunkX = Int128.of(chunkXHi, chunkXLo);
-        }
-        Int128 chunkZ = this.chunkCoordinates[coordinate + 1];
-        if (chunkZ == null || chunkZ.hi() != chunkZHi || chunkZ.lo() != chunkZLo) {
-            this.chunkCoordinates[coordinate + 1] = chunkZ = Int128.of(chunkZHi, chunkZLo);
-        }
+        this.chunkCoordinates[coordinate] = chunkX;
+        this.chunkCoordinates[coordinate + 1] = chunkZ;
         BlockGetter getter;
         if (this.collisionGetter instanceof ServerLevel serverLevel) {
             // This method is intentionally non-blocking.  In particular, never
@@ -216,11 +226,6 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
         } else {
             getter = this.collisionGetter.getChunkForCollisions(chunkX, chunkZ);
         }
-        int key = insertion << 2;
-        this.chunkKeys[key] = chunkXHi;
-        this.chunkKeys[key + 1] = chunkXLo;
-        this.chunkKeys[key + 2] = chunkZHi;
-        this.chunkKeys[key + 3] = chunkZLo;
         this.chunks[insertion] = getter;
         this.occupied |= 1 << insertion;
         return this.cachedChunk = getter;
@@ -274,29 +279,29 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
         }
 
         while (this.cursor.advance()) {
-            long xHi = this.cursor.nextXHi();
-            long xLo = this.cursor.nextXLo();
+            // Subtraction modulo 2^64 is exact for these validated <=64 offsets,
+            // including a carry across any limb. Full identities are cached above.
+            int ix = (int) (this.cursor.nextXLimb(0) - this.minX.lowLimb());
+            int iz = (int) (this.cursor.nextZLimb(0) - this.minZ.lowLimb());
+            Int1088 x = this.blockXs[ix];
             int blockY = this.cursor.nextY();
-            long zHi = this.cursor.nextZHi();
-            long zLo = this.cursor.nextZLo();
+            Int1088 z = this.blockZs[iz];
             int type = this.cursor.getNextType();
             // At a world edge the one-block safety margin is saturated onto
             // the last real block. It is not an outer padding face: ordinary
             // blocks there must still contribute collision shapes. Correct each
             // clipped axis independently, including at X/Z world corners.
-            if (xHi == Int128.MIN.hi() && xLo == Int128.MIN.lo()
-                    || xHi == Int128.MAX.hi() && xLo == Int128.MAX.lo()) {
+            if (x.equals(Int1088.MIN) || x.equals(Int1088.MAX)) {
                 --type;
             }
-            if (zHi == Int128.MIN.hi() && zLo == Int128.MIN.lo()
-                    || zHi == Int128.MAX.hi() && zLo == Int128.MAX.lo()) {
+            if (z.equals(Int1088.MIN) || z.equals(Int1088.MAX)) {
                 --type;
             }
             if (type == Cursor3D.TYPE_CORNER) {
                 continue;
             }
 
-            BlockGetter getter = this.getChunk(xHi, xLo, zHi, zLo);
+            BlockGetter getter = this.getChunk(this.chunkXs[ix], this.chunkZs[iz]);
             if (getter == null) {
                 // A non-blocking server lookup can observe a chunk while it is
                 // still loading.  Treat it as solid for movement collision.  The
@@ -307,9 +312,9 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
                 if (this.onlySuffocatingBlocks) {
                     continue;
                 }
-                double localX = this.localX(xLo);
+                double localX = WorldBounds.signedDifference(x, this.origin.originBlockX());
                 double localY = (double) blockY - (double) this.origin.originBlockY();
-                double localZ = this.localZ(zLo);
+                double localZ = WorldBounds.signedDifference(z, this.origin.originBlockZ());
                 VoxelShape localShape = this.translate(Shapes.block(), localX, localY, localZ);
                 if (this.localBox.intersects(localX, localY, localZ,
                             localX + 1.0D, localY + 1.0D, localZ + 1.0D)
@@ -319,7 +324,7 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
                 continue;
             }
 
-            this.pos.set(xHi, xLo, blockY, zHi, zLo);
+            this.pos.set(x, blockY, z);
             BlockState state = getter.getBlockState(this.pos);
             if (this.onlySuffocatingBlocks && !state.isSuffocating(getter, this.pos)
                     || type == Cursor3D.TYPE_FACE && !state.hasLargeCollisionShape()
@@ -332,9 +337,9 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
                 continue;
             }
             // Exact integer subtraction happens before conversion to local doubles.
-            double localX = this.localX(xLo);
+            double localX = WorldBounds.signedDifference(x, this.origin.originBlockX());
             double localY = (double) blockY - (double) this.origin.originBlockY();
-            double localZ = this.localZ(zLo);
+            double localZ = WorldBounds.signedDifference(z, this.origin.originBlockZ());
             if (shape == Shapes.block()) {
                 if (this.localBox.intersects(localX, localY, localZ,
                         localX + 1.0D, localY + 1.0D, localZ + 1.0D)) {
@@ -352,16 +357,4 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
         return null;
     }
 
-    // Constructor validation bounds every visited coordinate relative to origin.
-    // Modular low-word subtraction therefore equals the full signed local delta,
-    // even when traversal crosses a high-word carry. Never use this without that guard.
-    private double localX(long low) {
-        long delta = low - this.origin.originBlockX().lo();
-        return delta;
-    }
-
-    private double localZ(long low) {
-        long delta = low - this.origin.originBlockZ().lo();
-        return delta;
-    }
 }

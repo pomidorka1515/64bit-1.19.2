@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.entity.Entity;
@@ -37,7 +37,7 @@ class SectorBlockCollisionsTest {
 
     @Test
     void scopedIteratorReusesStateAfterEarlyExitAndKeepsNestedQueriesIndependent() {
-        Int128 x = Int128.of(7L, -1L);
+        Int1088 x = Int1088.of(-1L, 7L);
         SingleBlockCollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x, 64, x));
         SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x, 64, x);
         SectorAABB box = SectorAABB.around(SectorVec3.fromBlockAndFraction(x, 0.5D, 64, x, 0.5D), 0.6D, 1.8D);
@@ -67,9 +67,9 @@ class SectorBlockCollisionsTest {
 
     @Test
     void leasedPartialShapesMatchOrdinaryIteratorAndOrdinaryShapesSurviveReuse() {
-        Int128 x = Int128.of(-7L, -1L);
+        Int1088 x = Int1088.of(-1L, -7L);
         SingleBlockCollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x, 64, x));
-        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x.subtract(Int128.ONE), 63, x);
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x.subtract(Int1088.ONE), 63, x);
         SectorAABB box = SectorAABB.around(SectorVec3.fromBlockAndFraction(x, 0.5, 64, x, 0.5), 0.6, 1.8);
         AABB local = box.toLocalAABB(origin);
         for (BlockState state : new BlockState[] {Blocks.STONE.defaultBlockState(),
@@ -92,7 +92,7 @@ class SectorBlockCollisionsTest {
         var bean = (com.sun.management.ThreadMXBean) java.lang.management.ManagementFactory.getThreadMXBean();
         org.junit.jupiter.api.Assumptions.assumeTrue(bean.isThreadAllocatedMemorySupported());
         bean.setThreadAllocatedMemoryEnabled(true);
-        Int128 x = Int128.of(7L, -1L);
+        Int1088 x = Int1088.ONE.shiftLeftSaturated(1024).subtractSaturated(Int1088.ONE);
         SingleBlockCollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x, 64, x));
         SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x, 64, x);
         SectorAABB box = SectorAABB.around(SectorVec3.fromBlockAndFraction(x, 0.5, 64, x, 0.5), 0.6, 1.8);
@@ -116,12 +116,12 @@ class SectorBlockCollisionsTest {
 
     @Test
     void leasedShapesRemainDistinctUntilCloseAndAreReusedAcrossSweeps() {
-        Int128 x = Int128.of(7L, -1L);
+        Int1088 x = Int1088.of(-1L, 7L);
         SingleBlockCollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x, 64, x));
         level.unloaded = true; // Several conservative cubes, crossing a low-word carry.
         SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x, 64, x);
         SectorAABB box = new SectorAABB(x, 0.25, 64, x, 0.25,
-                x.add(Int128.ONE), 0.75, 65.8, x, 0.75);
+                x.add(Int1088.ONE), 0.75, 65.8, x, 0.75);
         AABB local = box.toLocalAABB(origin);
         VoxelShape first;
         VoxelShape second;
@@ -149,7 +149,7 @@ class SectorBlockCollisionsTest {
     void cachesFourBoundaryChunksIncludingUnloadedEntries() {
         for (boolean unloaded : new boolean[] {false, true}) {
             // Both axes cross a low-word carry as well as a chunk boundary.
-            Int128 x = Int128.of(9L, 0L);
+            Int1088 x = Int1088.of(0L, 9L);
             SingleBlockCollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x, 64, x));
             level.unloaded = unloaded;
             SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x, 64, x);
@@ -163,11 +163,11 @@ class SectorBlockCollisionsTest {
 
     @Test
     void cacheEvictionDoesNotLoseCollisionsAcrossMoreThanFourChunks() {
-        Int128 x = Int128.of(-11L, 0L);
-        SingleBlockCollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x.add(Int128.fromLong(47)), 64, x));
+        Int1088 x = Int1088.of(0L, -11L);
+        SingleBlockCollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x.add(Int1088.fromLong(47)), 64, x));
         SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x, 64, x);
         SectorAABB box = new SectorAABB(x, 0.25, 64, x, 0.25,
-                x.add(Int128.fromLong(48)), 0.75, 65.8, x.add(Int128.fromLong(16)), 0.75);
+                x.add(Int1088.fromLong(48)), 0.75, 65.8, x.add(Int1088.fromLong(16)), 0.75);
         int shapes = 0;
         try (var collisions = SectorBlockCollisions.acquire(level, null, box, box.toLocalAABB(origin), origin, false)) {
             while (collisions.hasNext()) {
@@ -198,8 +198,8 @@ class SectorBlockCollisionsTest {
 
     @Test
     void spawnCollisionChecksUseExactBoundsRatherThanCollapsedDoubleBoxes() {
-        for (Int128 coordinate : new Int128[] {Int128.of(5L, -1L), Int128.of(-5L, 0L),
-                Int128.MIN.add(Int128.fromLong(8L)), Int128.MAX.subtract(Int128.fromLong(8L))}) {
+        for (Int1088 coordinate : new Int1088[] {Int1088.of(-1L, 5L), Int1088.of(0L, -5L),
+                Int1088.MIN.add(Int1088.fromLong(8L)), Int1088.MAX.subtract(Int1088.fromLong(8L))}) {
             CollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(coordinate, 64, coordinate));
             SectorVec3 position = SectorVec3.fromBlockAndFraction(coordinate, 0.5D, 64.0D, coordinate, 0.5D);
             assertFalse(level.noCollision(AABB.fromSectorBounds(SectorAABB.around(position, 0.6D, 1.8D))));
@@ -209,8 +209,8 @@ class SectorBlockCollisionsTest {
 
     @Test
     void findsHugeBlockAndReturnsLocalShape() {
-        Int128 hugeX = Int128.of(1L << 36, -1L);
-        Int128 hugeZ = Int128.of(-(1L << 36), 0L);
+        Int1088 hugeX = Int1088.ONE.shiftLeftSaturated(1024).subtractSaturated(Int1088.ONE);
+        Int1088 hugeZ = Int1088.ONE.shiftLeftSaturated(1024).negate();
         BlockPos solidPos = new BlockPos(hugeX, 64, hugeZ);
         CollisionGetter level = new SingleBlockCollisionGetter(solidPos);
         SectorPhysicsOrigin origin = new SectorPhysicsOrigin(hugeX, 64, hugeZ);
@@ -232,15 +232,15 @@ class SectorBlockCollisionsTest {
 
     @Test
     void findsSolidBlocksAtClippedWorldEdgesAndCorners() {
-        Int128[][] coordinates = {
-                {Int128.MIN, Int128.ZERO}, {Int128.MAX, Int128.ZERO},
-                {Int128.ZERO, Int128.MIN}, {Int128.ZERO, Int128.MAX},
-                {Int128.MIN, Int128.MIN}, {Int128.MIN, Int128.MAX},
-                {Int128.MAX, Int128.MIN}, {Int128.MAX, Int128.MAX}
+        Int1088[][] coordinates = {
+                {Int1088.MIN, Int1088.ZERO}, {Int1088.MAX, Int1088.ZERO},
+                {Int1088.ZERO, Int1088.MIN}, {Int1088.ZERO, Int1088.MAX},
+                {Int1088.MIN, Int1088.MIN}, {Int1088.MIN, Int1088.MAX},
+                {Int1088.MAX, Int1088.MIN}, {Int1088.MAX, Int1088.MAX}
         };
-        for (Int128[] coordinate : coordinates) {
-            Int128 x = coordinate[0];
-            Int128 z = coordinate[1];
+        for (Int1088[] coordinate : coordinates) {
+            Int1088 x = coordinate[0];
+            Int1088 z = coordinate[1];
             CollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x, 64, z));
             SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x, 64, z);
             SectorVec3 position = SectorVec3.fromBlockAndFraction(x, 0.5D, 64.0D, z, 0.5D);
@@ -257,8 +257,8 @@ class SectorBlockCollisionsTest {
 
     @Test
     void rejectsAWorldSpanningSweepWithoutIterating() {
-        SectorAABB box = new SectorAABB(Int128.MIN, 0.25D, 64.0D, Int128.ZERO, 0.25D,
-                Int128.MAX, Math.nextDown(1.0D), 65.8D, Int128.ZERO, 0.75D);
+        SectorAABB box = new SectorAABB(Int1088.MIN, 0.25D, 64.0D, Int1088.ZERO, 0.25D,
+                Int1088.MAX, Math.nextDown(1.0D), 65.8D, Int1088.ZERO, 0.75D);
         SectorPhysicsOrigin origin = new SectorPhysicsOrigin(0L, 64, 0L);
         assertThrows(IllegalArgumentException.class, () -> box.toLocalAABB(origin));
         assertConservativeCollisionWithoutLookup(box, origin);
@@ -267,11 +267,11 @@ class SectorBlockCollisionsTest {
     @Test
     void hugeSweepsAndSmallDistantBoxesCannotTunnelOrLookupChunks() {
         SectorPhysicsOrigin origin = new SectorPhysicsOrigin(0L, 64, 0L);
-        for (Int128 far : new Int128[] {Int128.ONE.shiftLeftSaturated(100),
-                Int128.fromLong(1L << 62), Int128.of(0L, Long.MIN_VALUE),
-                Int128.fromLong(WorldBounds.MAX_SAFE_LOCAL_SPAN + 1L)}) {
-            SectorAABB sweep = new SectorAABB(Int128.ZERO, 0.0D, 64.0D, Int128.ZERO, 0.0D,
-                    far, 0.5D, 65.0D, Int128.ZERO, 0.5D);
+        for (Int1088 far : new Int1088[] {Int1088.ONE.shiftLeftSaturated(1024),
+                Int1088.fromLong(1L << 62), Int1088.of(Long.MIN_VALUE, 0L),
+                Int1088.fromLong(WorldBounds.MAX_SAFE_LOCAL_SPAN + 1L)}) {
+            SectorAABB sweep = new SectorAABB(Int1088.ZERO, 0.0D, 64.0D, Int1088.ZERO, 0.0D,
+                    far, 0.5D, 65.0D, Int1088.ZERO, 0.5D);
             assertConservativeCollisionWithoutLookup(sweep, origin);
             SectorAABB distant = SectorAABB.around(SectorVec3.fromBlockAndFraction(
                     far, 0.5D, 64.0D, far, 0.5D), 0.5D, 1.0D);
@@ -315,7 +315,7 @@ class SectorBlockCollisionsTest {
 
         @Override
         @Nullable
-        public BlockGetter getChunkForCollisions(Int128 chunkX, Int128 chunkZ) {
+        public BlockGetter getChunkForCollisions(Int1088 chunkX, Int1088 chunkZ) {
             ++this.chunkLookups;
             return this.unloaded ? null : this;
         }

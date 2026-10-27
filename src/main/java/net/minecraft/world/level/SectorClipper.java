@@ -3,7 +3,7 @@ package net.minecraft.world.level;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
@@ -24,7 +24,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public final class SectorClipper {
     private SectorClipper() {}
 
-    /** Player-camera ray in an unclamped local frame; space beyond Int128 bounds is air. */
+    /** Player-camera ray in an unclamped local frame; space beyond world bounds is air. */
     public static double clipCameraDistance(BlockGetter level, SectorVec3 anchor, Vec3 fromOffset,
             Vec3 toOffset, Entity entity) {
         SectorPhysicsOrigin origin = SectorPhysicsOrigin.from(anchor);
@@ -73,9 +73,10 @@ public final class SectorClipper {
                 from.y + safeDirection(to.y - from.y), from.z + safeDirection(to.z - from.z));
     }
 
-    private static boolean additionOverflows(Int128 base, Int128 offset) {
-        Int128 sum = base.add(offset);
-        return (base.hi() < 0L) == (offset.hi() < 0L) && (sum.hi() < 0L) != (base.hi() < 0L);
+    private static boolean additionOverflows(Int1088 base, Int1088 offset) {
+        Int1088 sum = base.add(offset);
+        return base.signum() == offset.signum() && base.signum() != 0
+                && sum.signum() != base.signum();
     }
 
     private static void requireSafeRay(Vec3 from, Vec3 to) {
@@ -100,18 +101,18 @@ public final class SectorClipper {
     private static BlockHitResult clipBlock(BlockGetter level, ClipContext context,
             SectorPhysicsOrigin origin, BlockPos localPos) {
         // The DDA can step just beyond the last representable block when a ray
-        // points out of the world at an Int128-coordinate edge. Saturate the
+        // points out of the world at a coordinate edge. Saturate the
         // horizontal address instead of allowing arithmetic overflow to crash
         // the render thread.
-        Int128 blockX = WorldBounds.addBlockOffset(origin.originBlockX(), localPos.getX());
-        Int128 blockZ = WorldBounds.addBlockOffset(origin.originBlockZ(), localPos.getZ());
+        Int1088 blockX = WorldBounds.addBlockOffset(origin.originBlockX(), localPos.getX());
+        Int1088 blockZ = WorldBounds.addBlockOffset(origin.originBlockZ(), localPos.getZ());
         int blockY = origin.originBlockY() + localPos.getY();
         BlockPos worldPos = new BlockPos(blockX, blockY, blockZ);
         BlockState state = level.getBlockState(worldPos);
         FluidState fluid = level.getFluidState(worldPos);
-        double localX = WorldBounds.signedDifference(localPos.getX(), Int128.ZERO);
+        double localX = WorldBounds.signedDifference(localPos.getX(), Int1088.ZERO);
         double localY = (double) localPos.getY();
-        double localZ = WorldBounds.signedDifference(localPos.getZ(), Int128.ZERO);
+        double localZ = WorldBounds.signedDifference(localPos.getZ(), Int1088.ZERO);
 
         VoxelShape blockShape = context.getBlockShape(state, level, worldPos);
         BlockHitResult blockHit = clipShape(context.getFrom(), context.getTo(),

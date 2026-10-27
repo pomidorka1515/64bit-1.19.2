@@ -9,6 +9,7 @@ import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Int1088;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelReader;
 
@@ -32,6 +33,14 @@ public class FixedBiomeSource extends BiomeSource implements BiomeManager.NoiseB
     }
 
     public Holder<Biome> getNoiseBiome(long pX, int pY, long pZ) {
+        return this.biome;
+    }
+
+    public Holder<Biome> getNoiseBiome(Int1088 pX, int pY, Int1088 pZ, Climate.Sampler sampler) {
+        return this.biome;
+    }
+
+    public Holder<Biome> getNoiseBiome(Int1088 pX, int pY, Int1088 pZ) {
         return this.biome;
     }
 

@@ -113,7 +113,7 @@ public final class Biome {
         float f = this.climateSettings.temperatureModifier.modifyTemperature(pPos, this.getBaseTemperature());
         if (pPos.getY() > 80) {
             // Temperature noise retains the deferred low-64 worldgen projection.
-            float f1 = (float) (TEMPERATURE_NOISE.getValue((double) (net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toFloat(pPos.getXHi(), pPos.getXLo()) / 8.0F), (double) (net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toFloat(pPos.getZHi(), pPos.getZLo()) / 8.0F), false) * 8.0D);
+            float f1 = (float) (TEMPERATURE_NOISE.getValue((double) (net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toFloat(pPos.getX()) / 8.0F), (double) (net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toFloat(pPos.getZ()) / 8.0F), false) * 8.0D);
             return f - (f1 + (float) pPos.getY() - 80.0F) * 0.05F / 40.0F;
         } else {
             return f;
@@ -376,8 +376,8 @@ public final class Biome {
         FROZEN("frozen") {
             public float modifyTemperature(BlockPos p_47774_, float p_47775_) {
                 // Only generated temperature content projects; the cache key remains exact.
-                double x = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(p_47774_.getXHi(), p_47774_.getXLo());
-                double z = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(p_47774_.getZHi(), p_47774_.getZLo());
+                double x = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(p_47774_.getX());
+                double z = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(p_47774_.getZ());
                 double d0 = Biome.FROZEN_TEMPERATURE_NOISE.getValue(x * 0.05D, z * 0.05D, false) * 7.0D;
                 double d1 = Biome.BIOME_INFO_NOISE.getValue(x * 0.2D, z * 0.2D, false);
                 double d2 = d0 + d1;

@@ -6,21 +6,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import org.junit.jupiter.api.Test;
 
-class BiomeManagerInt128Test {
+class BiomeManagerInt1088Test {
     @Test
     void runtimeQueriesDispatchFullWidthQuartCoordinates() {
-        Int128 x = Int128.of(123L, 64L);
-        Int128 z = Int128.of(-98L, 128L);
-        Int128[] queried = new Int128[2];
+        Int1088 x = Int1088.of(64L, 123L);
+        Int1088 z = Int1088.of(128L, -98L);
+        Int1088[] queried = new Int1088[2];
         BiomeManager manager = new BiomeManager(new BiomeManager.NoiseBiomeSource() {
             public Holder<Biome> getNoiseBiome(long x, int y, long z) {
                 throw new AssertionError("runtime lookup narrowed before provider dispatch");
             }
 
-            public Holder<Biome> getNoiseBiome(Int128 x, int y, Int128 z) {
+            public Holder<Biome> getNoiseBiome(Int1088 x, int y, Int1088 z) {
                 queried[0] = x;
                 queried[1] = z;
                 return null;
@@ -32,20 +32,20 @@ class BiomeManagerInt128Test {
         assertEquals(z.shiftRight(2), queried[1]);
         manager.getBiome(new BlockPos(x, 70, z));
         assertTrue(queried[0].equals(x.shiftRight(2))
-                || queried[0].equals(x.shiftRight(2).subtract(Int128.ONE)));
+                || queried[0].equals(x.shiftRight(2).subtract(Int1088.ONE)));
         assertTrue(queried[1].equals(z.shiftRight(2))
-                || queried[1].equals(z.shiftRight(2).subtract(Int128.ONE)));
+                || queried[1].equals(z.shiftRight(2).subtract(Int1088.ONE)));
     }
 
     @Test
-    void legacySamplingProviderReceivesOnlyLowQuartBits() {
+    void defaultSamplingProviderReceivesFullQuartCoordinates() {
         BiomeManager.NoiseBiomeSource source = (x, y, z) -> {
-            assertEquals(17L, x);
-            assertEquals(-19L, z);
+            assertEquals(Int1088.of(17L, 42L), x);
+            assertEquals(Int1088.of(-19L, -42L), z);
             throw new Sampled();
         };
         assertThrows(Sampled.class, () -> source.getNoiseBiome(
-                Int128.of(42L, 17L), 5, Int128.of(-42L, -19L)));
+                Int1088.of(17L, 42L), 5, Int1088.of(-19L, -42L)));
     }
 
     private static class Sampled extends RuntimeException {

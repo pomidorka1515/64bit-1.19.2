@@ -8,7 +8,7 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.world.level.LevelReader;
@@ -16,11 +16,11 @@ import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
 import org.junit.jupiter.api.Test;
 
-class BiomeSourceInt128Test {
+class BiomeSourceInt1088Test {
     @Test
     void closest3dSearchReturnsExactAnchor() {
         Holder<Biome> biome = new Holder.Direct<>(null);
-        BlockPos origin = new BlockPos(Int128.of(123L, Long.MAX_VALUE), 70, Int128.of(-98L, Long.MIN_VALUE));
+        BlockPos origin = new BlockPos(Int1088.of(Long.MAX_VALUE, 123L), 70, Int1088.of(Long.MIN_VALUE, -98L));
         BiomeSource source = new BiomeSource(List.of(biome)) {
             protected Codec<? extends BiomeSource> codec() {
                 throw new UnsupportedOperationException();
@@ -30,7 +30,7 @@ class BiomeSourceInt128Test {
                 throw new AssertionError("3d search narrowed before provider dispatch");
             }
 
-            public Holder<Biome> getNoiseBiome(Int128 x, int y, Int128 z, Climate.Sampler sampler) {
+            public Holder<Biome> getNoiseBiome(Int1088 x, int y, Int1088 z, Climate.Sampler sampler) {
                 assertEquals(origin.getX().shiftRight(2), x);
                 assertEquals(origin.getZ().shiftRight(2), z);
                 return biome;
@@ -54,13 +54,17 @@ class BiomeSourceInt128Test {
             public Holder<Biome> getNoiseBiome(long x, int y, long z, Climate.Sampler sampler) {
                 return null;
             }
+
+            public Holder<Biome> getNoiseBiome(Int1088 x, int y, Int1088 z, Climate.Sampler sampler) {
+                return null;
+            }
         };
     }
 
     @Test
     void horizontalSearchKeepsHighHalvesAndCrossesLowWordSeams() {
-        Int128 x = Int128.of(123L, -4L);
-        Int128 z = Int128.of(-98L, 0L);
+        Int1088 x = Int1088.of(-4L, 123L);
+        Int1088 z = Int1088.of(0L, -98L);
         BlockPos result = source().findBiomeHorizontal(x, 70, z, 4, 1, biome -> true,
                 RandomSource.create(1L), true, null).getFirst();
         assertEquals(new BlockPos(x, 70, z), result);
@@ -75,8 +79,8 @@ class BiomeSourceInt128Test {
                 throw new AssertionError("search narrowed before provider dispatch");
             }
 
-            public Holder<Biome> getNoiseBiome(Int128 qx, int y, Int128 qz, Climate.Sampler sampler) {
-                if (qx.equals(Int128.of(124L, 0L).shiftRight(2)) && qz.equals(z.shiftRight(2))) {
+            public Holder<Biome> getNoiseBiome(Int1088 qx, int y, Int1088 qz, Climate.Sampler sampler) {
+                if (qx.equals(Int1088.of(0L, 124L).shiftRight(2)) && qz.equals(z.shiftRight(2))) {
                     throw new Sampled();
                 }
                 return null;
@@ -91,9 +95,9 @@ class BiomeSourceInt128Test {
         var zero = DensityFunctions.zero();
         DensityFunction probe = new DensityFunction.SimpleFunction() {
             public double compute(DensityFunction.FunctionContext context) {
-                assertEquals(68L, context.blockX());
+                assertEquals(68L, context.blockXLimb(0));
                 assertEquals(20, context.blockY());
-                assertEquals(-76L, context.blockZ());
+                assertEquals(-76L, context.blockZLimb(0));
                 throw new Sampled();
             }
 
@@ -110,19 +114,19 @@ class BiomeSourceInt128Test {
             }
         };
         Climate.Sampler sampler = new Climate.Sampler(probe, zero, zero, zero, zero, zero, List.of());
-        assertThrows(Sampled.class, () -> sampler.sample(Int128.of(42L, 17L), 5, Int128.of(-42L, -19L)));
+        assertThrows(Sampled.class, () -> sampler.sample(Int1088.of(17L, 42L), 5, Int1088.of(-19L, -42L)));
         assertEquals(BlockPos.ZERO, sampler.findSpawnPosition());
     }
 
     @Test
-    void horizontalSearchDoesNotWrapAtInt128Edges() {
-        BlockPos min = source().findBiomeHorizontal(Int128.MIN, 70, Int128.MIN, 4, 1,
+    void horizontalSearchDoesNotWrapAtInt1088Edges() {
+        BlockPos min = source().findBiomeHorizontal(Int1088.MIN, 70, Int1088.MIN, 4, 1,
                 biome -> true, RandomSource.create(1L), true, null).getFirst();
-        BlockPos max = source().findBiomeHorizontal(Int128.MAX, 70, Int128.MAX, 4, 1,
+        BlockPos max = source().findBiomeHorizontal(Int1088.MAX, 70, Int1088.MAX, 4, 1,
                 biome -> true, RandomSource.create(1L), true, null).getFirst();
-        assertEquals(new BlockPos(Int128.MIN, 70, Int128.MIN), min);
-        assertEquals(new BlockPos(Int128.MAX.shiftRight(2).shiftLeftSaturated(2), 70,
-                Int128.MAX.shiftRight(2).shiftLeftSaturated(2)), max);
+        assertEquals(new BlockPos(Int1088.MIN, 70, Int1088.MIN), min);
+        assertEquals(new BlockPos(Int1088.MAX.shiftRight(2).shiftLeftSaturated(2), 70,
+                Int1088.MAX.shiftRight(2).shiftLeftSaturated(2)), max);
     }
 
     private static class Sampled extends RuntimeException {

@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.resources.RegistryOps;
@@ -69,7 +69,7 @@ public class MultiNoiseBiomeSource extends BiomeSource {
     }
 
     @Override
-    public Holder<Biome> getNoiseBiome(Int128 pX, int pY, Int128 pZ, Climate.Sampler pSampler) {
+    public Holder<Biome> getNoiseBiome(Int1088 pX, int pY, Int1088 pZ, Climate.Sampler pSampler) {
         return this.getNoiseBiome(pSampler.sample(pX, pY, pZ));
     }
 

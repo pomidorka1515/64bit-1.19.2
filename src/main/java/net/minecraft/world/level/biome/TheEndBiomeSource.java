@@ -40,13 +40,13 @@ public class TheEndBiomeSource extends BiomeSource {
         return CODEC;
     }
 
-    public Holder<Biome> getNoiseBiome(net.minecraft.core.Int128 x, int y, net.minecraft.core.Int128 z, Climate.Sampler sampler) {
-        if (x.hi() == (x.lo() >> 63) && z.hi() == (z.lo() >> 63)
-                && x.lo() >= Long.MIN_VALUE / 4 && x.lo() <= Long.MAX_VALUE / 4
-                && z.lo() >= Long.MIN_VALUE / 4 && z.lo() <= Long.MAX_VALUE / 4)
-            return getNoiseBiome(x.lo(), y, z.lo(), sampler);
-        net.minecraft.core.Int128 bx = x.shiftRight(2).shiftLeftSaturated(4).addSaturated(net.minecraft.core.Int128.fromLong(8L));
-        net.minecraft.core.Int128 bz = z.shiftRight(2).shiftLeftSaturated(4).addSaturated(net.minecraft.core.Int128.fromLong(8L));
+    public Holder<Biome> getNoiseBiome(net.minecraft.core.Int1088 x, int y, net.minecraft.core.Int1088 z, Climate.Sampler sampler) {
+        if (x.fitsLong() && z.fitsLong()
+                && x.lowLimb() >= Long.MIN_VALUE / 4 && x.lowLimb() <= Long.MAX_VALUE / 4
+                && z.lowLimb() >= Long.MIN_VALUE / 4 && z.lowLimb() <= Long.MAX_VALUE / 4)
+            return getNoiseBiome(x.lowLimb(), y, z.lowLimb(), sampler);
+        net.minecraft.core.Int1088 bx = x.shiftRight(2).shiftLeftSaturated(4).addSaturated(net.minecraft.core.Int1088.fromLong(8L));
+        net.minecraft.core.Int1088 bz = z.shiftRight(2).shiftLeftSaturated(4).addSaturated(net.minecraft.core.Int1088.fromLong(8L));
         double density = sampler.erosion().compute(new DensityFunction.SinglePointContext(bx, QuartPos.toBlock(y), bz));
         return density > 0.25D ? this.highlands : density >= -0.0625D ? this.midlands : density < -0.21875D ? this.islands : this.barrens;
     }

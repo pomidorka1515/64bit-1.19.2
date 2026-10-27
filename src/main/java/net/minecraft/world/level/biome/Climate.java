@@ -16,7 +16,7 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.QuartPos;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Mth;
@@ -405,11 +405,11 @@ public class Climate {
     }
 
     public static record Sampler(DensityFunction temperature, DensityFunction humidity, DensityFunction continentalness, DensityFunction erosion, DensityFunction depth, DensityFunction weirdness, List<Climate.ParameterPoint> spawnTarget) {
-        public Climate.TargetPoint sample(Int128 pX, int pY, Int128 pZ) {
-            if (pX.hi() == (pX.lo() >> 63) && pZ.hi() == (pZ.lo() >> 63)
-                    && pX.lo() >= Long.MIN_VALUE / 4 && pX.lo() <= Long.MAX_VALUE / 4
-                    && pZ.lo() >= Long.MIN_VALUE / 4 && pZ.lo() <= Long.MAX_VALUE / 4)
-                return this.sample(pX.lo(), pY, pZ.lo());
+        public Climate.TargetPoint sample(Int1088 pX, int pY, Int1088 pZ) {
+            if (pX.fitsLong() && pZ.fitsLong()
+                    && pX.lowLimb() >= Long.MIN_VALUE / 4 && pX.lowLimb() <= Long.MAX_VALUE / 4
+                    && pZ.lowLimb() >= Long.MIN_VALUE / 4 && pZ.lowLimb() <= Long.MAX_VALUE / 4)
+                return this.sample(pX.lowLimb(), pY, pZ.lowLimb());
             DensityFunction.SinglePointContext context = new DensityFunction.SinglePointContext(pX.shiftLeftSaturated(2), QuartPos.toBlock(pY), pZ.shiftLeftSaturated(2));
             return Climate.target((float) this.temperature.compute(context), (float) this.humidity.compute(context), (float) this.continentalness.compute(context), (float) this.erosion.compute(context), (float) this.depth.compute(context), (float) this.weirdness.compute(context));
         }
@@ -431,7 +431,7 @@ public class Climate {
         Climate.SpawnFinder.Result result;
 
         SpawnFinder(List<Climate.ParameterPoint> pPoints, Climate.Sampler pSampler) {
-            this.result = getSpawnPositionAndFitness(pPoints, pSampler, Int128.ZERO, Int128.ZERO);
+            this.result = getSpawnPositionAndFitness(pPoints, pSampler, Int1088.ZERO, Int1088.ZERO);
             this.radialSearch(pPoints, pSampler, 2048.0F, 512.0F);
             this.radialSearch(pPoints, pSampler, 512.0F, 32.0F);
         }
@@ -442,8 +442,8 @@ public class Climate {
             BlockPos blockpos = this.result.location();
 
             while (f1 <= pMax) {
-                Int128 i = net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getX(), (int) (Math.sin((double) f) * (double) f1));
-                Int128 j = net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getZ(), (int) (Math.cos((double) f) * (double) f1));
+                Int1088 i = net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getX(), (int) (Math.sin((double) f) * (double) f1));
+                Int1088 j = net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getZ(), (int) (Math.cos((double) f) * (double) f1));
                 Climate.SpawnFinder.Result climate$spawnfinder$result = getSpawnPositionAndFitness(pPoint, pSampler, i, j);
                 if (climate$spawnfinder$result.fitness() < this.result.fitness()) {
                     this.result = climate$spawnfinder$result;
@@ -457,10 +457,10 @@ public class Climate {
             }
         }
 
-        private static Climate.SpawnFinder.Result getSpawnPositionAndFitness(List<Climate.ParameterPoint> pPoints, Climate.Sampler pSampler, Int128 pX, Int128 pZ) {
+        private static Climate.SpawnFinder.Result getSpawnPositionAndFitness(List<Climate.ParameterPoint> pPoints, Climate.Sampler pSampler, Int1088 pX, Int1088 pZ) {
             double d0 = Mth.square(2500.0D);
-            double x = net.minecraft.world.level.WorldBounds.signedDifference(pX, Int128.ZERO);
-            double z = net.minecraft.world.level.WorldBounds.signedDifference(pZ, Int128.ZERO);
+            double x = net.minecraft.world.level.WorldBounds.signedDifference(pX, Int1088.ZERO);
+            double z = net.minecraft.world.level.WorldBounds.signedDifference(pZ, Int1088.ZERO);
             long j = (long) ((double) Mth.square(10000.0F) * Math.pow((Mth.square(x) + Mth.square(z)) / d0, 2.0D));
             Climate.TargetPoint climate$targetpoint = pSampler.sample(pX.shiftRight(2), 0, pZ.shiftRight(2));
             Climate.TargetPoint climate$targetpoint1 = new Climate.TargetPoint(climate$targetpoint.temperature(), climate$targetpoint.humidity(), climate$targetpoint.continentalness(), climate$targetpoint.erosion(), 0L, climate$targetpoint.weirdness());

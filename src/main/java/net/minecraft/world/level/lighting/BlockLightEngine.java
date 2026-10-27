@@ -2,7 +2,6 @@ package net.minecraft.world.level.lighting;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Int128Math;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LightLayer;
@@ -34,7 +33,7 @@ public final class BlockLightEngine extends LayerLightEngine<BlockLightSectionSt
         if (level >= 15)
             return level;
 
-        Direction direction = Direction.fromNormal(Int128Math.compare(target.getXHi(), target.getXLo(), source.getXHi(), source.getXLo()), Integer.compare(target.getY(), source.getY()), Int128Math.compare(target.getZHi(), target.getZLo(), source.getZHi(), source.getZLo()));
+        Direction direction = Direction.fromNormal(target.getX().compareTo(source.getX()), Integer.compare(target.getY(), source.getY()), target.getZ().compareTo(source.getZ()));
         if (direction == null)
             return 15;
 

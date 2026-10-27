@@ -44,7 +44,7 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
                 sectionPos = sectionPos.offset(Direction.UP);
                 layer = this.getDataLayer(data, sectionPos);
             }
-            return layer.get(SectionPos.sectionRelative(currentPos.getXLo()), SectionPos.sectionRelative(currentPos.getY()), SectionPos.sectionRelative(currentPos.getZLo()));
+            return layer.get(SectionPos.sectionRelative(currentPos.xLimb(0)), SectionPos.sectionRelative(currentPos.getY()), SectionPos.sectionRelative(currentPos.zLimb(0)));
         }
         return updating && !this.lightOnInSection(sectionPos) ? 0 : 15;
     }

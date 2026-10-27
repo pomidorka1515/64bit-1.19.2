@@ -3,7 +3,7 @@ package net.minecraft.world.level.lighting;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
@@ -22,34 +22,39 @@ public abstract class LayerLightEngine<M extends DataLayerStorageMap<M>, S exten
     protected final LightChunkGetter chunkSource;
     protected final S storage;
     private boolean runningLightUpdates;
-    private final long[] chunkXHi = new long[4];
-    private final long[] chunkXLo = new long[4];
-    private final long[] chunkZHi = new long[4];
-    private final long[] chunkZLo = new long[4];
+    private final Int1088[] chunkX = new Int1088[4];
+    private final Int1088[] chunkZ = new Int1088[4];
     private final BlockGetter[] chunks = new BlockGetter[4];
     private boolean cacheChunks;
 
     /** Positive results only, scoped to one synchronous update invocation. */
     @Nullable
     protected final BlockGetter getChunk(BlockPos pos) {
-        long xHi = pos.getXHi() >> 4;
-        long xLo = (pos.getXLo() >>> 4) | (pos.getXHi() << 60);
-        long zHi = pos.getZHi() >> 4;
-        long zLo = (pos.getZLo() >>> 4) | (pos.getZHi() << 60);
-        int slot = (int) (xLo + 3 * zLo) & 3;
-        if (this.cacheChunks && this.chunks[slot] != null && this.chunkXHi[slot] == xHi
-                && this.chunkXLo[slot] == xLo && this.chunkZHi[slot] == zHi && this.chunkZLo[slot] == zLo) {
+        long xFirst = (pos.xLimb(0) >>> 4) | (pos.xLimb(1) << 60);
+        long zFirst = (pos.zLimb(0) >>> 4) | (pos.zLimb(1) << 60);
+        int slot = (int) (xFirst + 3 * zFirst) & 3;
+        if (this.cacheChunks && this.chunks[slot] != null && matchesChunk(this.chunkX[slot], pos.getX())
+                && matchesChunk(this.chunkZ[slot], pos.getZ())) {
             return this.chunks[slot];
         }
-        BlockGetter chunk = this.chunkSource.getChunkForLighting(Int128.of(xHi, xLo), Int128.of(zHi, zLo));
+        Int1088 x = pos.getX().shiftRight(4);
+        Int1088 z = pos.getZ().shiftRight(4);
+        BlockGetter chunk = this.chunkSource.getChunkForLighting(x, z);
         if (this.cacheChunks && chunk != null) {
-            this.chunkXHi[slot] = xHi;
-            this.chunkXLo[slot] = xLo;
-            this.chunkZHi[slot] = zHi;
-            this.chunkZLo[slot] = zLo;
+            this.chunkX[slot] = x;
+            this.chunkZ[slot] = z;
             this.chunks[slot] = chunk;
         }
         return chunk;
+    }
+
+    private static boolean matchesChunk(Int1088 chunk, Int1088 block) {
+        for (int i = 0; i < Int1088.LIMBS; ++i) {
+            long shifted = i == Int1088.LIMBS - 1 ? block.limb(i) >> 4
+                    : (block.limb(i) >>> 4) | (block.limb(i + 1) << 60);
+            if (chunk.limb(i) != shifted) return false;
+        }
+        return true;
     }
 
     protected LayerLightEngine(LightChunkGetter chunkSource, LightLayer layer, S storage) {
@@ -94,7 +99,7 @@ public abstract class LayerLightEngine<M extends DataLayerStorageMap<M>, S exten
     }
 
     protected int getLevel(DataLayer dataLayer, BlockPos blockPos) {
-        return 15 - dataLayer.get(SectionPos.sectionRelative(blockPos.getXLo()), SectionPos.sectionRelative(blockPos.getY()), SectionPos.sectionRelative(blockPos.getZLo()));
+        return 15 - dataLayer.get(SectionPos.sectionRelative(blockPos.xLimb(0)), SectionPos.sectionRelative(blockPos.getY()), SectionPos.sectionRelative(blockPos.zLimb(0)));
     }
 
     protected int getLevel(BlockPos blockPos) {
@@ -135,6 +140,8 @@ public abstract class LayerLightEngine<M extends DataLayerStorageMap<M>, S exten
         } finally {
             this.cacheChunks = false;
             java.util.Arrays.fill(this.chunks, null);
+            java.util.Arrays.fill(this.chunkX, null);
+            java.util.Arrays.fill(this.chunkZ, null);
         }
     }
 

@@ -9,7 +9,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.SectionTracker;
 import net.minecraft.world.level.LightLayer;
@@ -74,7 +74,7 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
         DataLayer datalayer = this.getDataLayer(i, true);
         // Unloaded edge sections legitimately have no data layer.  Treat them as
         // unlit rather than allowing a render/light query to throw an NPE.
-        return datalayer == null ? 0 : datalayer.get(SectionPos.sectionRelative(pLevelPos.getXLo()), SectionPos.sectionRelative(pLevelPos.getY()), SectionPos.sectionRelative(pLevelPos.getZLo()));
+        return datalayer == null ? 0 : datalayer.get(SectionPos.sectionRelative(pLevelPos.xLimb(0)), SectionPos.sectionRelative(pLevelPos.getY()), SectionPos.sectionRelative(pLevelPos.zLimb(0)));
     }
 
     protected void setStoredLevel(BlockPos pLevelPos, int pLightLevel) {
@@ -84,7 +84,7 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
         }
 
         DataLayer datalayer = this.getDataLayer(i, true);
-        datalayer.set(SectionPos.sectionRelative(pLevelPos.getXLo()), SectionPos.sectionRelative(pLevelPos.getY()), SectionPos.sectionRelative(pLevelPos.getZLo()), pLightLevel);
+        datalayer.set(SectionPos.sectionRelative(pLevelPos.xLimb(0)), SectionPos.sectionRelative(pLevelPos.getY()), SectionPos.sectionRelative(pLevelPos.zLimb(0)), pLightLevel);
         SectionPos.aroundAndAtBlockPos(pLevelPos, this.sectionsAffectedByLightUpdates::add);
     }
 
@@ -125,17 +125,17 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
                 this.updatingSectionData.setLayer(pSectionPos, this.createDataLayer(pSectionPos));
                 this.changedSections.add(pSectionPos);
                 this.onNodeAdded(pSectionPos);
-                Int128 j = pSectionPos.x();
+                Int1088 j = pSectionPos.x();
                 int k = pSectionPos.y();
-                Int128 l = pSectionPos.z();
+                Int1088 l = pSectionPos.z();
 
                 for (int i1 = -1; i1 <= 1; ++i1) {
-                    Int128 affectedZ = WorldBounds.tryAddChunkOffset(l, i1);
+                    Int1088 affectedZ = WorldBounds.tryAddChunkOffset(l, i1);
                     if (affectedZ == null)
                         continue;
 
                     for (int j1 = -1; j1 <= 1; ++j1) {
-                        Int128 affectedX = WorldBounds.tryAddChunkOffset(j, j1);
+                        Int1088 affectedX = WorldBounds.tryAddChunkOffset(j, j1);
                         if (affectedX == null)
                             continue;
 
@@ -166,9 +166,9 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
                     return pSectionPos.contains(p_75753_);
                 });
             } else {
-                Int128 i = SectionPos.sectionToBlockCoord(pSectionPos.x());
+                Int1088 i = SectionPos.sectionToBlockCoord(pSectionPos.x());
                 int j = SectionPos.sectionToBlockCoord(pSectionPos.y());
-                Int128 k = SectionPos.sectionToBlockCoord(pSectionPos.z());
+                Int1088 k = SectionPos.sectionToBlockCoord(pSectionPos.z());
 
                 for (int l = 0; l < 16; ++l) {
                     for (int i1 = 0; i1 < 16; ++i1) {

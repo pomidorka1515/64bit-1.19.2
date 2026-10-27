@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.util.profiling.InactiveProfiler;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
@@ -14,9 +14,9 @@ import org.junit.jupiter.api.Test;
 class LevelTicksWorldBoundsTest {
     @Test
     void tickingReadinessAndRemovalUseFullWidthChunkKeys() {
-        BlockPos first = new BlockPos(Int128.of(16L, 0L), 64, Int128.of(32L, 0L));
-        BlockPos otherX = new BlockPos(Int128.of(48L, 0L), 64, Int128.of(32L, 0L));
-        BlockPos otherZ = new BlockPos(Int128.of(16L, 0L), 64, Int128.of(64L, 0L));
+        BlockPos first = new BlockPos(Int1088.of(0L, 16L), 64, Int1088.of(0L, 32L));
+        BlockPos otherX = new BlockPos(Int1088.of(0L, 48L), 64, Int1088.of(0L, 32L));
+        BlockPos otherZ = new BlockPos(Int1088.of(0L, 16L), 64, Int1088.of(0L, 64L));
         java.util.Set<ChunkPos> ready = new java.util.HashSet<>();
         LevelTicks<Object> ticks = new LevelTicks<>(ready::contains, () -> InactiveProfiler.INSTANCE);
         Object type = new Object();
@@ -42,15 +42,15 @@ class LevelTicksWorldBoundsTest {
     void fullWidthAreaClearsDistinctHighHalfContainersWithoutScanningTheWorld() {
         LevelTicks<Object> ticks = new LevelTicks<>(chunk -> true, () -> InactiveProfiler.INSTANCE);
         Object type = new Object();
-        for (Int128 x : new Int128[] {Int128.MIN, Int128.of(1L, 0L), Int128.MAX}) {
+        for (Int1088 x : new Int1088[] {Int1088.MIN, Int1088.ONE.shiftLeftSaturated(1024), Int1088.MAX}) {
             BlockPos pos = new BlockPos(x, 64, x);
             ticks.addContainer(new ChunkPos(pos), new LevelChunkTicks<>());
             ticks.schedule(new ScheduledTick<>(type, pos, 10L, 0L));
             assertTrue(ticks.hasScheduledTick(pos, type));
         }
         assertEquals(3, ticks.count());
-        ticks.clearArea(new BoundingBox(Int128.MIN, 64, Int128.MIN,
-                Int128.MAX, 64, Int128.MAX));
+        ticks.clearArea(new BoundingBox(Int1088.MIN, 64, Int1088.MIN,
+                Int1088.MAX, 64, Int1088.MAX));
         assertEquals(0, ticks.count());
     }
 
@@ -69,7 +69,7 @@ class LevelTicksWorldBoundsTest {
 
     @Test
     void clearAreaUsesExactChunkCoordinatesAtBothWorldEdges() {
-        for (Int128 x : new Int128[] {Int128.MIN, Int128.MAX}) {
+        for (Int1088 x : new Int1088[] {Int1088.MIN, Int1088.MAX}) {
             LevelTicks<Object> ticks = new LevelTicks<>(chunk -> true, () -> InactiveProfiler.INSTANCE);
             BlockPos pos = new BlockPos(x, 64, x);
             LevelChunkTicks<Object> container = new LevelChunkTicks<>();
@@ -84,8 +84,8 @@ class LevelTicksWorldBoundsTest {
     @Test
     void copyAreaAcrossOppositeEdgesPreservesLocalOffsetsAndTickData() {
         for (boolean reverse : new boolean[] {false, true}) {
-            Int128 sourceX = reverse ? Int128.MAX.subtract(Int128.ONE) : Int128.MIN;
-            Int128 targetX = reverse ? Int128.MIN : Int128.MAX.subtract(Int128.ONE);
+            Int1088 sourceX = reverse ? Int1088.MAX.subtract(Int1088.ONE) : Int1088.MIN;
+            Int1088 targetX = reverse ? Int1088.MIN : Int1088.MAX.subtract(Int1088.ONE);
             BlockPos source = new BlockPos(sourceX, 64, sourceX);
             BlockPos target = new BlockPos(targetX, 70, targetX);
             LevelTicks<Object> ticks = new LevelTicks<>(chunk -> true, () -> InactiveProfiler.INSTANCE);

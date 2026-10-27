@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -216,18 +216,16 @@ public class LevelTicks<T> implements LevelTickAccess<T> {
     }
 
     private void forContainersInArea(BoundingBox p_193237_, LevelTicks.PosAndContainerConsumer<T> p_193238_) {
-        Int128 i = SectionPos.blockToSectionCoord(p_193237_.minX());
-        Int128 j = SectionPos.blockToSectionCoord(p_193237_.minZ());
-        Int128 k = SectionPos.blockToSectionCoord(p_193237_.maxX());
-        Int128 l = SectionPos.blockToSectionCoord(p_193237_.maxZ());
+        Int1088 i = SectionPos.blockToSectionCoord(p_193237_.minX());
+        Int1088 j = SectionPos.blockToSectionCoord(p_193237_.minZ());
+        Int1088 k = SectionPos.blockToSectionCoord(p_193237_.maxX());
+        Int1088 l = SectionPos.blockToSectionCoord(p_193237_.maxZ());
 
         // Visit loaded containers only: a full-width area must not trigger a world-sized scan.
         for (var entry : this.allContainers.object2ObjectEntrySet()) {
             ChunkPos pos = entry.getKey();
-            if (net.minecraft.core.Int128Math.compare(pos.xHi(), pos.xLo(), i.hi(), i.lo()) >= 0
-                    && net.minecraft.core.Int128Math.compare(pos.xHi(), pos.xLo(), k.hi(), k.lo()) <= 0
-                    && net.minecraft.core.Int128Math.compare(pos.zHi(), pos.zLo(), j.hi(), j.lo()) >= 0
-                    && net.minecraft.core.Int128Math.compare(pos.zHi(), pos.zLo(), l.hi(), l.lo()) <= 0) {
+            if (pos.x().compareTo(i) >= 0 && pos.x().compareTo(k) <= 0
+                    && pos.z().compareTo(j) >= 0 && pos.z().compareTo(l) <= 0) {
                 p_193238_.accept(pos, entry.getValue());
             }
         }

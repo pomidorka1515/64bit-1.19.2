@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.EmptyBlockGetter;
@@ -23,13 +23,13 @@ class LightingOptimizationTest {
     void skylightSourcesPropagateAtWorldEdges() {
         net.minecraft.SharedConstants.tryDetectVersion();
         net.minecraft.server.Bootstrap.bootStrap();
-        for (Int128 x : new Int128[] {Int128.ZERO, Int128.of(1, -8), Int128.MIN, Int128.MAX}) {
+        for (Int1088 x : new Int1088[] {Int1088.ZERO, Int1088.of(-8, 1), Int1088.MIN, Int1088.MAX}) {
             LightChunkGetter source = new LightChunkGetter() {
-                public BlockGetter getChunkForLighting(Int128 cx, Int128 cz) { return EmptyBlockGetter.INSTANCE; }
+                public BlockGetter getChunkForLighting(Int1088 cx, Int1088 cz) { return EmptyBlockGetter.INSTANCE; }
                 public BlockGetter getLevel() { return EmptyBlockGetter.INSTANCE; }
             };
             SkyLightEngine engine = new SkyLightEngine(source);
-            BlockPos pos = new BlockPos(x, 8, Int128.of(-2, 8));
+            BlockPos pos = new BlockPos(x, 8, Int1088.of(8, -2));
             SectionPos section = SectionPos.of(pos);
             engine.storage.setLevel(section, 0);
             engine.enableLightSources(section.chunk(), true);
@@ -43,8 +43,8 @@ class LightingOptimizationTest {
     void blockLightPropagatesAndRetractsAtFullWidthCoordinates() {
         net.minecraft.SharedConstants.tryDetectVersion();
         net.minecraft.server.Bootstrap.bootStrap();
-        for (Int128 x : new Int128[] {Int128.ZERO, Int128.of(1, -8), Int128.MIN, Int128.MAX}) {
-            BlockPos emitter = new BlockPos(x, 8, Int128.of(-2, 8));
+        for (Int1088 x : new Int1088[] {Int1088.ZERO, Int1088.of(-8, 1), Int1088.MIN, Int1088.MAX}) {
+            BlockPos emitter = new BlockPos(x, 8, Int1088.of(8, -2));
             boolean[] emitting = {true};
             BlockGetter blocks = new BlockGetter() {
                 public net.minecraft.world.level.block.entity.BlockEntity getBlockEntity(BlockPos pos) { return null; }
@@ -59,7 +59,7 @@ class LightingOptimizationTest {
                 public int getHeight() { return 16; }
             };
             LightChunkGetter source = new LightChunkGetter() {
-                public BlockGetter getChunkForLighting(Int128 cx, Int128 cz) { return blocks; }
+                public BlockGetter getChunkForLighting(Int1088 cx, Int1088 cz) { return blocks; }
                 public BlockGetter getLevel() { return blocks; }
             };
             BlockLightEngine engine = new BlockLightEngine(source);
@@ -80,12 +80,16 @@ class LightingOptimizationTest {
     @Test
     void primitiveSectionConversionAndAffectedSectionsMatchObjectArithmetic() {
         Random random = new Random(981723L);
-        List<Int128> values = new ArrayList<>(List.of(Int128.MIN, Int128.MAX, Int128.ZERO,
-                Int128.fromLong(-1), Int128.fromLong(15), Int128.fromLong(16),
-                Int128.of(1, 0), Int128.of(-1, -1), Int128.of(0, Long.MIN_VALUE)));
-        for (int i = 0; i < 1000; ++i) values.add(Int128.of(random.nextLong(), random.nextLong()));
-        for (Int128 x : values) {
-            Int128 z = values.get(random.nextInt(values.size()));
+        List<Int1088> values = new ArrayList<>(List.of(Int1088.MIN, Int1088.MAX, Int1088.ZERO,
+                Int1088.fromLong(-1), Int1088.fromLong(15), Int1088.fromLong(16),
+                Int1088.of(0, 1), Int1088.of(-1, -1), Int1088.of(Long.MIN_VALUE, 0)));
+        for (int i = 0; i < 1000; ++i) {
+            long[] limbs = new long[Int1088.LIMBS];
+            for (int j = 0; j < limbs.length; ++j) limbs[j] = random.nextLong();
+            values.add(Int1088.of(limbs));
+        }
+        for (Int1088 x : values) {
+            Int1088 z = values.get(random.nextInt(values.size()));
             for (int y : new int[] {Integer.MIN_VALUE, -17, -1, 0, 15, 16, Integer.MAX_VALUE}) {
                 BlockPos block = new BlockPos(x, y, z);
                 SectionPos expected = SectionPos.of(x.shiftRight(4), y >> 4, z.shiftRight(4));
@@ -114,8 +118,8 @@ class LightingOptimizationTest {
         List<Map<SectionPos, Integer>> references = new ArrayList<>();
         List<SectionPos> keys = new ArrayList<>();
         for (int i = 0; i < 800; ++i) {
-            keys.add(SectionPos.of(Int128.of(random.nextLong(), random.nextLong()).shiftRight(4),
-                    random.nextInt(64), Int128.of(random.nextLong(), random.nextLong()).shiftRight(4)));
+            keys.add(SectionPos.of(Int1088.of(random.nextLong(), random.nextLong()).shiftRight(4),
+                    random.nextInt(64), Int1088.of(random.nextLong(), random.nextLong()).shiftRight(4)));
         }
         for (int i = 0; i < 5000; ++i) {
             SectionPos key = keys.get(random.nextInt(keys.size()));
@@ -164,8 +168,8 @@ class LightingOptimizationTest {
     void chunkCacheUsesAllLimbsAndDoesNotSurviveUpdateCallsOrCacheMisses() {
         CountingSource source = new CountingSource();
         CacheEngine engine = new CacheEngine(source);
-        BlockPos first = new BlockPos(Int128.of(1, 0), 0, Int128.MIN);
-        BlockPos other = new BlockPos(Int128.of(2, 0), 0, Int128.MIN);
+        BlockPos first = new BlockPos(Int1088.ONE.shiftLeftSaturated(1024), 0, Int1088.MIN);
+        BlockPos other = new BlockPos(Int1088.ONE.shiftLeftSaturated(1025), 0, Int1088.MIN);
         engine.positions = List.of(first, first, other, other, first);
         engine.runUpdates(1, true, true);
         assertEquals(3, source.calls);
@@ -188,9 +192,9 @@ class LightingOptimizationTest {
     private static class CountingSource implements LightChunkGetter {
         int calls;
         boolean missing;
-        Int128 x;
-        Int128 z;
-        public BlockGetter getChunkForLighting(Int128 x, Int128 z) {
+        Int1088 x;
+        Int1088 z;
+        public BlockGetter getChunkForLighting(Int1088 x, Int1088 z) {
             ++this.calls;
             this.x = x;
             this.z = z;

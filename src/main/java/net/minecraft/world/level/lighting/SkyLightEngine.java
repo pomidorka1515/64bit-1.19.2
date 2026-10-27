@@ -2,7 +2,6 @@ package net.minecraft.world.level.lighting;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Int128Math;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.state.BlockState;
@@ -31,7 +30,7 @@ public final class SkyLightEngine extends LayerLightEngine<SkyLightSectionStorag
         if (opacity.getValue() >= 15)
             return 15;
 
-        Direction direction = Direction.fromNormal(Int128Math.compare(target.getXHi(), target.getXLo(), source.getXHi(), source.getXLo()), Integer.compare(target.getY(), source.getY()), Int128Math.compare(target.getZHi(), target.getZLo(), source.getZHi(), source.getZLo()));
+        Direction direction = Direction.fromNormal(target.getX().compareTo(source.getX()), Integer.compare(target.getY(), source.getY()), target.getZ().compareTo(source.getZ()));
         if (direction == null)
             return level;
 
@@ -41,8 +40,7 @@ public final class SkyLightEngine extends LayerLightEngine<SkyLightSectionStorag
         if (Shapes.faceShapeOccludes(sourceShape, targetShape))
             return 15;
 
-        boolean vertical = source.getXHi() == target.getXHi() && source.getXLo() == target.getXLo()
-                && source.getZHi() == target.getZHi() && source.getZLo() == target.getZLo();
+        boolean vertical = source.getX().equals(target.getX()) && source.getZ().equals(target.getZ());
         return vertical && source.getY() > target.getY() && level == 0 && opacity.getValue() == 0 ? 0 : level + Math.max(1, opacity.getValue());
     }
 
@@ -118,7 +116,7 @@ public final class SkyLightEngine extends LayerLightEngine<SkyLightSectionStorag
             return;
         }
 
-        BlockPos searchPos = new BlockPos(blockPos.getXHi(), blockPos.getXLo(), blockPos.getY() & ~15, blockPos.getZHi(), blockPos.getZLo());
+        BlockPos searchPos = new BlockPos(blockPos.getX(), blockPos.getY() & ~15, blockPos.getZ());
         while (!this.storage.storingLightForSection(sectionPos) && !this.storage.isAboveData(sectionPos)) {
             searchPos = searchPos.above(16);
             sectionPos = sectionPos.offset(Direction.UP);

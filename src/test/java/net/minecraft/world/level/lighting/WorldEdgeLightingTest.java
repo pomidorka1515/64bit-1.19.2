@@ -1,7 +1,7 @@
 package net.minecraft.world.level.lighting;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LightLayer;
@@ -14,14 +14,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class WorldEdgeLightingTest {
     private static final LightChunkGetter NO_CHUNKS = new LightChunkGetter() {
-        public BlockGetter getChunkForLighting(Int128 x, Int128 z) { return null; }
+        public BlockGetter getChunkForLighting(Int1088 x, Int1088 z) { return null; }
         public BlockGetter getLevel() { return null; }
     };
 
     @Test
     void sectionEdgeChecksNeverConnectOppositeWorldEdges() {
-        for (Int128 x : new Int128[] {Int128.ZERO, Int128.of(1, 0), WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK}) {
-            for (Int128 z : new Int128[] {Int128.ZERO, Int128.of(1, 0), WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK}) {
+        for (Int1088 x : new Int1088[] {Int1088.ZERO, Int1088.of(0, 1), WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK}) {
+            for (Int1088 z : new Int1088[] {Int1088.ZERO, Int1088.of(0, 1), WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK}) {
                 RecordingEngine engine = new RecordingEngine();
                 SectionPos section = SectionPos.of(x, 4, z);
                 engine.storage.setLevel(section, 0);

@@ -139,4 +139,40 @@ class LevelTicksTest {
         assertEquals(List.of(first, second, third), List.of(ticks.poll().pos(), ticks.poll().pos(), ticks.poll().pos()));
         assertEquals(0, ticks.count());
     }
+
+    @Test
+    void copyDuringDrainPreservesAlreadyRunCollectedAndFutureTicksAtWideTargets() {
+        for (Int1088 origin : List.of(Int1088.ZERO, Int1088.ONE.shiftLeftSaturated(127),
+                Int1088.ONE.shiftLeftSaturated(1024), Int1088.MIN, Int1088.MAX.subtract(Int1088.fromLong(3)))) {
+            BlockPos source = new BlockPos(origin, 64, origin);
+            BlockPos destination = new BlockPos(origin, 80, origin);
+            LevelTicks<Object> ticks = new LevelTicks<>(chunk -> true, () -> InactiveProfiler.INSTANCE);
+            LevelChunkTicks<Object> container = new LevelChunkTicks<>();
+            ticks.addContainer(new ChunkPos(source), container);
+            Object type = new Object();
+            for (int i = 0; i < 3; ++i) {
+                ticks.schedule(new ScheduledTick<>(type, source.offset(i, 0, 0), i == 2 ? 20L : 10L, TickPriority.HIGH, 5L + i));
+            }
+            List<BlockPos> ran = new ArrayList<>();
+            ticks.tick(10L, 2, (pos, value) -> {
+                ran.add(pos);
+                if (ran.size() == 1) {
+                    assertTrue(ticks.willTickThisTick(source.offset(1, 0, 0), type));
+                    ticks.copyAreaTo(BoundingBox.fromCorners(source, source.offset(2, 0, 0)), destination);
+                    assertTrue(ticks.willTickThisTick(source.offset(1, 0, 0), type));
+                    assertFalse(ticks.willTickThisTick(destination.offset(1, 0, 0), type));
+                }
+            });
+            assertEquals(List.of(source, source.offset(1, 0, 0)), ran);
+            List<ScheduledTick<Object>> pending = container.getAll().sorted(ScheduledTick.DRAIN_ORDER).toList();
+            assertEquals(4, pending.size());
+            assertEquals(List.of(destination, destination.offset(1, 0, 0), source.offset(2, 0, 0), destination.offset(2, 0, 0)),
+                    pending.stream().map(ScheduledTick::pos).toList());
+            assertEquals(List.of(8L, 9L, 7L, 10L), pending.stream().map(ScheduledTick::subTickOrder).toList());
+            assertTrue(pending.stream().allMatch(tick -> tick.priority() == TickPriority.HIGH && tick.type() == type));
+            ticks.tick(20L, 10, (pos, value) -> ran.add(pos));
+            assertEquals(6, ran.size());
+            assertEquals(0, ticks.count());
+        }
+    }
 }

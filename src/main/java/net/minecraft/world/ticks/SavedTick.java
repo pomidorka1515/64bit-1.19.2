@@ -12,6 +12,10 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.level.ChunkPos;
 
 public record SavedTick<T>(T type, BlockPos pos, int delay, TickPriority priority) {
+    public SavedTick {
+        pos = pos.immutable();
+    }
+
     private static final String TAG_ID = "i";
     private static final String TAG_X = "x";
     private static final String TAG_Y = "y";

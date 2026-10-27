@@ -1,7 +1,7 @@
 package net.minecraft.world.level.levelgen.structure;
 
 import java.util.Optional;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
@@ -30,6 +30,6 @@ public abstract class SinglePieceStructure extends Structure {
 
     @FunctionalInterface
     protected interface PieceConstructor {
-        StructurePiece construct(WorldgenRandom p_226550_, Int128 p_226551_, Int128 p_226552_);
+        StructurePiece construct(WorldgenRandom p_226550_, Int1088 p_226551_, Int1088 p_226552_);
     }
 }

@@ -12,7 +12,7 @@ import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -95,8 +95,8 @@ public abstract class Structure {
 
     protected static Optional<Structure.GenerationStub> onTopOfChunkCenter(Structure.GenerationContext pContext, Heightmap.Types pHeightmapTypes, Consumer<StructurePiecesBuilder> pGenerator) {
         ChunkPos chunkpos = pContext.chunkPos();
-        Int128 i = chunkpos.getMiddleBlockX();
-        Int128 j = chunkpos.getMiddleBlockZ();
+        Int1088 i = chunkpos.getMiddleBlockX();
+        Int1088 j = chunkpos.getMiddleBlockZ();
         int k = pContext.chunkGenerator().getFirstOccupiedHeight(i, j, pHeightmapTypes, pContext.heightAccessor(), pContext.randomState());
         return Optional.of(new Structure.GenerationStub(new BlockPos(i, k, j), pGenerator));
     }
@@ -116,19 +116,19 @@ public abstract class Structure {
         return new int[] {chunkgenerator.getFirstOccupiedHeight(p_226615_, p_226617_, Heightmap.Types.WORLD_SURFACE_WG, levelheightaccessor, randomstate), chunkgenerator.getFirstOccupiedHeight(p_226615_, p_226617_ + p_226618_, Heightmap.Types.WORLD_SURFACE_WG, levelheightaccessor, randomstate), chunkgenerator.getFirstOccupiedHeight(p_226615_ + p_226616_, p_226617_, Heightmap.Types.WORLD_SURFACE_WG, levelheightaccessor, randomstate), chunkgenerator.getFirstOccupiedHeight(p_226615_ + p_226616_, p_226617_ + p_226618_, Heightmap.Types.WORLD_SURFACE_WG, levelheightaccessor, randomstate)};
     }
 
-    private static int[] getCornerHeights(Structure.GenerationContext context, Int128 x, int width, Int128 z, int depth) {
+    private static int[] getCornerHeights(Structure.GenerationContext context, Int1088 x, int width, Int1088 z, int depth) {
         ChunkGenerator chunkgenerator = context.chunkGenerator();
         LevelHeightAccessor levelheightaccessor = context.heightAccessor();
         RandomState randomstate = context.randomState();
-        Int128 maxX = WorldBounds.addBlockOffset(x, width);
-        Int128 maxZ = WorldBounds.addBlockOffset(z, depth);
+        Int1088 maxX = WorldBounds.addBlockOffset(x, width);
+        Int1088 maxZ = WorldBounds.addBlockOffset(z, depth);
         return new int[] {chunkgenerator.getFirstOccupiedHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, levelheightaccessor, randomstate), chunkgenerator.getFirstOccupiedHeight(x, maxZ, Heightmap.Types.WORLD_SURFACE_WG, levelheightaccessor, randomstate), chunkgenerator.getFirstOccupiedHeight(maxX, z, Heightmap.Types.WORLD_SURFACE_WG, levelheightaccessor, randomstate), chunkgenerator.getFirstOccupiedHeight(maxX, maxZ, Heightmap.Types.WORLD_SURFACE_WG, levelheightaccessor, randomstate)};
     }
 
     protected static int getLowestY(Structure.GenerationContext p_226573_, int p_226574_, int p_226575_) {
         ChunkPos chunkpos = p_226573_.chunkPos();
-        Int128 i = chunkpos.getMinBlockX();
-        Int128 j = chunkpos.getMinBlockZ();
+        Int1088 i = chunkpos.getMinBlockX();
+        Int1088 j = chunkpos.getMinBlockZ();
         return getLowestY(p_226573_, i, j, p_226574_, p_226575_);
     }
 
@@ -137,7 +137,7 @@ public abstract class Structure {
         return Math.min(Math.min(aint[0], aint[1]), Math.min(aint[2], aint[3]));
     }
 
-    protected static int getLowestY(Structure.GenerationContext context, Int128 x, Int128 z, int width, int depth) {
+    protected static int getLowestY(Structure.GenerationContext context, Int1088 x, Int1088 z, int width, int depth) {
         int[] aint = getCornerHeights(context, x, width, z, depth);
         return Math.min(Math.min(aint[0], aint[1]), Math.min(aint[2], aint[3]));
     }
@@ -157,8 +157,8 @@ public abstract class Structure {
         }
 
         ChunkPos chunkpos = pContext.chunkPos();
-        Int128 k = chunkpos.getBlockX(7);
-        Int128 l = chunkpos.getBlockZ(7);
+        Int1088 k = chunkpos.getBlockX(7);
+        Int1088 l = chunkpos.getBlockZ(7);
         return new BlockPos(k, getLowestY(pContext, k, l, i, j), l);
     }
 

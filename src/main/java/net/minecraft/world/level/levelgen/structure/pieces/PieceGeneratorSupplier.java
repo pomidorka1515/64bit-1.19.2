@@ -3,7 +3,7 @@ package net.minecraft.world.level.levelgen.structure.pieces;
 import java.util.Optional;
 import java.util.function.Predicate;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.level.ChunkPos;
@@ -35,8 +35,8 @@ public interface PieceGeneratorSupplier<C extends FeatureConfiguration> {
 
     public static record Context<C extends FeatureConfiguration>(ChunkGenerator chunkGenerator, BiomeSource biomeSource, RandomState randomState, long seed, ChunkPos chunkPos, C config, LevelHeightAccessor heightAccessor, Predicate<Holder<Biome>> validBiome, StructureTemplateManager structureTemplateManager, RegistryAccess registryAccess) {
         public boolean validBiomeOnTop(Heightmap.Types p_197381_) {
-            Int128 i = this.chunkPos.getMiddleBlockX();
-            Int128 j = this.chunkPos.getMiddleBlockZ();
+            Int1088 i = this.chunkPos.getMiddleBlockX();
+            Int1088 j = this.chunkPos.getMiddleBlockZ();
             int k = this.chunkGenerator.getFirstOccupiedHeight(i, j, p_197381_, this.heightAccessor, this.randomState);
             Holder<Biome> holder = this.chunkGenerator.getBiomeSource().getNoiseBiome(i.shiftRight(2), QuartPos.fromBlock(k), j.shiftRight(2), this.randomState.sampler());
             return this.validBiome.test(holder);

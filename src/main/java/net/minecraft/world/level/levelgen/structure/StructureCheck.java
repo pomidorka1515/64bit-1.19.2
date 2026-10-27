@@ -58,7 +58,7 @@ public class StructureCheck {
     }
 
     public StructureCheckResult checkStart(ChunkPos pChunkPos, Structure pStructure, boolean pSkipKnownStructures) {
-        Object2IntMap<Structure> object2intmap = this.loadedChunks.get(pChunkPos.xHi(), pChunkPos.xLo(), pChunkPos.zHi(), pChunkPos.zLo());
+        Object2IntMap<Structure> object2intmap = this.loadedChunks.get(pChunkPos);
         if (object2intmap != null) {
             return this.checkStructureInfo(object2intmap, pStructure, pSkipKnownStructures);
         } else {

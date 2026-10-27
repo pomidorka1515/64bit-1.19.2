@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -65,10 +65,10 @@ public abstract class StructurePiece {
     }
 
     protected static BoundingBox makeBoundingBox(long pX, int pY, long pZ, Direction pDirection, int pOffsetX, int pOffsetY, int pOffsetZ) {
-        return makeBoundingBox(Int128.fromLong(pX), pY, Int128.fromLong(pZ), pDirection, pOffsetX, pOffsetY, pOffsetZ);
+        return makeBoundingBox(Int1088.fromLong(pX), pY, Int1088.fromLong(pZ), pDirection, pOffsetX, pOffsetY, pOffsetZ);
     }
 
-    protected static BoundingBox makeBoundingBox(Int128 pX, int pY, Int128 pZ, Direction pDirection, int pOffsetX, int pOffsetY, int pOffsetZ) {
+    protected static BoundingBox makeBoundingBox(Int1088 pX, int pY, Int1088 pZ, Direction pDirection, int pOffsetX, int pOffsetY, int pOffsetZ) {
         return pDirection.getAxis() == Direction.Axis.Z ? new BoundingBox(pX, pY, pZ, WorldBounds.addBlockOffset(pX, (long) pOffsetX - 1L), pY + pOffsetY - 1, WorldBounds.addBlockOffset(pZ, (long) pOffsetZ - 1L)) : new BoundingBox(pX, pY, pZ, WorldBounds.addBlockOffset(pX, (long) pOffsetZ - 1L), pY + pOffsetY - 1, WorldBounds.addBlockOffset(pZ, (long) pOffsetX - 1L));
     }
 
@@ -109,8 +109,8 @@ public abstract class StructurePiece {
     }
 
     public boolean isCloseToChunk(ChunkPos pChunkPos, int pDistance) {
-        Int128 i = pChunkPos.getMinBlockX();
-        Int128 j = pChunkPos.getMinBlockZ();
+        Int1088 i = pChunkPos.getMinBlockX();
+        Int1088 j = pChunkPos.getMinBlockZ();
         return this.boundingBox.intersects(WorldBounds.subtractBlockOffset(i, pDistance), WorldBounds.subtractBlockOffset(j, pDistance), WorldBounds.addBlockOffset(i, 15L + pDistance), WorldBounds.addBlockOffset(j, 15L + pDistance));
     }
 
@@ -119,18 +119,18 @@ public abstract class StructurePiece {
     }
 
     protected BlockPos.MutableBlockPos getWorldPos(long pX, int pY, long pZ) {
-        return this.getWorldPos(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+        return this.getWorldPos(Int1088.fromLong(pX), pY, Int1088.fromLong(pZ));
     }
 
-    protected BlockPos.MutableBlockPos getWorldPos(Int128 pX, int pY, Int128 pZ) {
+    protected BlockPos.MutableBlockPos getWorldPos(Int1088 pX, int pY, Int1088 pZ) {
         return new BlockPos.MutableBlockPos(this.getWorldX(pX, pZ), this.getWorldY(pY), this.getWorldZ(pX, pZ));
     }
 
-    protected Int128 getWorldX(long pX, long pZ) {
-        return this.getWorldX(Int128.fromLong(pX), Int128.fromLong(pZ));
+    protected Int1088 getWorldX(long pX, long pZ) {
+        return this.getWorldX(Int1088.fromLong(pX), Int1088.fromLong(pZ));
     }
 
-    protected Int128 getWorldX(Int128 pX, Int128 pZ) {
+    protected Int1088 getWorldX(Int1088 pX, Int1088 pZ) {
         Direction direction = this.getOrientation();
         if (direction == null) {
             return pX;
@@ -153,11 +153,11 @@ public abstract class StructurePiece {
         return this.getOrientation() == null ? pY : WorldBounds.addSaturated(pY, this.boundingBox.minY());
     }
 
-    protected Int128 getWorldZ(long pX, long pZ) {
-        return this.getWorldZ(Int128.fromLong(pX), Int128.fromLong(pZ));
+    protected Int1088 getWorldZ(long pX, long pZ) {
+        return this.getWorldZ(Int1088.fromLong(pX), Int1088.fromLong(pZ));
     }
 
-    protected Int128 getWorldZ(Int128 pX, Int128 pZ) {
+    protected Int1088 getWorldZ(Int1088 pX, Int1088 pZ) {
         Direction direction = this.getOrientation();
         if (direction == null) {
             return pZ;
@@ -315,9 +315,9 @@ public abstract class StructurePiece {
     }
 
     /** These boxes describe template-local offsets, never absolute world bounds. */
-    private static int localCoordinate(Int128 coordinate) {
-        int local = (int) coordinate.lo();
-        if (!coordinate.equals(Int128.fromLong(local))) {
+    private static int localCoordinate(Int1088 coordinate) {
+        int local = (int) coordinate.lowLimb();
+        if (!coordinate.equals(Int1088.fromLong(local))) {
             throw new IllegalArgumentException("Structure template offset outside int range: " + coordinate);
         }
         return local;
@@ -502,7 +502,7 @@ public abstract class StructurePiece {
         this.boundingBox.move(pX, pY, pZ);
     }
 
-    public void move(Int128 pX, int pY, Int128 pZ) {
+    public void move(Int1088 pX, int pY, Int1088 pZ) {
         this.boundingBox.move(pX, pY, pZ);
     }
 

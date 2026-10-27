@@ -17,7 +17,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.IdMapper;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
@@ -219,12 +219,12 @@ public class StructureTemplate {
                 List<BlockPos> list1 = Lists.newArrayListWithCapacity(p_230332_.shouldKeepLiquids() ? list.size() : 0);
                 List<BlockPos> list2 = Lists.newArrayListWithCapacity(p_230332_.shouldKeepLiquids() ? list.size() : 0);
                 List<Pair<BlockPos, CompoundTag>> list3 = Lists.newArrayListWithCapacity(list.size());
-                Int128 i = Int128.MAX;
+                Int1088 i = Int1088.MAX;
                 int j = Integer.MAX_VALUE;
-                Int128 k = Int128.MAX;
-                Int128 l = Int128.MIN;
+                Int1088 k = Int1088.MAX;
+                Int1088 l = Int1088.MIN;
                 int i1 = Integer.MIN_VALUE;
-                Int128 j1 = Int128.MIN;
+                Int1088 j1 = Int1088.MIN;
 
                 for (StructureTemplate.StructureBlockInfo structuretemplate$structureblockinfo : processBlockInfos(p_230329_, p_230330_, p_230331_, p_230332_, list)) {
                     BlockPos blockpos = structuretemplate$structureblockinfo.pos;
@@ -304,9 +304,9 @@ public class StructureTemplate {
                 if (!list3.isEmpty()) {
                     if (!p_230332_.getKnownShape()) {
                         DiscreteVoxelShape discretevoxelshape = new BitSetDiscreteVoxelShape(localSpan(i, l), i1 - j + 1, localSpan(k, j1));
-                        Int128 k1 = i;
+                        Int1088 k1 = i;
                         int l1 = j;
-                        Int128 j2 = k;
+                        Int1088 j2 = k;
 
                         for (Pair<BlockPos, CompoundTag> pair1 : list3) {
                             BlockPos blockpos2 = pair1.getFirst();
@@ -349,10 +349,10 @@ public class StructureTemplate {
     }
 
     public static void updateShapeAtEdge(LevelAccessor p_74511_, int p_74512_, DiscreteVoxelShape p_74513_, long p_74514_, int p_74515_, long p_74516_) {
-        updateShapeAtEdge(p_74511_, p_74512_, p_74513_, Int128.fromLong(p_74514_), p_74515_, Int128.fromLong(p_74516_));
+        updateShapeAtEdge(p_74511_, p_74512_, p_74513_, Int1088.fromLong(p_74514_), p_74515_, Int1088.fromLong(p_74516_));
     }
 
-    public static void updateShapeAtEdge(LevelAccessor p_74511_, int p_74512_, DiscreteVoxelShape p_74513_, Int128 p_74514_, int p_74515_, Int128 p_74516_) {
+    public static void updateShapeAtEdge(LevelAccessor p_74511_, int p_74512_, DiscreteVoxelShape p_74513_, Int1088 p_74514_, int p_74515_, Int1088 p_74516_) {
         p_74513_.forAllFaces((p_74494_, p_74495_, p_74496_, p_74497_) -> {
             BlockPos blockpos = new BlockPos(WorldBounds.addBlockOffset(p_74514_, p_74495_), p_74515_ + p_74496_, WorldBounds.addBlockOffset(p_74516_, p_74497_));
             BlockPos blockpos1 = blockpos.relative(p_74494_);
@@ -425,8 +425,8 @@ public class StructureTemplate {
 
     private static void setEntityPosition(CompoundTag tag, SectorVec3 position) {
         CompoundTag exactTag = new CompoundTag();
-        NbtUtils.writeInt128(exactTag, "BlockX", position.blockX());
-        NbtUtils.writeInt128(exactTag, "BlockZ", position.blockZ());
+        NbtUtils.writeInt1088(exactTag, "BlockX", position.blockX());
+        NbtUtils.writeInt1088(exactTag, "BlockZ", position.blockZ());
         exactTag.putDouble("SubX", position.subX());
         exactTag.putDouble("SubZ", position.subZ());
         exactTag.putDouble("Y", position.y());
@@ -447,23 +447,23 @@ public class StructureTemplate {
     }
 
     public static BlockPos transform(BlockPos pTargetPos, Mirror pMirror, Rotation pRotation, BlockPos pOffset) {
-        Int128 i = pTargetPos.getX();
+        Int1088 i = pTargetPos.getX();
         int j = pTargetPos.getY();
-        Int128 k = pTargetPos.getZ();
+        Int1088 k = pTargetPos.getZ();
         boolean flag = true;
         switch (pMirror) {
             case LEFT_RIGHT:
-                k = Int128.ZERO.subtractSaturated(k);
+                k = Int1088.ZERO.subtractSaturated(k);
                 break;
             case FRONT_BACK:
-                i = Int128.ZERO.subtractSaturated(i);
+                i = Int1088.ZERO.subtractSaturated(i);
                 break;
             default:
                 flag = false;
         }
 
-        Int128 l = pOffset.getX();
-        Int128 i1 = pOffset.getZ();
+        Int1088 l = pOffset.getX();
+        Int1088 i1 = pOffset.getZ();
         switch (pRotation) {
             case COUNTERCLOCKWISE_90:
                 return new BlockPos(WorldBounds.addSubtract(l, k, i1), j, WorldBounds.addSubtract(l, i1, i));
@@ -709,22 +709,22 @@ public class StructureTemplate {
         return listtag;
     }
 
-    private static int localInt(Int128 value) {
-        if (value.compareTo(Int128.fromLong(Integer.MIN_VALUE)) < 0 || value.compareTo(Int128.fromLong(Integer.MAX_VALUE)) > 0) {
+    private static int localInt(Int1088 value) {
+        if (value.compareTo(Int1088.fromLong(Integer.MIN_VALUE)) < 0 || value.compareTo(Int1088.fromLong(Integer.MAX_VALUE)) > 0) {
             throw new IllegalArgumentException("Template-local coordinate does not fit an int");
         }
-        return (int) value.lo();
+        return (int) value.lowLimb();
     }
 
-    private static Int128 min(Int128 first, Int128 second) {
+    private static Int1088 min(Int1088 first, Int1088 second) {
         return first.compareTo(second) <= 0 ? first : second;
     }
 
-    private static Int128 max(Int128 first, Int128 second) {
+    private static Int1088 max(Int1088 first, Int1088 second) {
         return first.compareTo(second) >= 0 ? first : second;
     }
 
-    private static int localSpan(Int128 min, Int128 max) {
+    private static int localSpan(Int1088 min, Int1088 max) {
         if (WorldBounds.localSpanExceeds(max, min)) {
             throw new IllegalArgumentException("Template shape exceeds the safe local span");
         }

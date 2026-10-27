@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.RandomState;
@@ -20,19 +20,19 @@ class StructurePlacementCoordinateTest {
     }
 
     private static class PointPlacement extends StructurePlacement {
-        private final Int128 point;
+        private final Int1088 point;
 
-        PointPlacement(Int128 point, Optional<ExclusionZone> exclusion) {
+        PointPlacement(Int1088 point, Optional<ExclusionZone> exclusion) {
             super(Vec3i.ZERO, FrequencyReductionMethod.DEFAULT, 1.0F, 0, exclusion);
             this.point = point;
         }
 
         protected boolean isPlacementChunk(ChunkGenerator generator, RandomState random, long seed, long x, long z) {
-            return point.equals(Int128.fromLong(x)) && z == 0L;
+            return point.equals(Int1088.fromLong(x)) && z == 0L;
         }
 
-        protected boolean isPlacementChunk(ChunkGenerator generator, RandomState random, long seed, Int128 x, Int128 z) {
-            return point.equals(x) && z.equals(Int128.ZERO);
+        protected boolean isPlacementChunk(ChunkGenerator generator, RandomState random, long seed, Int1088 x, Int1088 z) {
+            return point.equals(x) && z.equals(Int1088.ZERO);
         }
 
         public StructurePlacementType<?> type() { return StructurePlacementType.RANDOM_SPREAD; }
@@ -40,11 +40,11 @@ class StructurePlacementCoordinateTest {
 
     @Test
     void exclusionZoneChecksNeighborsAcrossSignedLongSeam() {
-        Int128 x = Int128.fromLong(Long.MAX_VALUE);
-        var other = new PointPlacement(x.addSaturated(Int128.fromLong(1)), Optional.empty());
+        Int1088 x = Int1088.fromLong(Long.MAX_VALUE);
+        var other = new PointPlacement(x.addSaturated(Int1088.fromLong(1)), Optional.empty());
         var zone = new StructurePlacement.ExclusionZone(Holder.direct(new StructureSet(List.of(), other)), 1);
         var placement = new PointPlacement(x, Optional.of(zone));
-        assertFalse(placement.isStructureChunk(null, null, 0L, x, Int128.ZERO));
+        assertFalse(placement.isStructureChunk(null, null, 0L, x, Int1088.ZERO));
         assertFalse(placement.isStructureChunk(null, null, 0L, Long.MAX_VALUE, 0L));
     }
 }

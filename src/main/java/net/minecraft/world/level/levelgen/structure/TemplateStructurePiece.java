@@ -6,7 +6,7 @@ import java.util.function.Function;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -48,7 +48,7 @@ public abstract class TemplateStructurePiece extends StructurePiece {
         super(pType, pTag);
         this.setOrientation(Direction.NORTH);
         this.templateName = pTag.getString("Template");
-        this.templatePosition = new BlockPos(NbtUtils.readInt128(pTag, "TPX"), pTag.getInt("TPY"), NbtUtils.readInt128(pTag, "TPZ"));
+        this.templatePosition = new BlockPos(NbtUtils.readInt1088(pTag, "TPX"), pTag.getInt("TPY"), NbtUtils.readInt1088(pTag, "TPZ"));
         ResourceLocation resourcelocation = this.makeTemplateLocation();
         this.template = pStructureTemplateManager.getOrCreate(resourcelocation);
         this.placeSettings = pPlaceSettingsFactory.apply(resourcelocation);
@@ -60,9 +60,9 @@ public abstract class TemplateStructurePiece extends StructurePiece {
     }
 
     protected void addAdditionalSaveData(StructurePieceSerializationContext pContext, CompoundTag pTag) {
-        NbtUtils.writeInt128(pTag, "TPX", this.templatePosition.getX());
+        NbtUtils.writeInt1088(pTag, "TPX", this.templatePosition.getX());
         pTag.putInt("TPY", this.templatePosition.getY());
-        NbtUtils.writeInt128(pTag, "TPZ", this.templatePosition.getZ());
+        NbtUtils.writeInt1088(pTag, "TPZ", this.templatePosition.getZ());
         pTag.putString("Template", this.templateName);
     }
 
@@ -101,11 +101,11 @@ public abstract class TemplateStructurePiece extends StructurePiece {
     /** @deprecated */
     @Deprecated
     public void move(long pX, int pY, long pZ) {
-        this.move(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+        this.move(Int1088.fromLong(pX), pY, Int1088.fromLong(pZ));
     }
 
     @Override
-    public void move(Int128 pX, int pY, Int128 pZ) {
+    public void move(Int1088 pX, int pY, Int1088 pZ) {
         super.move(pX, pY, pZ);
         this.templatePosition = this.templatePosition.offset(pX, pY, pZ);
     }

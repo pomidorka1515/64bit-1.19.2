@@ -2,7 +2,7 @@ package net.minecraft.world.level.levelgen.structure;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.WorldBounds;
@@ -17,10 +17,10 @@ public abstract class ScatteredFeaturePiece extends StructurePiece {
     protected int heightPosition = -1;
 
     protected ScatteredFeaturePiece(StructurePieceType pType, long pX, int pY, long pZ, int pWidth, int pHeight, int pDepth, Direction pOrientation) {
-        this(pType, Int128.fromLong(pX), pY, Int128.fromLong(pZ), pWidth, pHeight, pDepth, pOrientation);
+        this(pType, Int1088.fromLong(pX), pY, Int1088.fromLong(pZ), pWidth, pHeight, pDepth, pOrientation);
     }
 
-    protected ScatteredFeaturePiece(StructurePieceType pType, Int128 pX, int pY, Int128 pZ, int pWidth, int pHeight, int pDepth, Direction pOrientation) {
+    protected ScatteredFeaturePiece(StructurePieceType pType, Int1088 pX, int pY, Int1088 pZ, int pWidth, int pHeight, int pDepth, Direction pOrientation) {
         super(pType, 0, StructurePiece.makeBoundingBox(pX, pY, pZ, pOrientation, pWidth, pHeight, pDepth));
         this.width = pWidth;
         this.height = pHeight;
@@ -51,14 +51,14 @@ public abstract class ScatteredFeaturePiece extends StructurePiece {
             int j = 0;
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-            Int128 k = this.boundingBox.minZ();
-            Int128 l = this.boundingBox.maxZ();
-            Int128 i1 = this.boundingBox.minX();
-            Int128 j1 = this.boundingBox.maxX();
+            Int1088 k = this.boundingBox.minZ();
+            Int1088 l = this.boundingBox.maxZ();
+            Int1088 i1 = this.boundingBox.minX();
+            Int1088 j1 = this.boundingBox.maxX();
             checkFootprint();
 
-            for (Int128 k1 = k;; k1 = WorldBounds.addBlockOffset(k1, 1L)) {
-                for (Int128 l1 = i1;; l1 = WorldBounds.addBlockOffset(l1, 1L)) {
+            for (Int1088 k1 = k;; k1 = WorldBounds.addBlockOffset(k1, 1L)) {
+                for (Int1088 l1 = i1;; l1 = WorldBounds.addBlockOffset(l1, 1L)) {
                     blockpos$mutableblockpos.set(l1, 64, k1);
                     if (pBounds.isInside(blockpos$mutableblockpos)) {
                         i += pLevel.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, blockpos$mutableblockpos).getY();
@@ -93,14 +93,14 @@ public abstract class ScatteredFeaturePiece extends StructurePiece {
             boolean flag = false;
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-            Int128 j = this.boundingBox.minZ();
-            Int128 k = this.boundingBox.maxZ();
-            Int128 l = this.boundingBox.minX();
-            Int128 i1 = this.boundingBox.maxX();
+            Int1088 j = this.boundingBox.minZ();
+            Int1088 k = this.boundingBox.maxZ();
+            Int1088 l = this.boundingBox.minX();
+            Int1088 i1 = this.boundingBox.maxX();
             checkFootprint();
 
-            for (Int128 j1 = j;; j1 = WorldBounds.addBlockOffset(j1, 1L)) {
-                for (Int128 k1 = l;; k1 = WorldBounds.addBlockOffset(k1, 1L)) {
+            for (Int1088 j1 = j;; j1 = WorldBounds.addBlockOffset(j1, 1L)) {
+                for (Int1088 k1 = l;; k1 = WorldBounds.addBlockOffset(k1, 1L)) {
                     blockpos$mutableblockpos.set(k1, 0, j1);
                     i = Math.min(i, p_192468_.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, blockpos$mutableblockpos).getY());
                     flag = true;
@@ -125,12 +125,12 @@ public abstract class ScatteredFeaturePiece extends StructurePiece {
         }
     }
     private void checkFootprint() {
-        if (this.boundingBox.getXSpan().compareTo(Int128.fromLong(this.width)) > 0
-                || this.boundingBox.getZSpan().compareTo(Int128.fromLong(this.depth)) > 0) {
+        if (this.boundingBox.getXSpan().compareTo(Int1088.fromLong(this.width)) > 0
+                || this.boundingBox.getZSpan().compareTo(Int1088.fromLong(this.depth)) > 0) {
             // Rotation swaps width/depth; neither horizontal span may exceed their maximum.
             int max = Math.max(this.width, this.depth);
-            if (this.boundingBox.getXSpan().compareTo(Int128.fromLong(max)) > 0
-                    || this.boundingBox.getZSpan().compareTo(Int128.fromLong(max)) > 0) {
+            if (this.boundingBox.getXSpan().compareTo(Int1088.fromLong(max)) > 0
+                    || this.boundingBox.getZSpan().compareTo(Int1088.fromLong(max)) > 0) {
                 throw new IllegalArgumentException("Scattered structure exceeds its local footprint");
             }
         }

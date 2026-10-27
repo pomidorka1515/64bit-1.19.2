@@ -1,52 +1,41 @@
 package net.minecraft.world.level.levelgen.structure;
 
 import com.google.common.base.MoreObjects;
-import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.LongStream;
 
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.phys.AABB;
-import org.slf4j.Logger;
 
 public class BoundingBox {
-    private static final Logger LOGGER = LogUtils.getLogger();
-    /** Ten longs: [minXHi, minXLo, minY, minZHi, minZLo, maxXHi, maxXLo, maxY, maxZHi, maxZLo]. */
-    public static final Codec<BoundingBox> CODEC = Codec.LONG_STREAM.comapFlatMap(stream -> {
-        long[] values = stream.limit(11L).toArray();
-        if (values.length != 10 || values[2] != (int) values[2] || values[7] != (int) values[7]) {
-            return DataResult.error("BoundingBox requires exactly 10 longs with int Y coordinates");
-        }
-        return DataResult.success(new BoundingBox(Int128.of(values[0], values[1]),
-            (int) values[2], Int128.of(values[3], values[4]), Int128.of(values[5], values[6]),
-            (int) values[7], Int128.of(values[8], values[9])));
-    }, box -> LongStream.of(box.minX.hi(), box.minX.lo(), box.minY, box.minZ.hi(), box.minZ.lo(),
-        box.maxX.hi(), box.maxX.lo(), box.maxY, box.maxZ.hi(), box.maxZ.lo())).stable();
-    private Int128 minX;
+    /** X/Z endpoints are full 1088-bit values; Y stays in its existing int domain. */
+    public static final Codec<BoundingBox> CODEC = BoundingBox.Endpoints.CODEC
+        .xmap(Endpoints::toBoundingBox, Endpoints::fromBoundingBox)
+        .stable();
+    private Int1088 minX;
     private int minY;
-    private Int128 minZ;
-    private Int128 maxX;
+    private Int1088 minZ;
+    private Int1088 maxX;
     private int maxY;
-    private Int128 maxZ;
+    private Int1088 maxZ;
 
     public BoundingBox(BlockPos pPos) {
         this(pPos.getX(), pPos.getY(), pPos.getZ(), pPos.getX(), pPos.getY(), pPos.getZ());
     }
 
     public BoundingBox(long pMinX, int pMinY, long pMinZ, long pMaxX, int pMaxY, long pMaxZ) {
-        this(Int128.fromLong(pMinX), pMinY, Int128.fromLong(pMinZ), Int128.fromLong(pMaxX), pMaxY, Int128.fromLong(pMaxZ));
+        this(Int1088.fromLong(pMinX), pMinY, Int1088.fromLong(pMinZ), Int1088.fromLong(pMaxX), pMaxY, Int1088.fromLong(pMaxZ));
     }
 
-    public BoundingBox(Int128 pMinX, int pMinY, Int128 pMinZ, Int128 pMaxX, int pMaxY, Int128 pMaxZ) {
+    public BoundingBox(Int1088 pMinX, int pMinY, Int1088 pMinZ, Int1088 pMaxX, int pMaxY, Int1088 pMaxZ) {
         this.minX = min(pMinX, pMaxX);
         this.minY = Math.min(pMinY, pMaxY);
         this.minZ = min(pMinZ, pMaxZ);
@@ -60,13 +49,13 @@ public class BoundingBox {
     }
 
     public static BoundingBox infinite() {
-        return new BoundingBox(Int128.MIN, Integer.MIN_VALUE, Int128.MIN, Int128.MAX, Integer.MAX_VALUE, Int128.MAX);
+        return new BoundingBox(Int1088.MIN, Integer.MIN_VALUE, Int1088.MIN, Int1088.MAX, Integer.MAX_VALUE, Int1088.MAX);
     }
 
     /** Converts inclusive block bounds into a small, origin-relative shape. */
     public AABB toLocalAABB(BlockPos origin) {
         // Subtract exact block coordinates BEFORE converting to floating point.
-        // Add the exclusive upper endpoint locally, even at Int128.MAX.
+        // Add the exclusive upper endpoint locally, even at Int1088.MAX.
         return new AABB(WorldBounds.signedDifference(this.minX, origin.getX()), (double) this.minY - origin.getY(),
                 WorldBounds.signedDifference(this.minZ, origin.getZ()),
                 WorldBounds.signedDifference(this.maxX, origin.getX()) + 1.0D, (double) this.maxY - origin.getY() + 1.0D,
@@ -74,10 +63,10 @@ public class BoundingBox {
     }
 
     public static BoundingBox orientBox(long pStructureMinX, int pStructureMinY, long pStructureMinZ, int pXMin, int pYMin, int pZMin, int pXMax, int pYMax, int pZMax, Direction pFacing) {
-        return orientBox(Int128.fromLong(pStructureMinX), pStructureMinY, Int128.fromLong(pStructureMinZ), pXMin, pYMin, pZMin, pXMax, pYMax, pZMax, pFacing);
+        return orientBox(Int1088.fromLong(pStructureMinX), pStructureMinY, Int1088.fromLong(pStructureMinZ), pXMin, pYMin, pZMin, pXMax, pYMax, pZMax, pFacing);
     }
 
-    public static BoundingBox orientBox(Int128 pStructureMinX, int pStructureMinY, Int128 pStructureMinZ, int pXMin, int pYMin, int pZMin, int pXMax, int pYMax, int pZMax, Direction pFacing) {
+    public static BoundingBox orientBox(Int1088 pStructureMinX, int pStructureMinY, Int1088 pStructureMinZ, int pXMin, int pYMin, int pZMin, int pXMax, int pYMax, int pZMax, Direction pFacing) {
         switch (pFacing) {
             case SOUTH:
             default:
@@ -96,10 +85,10 @@ public class BoundingBox {
     }
 
     public boolean intersects(long pMinX, long pMinZ, long pMaxX, long pMaxZ) {
-        return this.intersects(Int128.fromLong(pMinX), Int128.fromLong(pMinZ), Int128.fromLong(pMaxX), Int128.fromLong(pMaxZ));
+        return this.intersects(Int1088.fromLong(pMinX), Int1088.fromLong(pMinZ), Int1088.fromLong(pMaxX), Int1088.fromLong(pMaxZ));
     }
 
-    public boolean intersects(Int128 pMinX, Int128 pMinZ, Int128 pMaxX, Int128 pMaxZ) {
+    public boolean intersects(Int1088 pMinX, Int1088 pMinZ, Int1088 pMaxX, Int1088 pMaxZ) {
         return this.maxX.compareTo(min(pMinX, pMaxX)) >= 0 && this.minX.compareTo(max(pMinX, pMaxX)) <= 0
             && this.maxZ.compareTo(min(pMinZ, pMaxZ)) >= 0 && this.minZ.compareTo(max(pMinZ, pMaxZ)) <= 0;
     }
@@ -154,11 +143,11 @@ public class BoundingBox {
     /** @deprecated */
     @Deprecated
     public BoundingBox move(long pX, int pY, long pZ) {
-        return this.move(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+        return this.move(Int1088.fromLong(pX), pY, Int1088.fromLong(pZ));
     }
 
     @Deprecated
-    public BoundingBox move(Int128 pX, int pY, Int128 pZ) {
+    public BoundingBox move(Int1088 pX, int pY, Int1088 pZ) {
         this.minX = WorldBounds.addBlockOffset(this.minX, pX);
         this.minY += pY;
         this.minZ = WorldBounds.addBlockOffset(this.minZ, pZ);
@@ -175,10 +164,10 @@ public class BoundingBox {
     }
 
     public BoundingBox moved(int pX, int pY, int pZ) {
-        return this.moved(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+        return this.moved(Int1088.fromLong(pX), pY, Int1088.fromLong(pZ));
     }
 
-    public BoundingBox moved(Int128 pX, int pY, Int128 pZ) {
+    public BoundingBox moved(Int1088 pX, int pY, Int1088 pZ) {
         return new BoundingBox(WorldBounds.addBlockOffset(this.minX, pX), this.minY + pY, WorldBounds.addBlockOffset(this.minZ, pZ), WorldBounds.addBlockOffset(this.maxX, pX), this.maxY + pY, WorldBounds.addBlockOffset(this.maxZ, pZ));
     }
 
@@ -194,16 +183,28 @@ public class BoundingBox {
         return new Vec3i(this.maxX.subtractSaturated(this.minX), this.maxY - this.minY, this.maxZ.subtractSaturated(this.minZ));
     }
 
-    public Int128 getXSpan() {
+    public Int1088 getXSpan() {
         return WorldBounds.inclusiveBlockSpan(this.minX, this.maxX);
+    }
+
+    /** Saturated long projection of the X span for int-indexed shape allocation. */
+    public long xSpanAsSaturatedLong() {
+        Int1088 span = this.getXSpan();
+        return span.fitsLong() ? span.lowLimb() : Long.MAX_VALUE;
     }
 
     public int getYSpan() {
         return this.maxY - this.minY + 1;
     }
 
-    public Int128 getZSpan() {
+    public Int1088 getZSpan() {
         return WorldBounds.inclusiveBlockSpan(this.minZ, this.maxZ);
+    }
+
+    /** Saturated long projection of the Z span for int-indexed shape allocation. */
+    public long zSpanAsSaturatedLong() {
+        Int1088 span = this.getZSpan();
+        return span.fitsLong() ? span.lowLimb() : Long.MAX_VALUE;
     }
 
     public BlockPos getCenter() {
@@ -218,15 +219,15 @@ public class BoundingBox {
         return WorldBounds.inclusiveBlockSpanDouble(this.minZ, this.maxZ);
     }
 
-    private static Int128 center(Int128 min, Int128 max) {
+    private static Int1088 center(Int1088 min, Int1088 max) {
         return WorldBounds.middleBlockCoordinate(min, max);
     }
 
-    private static Int128 min(Int128 first, Int128 second) {
+    private static Int1088 min(Int1088 first, Int1088 second) {
         return first.compareTo(second) <= 0 ? first : second;
     }
 
-    private static Int128 max(Int128 first, Int128 second) {
+    private static Int1088 max(Int1088 first, Int1088 second) {
         return first.compareTo(second) >= 0 ? first : second;
     }
 
@@ -261,7 +262,7 @@ public class BoundingBox {
         return Objects.hash(this.minX, this.minY, this.minZ, this.maxX, this.maxY, this.maxZ);
     }
 
-    public Int128 minX() {
+    public Int1088 minX() {
         return this.minX;
     }
 
@@ -269,11 +270,11 @@ public class BoundingBox {
         return this.minY;
     }
 
-    public Int128 minZ() {
+    public Int1088 minZ() {
         return this.minZ;
     }
 
-    public Int128 maxX() {
+    public Int1088 maxX() {
         return this.maxX;
     }
 
@@ -281,7 +282,28 @@ public class BoundingBox {
         return this.maxY;
     }
 
-    public Int128 maxZ() {
+    public Int1088 maxZ() {
         return this.maxZ;
+    }
+
+    /** Serializable endpoint form; each horizontal value uses the 17-limb Int1088 codec. */
+    private record Endpoints(Int1088 minX, int minY, Int1088 minZ, Int1088 maxX, int maxY, Int1088 maxZ) {
+        private static final Codec<Endpoints> CODEC = RecordCodecBuilder.create(
+            instance -> instance.group(
+                    Int1088.CODEC.fieldOf("minX").forGetter(Endpoints::minX),
+                    Codec.INT.fieldOf("minY").forGetter(Endpoints::minY),
+                    Int1088.CODEC.fieldOf("minZ").forGetter(Endpoints::minZ),
+                    Int1088.CODEC.fieldOf("maxX").forGetter(Endpoints::maxX),
+                    Codec.INT.fieldOf("maxY").forGetter(Endpoints::maxY),
+                    Int1088.CODEC.fieldOf("maxZ").forGetter(Endpoints::maxZ))
+                .apply(instance, Endpoints::new));
+
+        private static Endpoints fromBoundingBox(BoundingBox box) {
+            return new Endpoints(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
+        }
+
+        private BoundingBox toBoundingBox() {
+            return new BoundingBox(this.minX, this.minY, this.minZ, this.maxX, this.maxY, this.maxZ);
+        }
     }
 }

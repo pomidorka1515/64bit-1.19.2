@@ -58,7 +58,7 @@ class Int1088MapTest {
         }
         Int1088Map<Integer> actual = new Int1088Map<>(0);
         HashMap<Int1088, Integer> expected = new HashMap<>();
-        for (int i = 0; i < 20000; i++) {
+        for (int i = 0; i < 100000; i++) {
             Int1088 key = keys[random.nextInt(keys.length)];
             switch (random.nextInt(3)) {
                 case 0 -> {

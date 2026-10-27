@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.util.Mth;
@@ -19,12 +19,6 @@ public class ClientboundExplodePacket implements Packet<ClientGamePacketListener
     private final float knockbackX;
     private final float knockbackY;
     private final float knockbackZ;
-
-    /** Compatibility constructor for legacy callers with already-lossy doubles. */
-    public ClientboundExplodePacket(double x, double y, double z, float power, List<BlockPos> toBlow,
-            @Nullable Vec3 knockback) {
-        this(SectorVec3.fromApproximate(x, y, z), power, toBlow, knockback);
-    }
 
     public ClientboundExplodePacket(SectorVec3 position, float power, List<BlockPos> toBlow,
             @Nullable Vec3 knockback) {
@@ -43,36 +37,18 @@ public class ClientboundExplodePacket implements Packet<ClientGamePacketListener
     }
 
     public ClientboundExplodePacket(FriendlyByteBuf buffer) {
-        this.position = SectorVec3.fromBlockAndFraction(buffer.readInt128(), buffer.readDouble(), buffer.readDouble(),
-                buffer.readInt128(), buffer.readDouble());
+        this.position = buffer.readSectorVec3();
         this.power = buffer.readFloat();
-        Int128 blockX = this.position.blockX();
-        int blockY = Mth.floor(this.position.y());
-        Int128 blockZ = this.position.blockZ();
-        this.toBlow = buffer.readList(input -> new BlockPos(WorldBounds.addBlockOffset(blockX, (long) input.readByte()), input.readByte() + blockY, WorldBounds.addBlockOffset(blockZ, (long) input.readByte())));
+        this.toBlow = buffer.readList(FriendlyByteBuf::readBlockPos);
         this.knockbackX = buffer.readFloat();
         this.knockbackY = buffer.readFloat();
         this.knockbackZ = buffer.readFloat();
     }
 
     public void write(FriendlyByteBuf buffer) {
-        buffer.writeInt128(this.position.blockX());
-        buffer.writeDouble(this.position.subX());
-        buffer.writeDouble(this.position.y());
-        buffer.writeInt128(this.position.blockZ());
-        buffer.writeDouble(this.position.subZ());
+        buffer.writeSectorVec3(this.position);
         buffer.writeFloat(this.power);
-        Int128 blockX = this.position.blockX();
-        int blockY = Mth.floor(this.position.y());
-        Int128 blockZ = this.position.blockZ();
-        buffer.writeCollection(this.toBlow, (output, block) -> {
-            long deltaX = WorldBounds.signedDifferenceAsLong(block.getX(), blockX);
-            int deltaY = block.getY() - blockY;
-            long deltaZ = WorldBounds.signedDifferenceAsLong(block.getZ(), blockZ);
-            output.writeByte((int) deltaX);
-            output.writeByte(deltaY);
-            output.writeByte((int) deltaZ);
-        });
+        buffer.writeCollection(this.toBlow, FriendlyByteBuf::writeBlockPos);
         buffer.writeFloat(this.knockbackX);
         buffer.writeFloat(this.knockbackY);
         buffer.writeFloat(this.knockbackZ);

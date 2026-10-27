@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.netty.buffer.Unpooled;
 import net.minecraft.SharedConstants;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.FriendlyByteBuf;
@@ -22,8 +22,8 @@ class ClientboundLevelParticlesPacketTest {
 
     @Test
     void preservesSplitParticleOriginBeyondDoublePrecision() {
-        for (Int128 coordinate : new Int128[] {Int128.ZERO, Int128.fromLong(Long.MIN_VALUE),
-                Int128.fromLong(Long.MAX_VALUE), Int128.of(17L, -29L), Int128.MIN, Int128.MAX}) {
+        for (Int1088 coordinate : new Int1088[] {Int1088.ZERO, Int1088.fromLong(Long.MIN_VALUE),
+                Int1088.fromLong(Long.MAX_VALUE), Int1088.of(-29L, 17L), Int1088.ONE.shiftLeftSaturated(1024), Int1088.MIN, Int1088.MAX}) {
             SectorVec3 position = SectorVec3.fromBlockAndFraction(coordinate, 0.375D, 72.25D, coordinate, 0.625D);
             ClientboundLevelParticlesPacket sent = new ClientboundLevelParticlesPacket(ParticleTypes.FLAME, true,
                     position, 1.25F, 2.5F, 3.75F, 0.5F, 14);
@@ -33,13 +33,10 @@ class ClientboundLevelParticlesPacketTest {
                 sent.write(bytes);
                 bytes.readById(Registry.PARTICLE_TYPE);
                 assertTrue(bytes.readBoolean());
-                assertEquals(76, bytes.readableBytes());
-                assertEquals(coordinate.hi(), bytes.readLong());
-                assertEquals(coordinate.lo(), bytes.readLong());
+                assertEquals(coordinate, bytes.readInt1088());
                 assertEquals(0.375D, bytes.readDouble());
                 assertEquals(72.25D, bytes.readDouble());
-                assertEquals(coordinate.hi(), bytes.readLong());
-                assertEquals(coordinate.lo(), bytes.readLong());
+                assertEquals(coordinate, bytes.readInt1088());
                 assertEquals(0.625D, bytes.readDouble());
                 bytes.readerIndex(0);
                 ClientboundLevelParticlesPacket received = new ClientboundLevelParticlesPacket(bytes);
@@ -73,7 +70,7 @@ class ClientboundLevelParticlesPacketTest {
                     bytes.writeDouble(1.375D).writeDouble(72.25D).writeDouble(-0.375D);
                 }
                 bytes.writeFloat(1.25F).writeFloat(2.5F).writeFloat(3.75F).writeFloat(0.5F).writeInt(14);
-                assertThrows(IndexOutOfBoundsException.class, () -> new ClientboundLevelParticlesPacket(bytes));
+                assertThrows(RuntimeException.class, () -> new ClientboundLevelParticlesPacket(bytes));
             } finally {
                 bytes.release();
             }

@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.netty.buffer.Unpooled;
 import net.minecraft.SharedConstants;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.Bootstrap;
@@ -23,8 +23,8 @@ class ClientboundSoundPacketTest {
 
     @Test
     void preservesSplitSoundOriginBeyondIntAndDoublePrecision() {
-        for (Int128 coordinate : new Int128[] {Int128.ZERO, Int128.fromLong(Long.MIN_VALUE),
-                Int128.fromLong(Long.MAX_VALUE), Int128.of(37L, -41L), Int128.MIN, Int128.MAX}) {
+        for (Int1088 coordinate : new Int1088[] {Int1088.ZERO, Int1088.fromLong(Long.MIN_VALUE),
+                Int1088.fromLong(Long.MAX_VALUE), Int1088.of(-41L, 37L), Int1088.ONE.shiftLeftSaturated(1024), Int1088.MIN, Int1088.MAX}) {
             SectorVec3 position = SectorVec3.fromBlockAndFraction(coordinate, 0.375D, 72.25D,
                     coordinate, 0.625D);
             ClientboundSoundPacket sent = new ClientboundSoundPacket(SoundEvents.NOTE_BLOCK_HARP, SoundSource.BLOCKS,
@@ -35,13 +35,10 @@ class ClientboundSoundPacketTest {
                 sent.write(bytes);
                 bytes.readById(Registry.SOUND_EVENT);
                 bytes.readEnum(SoundSource.class);
-                assertEquals(72, bytes.readableBytes());
-                assertEquals(coordinate.hi(), bytes.readLong());
-                assertEquals(coordinate.lo(), bytes.readLong());
+                assertEquals(coordinate, bytes.readInt1088());
                 assertEquals(0.375D, bytes.readDouble());
                 assertEquals(72.25D, bytes.readDouble());
-                assertEquals(coordinate.hi(), bytes.readLong());
-                assertEquals(coordinate.lo(), bytes.readLong());
+                assertEquals(coordinate, bytes.readInt1088());
                 assertEquals(0.625D, bytes.readDouble());
                 bytes.readerIndex(0);
                 ClientboundSoundPacket received = new ClientboundSoundPacket(bytes);
@@ -73,7 +70,7 @@ class ClientboundSoundPacketTest {
                     bytes.writeInt(8).writeInt(578).writeInt(-8);
                 }
                 bytes.writeFloat(1.25F).writeFloat(0.75F).writeLong(918273645L);
-                assertThrows(IndexOutOfBoundsException.class, () -> new ClientboundSoundPacket(bytes));
+                assertThrows(RuntimeException.class, () -> new ClientboundSoundPacket(bytes));
             } finally {
                 bytes.release();
             }

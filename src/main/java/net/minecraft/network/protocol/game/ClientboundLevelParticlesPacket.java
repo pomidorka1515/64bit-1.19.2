@@ -24,14 +24,6 @@ public class ClientboundLevelParticlesPacket implements Packet<ClientGamePacketL
     private final boolean overrideLimiter;
     private final ParticleOptions particle;
 
-    /** Compatibility constructor for legacy callers with already-lossy doubles. */
-    public <T extends ParticleOptions> ClientboundLevelParticlesPacket(T particle, boolean overrideLimiter,
-            double x, double y, double z,
-            float xDist, float yDist, float zDist,
-            float maxSpeed, int count) {
-        this(particle, overrideLimiter, SectorVec3.fromApproximate(x, y, z), xDist, yDist, zDist, maxSpeed, count);
-    }
-
     public <T extends ParticleOptions> ClientboundLevelParticlesPacket(T particle, boolean overrideLimiter,
             SectorVec3 position,
             float xDist, float yDist, float zDist,
@@ -49,8 +41,7 @@ public class ClientboundLevelParticlesPacket implements Packet<ClientGamePacketL
     public ClientboundLevelParticlesPacket(FriendlyByteBuf buf) {
         ParticleType<?> particleType = buf.readById(Registry.PARTICLE_TYPE);
         this.overrideLimiter = buf.readBoolean();
-        this.position = SectorVec3.fromBlockAndFraction(buf.readInt128(), buf.readDouble(), buf.readDouble(),
-                buf.readInt128(), buf.readDouble());
+        this.position = buf.readSectorVec3();
         this.xDist = buf.readFloat();
         this.yDist = buf.readFloat();
         this.zDist = buf.readFloat();
@@ -66,11 +57,7 @@ public class ClientboundLevelParticlesPacket implements Packet<ClientGamePacketL
     public void write(FriendlyByteBuf buf) {
         buf.writeId(Registry.PARTICLE_TYPE, this.particle.getType());
         buf.writeBoolean(this.overrideLimiter);
-        buf.writeInt128(this.position.blockX());
-        buf.writeDouble(this.position.subX());
-        buf.writeDouble(this.position.y());
-        buf.writeInt128(this.position.blockZ());
-        buf.writeDouble(this.position.subZ());
+        buf.writeSectorVec3(this.position);
         buf.writeFloat(this.xDist);
         buf.writeFloat(this.yDist);
         buf.writeFloat(this.zDist);

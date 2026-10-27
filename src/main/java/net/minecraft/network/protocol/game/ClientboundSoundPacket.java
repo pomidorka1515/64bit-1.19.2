@@ -18,12 +18,6 @@ public class ClientboundSoundPacket implements Packet<ClientGamePacketListener> 
     private final float pitch;
     private final long seed;
 
-    /** Compatibility entry point for callers that have only a legacy double position. */
-    public ClientboundSoundPacket(SoundEvent sound, SoundSource source, double x, double y, double z,
-            float volume, float pitch, long seed) {
-        this(sound, source, SectorVec3.fromApproximate(x, y, z), volume, pitch, seed);
-    }
-
     public ClientboundSoundPacket(SoundEvent sound, SoundSource source, SectorVec3 position,
             float volume, float pitch, long seed) {
         this.sound = Validate.notNull(sound, "sound");
@@ -37,8 +31,7 @@ public class ClientboundSoundPacket implements Packet<ClientGamePacketListener> 
     public ClientboundSoundPacket(FriendlyByteBuf buffer) {
         this.sound = buffer.readById(Registry.SOUND_EVENT);
         this.source = buffer.readEnum(SoundSource.class);
-        this.position = SectorVec3.fromBlockAndFraction(buffer.readInt128(), buffer.readDouble(), buffer.readDouble(),
-                buffer.readInt128(), buffer.readDouble());
+        this.position = buffer.readSectorVec3();
         this.volume = buffer.readFloat();
         this.pitch = buffer.readFloat();
         this.seed = buffer.readLong();
@@ -47,11 +40,7 @@ public class ClientboundSoundPacket implements Packet<ClientGamePacketListener> 
     public void write(FriendlyByteBuf buffer) {
         buffer.writeId(Registry.SOUND_EVENT, this.sound);
         buffer.writeEnum(this.source);
-        buffer.writeInt128(this.position.blockX());
-        buffer.writeDouble(this.position.subX());
-        buffer.writeDouble(this.position.y());
-        buffer.writeInt128(this.position.blockZ());
-        buffer.writeDouble(this.position.subZ());
+        buffer.writeSectorVec3(this.position);
         buffer.writeFloat(this.volume);
         buffer.writeFloat(this.pitch);
         buffer.writeLong(this.seed);

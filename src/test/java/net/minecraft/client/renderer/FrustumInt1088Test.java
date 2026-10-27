@@ -6,18 +6,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.mojang.math.Matrix4f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.SectorAABB;
 import net.minecraft.world.phys.SectorVec3;
 import org.junit.jupiter.api.Test;
 
-class FrustumInt128Test {
+class FrustumInt1088Test {
     @Test
     void translatedExactBoxesAndTheirMirrorsCullIdentically() {
         Matrix4f identity = new Matrix4f();
         identity.setIdentity();
-        for (Int128 base : new Int128[] {Int128.ZERO, Int128.of(17, -1), Int128.of(-17, 0)}) {
+        for (Int1088 base : new Int1088[] {Int1088.ZERO, Int1088.of(-1, 17), Int1088.of(0, -17),
+                Int1088.ONE.shiftLeftSaturated(1024), Int1088.MIN.addSaturated(Int1088.fromLong(32)),
+                Int1088.MAX.subtractSaturated(Int1088.fromLong(32))}) {
             SectorVec3 position = SectorVec3.fromBlockAndFraction(base, 0.5D, 0.5D, base, 0.5D);
             Camera camera = new Camera() {
                 @Override

@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -56,15 +56,15 @@ class BlockEntityRendererTest {
 
     @Test
     void rangeChecksRetainHighHalvesAndCrossLowWordSeams() {
-        Int128 x = Int128.of(123L, -2L);
-        Int128 z = Int128.of(-456L, Long.MAX_VALUE);
+        Int1088 x = Int1088.of(-2L, 123L);
+        Int1088 z = Int1088.of(Long.MAX_VALUE, -456L);
         BlockEntity blockEntity = new BlockEntity(BlockEntityType.CHEST,
                 new BlockPos(x, 64, z), Blocks.CHEST.defaultBlockState()) {};
         assertTrue(RENDERER.shouldRender(blockEntity, SectorVec3.fromBlockAndFraction(
-                x.add(Int128.fromLong(63L)), 0.75D, 64.5D, z, 0.5D)));
+                x.add(Int1088.fromLong(63L)), 0.75D, 64.5D, z, 0.5D)));
         assertFalse(RENDERER.shouldRender(blockEntity, SectorVec3.fromBlockAndFraction(
-                x.add(Int128.fromLong(64L)), 0.75D, 64.5D, z, 0.5D)));
+                x.add(Int1088.fromLong(64L)), 0.75D, 64.5D, z, 0.5D)));
         assertFalse(RENDERER.shouldRender(blockEntity, SectorVec3.fromBlockAndFraction(
-                Int128.of(x.hi() + 1L, x.lo()), 0.5D, 64.5D, z, 0.5D)));
+                x.addSaturated(Int1088.ONE.shiftLeftSaturated(1024)), 0.5D, 64.5D, z, 0.5D)));
     }
 }

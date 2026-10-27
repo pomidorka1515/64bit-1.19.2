@@ -3,7 +3,7 @@ package net.minecraft.client.renderer.block;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import org.junit.jupiter.api.Test;
 
 class ModelBlockRendererCacheTest {
@@ -13,11 +13,11 @@ class ModelBlockRendererCacheTest {
         cache.disable();
         try {
             BlockPos[] positions = {
-                    new BlockPos(Int128.ZERO, 64, Int128.ZERO),
-                    new BlockPos(Int128.of(1, 0), 64, Int128.ZERO),
-                    new BlockPos(Int128.ZERO, 64, Int128.of(-1, 0)),
-                    new BlockPos(Int128.MIN, 64, Int128.MAX),
-                    new BlockPos(Int128.MAX, 64, Int128.MIN)
+                    new BlockPos(Int1088.ZERO, 64, Int1088.ZERO),
+                    new BlockPos(Int1088.of(0, 1), 64, Int1088.ZERO),
+                    new BlockPos(Int1088.ZERO, 64, Int1088.of(0, -1)),
+                    new BlockPos(Int1088.MIN, 64, Int1088.MAX),
+                    new BlockPos(Int1088.MAX, 64, Int1088.MIN)
             };
             BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
             for (int i = 0; i < positions.length; ++i) {

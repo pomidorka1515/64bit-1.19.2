@@ -3,8 +3,8 @@ package net.minecraft.client.renderer.chunk;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Int128;
-import net.minecraft.core.Int128Math;
+import net.minecraft.core.Int1088;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.Level;
@@ -19,20 +19,16 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class RenderChunkRegion implements BlockAndTintGetter {
-    /** Lowest X/Z section coordinates represented by {@link #chunks}, kept raw so reads never allocate. */
-    private final long minChunkXHi;
-    private final long minChunkXLo;
-    private final long minChunkZHi;
-    private final long minChunkZLo;
+    /** Lowest X/Z section coordinates represented by {@link #chunks}. */
+    private final Int1088 minChunkX;
+    private final Int1088 minChunkZ;
     protected final RenderChunk[][] chunks;
     protected final Level level;
 
-    RenderChunkRegion(Level pLevel, Int128 pCenterX, Int128 pCenterZ, RenderChunk[][] pChunks) {
+    RenderChunkRegion(Level pLevel, Int1088 pCenterX, Int1088 pCenterZ, RenderChunk[][] pChunks) {
         this.level = pLevel;
-        this.minChunkXHi = pCenterX.hi();
-        this.minChunkXLo = pCenterX.lo();
-        this.minChunkZHi = pCenterZ.hi();
-        this.minChunkZLo = pCenterZ.lo();
+        this.minChunkX = pCenterX;
+        this.minChunkZ = pCenterZ;
         this.chunks = pChunks;
     }
 
@@ -62,31 +58,44 @@ public class RenderChunkRegion implements BlockAndTintGetter {
 
     @Nullable
     private RenderChunk getChunk(BlockPos pos) {
-        int i = this.localIndexOf(pos.xHi(), pos.xLo(), this.minChunkXHi, this.minChunkXLo, this.chunks.length);
+        int i = localBlockIndex(pos.getX(), this.minChunkX, this.chunks.length);
         if (i < 0 || this.chunks[i] == null) {
             return null;
         }
 
-        int j = this.localIndexOf(pos.zHi(), pos.zLo(), this.minChunkZHi, this.minChunkZLo, this.chunks[i].length);
+        int j = localBlockIndex(pos.getZ(), this.minChunkZ, this.chunks[i].length);
         return j < 0 ? null : this.chunks[i][j];
     }
 
-    private int localIndexOf(long blockHi, long blockLo, long originChunkHi, long originChunkLo, int size) {
-        return localIndex(Int128Math.rightShiftHi(blockHi, 4), Int128Math.rightShiftLo(blockHi, blockLo, 4),
-                originChunkHi, originChunkLo, size);
-    }
-
-    static int localIndex(Int128 section, Int128 origin, int size) {
-        return localIndex(section.hi(), section.lo(), origin.hi(), origin.lo(), size);
-    }
-
-    static int localIndex(long sectionHi, long sectionLo, long originHi, long originLo, int size) {
-        // Subtract before conversion, and bounds-check before narrowing to an array index.
-        // The region is only a few chunks wide, so the true signed difference always
-        // fits a long exactly; the saturation sentinels of
-        // {@link Int128Math#signedDifferenceAsLong} fall outside the accept range.
-        long offset = Int128Math.signedDifferenceAsLong(sectionHi, sectionLo, originHi, originLo);
+    static int localIndex(Int1088 section, Int1088 origin, int size) {
+        long offset = WorldBounds.signedDifferenceAsLong(section, origin);
         return offset >= 0L && offset < size ? (int) offset : -1;
+    }
+
+    /** Shift and subtract limb by limb, without allocating a section coordinate per block lookup. */
+    static int localBlockIndex(Int1088 block, Int1088 origin, int size) {
+        if (block.fitsLong() && origin.fitsLong()) {
+            long section = block.lowLimb() >> 4;
+            long base = origin.lowLimb();
+            long difference = section - base;
+            if (((section ^ base) & (section ^ difference)) < 0) return -1;
+            return difference >= 0 && difference < size ? (int) difference : -1;
+        }
+        long first = (block.limb(0) >>> 4) | (block.limb(1) << 60);
+        long low = first - origin.limb(0);
+        if (low < 0 || low >= size) return -1;
+        long borrow = Long.compareUnsigned(first, origin.limb(0)) < 0 ? 1 : 0;
+        for (int i = 1; i < Int1088.LIMBS; ++i) {
+            long a = i == Int1088.LIMBS - 1 ? block.limb(i) >> 4
+                    : (block.limb(i) >>> 4) | (block.limb(i + 1) << 60);
+            long b = origin.limb(i);
+            long difference = a - b;
+            long result = difference - borrow;
+            borrow = Long.compareUnsigned(a, b) < 0 || Long.compareUnsigned(difference, borrow) < 0 ? 1 : 0;
+            if (result != 0) return -1;
+            if (i == Int1088.LIMBS - 1 && a < 0 && b >= 0) return -1;
+        }
+        return (int) low;
     }
 
     public int getBlockTint(BlockPos pPos, ColorResolver pColorResolver) {

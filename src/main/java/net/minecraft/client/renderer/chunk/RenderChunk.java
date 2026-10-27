@@ -51,9 +51,9 @@ class RenderChunk {
 
     public BlockState getBlockState(BlockPos pPos) {
         // Only section-local bits and the legacy debug-world pattern use this projection.
-        long i = pPos.xLo();
+        long i = pPos.getX().lowLimb();
         int j = pPos.getY();
-        long k = pPos.zLo();
+        long k = pPos.getZ().lowLimb();
         if (this.debug) {
             BlockState blockstate = null;
             if (j == 60) {
@@ -61,7 +61,8 @@ class RenderChunk {
             }
 
             if (j == 70) {
-                blockstate = DebugLevelSource.getBlockStateFor(i, k);
+                blockstate = pPos.getX().fitsLong() && pPos.getZ().fitsLong()
+                        ? DebugLevelSource.getBlockStateFor(i, k) : Blocks.AIR.defaultBlockState();
             }
 
             return blockstate == null ? Blocks.AIR.defaultBlockState() : blockstate;

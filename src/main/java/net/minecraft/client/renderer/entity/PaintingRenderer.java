@@ -13,7 +13,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.PaintingTextureManager;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -75,9 +75,9 @@ public class PaintingRenderer extends EntityRenderer<Painting> {
                 float f16 = f + (float) (k * 16);
                 float f17 = f1 + (float) ((l + 1) * 16);
                 float f18 = f1 + (float) (l * 16);
-                Int128 i1 = p_115561_.getBlockX();
+                Int1088 i1 = p_115561_.getBlockX();
                 int j1 = Mth.floor(p_115561_.getY() + (double) ((f17 + f18) / 2.0F / 16.0F));
-                Int128 k1 = p_115561_.getBlockZ();
+                Int1088 k1 = p_115561_.getBlockZ();
                 Direction direction = p_115561_.getDirection();
                 if (direction == Direction.NORTH) {
                     i1 = p_115561_.sectorPosition().add((f15 + f16) / 2.0F / 16.0F, 0.0D, 0.0D).blockX();

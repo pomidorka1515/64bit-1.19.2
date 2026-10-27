@@ -322,10 +322,10 @@ public class ChunkRenderDispatcher {
         private boolean playerChanged;
 
         public RenderChunk(int p_202436_, long p_202437_, int p_202438_, long p_202439_) {
-            this(p_202436_, net.minecraft.core.Int128.fromLong(p_202437_), p_202438_, net.minecraft.core.Int128.fromLong(p_202439_));
+            this(p_202436_, net.minecraft.core.Int1088.fromLong(p_202437_), p_202438_, net.minecraft.core.Int1088.fromLong(p_202439_));
         }
 
-        public RenderChunk(int p_202436_, net.minecraft.core.Int128 p_202437_, int p_202438_, net.minecraft.core.Int128 p_202439_) {
+        public RenderChunk(int p_202436_, net.minecraft.core.Int1088 p_202437_, int p_202438_, net.minecraft.core.Int1088 p_202439_) {
             this.index = p_202436_;
             this.setOrigin(p_202437_, p_202438_, p_202439_);
         }
@@ -360,10 +360,10 @@ public class ChunkRenderDispatcher {
         }
 
         public void setOrigin(long pX, int pY, long pZ) {
-            this.setOrigin(net.minecraft.core.Int128.fromLong(pX), pY, net.minecraft.core.Int128.fromLong(pZ));
+            this.setOrigin(net.minecraft.core.Int1088.fromLong(pX), pY, net.minecraft.core.Int1088.fromLong(pZ));
         }
 
-        public void setOrigin(net.minecraft.core.Int128 pX, int pY, net.minecraft.core.Int128 pZ) {
+        public void setOrigin(net.minecraft.core.Int1088 pX, int pY, net.minecraft.core.Int1088 pZ) {
             this.reset();
             this.origin.set(pX, pY, pZ);
             this.bb = AABB.fromSectorBounds(new net.minecraft.world.phys.SectorAABB(
@@ -377,9 +377,9 @@ public class ChunkRenderDispatcher {
 
         protected double getDistToPlayerSqr() {
             CameraRelativePosition camerarelativeposition = ChunkRenderDispatcher.this.getCameraRelativePosition();
-            double d0 = camerarelativeposition.relativeX(this.origin.xHi(), this.origin.xLo()) + 8.0D;
+            double d0 = camerarelativeposition.relativeX(this.origin.getX()) + 8.0D;
             double d1 = camerarelativeposition.relativeY(this.origin.getY()) + 8.0D;
-            double d2 = camerarelativeposition.relativeZ(this.origin.zHi(), this.origin.zLo()) + 8.0D;
+            double d2 = camerarelativeposition.relativeZ(this.origin.getZ()) + 8.0D;
             return d0 * d0 + d1 * d1 + d2 * d2;
         }
 
@@ -627,7 +627,7 @@ public class ChunkRenderDispatcher {
                             }
 
                             posestack.pushPose();
-                            posestack.translate((double) (blockpos2.getX().lo() & 15), (double) (blockpos2.getY() & 15), (double) (blockpos2.getZ().lo() & 15));
+                            posestack.translate((double) (blockpos2.getX().lowLimb() & 15), (double) (blockpos2.getY() & 15), (double) (blockpos2.getZ().lowLimb() & 15));
                             blockrenderdispatcher.renderBatched(blockstate, blockpos2, renderchunkregion, posestack, bufferbuilder2, true, randomsource);
                             posestack.popPose();
                         }

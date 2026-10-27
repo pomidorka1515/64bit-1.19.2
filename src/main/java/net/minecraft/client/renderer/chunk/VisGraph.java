@@ -49,7 +49,7 @@ public class VisGraph {
     }
 
     private static int getIndex(BlockPos pPos) {
-        return getIndex((int) (pPos.getX().lo() & 15), pPos.getY() & 15, (int) (pPos.getZ().lo() & 15));
+        return getIndex((int) (pPos.getX().lowLimb() & 15), pPos.getY() & 15, (int) (pPos.getZ().lowLimb() & 15));
     }
 
     private static int getIndex(int pX, int pY, int pZ) {

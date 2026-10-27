@@ -91,7 +91,7 @@ public class BannerRenderer implements BlockEntityRenderer<BannerBlockEntity> {
         this.bar.render(pPoseStack, vertexconsumer, pPackedLight, pPackedOverlay);
         BlockPos blockpos = pBlockEntity.getBlockPos();
         // Animation phase only: preserve the legacy low-word periodic pattern.
-        float f2 = ((float) Math.floorMod(blockpos.getX().lo() * 7 + blockpos.getY() * 9 + blockpos.getZ().lo() * 13 + i, 100L) + pPartialTick) / 100.0F;
+        float f2 = ((float) Math.floorMod(blockpos.getX().remainder(100) * 7L + blockpos.getY() * 9L + blockpos.getZ().remainder(100) * 13L + i, 100L) + pPartialTick) / 100.0F;
         this.flag.xRot = (-0.0125F + 0.01F * Mth.cos(((float) Math.PI * 2F) * f2)) * (float) Math.PI;
         this.flag.y = -32.0F;
         renderPatterns(pPoseStack, pBufferSource, pPackedLight, pPackedOverlay, this.flag, ModelBakery.BANNER_BASE, true, list);

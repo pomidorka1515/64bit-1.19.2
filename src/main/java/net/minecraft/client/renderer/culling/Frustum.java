@@ -5,7 +5,7 @@ import com.mojang.math.Vector4f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.CameraRelativePosition;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.SectorAABB;
@@ -140,9 +140,14 @@ public class Frustum {
                 relativeY(blockPos.getY()) + localShape.maxY, relativeZ(blockPos.getZ(), localShape.maxZ));
     }
 
-    public boolean isChunkVisible(Int128 chunkX, int originBlockY, Int128 chunkZ) {
-        Int128 blockMinX = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkX);
-        Int128 blockMinZ = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkZ);
+    public boolean isChunkVisible(Int1088 chunkX, int originBlockY, Int1088 chunkZ) {
+        Int1088 blockMinX = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkX);
+        Int1088 blockMinZ = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkZ);
+
+        if (net.minecraft.world.level.WorldBounds.localSpanExceeds(blockMinX, this.cameraRelativePosition.baseX())
+                || net.minecraft.world.level.WorldBounds.localSpanExceeds(blockMinZ, this.cameraRelativePosition.baseZ())) {
+            return false;
+        }
 
         double minX = this.cameraRelativePosition.relativeX(blockMinX);
         double minY = this.cameraRelativePosition.relativeY(originBlockY);
@@ -155,11 +160,11 @@ public class Frustum {
         return this.cubeInFrustumLocal(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
-    private double relativeX(Int128 block, double fraction) {
+    private double relativeX(Int1088 block, double fraction) {
         return this.cameraRelativePosition.relativeX(block) + fraction;
     }
 
-    private double relativeZ(Int128 block, double fraction) {
+    private double relativeZ(Int1088 block, double fraction) {
         return this.cameraRelativePosition.relativeZ(block) + fraction;
     }
 

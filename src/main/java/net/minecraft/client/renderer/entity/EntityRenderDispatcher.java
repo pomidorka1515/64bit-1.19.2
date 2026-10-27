@@ -31,7 +31,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
@@ -277,10 +277,10 @@ public class EntityRenderDispatcher implements ResourceManagerReloadListener {
         VertexConsumer vertexconsumer = pBuffer.getBuffer(SHADOW_RENDER_TYPE);
 
         for (int z = i1; z <= j1; ++z) {
-            Int128 blockZ = position.blockZ().addSaturated(Int128.fromLong(z));
+            Int1088 blockZ = position.blockZ().addSaturated(Int1088.fromLong(z));
             if (WorldBounds.signedDifference(blockZ, position.blockZ()) != z) continue;
             for (int x = i; x <= j; ++x) {
-                Int128 blockX = position.blockX().addSaturated(Int128.fromLong(x));
+                Int1088 blockX = position.blockX().addSaturated(Int1088.fromLong(x));
                 if (WorldBounds.signedDifference(blockX, position.blockX()) != x) continue;
                 for (int y = k; y <= l; ++y) {
                     renderBlockShadow(posestack$pose, vertexconsumer, pLevel, new BlockPos(blockX, y, blockZ), position, f, pWeight);
@@ -330,7 +330,7 @@ public class EntityRenderDispatcher implements ResourceManagerReloadListener {
         }
     }
 
-    static double shadowOffset(Int128 block, Int128 origin, double fraction) {
+    static double shadowOffset(Int1088 block, Int1088 origin, double fraction) {
         return WorldBounds.signedDifference(block, origin) - fraction;
     }
 

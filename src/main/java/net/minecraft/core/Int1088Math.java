@@ -9,6 +9,8 @@ import it.unimi.dsi.fastutil.HashCommon;
  */
 public final class Int1088Math {
     public static final int CAPACITY = 20;
+    /** Shared physics-local precision guard, independent of the world-coordinate domain. */
+    public static final long MAX_SAFE_LOCAL_SPAN = 1L << 20;
     private static final int N = Int1088.LIMBS;
 
     private Int1088Math() {
@@ -36,6 +38,85 @@ public final class Int1088Math {
             c = Long.compareUnsigned(word(a, ao, alen, i), word(b, bo, blen, i));
         }
         return c;
+    }
+
+    /** Exact subtraction followed by signed-long saturation, without allocating a result. */
+    public static long signedDifferenceAsLong(Int1088 value, Int1088 origin) {
+        if (value.fitsLong() && origin.fitsLong()) {
+            return longDifference(value.lowLimb(), origin.lowLimb());
+        }
+        long low = value.limb(0) - origin.limb(0);
+        long borrow = Long.compareUnsigned(value.limb(0), origin.limb(0)) < 0 ? 1 : 0;
+        long extension = low >> 63;
+        boolean fits = true;
+        long top = low;
+        for (int i = 1; i < N; ++i) {
+            long a = value.limb(i), b = origin.limb(i);
+            long difference = a - b;
+            top = difference - borrow;
+            borrow = Long.compareUnsigned(a, b) < 0 || Long.compareUnsigned(difference, borrow) < 0 ? 1 : 0;
+            fits &= top == extension;
+        }
+        long a = value.limb(N - 1), b = origin.limb(N - 1);
+        if (((a ^ b) & (a ^ top)) < 0) return a < 0 ? Long.MIN_VALUE : Long.MAX_VALUE;
+        return fits ? low : top < 0 ? Long.MIN_VALUE : Long.MAX_VALUE;
+    }
+
+    /** Limb-view form for hot callers retaining their own coordinate buffers. */
+    public static long signedDifferenceAsLong(long[] a, int ao, int alen, long[] b, int bo, int blen) {
+        alen = canonicalLength(a, ao, alen);
+        blen = canonicalLength(b, bo, blen);
+        if (alen > N || blen > N) throw new IllegalArgumentException("Coordinate exceeds 1088 bits");
+        if (alen == 1 && blen == 1) return longDifference(a[ao], b[bo]);
+        long low = a[ao] - b[bo];
+        long borrow = Long.compareUnsigned(a[ao], b[bo]) < 0 ? 1 : 0;
+        long extension = low >> 63;
+        boolean fits = true;
+        long top = low;
+        for (int i = 1; i < N; ++i) {
+            long x = word(a, ao, alen, i), y = word(b, bo, blen, i);
+            long difference = x - y;
+            top = difference - borrow;
+            borrow = Long.compareUnsigned(x, y) < 0 || Long.compareUnsigned(difference, borrow) < 0 ? 1 : 0;
+            fits &= top == extension;
+        }
+        long at = word(a, ao, alen, N - 1), bt = word(b, bo, blen, N - 1);
+        if (((at ^ bt) & (at ^ top)) < 0) return at < 0 ? Long.MIN_VALUE : Long.MAX_VALUE;
+        return fits ? low : top < 0 ? Long.MIN_VALUE : Long.MAX_VALUE;
+    }
+
+    private static long longDifference(long value, long origin) {
+        long result = value - origin;
+        return ((value ^ origin) & (value ^ result)) < 0
+                ? value < 0 ? Long.MIN_VALUE : Long.MAX_VALUE : result;
+    }
+
+    public static boolean signedDifferenceExact(Int1088 value, Int1088 origin) {
+        long difference = signedDifferenceAsLong(value, origin);
+        return difference >= -MAX_SAFE_LOCAL_SPAN && difference <= MAX_SAFE_LOCAL_SPAN;
+    }
+
+    public static double signedDifference(Int1088 value, Int1088 origin, boolean[] exactOut) {
+        long difference = signedDifferenceAsLong(value, origin);
+        boolean exact = difference >= -MAX_SAFE_LOCAL_SPAN && difference <= MAX_SAFE_LOCAL_SPAN;
+        exactOut[0] = exact;
+        return exact ? (double) difference : difference < 0 ? (double) Long.MIN_VALUE : (double) Long.MAX_VALUE;
+    }
+
+    /** Nonnegative distance, saturated to a signed long. */
+    public static long distance(Int1088 a, Int1088 b) {
+        return a.compareTo(b) >= 0 ? signedDifferenceAsLong(a, b) : signedDifferenceAsLong(b, a);
+    }
+
+    public static long distancePlusOne(Int1088 a, Int1088 b) {
+        long distance = distance(a, b);
+        return distance == Long.MAX_VALUE ? distance : distance + 1;
+    }
+
+    /** Nonnegative span product, saturated rather than wrapped. */
+    public static long safeProduct(long first, long second) {
+        if (first < 0 || second < 0) throw new IllegalArgumentException("Negative span");
+        return second != 0 && first > Long.MAX_VALUE / second ? Long.MAX_VALUE : first * second;
     }
 
     private static int limit(boolean negative, long[] out, int oo) {
@@ -361,6 +442,18 @@ public final class Int1088Math {
 
     public static int hashXZ(long[] a, int ao, int alen) {
         long h = hash(a, ao, alen);
+        return (int) (h ^ (h >>> 32));
+    }
+
+    /** Hash a sign-extended single-limb coordinate without allocating a value or array. */
+    public static int hashXZ(long value) {
+        long h = 0xcbf29ce484222325L;
+        for (int i = 0; i < N; ++i) {
+            long word = i == 0 ? value : value >> 63;
+            long mixed = HashCommon.murmurHash3(word + 0x9e3779b97f4a7c15L * (i + 1));
+            h = (h ^ mixed) * 0x100000001b3L;
+        }
+        h = HashCommon.murmurHash3(h);
         return (int) (h ^ (h >>> 32));
     }
 }

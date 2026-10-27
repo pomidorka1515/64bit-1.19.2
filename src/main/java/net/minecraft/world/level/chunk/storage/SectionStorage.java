@@ -137,12 +137,12 @@ public class SectionStorage<R> implements AutoCloseable {
 
             for (int l = this.levelHeightAccessor.getMinSection(); l < this.levelHeightAccessor.getMaxSection(); ++l) {
                 SectionPos i1 = getKey(pChunkPos, l);
-                Optional<R> optional = optionaldynamic.get(Integer.toString(l)).result().flatMap((p_223519_) -> {
+                Optional<R> optional = optionaldynamic.get(Integer.toString(l)).result().map((p_223519_) -> {
                     return this.codec.apply(() -> {
                                          this.setDirty(i1);
                                      })
                             .parse(p_223519_)
-                            .resultOrPartial(LOGGER::error);
+                            .getOrThrow(false, LOGGER::error);
                 });
                 this.storage.put(i1, optional);
                 optional.ifPresent((p_223523_) -> {

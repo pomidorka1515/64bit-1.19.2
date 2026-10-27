@@ -39,10 +39,7 @@ public class PoiSection {
                                                                 return ImmutableList.copyOf(p_148675_.records.values());
                                                             }))
                                              .apply(p_27299_, PoiSection::new);
-                                 })
-                .orElseGet(Util.prefix("Failed to read POI section: ", LOGGER::error), () -> {
-                    return new PoiSection(pExecutable, false, ImmutableList.of());
-                });
+                                 });
     }
 
     public PoiSection(Runnable pSetDirty) {

@@ -1,15 +1,46 @@
 package net.minecraft.world.entity.ai.village.poi;
 
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.Objects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.RegistryFixedCodec;
 import net.minecraft.util.VisibleForDebug;
 
 public class PoiRecord {
+    // POI saves use per-axis NBT arrays, without changing the shared or JSON codec.
+    private static final Codec<BlockPos> POSITION_CODEC = new Codec<>() {
+        public <T> DataResult<Pair<BlockPos, T>> decode(DynamicOps<T> ops, T input) {
+            if (input instanceof Tag) {
+                if (!(input instanceof CompoundTag tag) || !tag.contains("Y", Tag.TAG_INT)) {
+                    return DataResult.error("Expected POI position compound with X/Z LongArray[17] and Y int");
+                }
+                try {
+                    return DataResult.success(Pair.of(NbtUtils.readBlockPos(tag), ops.empty()));
+                } catch (IllegalArgumentException error) {
+                    return DataResult.error(error.getMessage());
+                }
+            }
+            return BlockPos.CODEC.decode(ops, input);
+        }
+
+        public <T> DataResult<T> encode(BlockPos value, DynamicOps<T> ops, T prefix) {
+            if (ops.empty() instanceof Tag) {
+                T encoded = NbtOps.INSTANCE.convertTo(ops, NbtUtils.writeBlockPos(value));
+                return ops.getMap(encoded).flatMap(map -> ops.mergeToMap(prefix, map));
+            }
+            return BlockPos.CODEC.encode(value, ops, prefix);
+        }
+    };
     private final BlockPos pos;
     private final Holder<PoiType> poiType;
     private int freeTickets;
@@ -17,7 +48,7 @@ public class PoiRecord {
 
     public static Codec<PoiRecord> codec(Runnable pExecutable) {
         return RecordCodecBuilder.create((p_27246_) -> {
-            return p_27246_.group(BlockPos.CODEC.fieldOf("pos").forGetter((p_148673_) -> {
+            return p_27246_.group(POSITION_CODEC.fieldOf("pos").forGetter((p_148673_) -> {
                                return p_148673_.pos;
                            }),
                                    RegistryFixedCodec.create(Registry.POINT_OF_INTEREST_TYPE_REGISTRY).fieldOf("type").forGetter((p_218017_) -> {

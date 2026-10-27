@@ -12,10 +12,10 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import net.minecraft.SharedConstants;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.LongArrayTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.thread.ProcessorMailbox;
 import net.minecraft.world.entity.Entity;
@@ -60,12 +60,9 @@ public class EntityStorage implements EntityPersistentStorage<Entity> {
     }
 
     private static ChunkPos readChunkPos(CompoundTag pTag) {
-        long[] aint = pTag.getLongArray("Position");
-        if (aint.length != 4) {
-            throw new IllegalArgumentException("Entity chunk Position requires four longs [xHi, xLo, zHi, zLo]");
-        }
-        Int128 x = Int128.of(aint[0], aint[1]);
-        Int128 z = Int128.of(aint[2], aint[3]);
+        CompoundTag position = pTag.getCompound("Position");
+        Int1088 x = NbtUtils.readInt1088(position, "x");
+        Int1088 z = NbtUtils.readInt1088(position, "z");
         if (x.compareTo(ChunkPos.MIN_CHUNK_COORDINATE) < 0 || x.compareTo(ChunkPos.MAX_CHUNK_COORDINATE) > 0
                 || z.compareTo(ChunkPos.MIN_CHUNK_COORDINATE) < 0 || z.compareTo(ChunkPos.MAX_CHUNK_COORDINATE) > 0) {
             throw new IllegalArgumentException("Entity chunk Position is outside the chunk coordinate domain");
@@ -74,7 +71,10 @@ public class EntityStorage implements EntityPersistentStorage<Entity> {
     }
 
     private static void writeChunkPos(CompoundTag pTag, ChunkPos pPos) {
-        pTag.put("Position", new LongArrayTag(new long[] {pPos.xHi(), pPos.xLo(), pPos.zHi(), pPos.zLo()}));
+        CompoundTag position = new CompoundTag();
+        NbtUtils.writeInt1088(position, "x", pPos.x());
+        NbtUtils.writeInt1088(position, "z", pPos.z());
+        pTag.put("Position", position);
     }
 
     private static ChunkEntities<Entity> emptyChunk(ChunkPos pPos) {

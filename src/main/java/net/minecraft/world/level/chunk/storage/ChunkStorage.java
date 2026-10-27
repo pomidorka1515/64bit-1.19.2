@@ -10,8 +10,8 @@ import net.minecraft.world.level.ChunkPos;
 public class ChunkStorage implements AutoCloseable {
     private final IOWorker worker;
 
-    public ChunkStorage(Path pRegionFolder, boolean pSync) {
-        this.worker = new IOWorker(pRegionFolder, pSync, "chunk");
+    public ChunkStorage(Path pStorageRoot, boolean pSync) {
+        this.worker = new IOWorker(pStorageRoot, pSync, "chunk");
     }
 
     public boolean isOldChunkAround(ChunkPos p_223452_, int p_223453_) {

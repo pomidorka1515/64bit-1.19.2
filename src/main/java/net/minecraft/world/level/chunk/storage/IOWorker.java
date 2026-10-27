@@ -17,8 +17,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import net.minecraft.Util;
-import net.minecraft.core.Int128;
-import net.minecraft.core.Int128Math;
+import net.minecraft.core.Int1088;
+import net.minecraft.core.Int1088Math;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.StreamTagVisitor;
@@ -53,16 +53,16 @@ public class IOWorker implements ChunkScanAccess, AutoCloseable {
                 WorldBounds.addChunkOffset(p_223472_.z(), (long) p_223473_));
 
         boolean moreX = chunkpos.getRegionX().compareTo(chunkpos1.getRegionX()) <= 0;
-        for (Int128 i = chunkpos.getRegionX(); moreX; moreX = i.compareTo(chunkpos1.getRegionX()) < 0, i = i.add(Int128.ONE)) {
+        for (Int1088 i = chunkpos.getRegionX(); moreX; moreX = i.compareTo(chunkpos1.getRegionX()) < 0, i = i.add(Int1088.ONE)) {
             boolean moreZ = chunkpos.getRegionZ().compareTo(chunkpos1.getRegionZ()) <= 0;
-            for (Int128 j = chunkpos.getRegionZ(); moreZ; moreZ = j.compareTo(chunkpos1.getRegionZ()) < 0, j = j.add(Int128.ONE)) {
+            for (Int1088 j = chunkpos.getRegionZ(); moreZ; moreZ = j.compareTo(chunkpos1.getRegionZ()) < 0, j = j.add(Int1088.ONE)) {
                 BitSet bitset = this.getOrCreateOldDataForRegion(i, j).join();
                 if (!bitset.isEmpty()) {
                     ChunkPos chunkpos2 = ChunkPos.minFromRegion(i, j);
-                    long k = Math.max(Int128Math.signedDifferenceAsLong(chunkpos.xHi(), chunkpos.xLo(), chunkpos2.xHi(), chunkpos2.xLo()), 0);
-                    long l = Math.max(Int128Math.signedDifferenceAsLong(chunkpos.zHi(), chunkpos.zLo(), chunkpos2.zHi(), chunkpos2.zLo()), 0);
-                    long i1 = Math.min(Int128Math.signedDifferenceAsLong(chunkpos1.xHi(), chunkpos1.xLo(), chunkpos2.xHi(), chunkpos2.xLo()), 31);
-                    long j1 = Math.min(Int128Math.signedDifferenceAsLong(chunkpos1.zHi(), chunkpos1.zLo(), chunkpos2.zHi(), chunkpos2.zLo()), 31);
+                    long k = Math.max(Int1088Math.signedDifferenceAsLong(chunkpos.x(), chunkpos2.x()), 0);
+                    long l = Math.max(Int1088Math.signedDifferenceAsLong(chunkpos.z(), chunkpos2.z()), 0);
+                    long i1 = Math.min(Int1088Math.signedDifferenceAsLong(chunkpos1.x(), chunkpos2.x()), 31);
+                    long j1 = Math.min(Int1088Math.signedDifferenceAsLong(chunkpos1.z(), chunkpos2.z()), 31);
 
                     for (long k1 = k; k1 <= i1; ++k1) {
                         for (long l1 = l; l1 <= j1; ++l1) {
@@ -79,7 +79,7 @@ public class IOWorker implements ChunkScanAccess, AutoCloseable {
         return false;
     }
 
-    private CompletableFuture<BitSet> getOrCreateOldDataForRegion(Int128 p_223464_, Int128 p_223465_) {
+    private CompletableFuture<BitSet> getOrCreateOldDataForRegion(Int1088 p_223464_, Int1088 p_223465_) {
         RegionPos i = new RegionPos(p_223464_, p_223465_);
         synchronized (this.regionCacheForBlender) {
             CompletableFuture<BitSet> completablefuture = this.regionCacheForBlender.getAndMoveToFirst(i);
@@ -95,7 +95,7 @@ public class IOWorker implements ChunkScanAccess, AutoCloseable {
         }
     }
 
-    private CompletableFuture<BitSet> createOldDataForRegion(Int128 p_223490_, Int128 p_223491_) {
+    private CompletableFuture<BitSet> createOldDataForRegion(Int1088 p_223490_, Int1088 p_223491_) {
         return CompletableFuture.supplyAsync(() -> {
             ChunkPos chunkpos = ChunkPos.minFromRegion(p_223490_, p_223491_);
             ChunkPos chunkpos1 = ChunkPos.maxFromRegion(p_223490_, p_223491_);

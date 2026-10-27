@@ -16,7 +16,7 @@ import javax.annotation.Nullable;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
@@ -274,9 +274,9 @@ public class ChunkSerializer {
         ChunkPos chunkpos = pChunk.getPos();
         CompoundTag compoundtag = new CompoundTag();
         compoundtag.putInt("DataVersion", SharedConstants.getCurrentVersion().getWorldVersion());
-        NbtUtils.writeInt128(compoundtag, X_POS_TAG, chunkpos.x());
+        NbtUtils.writeInt1088(compoundtag, X_POS_TAG, chunkpos.x());
         compoundtag.putInt("yPos", pChunk.getMinSection());
-        NbtUtils.writeInt128(compoundtag, Z_POS_TAG, chunkpos.z());
+        NbtUtils.writeInt1088(compoundtag, Z_POS_TAG, chunkpos.z());
         compoundtag.putLong("LastUpdate", pLevel.getGameTime());
         compoundtag.putLong("InhabitedTime", pChunk.getInhabitedTime());
         compoundtag.putString("Status", pChunk.getStatus().getName());
@@ -457,8 +457,8 @@ public class ChunkSerializer {
         ListTag tag = new ListTag();
         for (ChunkPos chunkPos : objectSet) {
             CompoundTag tag2 = new CompoundTag();
-            NbtUtils.writeInt128(tag2, "x", chunkPos.x());
-            NbtUtils.writeInt128(tag2, "z", chunkPos.z());
+            NbtUtils.writeInt1088(tag2, "x", chunkPos.x());
+            NbtUtils.writeInt1088(tag2, "z", chunkPos.z());
             tag.add(tag2);
         }
         return tag;
@@ -496,7 +496,12 @@ public class ChunkSerializer {
             if (structure == null) {
                 LOGGER.warn("Found reference to unknown structure '{}' in chunk {}, discarding", resourcelocation, pPos);
             } else {
-                ObjectSet<ChunkPos> set = fromTag(compoundtag.getList(s, Tag.TAG_COMPOUND));
+                Tag referenceTag = compoundtag.get(s);
+                if (!(referenceTag instanceof ListTag references)
+                        || !references.isEmpty() && references.getElementType() != Tag.TAG_COMPOUND) {
+                    throw new IllegalArgumentException("Expected list of coordinate compounds for structure reference " + s);
+                }
+                ObjectSet<ChunkPos> set = fromTag(references);
                 if (set.size() != 0) {
                     map.put(structure, new ObjectOpenHashSet<>(set.stream().filter((p_208153_) -> {
                                                                                ChunkPos chunkpos = p_208153_;
@@ -527,8 +532,8 @@ public class ChunkSerializer {
     }
 
     private static ChunkPos readChunkPos(CompoundTag pTag, String pXKey, String pZKey) {
-        Int128 x = NbtUtils.readInt128(pTag, pXKey);
-        Int128 z = NbtUtils.readInt128(pTag, pZKey);
+        Int1088 x = NbtUtils.readInt1088(pTag, pXKey);
+        Int1088 z = NbtUtils.readInt1088(pTag, pZKey);
         if (x.compareTo(ChunkPos.MIN_CHUNK_COORDINATE) < 0 || x.compareTo(ChunkPos.MAX_CHUNK_COORDINATE) > 0
                 || z.compareTo(ChunkPos.MIN_CHUNK_COORDINATE) < 0 || z.compareTo(ChunkPos.MAX_CHUNK_COORDINATE) > 0) {
             throw new IllegalArgumentException("Chunk position is outside the chunk coordinate domain");

@@ -8,7 +8,7 @@ import it.unimi.dsi.fastutil.objects.ObjectSet;
 import java.lang.reflect.Method;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 class CoordinatePersistenceTest {
     @Test
     void blockPositionsAndTicksPreserveFullWidthCoordinates() {
-        for (Int128 x : new Int128[]{Int128.MIN, Int128.of(-123, 17), Int128.of(123, -17), Int128.MAX}) {
+        for (Int1088 x : new Int1088[]{Int1088.MIN, Int1088.of(17, -123), Int1088.of(-17, 123), Int1088.MAX}) {
             BlockPos pos = new BlockPos(x, 64, x.not());
             assertEquals(pos, NbtUtils.readBlockPos(NbtUtils.writeBlockPos(pos)));
             SavedTick<String> tick = new SavedTick<>("test", pos, 17, TickPriority.HIGH);
@@ -46,15 +46,15 @@ class CoordinatePersistenceTest {
     }
 
     @Test
-    void missingHighWordsAreRejectedEvenForLongCoordinates() {
-        BlockPos position = new BlockPos(Int128.of(123, 17), 64, Int128.of(-123, 29));
-        for (String key : new String[] {"XHi", "ZHi"}) {
+    void missingCoordinatesAreRejectedEvenForLongCoordinates() {
+        BlockPos position = new BlockPos(Int1088.of(17, 123), 64, Int1088.of(29, -123));
+        for (String key : new String[] {"X", "Z"}) {
             CompoundTag tag = NbtUtils.writeBlockPos(position);
             tag.remove(key);
             assertThrows(IllegalArgumentException.class, () -> NbtUtils.readBlockPos(tag));
         }
         SavedTick<String> tick = new SavedTick<>("test", position, 17, TickPriority.HIGH);
-        for (String key : new String[] {"xHi", "zHi"}) {
+        for (String key : new String[] {"x", "z"}) {
             CompoundTag tag = tick.save(value -> value);
             tag.remove(key);
             assertThrows(IllegalArgumentException.class, () -> SavedTick.loadTick(tag, Optional::of));
@@ -63,7 +63,7 @@ class CoordinatePersistenceTest {
 
     @Test
     void forcedChunksSurviveReload() {
-        ChunkPos first = new ChunkPos(Int128.of(123, 17), Int128.of(-123, 29));
+        ChunkPos first = new ChunkPos(Int1088.of(17, 123), Int1088.of(29, -123));
         ChunkPos second = new ChunkPos(-17, 29);
         ForcedChunksSavedData forced = new ForcedChunksSavedData();
         forced.getChunks().add(first);
@@ -76,7 +76,7 @@ class CoordinatePersistenceTest {
     void structureReferenceSerializersIncludeEveryChunk() throws Exception {
         net.minecraft.SharedConstants.tryDetectVersion();
         net.minecraft.server.Bootstrap.bootStrap();
-        ChunkPos pos = new ChunkPos(Int128.of(123, 17), Int128.of(-123, 29));
+        ChunkPos pos = new ChunkPos(Int1088.of(17, 123), Int1088.of(29, -123));
         ObjectSet<ChunkPos> chunks = new ObjectOpenHashSet<>();
         chunks.add(pos);
         Method serializer = ChunkSerializer.class.getDeclaredMethod("toTag", ObjectSet.class);
@@ -87,7 +87,7 @@ class CoordinatePersistenceTest {
 
     private static void assertReference(ListTag references, ChunkPos pos) {
         assertEquals(1, references.size());
-        assertEquals(pos.x(), NbtUtils.readInt128(references.getCompound(0), "x"));
-        assertEquals(pos.z(), NbtUtils.readInt128(references.getCompound(0), "z"));
+        assertEquals(pos.x(), NbtUtils.readInt1088(references.getCompound(0), "x"));
+        assertEquals(pos.z(), NbtUtils.readInt1088(references.getCompound(0), "z"));
     }
 }

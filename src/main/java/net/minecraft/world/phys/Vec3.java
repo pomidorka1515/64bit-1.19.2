@@ -251,7 +251,7 @@ public class Vec3 implements Position {
 
     public Vec3 relative(Direction p_231076_, double p_231077_) {
         Vec3i vec3i = p_231076_.getNormal();
-        return this.add(p_231077_ * (double) vec3i.getXLo(), p_231077_ * (double) vec3i.getY(), p_231077_ * (double) vec3i.getZLo());
+        return this.add(p_231077_ * vec3i.getX().toDoubleSaturated(), p_231077_ * (double) vec3i.getY(), p_231077_ * vec3i.getZ().toDoubleSaturated());
     }
 
     public final double x() {

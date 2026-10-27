@@ -3,7 +3,7 @@ package net.minecraft.world.phys;
 import static org.junit.jupiter.api.Assertions.*;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.nbt.CompoundTag;
@@ -19,7 +19,7 @@ class SectorEntityCoordinatesTest {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
         Entity entity = new TestEntity();
-        for (Int128 coordinate : new Int128[] {Int128.of(1234L, 7L), Int128.of(-1234L, 7L)}) {
+        for (Int1088 coordinate : new Int1088[] {Int1088.of(7L, 1234L), Int1088.of(7L, -1234L)}) {
             SectorVec3 position = SectorVec3.fromBlockAndFraction(coordinate, 0.25D, 10.0D,
                     coordinate, 0.75D);
             entity.applyExactPosition(position);
@@ -49,8 +49,8 @@ class SectorEntityCoordinatesTest {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
         Entity entity = new TestEntity();
-        SectorVec3 origin = SectorVec3.fromBlockAndFraction(Int128.MAX.subtract(Int128.fromLong(4L)), 0.25D, 10.0D,
-                Int128.MIN.add(Int128.fromLong(4L)), 0.5D);
+        SectorVec3 origin = SectorVec3.fromBlockAndFraction(Int1088.MAX.subtract(Int1088.fromLong(4L)), 0.25D, 10.0D,
+                Int1088.MIN.add(Int1088.fromLong(4L)), 0.5D);
         entity.applyExactPosition(origin);
         SectorVec3 target = origin.add(0.5D, 0.0D, 0.0D);
         net.minecraft.commands.arguments.EntityAnchorArgument.Anchor anchor =
@@ -85,8 +85,8 @@ class SectorEntityCoordinatesTest {
 
     @Test
     void portalDestinationRetainsFractionsAtFullRangeEdges() {
-        Int128 x = Int128.MAX.subtract(Int128.fromLong(2L));
-        Int128 z = Int128.MIN.add(Int128.fromLong(2L));
+        Int1088 x = Int1088.MAX.subtract(Int1088.fromLong(2L));
+        Int1088 z = Int1088.MIN.add(Int1088.fromLong(2L));
         SectorVec3 destination = SectorVec3.fromBlockAndFraction(x, 0.5D, 64.0D, z, 0.25D);
         net.minecraft.world.level.portal.PortalInfo portal = new net.minecraft.world.level.portal.PortalInfo(destination, Vec3.ZERO, 90.0F, 0.0F);
         assertEquals(destination, portal.exactPos);
@@ -101,7 +101,7 @@ class SectorEntityCoordinatesTest {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
         Entity entity = new TestEntity();
-        for (Int128 coordinate : new Int128[] {Int128.of(1234L, 7L), Int128.of(-1234L, 7L)}) {
+        for (Int1088 coordinate : new Int1088[] {Int1088.of(7L, 1234L), Int1088.of(7L, -1234L)}) {
             SectorVec3 start = SectorVec3.fromBlockAndFraction(coordinate, 0.25D, 10.0D,
                     coordinate, 0.75D);
             entity.applyExactPosition(start.add(0.5D, 2.0D, -0.5D));
@@ -126,7 +126,7 @@ class SectorEntityCoordinatesTest {
         Entity entity = new TestEntity();
         assertTrue(entity.hasSectorPosition());
         entity.noPhysics = true;
-        Int128 coordinate = Int128.of(1L << 36, -1L);
+        Int1088 coordinate = Int1088.ONE.shiftLeftSaturated(1024).subtractSaturated(Int1088.ONE);
         SectorVec3 start = SectorVec3.fromBlockAndFraction(coordinate, 0.25D, 10.0D, coordinate.negate(), 0.75D);
         entity.applyExactPosition(start);
         entity.setOldExactPosition(start);
@@ -154,8 +154,8 @@ class SectorEntityCoordinatesTest {
 
     @Test
     void blockTargetDistancesKeepFractionsBeyondDoublePrecision() {
-        for (Int128 coordinate : new Int128[] {Int128.fromLong(1L << 54), Int128.of(5L, -1L),
-                Int128.MAX.subtract(Int128.fromLong(8L)), Int128.MIN.add(Int128.fromLong(8L))}) {
+        for (Int1088 coordinate : new Int1088[] {Int1088.fromLong(1L << 54), Int1088.of(-1L, 5L),
+                Int1088.MAX.subtract(Int1088.fromLong(8L)), Int1088.MIN.add(Int1088.fromLong(8L))}) {
             BlockPos target = new BlockPos(coordinate, 20, coordinate);
             SectorVec3 position = SectorVec3.fromBlockAndFraction(coordinate, 0.75D, 20.5D, coordinate, 0.5D);
             assertEquals(0.0625D, target.distToCenterSqr(position), 1.0E-12D);

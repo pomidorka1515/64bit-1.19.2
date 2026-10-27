@@ -43,6 +43,7 @@ public class WorldCoordinate {
         this.value = value;
         this.literal = literal;
         if (relative) {
+            if (!Double.isFinite(value)) throw new NumberFormatException("Non-finite coordinate");
             this.absoluteBlock = null;
             this.fraction = 0;
         } else {
@@ -57,7 +58,9 @@ public class WorldCoordinate {
             if (negative && block.equals(Int1088.MIN) && nonzero) throw new NumberFormatException(literal);
             if (negative && nonzero) {
                 block = block.subtractSaturated(Int1088.ONE);
-                part = part == 1.0D ? 0.0D : complementedFraction(literal.substring(dot + 1));
+                // Round the floor-relative fraction itself, not 1 minus an
+                // already rounded magnitude (which can erase a tiny remainder).
+                part = complementedFraction(literal.substring(dot + 1));
                 if (part == 1.0D) part = Math.nextDown(1.0D);
             } else if (part == 1.0D) {
                 if (block.equals(Int1088.MAX)) part = Math.nextDown(1.0D);
@@ -103,7 +106,7 @@ public class WorldCoordinate {
                 return new WorldCoordinate(true, 0.0D, "0");
             } else {
                 try {
-                    String literal = s.isEmpty() ? "0" : s;
+                    String literal = s;
                     if (!isDecimal(literal))
                         throw new NumberFormatException(literal);
                     double d0 = Double.parseDouble(literal);
@@ -135,6 +138,8 @@ public class WorldCoordinate {
             String token = pReader.canRead() && pReader.peek() != ' ' ? readCoordinateToken(pReader) : "";
             try {
                 String literal = token.isEmpty() ? "0" : token;
+                if ((!flag && token.isEmpty()) || (flag && !isDecimal(literal)))
+                    throw new NumberFormatException(literal);
                 double d0 = flag ? Double.parseDouble(literal) : Int1088.parseDecimal(literal).toDoubleSaturated();
                 if (!Double.isFinite(d0))
                     throw new NumberFormatException(literal);
@@ -205,6 +210,12 @@ public class WorldCoordinate {
 
     public boolean isRelative() {
         return this.relative;
+    }
+
+    @Override
+    public String toString() {
+        if (this.relative) return "~" + (this.value == 0.0D ? "" : this.literal);
+        return this.fraction == 0.0D ? this.absoluteBlock.toDecimalString() : this.literal;
     }
 
     public static WorldCoordinate absoluteDecimal(String value, boolean centerCorrect) {

@@ -83,7 +83,20 @@ public class LocalCoordinates implements Coordinates {
             throw Vec3Argument.ERROR_MIXED_TYPE.createWithContext(pReader);
         } else {
             pReader.skip();
-            return pReader.canRead() && pReader.peek() != ' ' ? pReader.readDouble() : 0.0D;
+            if (!pReader.canRead() || pReader.peek() == ' ') return 0.0D;
+            int start = pReader.getCursor();
+            while (pReader.canRead() && pReader.peek() != ' ') pReader.skip();
+            String token = pReader.getString().substring(start, pReader.getCursor());
+            try {
+                if (!token.matches("[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)"))
+                    throw new NumberFormatException(token);
+                double value = Double.parseDouble(token);
+                if (!Double.isFinite(value)) throw new NumberFormatException(token);
+                return value;
+            } catch (NumberFormatException exception) {
+                pReader.setCursor(start);
+                throw WorldCoordinate.ERROR_EXPECTED_DOUBLE.createWithContext(pReader);
+            }
         }
     }
 

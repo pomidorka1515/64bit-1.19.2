@@ -16,8 +16,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -263,46 +261,6 @@ public class GsonHelper {
 
     public static char getAsCharacter(JsonObject pJson, String pMemberName, char pFallback) {
         return pJson.has(pMemberName) ? convertToCharacter(pJson.get(pMemberName), pMemberName) : pFallback;
-    }
-
-    public static BigDecimal convertToBigDecimal(JsonElement pJson, String pMemberName) {
-        if (pJson.isJsonPrimitive() && pJson.getAsJsonPrimitive().isNumber()) {
-            return pJson.getAsBigDecimal();
-        } else {
-            throw new JsonSyntaxException("Expected " + pMemberName + " to be a BigDecimal, was " + getType(pJson));
-        }
-    }
-
-    public static BigDecimal getAsBigDecimal(JsonObject pJson, String pMemberName) {
-        if (pJson.has(pMemberName)) {
-            return convertToBigDecimal(pJson.get(pMemberName), pMemberName);
-        } else {
-            throw new JsonSyntaxException("Missing " + pMemberName + ", expected to find a BigDecimal");
-        }
-    }
-
-    public static BigDecimal getAsBigDecimal(JsonObject pJson, String pMemberName, BigDecimal pFallback) {
-        return pJson.has(pMemberName) ? convertToBigDecimal(pJson.get(pMemberName), pMemberName) : pFallback;
-    }
-
-    public static BigInteger convertToBigInteger(JsonElement pJson, String pMemberName) {
-        if (pJson.isJsonPrimitive() && pJson.getAsJsonPrimitive().isNumber()) {
-            return pJson.getAsBigInteger();
-        } else {
-            throw new JsonSyntaxException("Expected " + pMemberName + " to be a BigInteger, was " + getType(pJson));
-        }
-    }
-
-    public static BigInteger getAsBigInteger(JsonObject pJson, String pMemberName) {
-        if (pJson.has(pMemberName)) {
-            return convertToBigInteger(pJson.get(pMemberName), pMemberName);
-        } else {
-            throw new JsonSyntaxException("Missing " + pMemberName + ", expected to find a BigInteger");
-        }
-    }
-
-    public static BigInteger getAsBigInteger(JsonObject pJson, String pMemberName, BigInteger pFallback) {
-        return pJson.has(pMemberName) ? convertToBigInteger(pJson.get(pMemberName), pMemberName) : pFallback;
     }
 
     public static short convertToShort(JsonElement pJson, String pMemberName) {

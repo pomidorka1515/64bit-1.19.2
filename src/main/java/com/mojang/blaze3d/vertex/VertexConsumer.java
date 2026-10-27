@@ -68,7 +68,7 @@ public interface VertexConsumer {
         int[] aint = new int[] {pCombinedLights[0], pCombinedLights[1], pCombinedLights[2], pCombinedLights[3]};
         int[] aint1 = pQuad.getVertices();
         Vec3i vec3i = pQuad.getDirection().getNormal();
-        Vector3f vector3f = new Vector3f((float) vec3i.getXLo(), (float) vec3i.getY(), (float) vec3i.getZLo());
+        Vector3f vector3f = new Vector3f((float) vec3i.getX().toDoubleRounded(), (float) vec3i.getY(), (float) vec3i.getZ().toDoubleRounded());
         Matrix4f matrix4f = pPoseEntry.pose();
         vector3f.transform(pPoseEntry.normal());
         int i = 8;

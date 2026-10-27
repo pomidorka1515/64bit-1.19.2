@@ -142,7 +142,7 @@ public class StructureUtils {
         if (p_127886_ == Rotation.NONE) {
             blockpos = p_127885_;
         } else if (p_127886_ == Rotation.CLOCKWISE_90) {
-            blockpos = p_127885_.offset(vec3i.getZ().lo() - 1, 0, 0);
+            blockpos = p_127885_.offset(vec3i.getZ().subtractSaturated(net.minecraft.core.Int1088.ONE), 0, net.minecraft.core.Int1088.ZERO);
         } else if (p_127886_ == Rotation.CLOCKWISE_180) {
             blockpos = p_127885_.offset(WorldBounds.subtractBlockOffset(vec3i.getX(), 1), 0, WorldBounds.subtractBlockOffset(vec3i.getZ(), 1));
         } else {
@@ -150,7 +150,7 @@ public class StructureUtils {
                 throw new IllegalArgumentException("Invalid rotation: " + p_127886_);
             }
 
-            blockpos = p_127885_.offset(0, 0, vec3i.getX().lo() - 1);
+            blockpos = p_127885_.offset(net.minecraft.core.Int1088.ZERO, 0, vec3i.getX().subtractSaturated(net.minecraft.core.Int1088.ONE));
         }
 
         forceLoadChunks(p_127885_, p_127888_);
@@ -166,8 +166,8 @@ public class StructureUtils {
 
         for (int i = -1; i < 4; ++i) {
             for (int j = -1; j < 4; ++j) {
-                net.minecraft.core.Int128 k = WorldBounds.addBlockOffset(chunkpos.x(), i);
-                net.minecraft.core.Int128 l = WorldBounds.addBlockOffset(chunkpos.z(), j);
+                net.minecraft.core.Int1088 k = WorldBounds.addBlockOffset(chunkpos.x(), i);
+                net.minecraft.core.Int1088 l = WorldBounds.addBlockOffset(chunkpos.z(), j);
                 pServerLevel.setChunkForced(k, l, true);
             }
         }
@@ -191,8 +191,8 @@ public class StructureUtils {
         BlockPos blockpos = pPos.offset(pOffset).offset(-1, -1, -1);
         BlockPos blockpos1 = StructureTemplate.transform(blockpos, Mirror.NONE, pRotation, pPos);
         BoundingBox boundingbox = BoundingBox.fromCorners(pPos, blockpos1);
-        net.minecraft.core.Int128 i = boundingbox.minX();
-        net.minecraft.core.Int128 j = boundingbox.minZ();
+        net.minecraft.core.Int1088 i = boundingbox.minX();
+        net.minecraft.core.Int1088 j = boundingbox.minZ();
         return boundingbox.move(pPos.getX().subtractSaturated(i), 0, pPos.getZ().subtractSaturated(j));
     }
 

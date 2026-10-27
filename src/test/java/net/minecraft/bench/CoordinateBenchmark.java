@@ -2,8 +2,7 @@
 // asserts a timing. S10.09 compares the same named rows against this output.
 package net.minecraft.bench;
 
-import net.minecraft.core.Int128;
-import net.minecraft.core.Int128Math;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Vec3i;
 
 import java.nio.file.Files;
@@ -109,13 +108,13 @@ class CoordinateBenchmark {
                 .append(FAR).append(", ns/sweep over 2000 sweeps\n");
         report.append("chunk-key-lookup: Object2ObjectOpenHashMap<ChunkPos,Integer>.get(new ChunkPos) ")
                 .append("over a 33x33 window, 20 reps; setup excluded\n");
-        report.append("chunk-key-raw-lookup: ChunkPosMap.get(xHi,xLo,zHi,zLo), same window/checksum; setup excluded\n");
+        report.append("chunk-key-raw-lookup: ChunkPosMap.get(long x,long z), same window/checksum; setup excluded\n");
         report.append("chunk-key comparison: historical setup-inclusive results (including 124 ns/op) are not comparable; ")
                 .append("the object-probe row is honest, not evidence of a regression. The raw row remains the optimization target.\n");
         report.append("chunk-coordinate-access: RangeCursor over a 33x33 window, raw region/block limbs; no per-entry snapshots\n");
         report.append("block-position-hot-ops: immutable offsets and retained BlockPos/ChunkPos snapshots, 4096 positions\n");
         report.append("block-position-scratch-hot-ops: same coordinates/checksum with a reusable MutableBlockPos and raw hashes; no retained snapshots\n");
-        report.append("region-name-formatting: canonical 32-hex X/Z .mca names, 4000 reps of 8 names\n");
+        report.append("region-name-formatting: nested full-width region paths, 4000 reps of 8 paths\n");
         report.append("sector-vec3-relative-math: relativeX/Y/Z at ").append(FAR).append(", 20000 calls\n");
 
         String text = report.toString();
@@ -175,12 +174,12 @@ class CoordinateBenchmark {
         long z0 = -FAR;
         for (int rep = 0; rep < 32; ++rep) {
             for (BlockPos pos : BlockPos.betweenClosed(x0, 0, z0, x0 + 15L, 15, z0 + 15L)) {
-                checksum += pos.getXLo() ^ (pos.getZLo() << 1) ^ pos.getY();
+                checksum += pos.xLimb(0) ^ (pos.zLimb(0) << 1) ^ pos.getY();
                 ++ops;
             }
             Cursor3D cursor = new Cursor3D(x0, 0, z0, x0 + 15L, 15, z0 + 15L);
             while (cursor.advance()) {
-                checksum += cursor.nextXLo() ^ (cursor.nextZLo() << 1) ^ cursor.nextY();
+                checksum += cursor.nextX().lowLimb() ^ (cursor.nextZ().lowLimb() << 1) ^ cursor.nextY();
                 ++ops;
             }
         }
@@ -258,7 +257,7 @@ class CoordinateBenchmark {
                 for (int dz = -16; dz <= 16; ++dz) {
                     long x = originX + dx;
                     long z = originZ + dz;
-                    Integer found = this.rawChunkKeys.get(x >> 63, x, z >> 63, z);
+                    Integer found = this.rawChunkKeys.get(x, z);
                     if (found == null) throw new IllegalStateException("missing raw chunk key");
                     checksum += found.intValue() + 1L;
                     ++ops;
@@ -273,8 +272,9 @@ class CoordinateBenchmark {
         long ops = 0L;
         for (int rep = 0; rep < 4000; ++rep) {
             for (long region : REGION_COORDS) {
-                String name = net.minecraft.world.level.chunk.storage.RegionFileNames.regionFileName(
-                        Int128.fromLong(region), Int128.fromLong(region ^ 0x5A5A5A5A5A5A5A5AL));
+                String name = net.minecraft.world.level.chunk.storage.RegionPaths.regionFile(Path.of("benchmark"),
+                        new net.minecraft.world.level.chunk.storage.RegionPos(Int1088.fromLong(region),
+                                Int1088.fromLong(region ^ 0x5A5A5A5A5A5A5A5AL))).toString();
                 checksum += name.length();
                 checksum += name.charAt(2);
                 ++ops;
@@ -287,7 +287,7 @@ class CoordinateBenchmark {
     // relying on scalar replacement of an entirely synthetic coordinate pipeline.
     private static final BlockPos[] BLOCK_RESULTS = new BlockPos[4096];
     private static final ChunkPos[] CHUNK_RESULTS = new ChunkPos[4096];
-    private final BlockPos blockOrigin = new BlockPos(17L, -16L, 64, -18L, 16L);
+    private final BlockPos blockOrigin = new BlockPos(Int1088.of(-16L, 17L), 64, Int1088.of(16L, -18L));
     private final BlockPos.MutableBlockPos blockScratch = new BlockPos.MutableBlockPos();
 
     @Test
@@ -296,7 +296,7 @@ class CoordinateBenchmark {
     }
 
     private Result blockPositionHotOps() {
-        BlockPos origin = new BlockPos(Int128.of(17L, -16L), 64, Int128.of(-18L, 16L));
+        BlockPos origin = this.blockOrigin;
         long checksum = 1L;
         for (int i = 0; i < BLOCK_RESULTS.length; ++i) {
             BlockPos pos = origin.offset(i & 15, (i >>> 4) & 15, (i >>> 8) & 15);
@@ -313,22 +313,20 @@ class CoordinateBenchmark {
         long checksum = 1L;
         for (int i = 0; i < BLOCK_RESULTS.length; ++i) {
             pos.setWithOffset(origin, i & 15, (i >>> 4) & 15, (i >>> 8) & 15);
-            checksum += Vec3i.hashCode(pos.xHi(), pos.xLo(), pos.getY(), pos.zHi(), pos.zLo())
-                    + pos.compareTo(origin.xHi(), origin.xLo(), origin.getY(), origin.zHi(), origin.zLo())
-                    + ChunkPos.hash(pos.xHi() >> 4, Int128Math.rightShiftLo(pos.xHi(), pos.xLo(), 4),
-                            pos.zHi() >> 4, Int128Math.rightShiftLo(pos.zHi(), pos.zLo(), 4));
+            checksum += pos.hashCode() + pos.compareTo(origin)
+                    + ChunkPos.hash(pos.getX().shiftRight(4), pos.getZ().shiftRight(4));
         }
         return new Result(BLOCK_RESULTS.length, checksum);
     }
 
     private Result accessChunkCoordinates() {
-        ChunkPos center = new ChunkPos(Int128.of(17L, -16L), Int128.of(-18L, 16L));
+        ChunkPos center = new ChunkPos(Int1088.of(-16L, 17L), Int1088.of(16L, -18L));
         long checksum = 1L;
         long ops = 0L;
         var positions = ChunkPos.rangeClosedCursor(center, 16);
         while (positions.advance()) {
-            checksum += positions.getChessboardDistance(center) + positions.getRegionXLo()
-                    + positions.getRegionZLo() + (positions.xLo() << 4) + (positions.zLo() << 4);
+            checksum += positions.getChessboardDistance(center) + positions.getRegionX().lowLimb()
+                    + positions.getRegionZ().lowLimb() + (positions.x().lowLimb() << 4) + (positions.z().lowLimb() << 4);
             ++ops;
         }
         return new Result(ops, checksum);
@@ -391,7 +389,7 @@ class CoordinateBenchmark {
 
         @Override
         @Nullable
-        public net.minecraft.world.level.BlockGetter getChunkForCollisions(long chunkX, long chunkZ) {
+        public net.minecraft.world.level.BlockGetter getChunkForCollisions(Int1088 chunkX, Int1088 chunkZ) {
             return this;
         }
 

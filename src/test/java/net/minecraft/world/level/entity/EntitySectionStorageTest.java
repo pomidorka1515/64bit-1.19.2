@@ -17,6 +17,56 @@ import org.junit.jupiter.api.Test;
 
 class EntitySectionStorageTest {
     @Test
+    void everyLimbRemainsDistinctInSectionTreeChunkIndexAndRemoval() {
+        EntitySectionStorage<EntityAccess> storage = new EntitySectionStorage<>(EntityAccess.class,
+                chunk -> Visibility.TICKING);
+        List<SectionPos> sections = new ArrayList<>();
+        sections.add(SectionPos.of(0L, 4, 0L));
+        for (int limb = 1; limb < Int1088.LIMBS; ++limb) {
+            for (int sign : new int[] {-1, 1}) {
+                Int1088 high = Int1088.ONE.shiftLeftSaturated(limb * 64).multiplySaturated(sign);
+                sections.add(SectionPos.of(high, 4, Int1088.ZERO));
+                sections.add(SectionPos.of(Int1088.ZERO, 4, high));
+            }
+        }
+        sections.add(SectionPos.of(net.minecraft.world.level.WorldBounds.MIN_CHUNK, 4,
+                net.minecraft.world.level.WorldBounds.MAX_CHUNK));
+        sections.add(SectionPos.of(net.minecraft.world.level.WorldBounds.MAX_CHUNK, 4,
+                net.minecraft.world.level.WorldBounds.MIN_CHUNK));
+        for (SectionPos section : sections) {
+            TestEntity entity = new TestEntity(new BlockPos(section.chunk().getMinBlockX(), 64,
+                    section.chunk().getMinBlockZ()));
+            storage.getOrCreateSection(section).add(entity);
+        }
+        assertEquals(sections.size(), storage.count());
+        assertEquals(sections.size(), storage.getAllChunksWithExistingSections().size());
+        List<EntityAccess> found = new ArrayList<>();
+        // A huge range uses the ordered section index rather than direct lookups.
+        storage.getEntitiesInSections(Int1088.MIN, Int1088.MAX, 4, 4,
+                Int1088.MIN, Int1088.MAX, found::add);
+        assertEquals(sections.size(), found.size());
+        assertEquals(sections.size(), new java.util.HashSet<>(found).size());
+        for (SectionPos section : sections) {
+            assertEquals(List.of(section), storage.getExistingSectionPositionsInChunk(section.chunk()).toList());
+            found.clear();
+            storage.getEntitiesInSections(section.x(), section.x(), 4, 4, section.z(), section.z(), found::add);
+            assertEquals(1, found.size());
+            assertEquals(section, SectionPos.of(found.get(0).blockPosition()));
+        }
+        for (int i = 0; i < sections.size(); ++i) {
+            SectionPos section = sections.get(i);
+            storage.remove(section);
+            assertEquals(sections.size() - i - 1, storage.count());
+            assertTrue(storage.getExistingSectionPositionsInChunk(section.chunk()).findAny().isEmpty());
+            for (int j = i + 1; j < sections.size(); ++j) {
+                SectionPos remaining = sections.get(j);
+                assertEquals(List.of(remaining), storage.getExistingSectionPositionsInChunk(remaining.chunk()).toList());
+            }
+        }
+        assertTrue(storage.getAllChunksWithExistingSections().isEmpty());
+    }
+
+    @Test
     void keepsDistinctLongCoordinateSections() {
         EntitySectionStorage<EntityAccess> storage = new EntitySectionStorage<>(EntityAccess.class,
                 chunk -> Visibility.TICKING);

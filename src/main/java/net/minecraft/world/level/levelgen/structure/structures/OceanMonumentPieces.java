@@ -8,7 +8,7 @@ import java.util.Set;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
@@ -142,7 +142,7 @@ public class OceanMonumentPieces {
         private OceanMonumentPieces.RoomDefinition coreRoom;
         private final List<OceanMonumentPieces.OceanMonumentPiece> childPieces = Lists.newArrayList();
 
-        public MonumentBuilding(RandomSource pRandom, Int128 pX, Int128 pZ, Direction pOrientation) {
+        public MonumentBuilding(RandomSource pRandom, Int1088 pX, Int1088 pZ, Direction pOrientation) {
             super(StructurePieceType.OCEAN_MONUMENT_BUILDING, pOrientation, 0, makeBoundingBox(pX, 39, pZ, pOrientation, 58, 23, 58));
             this.setOrientation(pOrientation);
             List<OceanMonumentPieces.RoomDefinition> list = this.generateRoomGraph(pRandom);
@@ -1413,10 +1413,10 @@ public class OceanMonumentPieces {
         }
 
         protected boolean chunkIntersects(BoundingBox pBox, int pMinX, int pMinZ, int pMaxX, int pMaxZ) {
-            Int128 i = this.getWorldX(pMinX, pMinZ);
-            Int128 j = this.getWorldZ(pMinX, pMinZ);
-            Int128 k = this.getWorldX(pMaxX, pMaxZ);
-            Int128 l = this.getWorldZ(pMaxX, pMaxZ);
+            Int1088 i = this.getWorldX(pMinX, pMinZ);
+            Int1088 j = this.getWorldZ(pMinX, pMinZ);
+            Int1088 k = this.getWorldX(pMaxX, pMaxZ);
+            Int1088 l = this.getWorldZ(pMaxX, pMaxZ);
             return pBox.intersects(i.compareTo(k) <= 0 ? i : k, j.compareTo(l) <= 0 ? j : l,
                 i.compareTo(k) >= 0 ? i : k, j.compareTo(l) >= 0 ? j : l);
         }

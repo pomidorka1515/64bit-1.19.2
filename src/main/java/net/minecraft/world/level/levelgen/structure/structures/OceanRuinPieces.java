@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
@@ -181,7 +181,7 @@ public class OceanRuinPieces {
             this.placeSettings.clearProcessors().addProcessor(new BlockRotProcessor(this.integrity)).addProcessor(BlockIgnoreProcessor.STRUCTURE_AND_AIR);
             int i = pLevel.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, this.templatePosition.getX(), this.templatePosition.getZ());
             this.templatePosition = new BlockPos(this.templatePosition.getX(), i, this.templatePosition.getZ());
-            BlockPos blockpos = StructureTemplate.transform(new BlockPos(this.template.getSize().getX().subtract(Int128.ONE), 0, this.template.getSize().getZ().subtract(Int128.ONE)), Mirror.NONE, this.placeSettings.getRotation(), BlockPos.ZERO).offset(this.templatePosition);
+            BlockPos blockpos = StructureTemplate.transform(new BlockPos(this.template.getSize().getX().subtract(Int1088.ONE), 0, this.template.getSize().getZ().subtract(Int1088.ONE)), Mirror.NONE, this.placeSettings.getRotation(), BlockPos.ZERO).offset(this.templatePosition);
             this.templatePosition = new BlockPos(this.templatePosition.getX(), this.getHeight(this.templatePosition, pLevel, blockpos), this.templatePosition.getZ());
             super.postProcess(pLevel, pStructureManager, pGenerator, pRandom, pBox, pChunkPos, pPos);
         }
@@ -193,8 +193,8 @@ public class OceanRuinPieces {
             int l = 0;
 
             for (BlockPos blockpos : BlockPos.betweenClosed(pTemplatePos, pPos)) {
-                Int128 i1 = blockpos.getX();
-                Int128 j1 = blockpos.getZ();
+                Int1088 i1 = blockpos.getX();
+                Int1088 j1 = blockpos.getZ();
                 int k1 = pTemplatePos.getY() - 1;
                 BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(i1, k1, j1);
                 BlockState blockstate = pLevel.getBlockState(blockpos$mutableblockpos);

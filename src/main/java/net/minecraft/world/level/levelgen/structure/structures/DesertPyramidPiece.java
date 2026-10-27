@@ -23,10 +23,10 @@ public class DesertPyramidPiece extends ScatteredFeaturePiece {
     private final boolean[] hasPlacedChest = new boolean[4];
 
     public DesertPyramidPiece(RandomSource pRandom, long pX, long pZ) {
-        this(pRandom, net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ));
+        this(pRandom, net.minecraft.core.Int1088.fromLong(pX), net.minecraft.core.Int1088.fromLong(pZ));
     }
 
-    public DesertPyramidPiece(RandomSource pRandom, net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ) {
+    public DesertPyramidPiece(RandomSource pRandom, net.minecraft.core.Int1088 pX, net.minecraft.core.Int1088 pZ) {
         super(StructurePieceType.DESERT_PYRAMID_PIECE, pX, 64, pZ, 21, 15, 21, getRandomHorizontalDirection(pRandom));
     }
 

@@ -5,7 +5,7 @@ import com.mojang.serialization.Codec;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.StructureManager;
@@ -45,16 +45,16 @@ public class WoodlandMansionStructure extends Structure {
         BoundingBox boundingbox = p_230233_.calculateBoundingBox();
         int j = boundingbox.minY();
 
-        Int128 k = p_230231_.minX();
-        Int128 l = p_230231_.maxX();
-        Int128 i1 = p_230231_.minZ();
-        Int128 j1 = p_230231_.maxZ();
-        if (p_230231_.getXSpan().compareTo(Int128.fromLong(16)) > 0 || p_230231_.getZSpan().compareTo(Int128.fromLong(16)) > 0) {
+        Int1088 k = p_230231_.minX();
+        Int1088 l = p_230231_.maxX();
+        Int1088 i1 = p_230231_.minZ();
+        Int1088 j1 = p_230231_.maxZ();
+        if (p_230231_.getXSpan().compareTo(Int1088.fromLong(16)) > 0 || p_230231_.getZSpan().compareTo(Int1088.fromLong(16)) > 0) {
             throw new IllegalArgumentException("Mansion placement bounds exceed one chunk");
         }
 
-        for (Int128 k1 = k;; k1 = WorldBounds.addBlockOffset(k1, 1L)) {
-            for (Int128 l1 = i1;; l1 = WorldBounds.addBlockOffset(l1, 1L)) {
+        for (Int1088 k1 = k;; k1 = WorldBounds.addBlockOffset(k1, 1L)) {
+            for (Int1088 l1 = i1;; l1 = WorldBounds.addBlockOffset(l1, 1L)) {
                 blockpos$mutableblockpos.set(k1, j, l1);
                 if (!p_230227_.isEmptyBlock(blockpos$mutableblockpos) && boundingbox.isInside(blockpos$mutableblockpos) && p_230233_.isInsidePiece(blockpos$mutableblockpos)) {
                     for (int i2 = j - 1; i2 > i; --i2) {

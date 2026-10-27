@@ -6,7 +6,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.resources.ResourceLocation;
@@ -54,7 +54,7 @@ public class MineshaftPieces {
     static final int MAX_PIECES = 50;
     public static final int MAGIC_START_Y = 50;
 
-    private static MineshaftPieces.MineShaftPiece createRandomShaftPiece(StructurePieceAccessor p_227716_, RandomSource p_227717_, Int128 p_227718_, int p_227719_, Int128 p_227720_, @Nullable Direction p_227721_, int p_227722_, MineshaftStructure.Type p_227723_) {
+    private static MineshaftPieces.MineShaftPiece createRandomShaftPiece(StructurePieceAccessor p_227716_, RandomSource p_227717_, Int1088 p_227718_, int p_227719_, Int1088 p_227720_, @Nullable Direction p_227721_, int p_227722_, MineshaftStructure.Type p_227723_) {
         int i = p_227717_.nextInt(100);
         if (i >= 80) {
             BoundingBox boundingbox = MineshaftPieces.MineShaftCrossing.findCrossing(p_227716_, p_227717_, p_227718_, p_227719_, p_227720_, p_227721_);
@@ -76,7 +76,7 @@ public class MineshaftPieces {
         return null;
     }
 
-    static MineshaftPieces.MineShaftPiece generateAndAddPiece(StructurePiece pPiece, StructurePieceAccessor pPieces, RandomSource pRandom, Int128 pX, int pY, Int128 pZ, Direction pDirection, int pGenDepth) {
+    static MineshaftPieces.MineShaftPiece generateAndAddPiece(StructurePiece pPiece, StructurePieceAccessor pPieces, RandomSource pRandom, Int1088 pX, int pY, Int1088 pZ, Direction pDirection, int pGenDepth) {
         if (pGenDepth > MAX_DEPTH || pPieces.size() >= MAX_PIECES) {
             return null;
         } else if (WorldBounds.distance(pX, pPiece.getBoundingBox().minX()) <= 80L && WorldBounds.distance(pZ, pPiece.getBoundingBox().minZ()) <= 80L) {
@@ -93,11 +93,11 @@ public class MineshaftPieces {
         }
     }
 
-    private static Int128 addBlockOffset(Int128 coordinate, long offset) {
+    private static Int1088 addBlockOffset(Int1088 coordinate, long offset) {
         return WorldBounds.addBlockOffset(coordinate, offset);
     }
 
-    private static BoundingBox moveBoundingBox(BoundingBox box, Int128 x, int y, Int128 z) {
+    private static BoundingBox moveBoundingBox(BoundingBox box, Int1088 x, int y, Int1088 z) {
         return box.moved(x, y, z);
     }
 
@@ -110,22 +110,22 @@ public class MineshaftPieces {
         return (int) Math.min((long) MAX_CORRIDOR_SECTIONS, Math.max(0L, span / 5L));
     }
 
-    private static Int128 midpoint(Int128 min, Int128 max) {
+    private static Int1088 midpoint(Int1088 min, Int1088 max) {
         return WorldBounds.middleBlockCoordinate(min, max);
     }
 
-    private static int localInt(Int128 value) {
-        if (value.compareTo(Int128.fromLong(Integer.MIN_VALUE)) < 0 || value.compareTo(Int128.fromLong(Integer.MAX_VALUE)) > 0) {
+    private static int localInt(Int1088 value) {
+        if (value.compareTo(Int1088.fromLong(Integer.MIN_VALUE)) < 0 || value.compareTo(Int1088.fromLong(Integer.MAX_VALUE)) > 0) {
             throw new IllegalArgumentException("Mineshaft-local coordinate does not fit an int");
         }
-        return (int) value.lo();
+        return (int) value.lowLimb();
     }
 
-    private static Int128 min(Int128 first, Int128 second) {
+    private static Int1088 min(Int1088 first, Int1088 second) {
         return first.compareTo(second) <= 0 ? first : second;
     }
 
-    private static Int128 max(Int128 first, Int128 second) {
+    private static Int1088 max(Int1088 first, Int1088 second) {
         return first.compareTo(second) >= 0 ? first : second;
     }
 
@@ -160,7 +160,7 @@ public class MineshaftPieces {
         }
 
         @Nullable
-        public static BoundingBox findCorridorSize(StructurePieceAccessor pPieces, RandomSource pRandom, Int128 pX, int pY, Int128 pZ, Direction pDirection) {
+        public static BoundingBox findCorridorSize(StructurePieceAccessor pPieces, RandomSource pRandom, Int1088 pX, int pY, Int1088 pZ, Direction pDirection) {
             for (int i = pRandom.nextInt(3) + 2; i > 0; --i) {
                 int j = i * 5;
                 BoundingBox boundingbox;
@@ -236,7 +236,7 @@ public class MineshaftPieces {
             if (i < 8) {
                 if (direction != Direction.NORTH && direction != Direction.SOUTH) {
                     for (int section = 0; section < this.numSections - 1; ++section) {
-                        Int128 i1 = addBlockOffset(this.boundingBox.minX(), 3L + (long) section * 5L);
+                        Int1088 i1 = addBlockOffset(this.boundingBox.minX(), 3L + (long) section * 5L);
                         int j1 = pRandom.nextInt(5);
                         if (j1 == 0) {
                             MineshaftPieces.generateAndAddPiece(pPiece, pPieces, pRandom, i1, this.boundingBox.minY(), WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), Direction.NORTH, i + 1);
@@ -246,7 +246,7 @@ public class MineshaftPieces {
                     }
                 } else {
                     for (int section = 0; section < this.numSections - 1; ++section) {
-                        Int128 k = addBlockOffset(this.boundingBox.minZ(), 3L + (long) section * 5L);
+                        Int1088 k = addBlockOffset(this.boundingBox.minZ(), 3L + (long) section * 5L);
                         int l = pRandom.nextInt(5);
                         if (l == 0) {
                             MineshaftPieces.generateAndAddPiece(pPiece, pPieces, pRandom, WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), this.boundingBox.minY(), k, Direction.WEST, i + 1);
@@ -501,7 +501,7 @@ public class MineshaftPieces {
         }
 
         @Nullable
-        public static BoundingBox findCrossing(StructurePieceAccessor pPieces, RandomSource pRandom, Int128 pX, int pY, Int128 pZ, Direction pDirection) {
+        public static BoundingBox findCrossing(StructurePieceAccessor pPieces, RandomSource pRandom, Int1088 pX, int pY, Int1088 pZ, Direction pDirection) {
             int i;
             if (pRandom.nextInt(4) == 0) {
                 i = 6;
@@ -642,12 +642,12 @@ public class MineshaftPieces {
         }
 
         protected boolean isInInvalidLocation(LevelAccessor p_227882_, BoundingBox p_227883_) {
-            Int128 i = max(WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), p_227883_.minX());
+            Int1088 i = max(WorldBounds.subtractBlockOffset(this.boundingBox.minX(), 1L), p_227883_.minX());
             int j = Math.max(this.boundingBox.minY() - 1, p_227883_.minY());
-            Int128 k = max(WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), p_227883_.minZ());
-            Int128 l = min(addBlockOffset(this.boundingBox.maxX(), 1L), p_227883_.maxX());
+            Int1088 k = max(WorldBounds.subtractBlockOffset(this.boundingBox.minZ(), 1L), p_227883_.minZ());
+            Int1088 l = min(addBlockOffset(this.boundingBox.maxX(), 1L), p_227883_.maxX());
             int i1 = Math.min(this.boundingBox.maxY() + 1, p_227883_.maxY());
-            Int128 j1 = min(addBlockOffset(this.boundingBox.maxZ(), 1L), p_227883_.maxZ());
+            Int1088 j1 = min(addBlockOffset(this.boundingBox.maxZ(), 1L), p_227883_.maxZ());
             if (!WorldBounds.isAscendingBlockRange(i, l) || !WorldBounds.isAscendingBlockRange(k, j1)) {
                 return false;
             }
@@ -656,8 +656,8 @@ public class MineshaftPieces {
             if (p_227882_.getBiome(blockpos$mutableblockpos).is(BiomeTags.MINESHAFT_BLOCKING)) {
                 return true;
             } else {
-                for (Int128 k1 = i;; k1 = addBlockOffset(k1, 1L)) {
-                    for (Int128 l1 = k;; l1 = addBlockOffset(l1, 1L)) {
+                for (Int1088 k1 = i;; k1 = addBlockOffset(k1, 1L)) {
+                    for (Int1088 l1 = k;; l1 = addBlockOffset(l1, 1L)) {
                         if (p_227882_.getBlockState(blockpos$mutableblockpos.set(k1, j, l1)).getMaterial().isLiquid()) {
                             return true;
                         }
@@ -676,7 +676,7 @@ public class MineshaftPieces {
                     }
                 }
 
-                for (Int128 i2 = i;; i2 = addBlockOffset(i2, 1L)) {
+                for (Int1088 i2 = i;; i2 = addBlockOffset(i2, 1L)) {
                     for (int k2 = j; k2 <= i1; ++k2) {
                         if (p_227882_.getBlockState(blockpos$mutableblockpos.set(i2, k2, k)).getMaterial().isLiquid()) {
                             return true;
@@ -692,7 +692,7 @@ public class MineshaftPieces {
                     }
                 }
 
-                for (Int128 j2 = k;; j2 = addBlockOffset(j2, 1L)) {
+                for (Int1088 j2 = k;; j2 = addBlockOffset(j2, 1L)) {
                     for (int l2 = j; l2 <= i1; ++l2) {
                         if (p_227882_.getBlockState(blockpos$mutableblockpos.set(i, l2, j2)).getMaterial().isLiquid()) {
                             return true;
@@ -726,7 +726,7 @@ public class MineshaftPieces {
     public static class MineShaftRoom extends MineshaftPieces.MineShaftPiece {
         private final List<BoundingBox> childEntranceBoxes = Lists.newLinkedList();
 
-        public MineShaftRoom(int p_227902_, RandomSource p_227903_, Int128 p_227904_, Int128 p_227905_, MineshaftStructure.Type p_227906_) {
+        public MineShaftRoom(int p_227902_, RandomSource p_227903_, Int1088 p_227904_, Int1088 p_227905_, MineshaftStructure.Type p_227906_) {
             super(StructurePieceType.MINE_SHAFT_ROOM, p_227902_, p_227906_, new BoundingBox(p_227904_, 50, p_227905_, addBlockOffset(p_227904_, 7L + p_227903_.nextInt(6)), 54 + p_227903_.nextInt(6), addBlockOffset(p_227905_, 7L + p_227903_.nextInt(6))));
             this.setOrientation(Direction.SOUTH);
             this.type = p_227906_;
@@ -818,11 +818,11 @@ public class MineshaftPieces {
 
         @Override
         public void move(long pX, int pY, long pZ) {
-            this.move(Int128.fromLong(pX), pY, Int128.fromLong(pZ));
+            this.move(Int1088.fromLong(pX), pY, Int1088.fromLong(pZ));
         }
 
         @Override
-        public void move(Int128 pX, int pY, Int128 pZ) {
+        public void move(Int1088 pX, int pY, Int1088 pZ) {
             super.move(pX, pY, pZ);
 
             for (BoundingBox boundingbox : this.childEntranceBoxes) {
@@ -849,7 +849,7 @@ public class MineshaftPieces {
         }
 
         @Nullable
-        public static BoundingBox findStairs(StructurePieceAccessor pPieces, RandomSource pRandom, Int128 pX, int pY, Int128 pZ, Direction pDirection) {
+        public static BoundingBox findStairs(StructurePieceAccessor pPieces, RandomSource pRandom, Int1088 pX, int pY, Int1088 pZ, Direction pDirection) {
             BoundingBox boundingbox;
             switch (pDirection) {
                 case NORTH:

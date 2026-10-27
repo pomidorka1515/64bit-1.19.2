@@ -9,6 +9,8 @@ import it.unimi.dsi.fastutil.doubles.DoubleListIterator;
 import java.util.List;
 import net.minecraft.Util;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Int1088;
+import net.minecraft.core.Int1088Scratch;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.RegistryFileCodec;
 import net.minecraft.util.RandomSource;
@@ -156,6 +158,53 @@ public class NormalNoise {
 
     public NormalNoise.NoiseParameters parameters() {
         return this.parameters;
+    }
+
+    public double getValueScaled(Int1088 x, double scale, long y, double yScale, Int1088 z) {
+        if (x.fitsLong() && z.fitsLong()) return getValueScaled(x.lowLimb(), scale, y, yScale, z.lowLimb());
+        try (Int1088Scratch sx = Int1088Scratch.acquire(); Int1088Scratch sy = Int1088Scratch.acquire(); Int1088Scratch sz = Int1088Scratch.acquire()) {
+            sx.copyFrom(x); sz.copyFrom(z); sy.limbs()[0] = y;
+            return (this.first.getValueScaled(sx.limbs(), 0, 17, scale, 0, sy.limbs(), 0, 1, yScale, 0, sz.limbs(), 0, 17, 0)
+                    + this.second.getValueScaled(sx.limbs(), 0, 17, scale * INPUT_FACTOR, 0, sy.limbs(), 0, 1, yScale * INPUT_FACTOR, 0, sz.limbs(), 0, 17, 0)) * this.valueFactor;
+        }
+    }
+
+    public double getValueScaledShifted(Int1088 x, double scale, double shiftX, double y, Int1088 z, double shiftZ) {
+        if (x.fitsLong() && z.fitsLong()) return getValueScaledShifted(x.lowLimb(), scale, shiftX, y, z.lowLimb(), shiftZ);
+        return (this.first.getValueScaled(x, scale, shiftX, Int1088.ZERO, 1, y, z, shiftZ)
+                + this.second.getValueScaled(x, scale * INPUT_FACTOR, shiftX * INPUT_FACTOR,
+                Int1088.ZERO, 1, y * INPUT_FACTOR, z, shiftZ * INPUT_FACTOR)) * this.valueFactor;
+    }
+
+    public double getValueScaled(long[] x, int xo, int xl, double scale, long y, double yScale, long[] z, int zo, int zl) {
+        if (WorldgenCoordinate.fitsLong(x, xo, xl) && WorldgenCoordinate.fitsLong(z, zo, zl)) return getValueScaled(x[xo], scale, y, yScale, z[zo]);
+        try (Int1088Scratch sy = Int1088Scratch.acquire()) {
+            sy.limbs()[0] = y;
+            return (this.first.getValueScaled(x, xo, xl, scale, 0, sy.limbs(), 0, 1, yScale, 0, z, zo, zl, 0)
+                    + this.second.getValueScaled(x, xo, xl, scale * INPUT_FACTOR, 0, sy.limbs(), 0, 1, yScale * INPUT_FACTOR, 0, z, zo, zl, 0)) * this.valueFactor;
+        }
+    }
+
+    public double getValueScaledShifted(long[] x, int xo, int xl, double scale, double shiftX, double y,
+                                        long[] z, int zo, int zl, double shiftZ) {
+        if (WorldgenCoordinate.fitsLong(x, xo, xl) && WorldgenCoordinate.fitsLong(z, zo, zl)) return getValueScaledShifted(x[xo], scale, shiftX, y, z[zo], shiftZ);
+        try (Int1088Scratch sy = Int1088Scratch.acquire()) {
+            return (this.first.getValueScaled(x, xo, xl, scale, shiftX, sy.limbs(), 0, 1, 1, y, z, zo, zl, shiftZ)
+                    + this.second.getValueScaled(x, xo, xl, scale * INPUT_FACTOR, shiftX * INPUT_FACTOR,
+                    sy.limbs(), 0, 1, 1, y * INPUT_FACTOR, z, zo, zl, shiftZ * INPUT_FACTOR)) * this.valueFactor;
+        }
+    }
+
+    public double getValueScaledAxes(Int1088 x, Int1088 y, Int1088 z, double scale) {
+        return (this.first.getValueScaled(x, scale, 0, y, scale, 0, z, 0)
+                + this.second.getValueScaled(x, scale * INPUT_FACTOR, 0, y, scale * INPUT_FACTOR, 0, z, 0)) * this.valueFactor;
+    }
+
+    public double getValueScaledAxes(long[] x, int xo, int xl, long[] y, int yo, int yl,
+                                     long[] z, int zo, int zl, double scale) {
+        return (this.first.getValueScaled(x, xo, xl, scale, 0, y, yo, yl, scale, 0, z, zo, zl, 0)
+                + this.second.getValueScaled(x, xo, xl, scale * INPUT_FACTOR, 0, y, yo, yl,
+                scale * INPUT_FACTOR, 0, z, zo, zl, 0)) * this.valueFactor;
     }
 
     public double getValueScaled(long xHi, long xLo, double scale, long y, double yScale, long zHi, long zLo) {

@@ -1,6 +1,7 @@
 package net.minecraft.world.level.levelgen.synth;
 
 import java.util.Locale;
+import net.minecraft.core.Int1088;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 
@@ -136,6 +137,73 @@ public class SimplexNoise {
         fraction -= carry;
         double delta = fraction * (1.0D - 2.0D * G2);
         return getValue2D(xLo + skew, yLo + skew, delta, delta);
+    }
+
+    public double getValueAt(Int1088 x, Int1088 y) {
+        if (x.fitsLong() && y.fitsLong()) return getValueAt(x.lowLimb(), y.lowLimb());
+        PreciseNoiseCoordinate.Split split = PreciseNoiseCoordinate.threadScratch();
+        WorldgenCoordinate.scale(x, F2, 0, split);
+        long skew = split.lattice;
+        double fraction = split.fraction;
+        WorldgenCoordinate.scale(y, F2, 0, split);
+        skew += split.lattice;
+        fraction += split.fraction;
+        long carry = (long)Math.floor(fraction);
+        fraction -= carry;
+        double delta = fraction * (1.0D - 2.0D * G2);
+        return getValue2D(x.lowLimb() + skew + carry, y.lowLimb() + skew + carry, delta, delta);
+    }
+
+    public double getValueAt(long[] x, int xo, int xl, long[] y, int yo, int yl) {
+        if (WorldgenCoordinate.fitsLong(x, xo, xl) && WorldgenCoordinate.fitsLong(y, yo, yl)) return getValueAt(x[xo], y[yo]);
+        PreciseNoiseCoordinate.Split split = PreciseNoiseCoordinate.threadScratch();
+        WorldgenCoordinate.scale(x, xo, xl, F2, 0, split);
+        long skew = split.lattice;
+        double fraction = split.fraction;
+        WorldgenCoordinate.scale(y, yo, yl, F2, 0, split);
+        skew += split.lattice;
+        fraction += split.fraction;
+        long carry = (long)Math.floor(fraction);
+        fraction -= carry;
+        double delta = fraction * (1.0D - 2.0D * G2);
+        return getValue2D(x[xo] + skew + carry, y[yo] + skew + carry, delta, delta);
+    }
+
+    public double getValueScaled(long x, long z, double scale, int octave, double offsetX, double offsetZ) {
+        return getValueScaled(x >> 63, x, z >> 63, z, scale, octave, offsetX, offsetZ);
+    }
+
+    public double getValueScaled(Int1088 x, Int1088 z, double scale, int octave, double offsetX, double offsetZ) {
+        if (x.fitsLong() && z.fitsLong()) return getValueScaled(x.lowLimb(), z.lowLimb(), scale, octave, offsetX, offsetZ);
+        PreciseNoiseCoordinate.Split split = PreciseNoiseCoordinate.threadScratch();
+        WorldgenCoordinate.scale(x, scale, octave, split);
+        long lx = split.lattice; double fx = split.fraction + offsetX;
+        WorldgenCoordinate.scale(z, scale, octave, split);
+        long lz = split.lattice; double fz = split.fraction + offsetZ;
+        WorldgenCoordinate.scale(x, scale * F2, octave, split);
+        long skew = split.lattice; double sf = split.fraction;
+        WorldgenCoordinate.scale(z, scale * F2, octave, split);
+        return scaledValue(lx, lz, fx, fz, skew + split.lattice, sf + split.fraction + (offsetX + offsetZ) * F2);
+    }
+
+    public double getValueScaled(long[] x, int xo, int xl, long[] z, int zo, int zl, double scale, int octave, double offsetX, double offsetZ) {
+        if (WorldgenCoordinate.fitsLong(x, xo, xl) && WorldgenCoordinate.fitsLong(z, zo, zl)) return getValueScaled(x[xo], z[zo], scale, octave, offsetX, offsetZ);
+        PreciseNoiseCoordinate.Split split = PreciseNoiseCoordinate.threadScratch();
+        WorldgenCoordinate.scale(x, xo, xl, scale, octave, split);
+        long lx = split.lattice; double fx = split.fraction + offsetX;
+        WorldgenCoordinate.scale(z, zo, zl, scale, octave, split);
+        long lz = split.lattice; double fz = split.fraction + offsetZ;
+        WorldgenCoordinate.scale(x, xo, xl, scale * F2, octave, split);
+        long skew = split.lattice; double sf = split.fraction;
+        WorldgenCoordinate.scale(z, zo, zl, scale * F2, octave, split);
+        return scaledValue(lx, lz, fx, fz, skew + split.lattice, sf + split.fraction + (offsetX + offsetZ) * F2);
+    }
+
+    private double scaledValue(long x, long z, double fx, double fz, long skew, double sf) {
+        long ix = (long)Math.floor(fx + sf), iz = (long)Math.floor(fz + sf);
+        double rx = fx + sf - ix, rz = fz + sf - iz;
+        double unskew = (rx + rz) * G2;
+        return getValue2D(x + skew + ix, z + skew + iz, rx - unskew, rz - unskew);
     }
 
     public double getValueScaled(long xHi, long xLo, long zHi, long zLo, double scale, int octave, double offsetX, double offsetZ) {

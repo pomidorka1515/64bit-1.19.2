@@ -1,5 +1,7 @@
 package net.minecraft.world.level.levelgen.synth;
 
+import net.minecraft.core.Int1088;
+
 /** Shared exact-position routing boundary, followed by intentional arithmetic. */
 public final class NoiseSampling {
     private static final ThreadLocal<Axes> SCRATCH = ThreadLocal.withInitial(Axes::new);
@@ -52,6 +54,48 @@ public final class NoiseSampling {
         WorldgenCoordinate.scale(xHi, xLo, xScale, octave, axes.x);
         WorldgenCoordinate.scale(yHi, yLo, yScale, octave, axes.y);
         WorldgenCoordinate.scale(zHi, zLo, zScale, octave, axes.z);
+        route(axes.x, Math.scalb(shiftX, octave) + noise.xo);
+        route(axes.y, Math.scalb(shiftY, octave) + noise.yo);
+        route(axes.z, Math.scalb(shiftZ, octave) + noise.zo);
+        return noise.sampleRouted(axes.x, axes.y, axes.z, smear, smearOffset);
+    }
+
+    public static double sample(ImprovedNoise noise,
+            long x, double xScale, double shiftX, long y, double yScale, double shiftY,
+            long z, double zScale, double shiftZ, int octave, double smear, double smearOffset) {
+        return sample(noise, x >> 63, x, xScale, shiftX, y >> 63, y, yScale, shiftY,
+                z >> 63, z, zScale, shiftZ, octave, smear, smearOffset);
+    }
+
+    public static double sample(ImprovedNoise noise,
+            Int1088 x, double xScale, double shiftX, Int1088 y, double yScale, double shiftY,
+            Int1088 z, double zScale, double shiftZ, int octave, double smear, double smearOffset) {
+        if (x.fitsLong() && y.fitsLong() && z.fitsLong())
+            return sample(noise, x.lowLimb(), xScale, shiftX, y.lowLimb(), yScale, shiftY,
+                    z.lowLimb(), zScale, shiftZ, octave, smear, smearOffset);
+        Axes axes = SCRATCH.get();
+        WorldgenCoordinate.scale(x, xScale, octave, axes.x);
+        WorldgenCoordinate.scale(y, yScale, octave, axes.y);
+        WorldgenCoordinate.scale(z, zScale, octave, axes.z);
+        route(axes.x, Math.scalb(shiftX, octave) + noise.xo);
+        route(axes.y, Math.scalb(shiftY, octave) + noise.yo);
+        route(axes.z, Math.scalb(shiftZ, octave) + noise.zo);
+        return noise.sampleRouted(axes.x, axes.y, axes.z, smear, smearOffset);
+    }
+
+    public static double sample(ImprovedNoise noise,
+            long[] x, int xo, int xl, double xScale, double shiftX,
+            long[] y, int yo, int yl, double yScale, double shiftY,
+            long[] z, int zo, int zl, double zScale, double shiftZ,
+            int octave, double smear, double smearOffset) {
+        if (WorldgenCoordinate.fitsLong(x, xo, xl) && WorldgenCoordinate.fitsLong(y, yo, yl)
+                && WorldgenCoordinate.fitsLong(z, zo, zl))
+            return sample(noise, x[xo], xScale, shiftX, y[yo], yScale, shiftY,
+                    z[zo], zScale, shiftZ, octave, smear, smearOffset);
+        Axes axes = SCRATCH.get();
+        WorldgenCoordinate.scale(x, xo, xl, xScale, octave, axes.x);
+        WorldgenCoordinate.scale(y, yo, yl, yScale, octave, axes.y);
+        WorldgenCoordinate.scale(z, zo, zl, zScale, octave, axes.z);
         route(axes.x, Math.scalb(shiftX, octave) + noise.xo);
         route(axes.y, Math.scalb(shiftY, octave) + noise.yo);
         route(axes.z, Math.scalb(shiftZ, octave) + noise.zo);

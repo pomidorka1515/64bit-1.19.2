@@ -3,6 +3,7 @@ package net.minecraft.world.level.levelgen.synth;
 import it.unimi.dsi.fastutil.ints.IntRBTreeSet;
 import it.unimi.dsi.fastutil.ints.IntSortedSet;
 import java.util.List;
+import net.minecraft.core.Int1088;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
@@ -75,6 +76,34 @@ public class PerlinSimplexNoise {
         }
 
         return d0;
+    }
+
+    public double getValueScaled(long x, long z, double scale, boolean offsets) {
+        return getValueScaled(x >> 63, x, z >> 63, z, scale, offsets);
+    }
+
+    public double getValueScaled(Int1088 x, Int1088 z, double scale, boolean offsets) {
+        if (x.fitsLong() && z.fitsLong()) return getValueScaled(x.lowLimb(), z.lowLimb(), scale, offsets);
+        double value = 0, weight = this.highestFreqValueFactor;
+        int octave = Math.getExponent(this.highestFreqInputFactor);
+        for (SimplexNoise noise : this.noiseLevels) {
+            if (noise != null) value += noise.getValueScaled(x, z, scale, octave,
+                    offsets ? noise.xo : 0, offsets ? noise.yo : 0) * weight;
+            --octave; weight *= 2;
+        }
+        return value;
+    }
+
+    public double getValueScaled(long[] x, int xo, int xl, long[] z, int zo, int zl, double scale, boolean offsets) {
+        if (WorldgenCoordinate.fitsLong(x, xo, xl) && WorldgenCoordinate.fitsLong(z, zo, zl)) return getValueScaled(x[xo], z[zo], scale, offsets);
+        double value = 0, weight = this.highestFreqValueFactor;
+        int octave = Math.getExponent(this.highestFreqInputFactor);
+        for (SimplexNoise noise : this.noiseLevels) {
+            if (noise != null) value += noise.getValueScaled(x, xo, xl, z, zo, zl, scale, octave,
+                    offsets ? noise.xo : 0, offsets ? noise.yo : 0) * weight;
+            --octave; weight *= 2;
+        }
+        return value;
     }
 
     public double getValueScaled(long xHi, long xLo, long zHi, long zLo, double scale, boolean offsets) {

@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.stream.IntStream;
 import javax.annotation.Nullable;
 import net.minecraft.util.Mth;
+import net.minecraft.core.Int1088;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.levelgen.PositionalRandomFactory;
 
@@ -201,6 +202,38 @@ public class PerlinNoise {
     }
 
     /** Full-width inputs are scaled at each octave before reducing the lattice. */
+    public double getValueScaled(long x, double scale, double shiftX, long y, double yScale, double shiftY, long z, double shiftZ) {
+        return getValueScaled(x >> 63, x, scale, shiftX, y >> 63, y, yScale, shiftY, z >> 63, z, shiftZ);
+    }
+
+    public double getValueScaled(Int1088 x, double scale, double shiftX, Int1088 y, double yScale, double shiftY, Int1088 z, double shiftZ) {
+        if (x.fitsLong() && y.fitsLong() && z.fitsLong())
+            return getValueScaled(x.lowLimb(), scale, shiftX, y.lowLimb(), yScale, shiftY, z.lowLimb(), shiftZ);
+        double value = 0, factor = this.lowestFreqValueFactor;
+        for (int i = 0; i < this.noiseLevels.length; ++i) {
+            ImprovedNoise noise = this.noiseLevels[i];
+            if (noise != null) value += this.amplitudes.getDouble(i) * NoiseSampling.sample(noise,
+                    x, scale, shiftX, y, yScale, shiftY, z, scale, shiftZ,
+                    this.firstOctave + i, 0, 0) * factor;
+            factor /= 2;
+        }
+        return value;
+    }
+
+    public double getValueScaled(long[] x, int xo, int xl, double scale, double shiftX,
+                                 long[] y, int yo, int yl, double yScale, double shiftY,
+                                 long[] z, int zo, int zl, double shiftZ) {
+        double value = 0, factor = this.lowestFreqValueFactor;
+        for (int i = 0; i < this.noiseLevels.length; ++i) {
+            ImprovedNoise noise = this.noiseLevels[i];
+            if (noise != null) value += this.amplitudes.getDouble(i) * NoiseSampling.sample(noise,
+                    x, xo, xl, scale, shiftX, y, yo, yl, yScale, shiftY, z, zo, zl, scale, shiftZ,
+                    this.firstOctave + i, 0, 0) * factor;
+            factor /= 2;
+        }
+        return value;
+    }
+
     public double getValueScaled(long xHi, long xLo, double scale, double shiftX,
                                  long yHi, long yLo, double yScale, double shiftY,
                                  long zHi, long zLo, double shiftZ) {

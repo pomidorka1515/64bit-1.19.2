@@ -366,7 +366,7 @@ public class Warden extends Monster implements VibrationListener.VibrationListen
     }
 
     public static void applyDarknessAround(ServerLevel pLevel, Vec3 pPos, @Nullable Entity pSource, int pRadius) {
-        applyDarknessAround(pLevel, net.minecraft.world.phys.SectorVec3.fromApproximate(pPos.x, pPos.y, pPos.z), pSource, pRadius);
+        applyDarknessAround(pLevel, net.minecraft.world.phys.SectorVec3.fromApproximate(pPos), pSource, pRadius);
     }
 
     public static void applyDarknessAround(ServerLevel pLevel, net.minecraft.world.phys.SectorVec3 pPos, @Nullable Entity pSource, int pRadius) {

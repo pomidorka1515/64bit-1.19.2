@@ -85,7 +85,7 @@ public class BehaviorUtils {
     }
 
     public static void throwItem(LivingEntity pLivingEntity, ItemStack pStack, Vec3 pOffset) {
-        throwItem(pLivingEntity, pStack, SectorVec3.fromApproximate(pOffset.x, pOffset.y, pOffset.z));
+        throwItem(pLivingEntity, pStack, SectorVec3.fromApproximate(pOffset));
     }
 
     public static void throwItem(LivingEntity pLivingEntity, ItemStack pStack, SectorVec3 pOffset) {
@@ -94,7 +94,7 @@ public class BehaviorUtils {
     }
 
     public static void throwItem(LivingEntity p_217134_, ItemStack p_217135_, Vec3 p_217136_, Vec3 p_217137_, float p_217138_) {
-        throwItem(p_217134_, p_217135_, SectorVec3.fromApproximate(p_217136_.x, p_217136_.y, p_217136_.z), p_217137_, p_217138_);
+        throwItem(p_217134_, p_217135_, SectorVec3.fromApproximate(p_217136_), p_217137_, p_217138_);
     }
 
     public static void throwItem(LivingEntity p_217134_, ItemStack p_217135_, SectorVec3 p_217136_, Vec3 p_217137_, float p_217138_) {

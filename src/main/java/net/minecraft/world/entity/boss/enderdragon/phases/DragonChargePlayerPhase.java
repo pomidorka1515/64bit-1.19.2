@@ -37,7 +37,7 @@ public class DragonChargePlayerPhase extends AbstractDragonPhaseInstance {
     }
 
     public void setTarget(Vec3 pTargetLocation) {
-        this.setTarget(net.minecraft.world.phys.SectorVec3.fromApproximate(pTargetLocation.x, pTargetLocation.y, pTargetLocation.z));
+        this.setTarget(net.minecraft.world.phys.SectorVec3.fromApproximate(pTargetLocation));
     }
 
     public void setTarget(net.minecraft.world.phys.SectorVec3 target) {

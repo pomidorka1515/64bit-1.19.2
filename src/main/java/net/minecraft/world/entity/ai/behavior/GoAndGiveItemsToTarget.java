@@ -89,7 +89,7 @@ public class GoAndGiveItemsToTarget<E extends LivingEntity & InventoryCarrier> e
     }
 
     public static void throwItem(LivingEntity p_217208_, ItemStack p_217209_, Vec3 p_217210_) {
-        throwItem(p_217208_, p_217209_, SectorVec3.fromApproximate(p_217210_.x, p_217210_.y, p_217210_.z));
+        throwItem(p_217208_, p_217209_, SectorVec3.fromApproximate(p_217210_));
     }
 
     public static void throwItem(LivingEntity p_217208_, ItemStack p_217209_, SectorVec3 p_217210_) {

@@ -18,7 +18,7 @@ public class WalkTarget {
     }
 
     public WalkTarget(Vec3 pVectorPos, float pSpeedModifier, int pCloseEnoughDist) {
-        this(SectorVec3.fromApproximate(pVectorPos.x, pVectorPos.y, pVectorPos.z), pSpeedModifier, pCloseEnoughDist);
+        this(SectorVec3.fromApproximate(pVectorPos), pSpeedModifier, pCloseEnoughDist);
     }
 
     public WalkTarget(SectorVec3 position, float speedModifier, int closeEnoughDist) {

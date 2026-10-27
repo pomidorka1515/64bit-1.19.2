@@ -9,7 +9,7 @@ public class AirRandomPos {
     @Nullable
     public static Vec3 getPosTowards(PathfinderMob pMob, int pRadius, int pYRange, int pY, Vec3 pVectorPosition, double pAmplifier) {
         net.minecraft.world.phys.SectorVec3 result = getSectorPosTowards(pMob, pRadius, pYRange, pY,
-                net.minecraft.world.phys.SectorVec3.fromApproximate(pVectorPosition.x, pVectorPosition.y, pVectorPosition.z), pAmplifier);
+                net.minecraft.world.phys.SectorVec3.fromApproximate(pVectorPosition), pAmplifier);
         return result == null ? null : result.toExactVec3();
     }
 

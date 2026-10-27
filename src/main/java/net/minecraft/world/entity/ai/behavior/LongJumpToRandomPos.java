@@ -178,7 +178,7 @@ public class LongJumpToRandomPos<E extends Mob> extends Behavior<E> {
 
     @Nullable
     protected Vec3 calculateOptimalJumpVector(Mob p_217304_, Vec3 p_217305_) {
-        return this.calculateOptimalJumpVector(p_217304_, net.minecraft.world.phys.SectorVec3.fromApproximate(p_217305_.x, p_217305_.y, p_217305_.z));
+        return this.calculateOptimalJumpVector(p_217304_, net.minecraft.world.phys.SectorVec3.fromApproximate(p_217305_));
     }
 
     protected Vec3 calculateOptimalJumpVector(Mob p_217304_, net.minecraft.world.phys.SectorVec3 p_217305_) {

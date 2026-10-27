@@ -396,8 +396,8 @@ public class EndDragonFight {
         this.level.getChunkAt(new BlockPos(0, 128, 0));
         EnderDragon enderdragon = EntityType.ENDER_DRAGON.create(this.level);
         enderdragon.getPhaseManager().setPhase(EnderDragonPhase.HOLDING_PATTERN);
-        enderdragon.moveTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(net.minecraft.core.Int128.ZERO,
-                0.0D, 128.0D, net.minecraft.core.Int128.ZERO, 0.0D), this.level.random.nextFloat() * 360.0F, 0.0F);
+        enderdragon.moveTo(net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(net.minecraft.core.Int1088.ZERO,
+                0.0D, 128.0D, net.minecraft.core.Int1088.ZERO, 0.0D), this.level.random.nextFloat() * 360.0F, 0.0F);
         this.level.addFreshEntity(enderdragon);
         this.dragonUUID = enderdragon.getUUID();
         return enderdragon;

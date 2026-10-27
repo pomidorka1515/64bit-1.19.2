@@ -1,6 +1,6 @@
 package net.minecraft.world.level;
 
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -170,12 +170,12 @@ public class Explosion {
 
         this.toBlow.addAll(set);
         float f2 = this.radius * 2.0F;
-        Int128 minX = this.position.add(-(double) f2 - 1.0D, 0.0D, 0.0D).blockX();
-        Int128 maxX = this.position.add((double) f2 + 1.0D, 0.0D, 0.0D).blockX();
+        Int1088 minX = this.position.add(-(double) f2 - 1.0D, 0.0D, 0.0D).blockX();
+        Int1088 maxX = this.position.add((double) f2 + 1.0D, 0.0D, 0.0D).blockX();
         int minY = Mth.floor(this.position.y() - (double) f2 - 1.0D);
         int maxY = Mth.floor(this.position.y() + (double) f2 + 1.0D);
-        Int128 minZ = this.position.add(0.0D, 0.0D, -(double) f2 - 1.0D).blockZ();
-        Int128 maxZ = this.position.add(0.0D, 0.0D, (double) f2 + 1.0D).blockZ();
+        Int1088 minZ = this.position.add(0.0D, 0.0D, -(double) f2 - 1.0D).blockZ();
+        Int1088 maxZ = this.position.add(0.0D, 0.0D, (double) f2 + 1.0D).blockZ();
 
         // Damage can synchronously remove entities (or trigger another explosion).
         // Never iterate the live registry while applying those side effects.
@@ -191,8 +191,8 @@ public class Explosion {
         }
     }
 
-    private void hurtEntity(Entity entity, float blastDiameter, Int128 minX, Int128 maxX, int minY, int maxY,
-            Int128 minZ, Int128 maxZ) {
+    private void hurtEntity(Entity entity, float blastDiameter, Int1088 minX, Int1088 maxX, int minY, int maxY,
+            Int1088 minZ, Int1088 maxZ) {
         if (entity == this.source || entity.ignoreExplosion())
             return;
         SectorVec3 entityPosition = entity.exactPosition();

@@ -163,8 +163,8 @@ public abstract class BaseSpawner {
     }
 
     static SectorVec3 getExactSpawnPosition(CompoundTag tag) {
-        return SectorVec3.fromBlockAndFraction(NbtUtils.readInt128(tag, "BlockX"), tag.getDouble("SubX"), tag.getDouble("Y"),
-                NbtUtils.readInt128(tag, "BlockZ"), tag.getDouble("SubZ"));
+        return SectorVec3.fromBlockAndFraction(NbtUtils.readInt1088(tag, "BlockX"), tag.getDouble("SubX"), tag.getDouble("Y"),
+                NbtUtils.readInt1088(tag, "BlockZ"), tag.getDouble("SubZ"));
     }
 
     static SectorVec3 getSpawnPosition(BlockPos origin, ListTag explicitPosition, double offsetX, double y, double offsetZ) {

@@ -15,7 +15,7 @@ import net.minecraft.ReportedException;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.particles.ParticleOptions;
@@ -124,12 +124,8 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         if (dimensiontype.coordinateScale() != 1.0D) {
             this.worldBorder = new WorldBorder() {
                 public SectorVec3 getExactCenter() {
-                    SectorVec3 center = super.getExactCenter();
-                    java.math.BigDecimal scale = java.math.BigDecimal.valueOf(dimensiontype.coordinateScale());
-                    java.math.BigDecimal x = new java.math.BigDecimal(center.blockX().toString()).add(java.math.BigDecimal.valueOf(center.subX()));
-                    java.math.BigDecimal z = new java.math.BigDecimal(center.blockZ().toString()).add(java.math.BigDecimal.valueOf(center.subZ()));
-                    return SectorVec3.fromDecimal(x.divide(scale, 340, java.math.RoundingMode.HALF_EVEN).toPlainString(),
-                            0.0D, z.divide(scale, 340, java.math.RoundingMode.HALF_EVEN).toPlainString());
+                    return net.minecraft.commands.CoordinateScale.scale(super.getExactCenter(),
+                            1.0D / dimensiontype.coordinateScale());
                 }
             };
         } else {
@@ -171,17 +167,17 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
         return (LevelChunk) this.getChunk(pChunkX, pChunkZ, ChunkStatus.FULL);
     }
 
-    public LevelChunk getChunk(Int128 pChunkX, Int128 pChunkZ) {
+    public LevelChunk getChunk(Int1088 pChunkX, Int1088 pChunkZ) {
         return (LevelChunk) this.getChunk(pChunkX, pChunkZ, ChunkStatus.FULL, true);
     }
 
     @Nullable
     public ChunkAccess getChunk(long pX, long pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
-        return this.getChunk(Int128.fromLong(pX), Int128.fromLong(pZ), pRequiredStatus, pNonnull);
+        return this.getChunk(Int1088.fromLong(pX), Int1088.fromLong(pZ), pRequiredStatus, pNonnull);
     }
 
     @Nullable
-    public ChunkAccess getChunk(Int128 pX, Int128 pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
+    public ChunkAccess getChunk(Int1088 pX, Int1088 pZ, ChunkStatus pRequiredStatus, boolean pNonnull) {
         if (!pNonnull && this instanceof ServerLevel serverLevel) {
             return serverLevel.getChunkSource().getChunkNow(pX, pZ, pRequiredStatus);
         }
@@ -310,15 +306,15 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     public int getHeight(Heightmap.Types pHeightmapType, long pX, long pZ) {
-        return this.getHeight(pHeightmapType, net.minecraft.core.Int128.fromLong(pX), net.minecraft.core.Int128.fromLong(pZ));
+        return this.getHeight(pHeightmapType, net.minecraft.core.Int1088.fromLong(pX), net.minecraft.core.Int1088.fromLong(pZ));
     }
 
-    public int getHeight(Heightmap.Types pHeightmapType, net.minecraft.core.Int128 pX, net.minecraft.core.Int128 pZ) {
+    public int getHeight(Heightmap.Types pHeightmapType, net.minecraft.core.Int1088 pX, net.minecraft.core.Int1088 pZ) {
         int i;
         if (this.hasChunk(SectionPos.blockToSectionCoord(pX), SectionPos.blockToSectionCoord(pZ))) {
             LevelChunk chunk = this.getChunk(SectionPos.blockToSectionCoord(pX), SectionPos.blockToSectionCoord(pZ));
             i = chunk == null ? this.getMinBuildHeight()
-                               : chunk.getHeight(pHeightmapType, (int) (pX.lo() & 15L), (int) (pZ.lo() & 15L)) + 1;
+                               : chunk.getHeight(pHeightmapType, (int) (pX.lowLimb() & 15L), (int) (pZ.lowLimb() & 15L)) + 1;
         } else {
             i = this.getMinBuildHeight();
         }
@@ -587,7 +583,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
     }
 
     @Nullable
-    public BlockGetter getChunkForCollisions(Int128 pChunkX, Int128 pChunkZ) {
+    public BlockGetter getChunkForCollisions(Int1088 pChunkX, Int1088 pChunkZ) {
         return this.getChunkSource().getChunkNow(pChunkX, pChunkZ);
     }
 

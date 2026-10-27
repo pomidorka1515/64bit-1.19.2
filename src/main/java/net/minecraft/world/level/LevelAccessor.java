@@ -77,7 +77,7 @@ public interface LevelAccessor extends CommonLevelAccessor, LevelTimeAccess {
         return this.getChunkSource().hasChunk(pChunkX, pChunkZ);
     }
 
-    default boolean hasChunk(net.minecraft.core.Int128 pChunkX, net.minecraft.core.Int128 pChunkZ) {
+    default boolean hasChunk(net.minecraft.core.Int1088 pChunkX, net.minecraft.core.Int1088 pChunkZ) {
         return this.getChunkSource().hasChunk(pChunkX, pChunkZ);
     }
 

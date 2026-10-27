@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -25,10 +25,10 @@ class SpawningPrecisionTest {
 
     @Test
     void explicitSpawnerPositionDecodesFullWidthCoordinates() {
-        for (Int128 coordinate : interiorCoordinates()) {
+        for (Int1088 coordinate : interiorCoordinates()) {
             CompoundTag tag = new CompoundTag();
-            NbtUtils.writeInt128(tag, "BlockX", coordinate);
-            NbtUtils.writeInt128(tag, "BlockZ", coordinate);
+            NbtUtils.writeInt1088(tag, "BlockX", coordinate);
+            NbtUtils.writeInt1088(tag, "BlockZ", coordinate);
             tag.putDouble("SubX", 0.25D);
             tag.putDouble("SubZ", 0.75D);
             tag.putDouble("Y", 64.5D);
@@ -53,11 +53,11 @@ class SpawningPrecisionTest {
 
     @Test
     void generationPlacementIsTranslationInvariantIncludingEdgeChunks() {
-        for (Int128 origin : new Int128[] {Int128.ZERO, Int128.fromLong(1L << 60),
-                Int128.fromLong(-(1L << 60)), Int128.of(1L, -16L), Int128.of(-2L, -16L),
-                Int128.MIN, Int128.MAX.subtract(Int128.fromLong(15L))}) {
+        for (Int1088 origin : new Int1088[] {Int1088.ZERO, Int1088.fromLong(1L << 60),
+                Int1088.fromLong(-(1L << 60)), Int1088.of(-16L, 1L), Int1088.of(-16L, -2L),
+                Int1088.MIN, Int1088.MAX.subtract(Int1088.fromLong(15L))}) {
             for (int offset : new int[] {0, 1, 8, 15}) {
-                Int128 coordinate = origin.add(Int128.fromLong(offset));
+                Int1088 coordinate = origin.add(Int1088.fromLong(offset));
                 SectorVec3 position = NaturalSpawner.getGenerationSpawnPosition(coordinate, 64,
                         coordinate, origin, origin, 0.6F);
                 double expected = Math.max((double) 0.6F, offset);
@@ -71,11 +71,11 @@ class SpawningPrecisionTest {
 
     @Test
     void spawnerOffsetsKeepFractionsAndNegativeFloorSemantics() {
-        for (Int128 coordinate : interiorCoordinates()) {
+        for (Int1088 coordinate : interiorCoordinates()) {
             SectorVec3 position = BaseSpawner.getSpawnPosition(new BlockPos(coordinate, 64, coordinate),
                     new ListTag(), -0.25D, 65.0D, 1.75D);
-            assertEquals(coordinate.subtract(Int128.ONE), position.blockX());
-            assertEquals(coordinate.add(Int128.ONE), position.blockZ());
+            assertEquals(coordinate.subtract(Int1088.ONE), position.blockX());
+            assertEquals(coordinate.add(Int1088.ONE), position.blockZ());
             assertEquals(0.75D, position.subX());
             assertEquals(0.75D, position.subZ());
             assertEquals(65.0D, position.y());
@@ -86,9 +86,9 @@ class SpawningPrecisionTest {
     void partialExplicitSpawnerPositionDoesNotApproximateUnspecifiedAxis() {
         ListTag explicit = new ListTag();
         explicit.add(DoubleTag.valueOf(-2.25D));
-        Int128 huge = Int128.of(123L, 0L);
+        Int1088 huge = Int1088.of(0L, 123L);
         SectorVec3 position = BaseSpawner.getSpawnPosition(new BlockPos(huge, 64, huge), explicit, 0.0D, 65.0D, 0.375D);
-        assertEquals(Int128.fromLong(-3L), position.blockX());
+        assertEquals(Int1088.fromLong(-3L), position.blockX());
         assertEquals(0.75D, position.subX());
         assertEquals(huge, position.blockZ());
         assertEquals(0.375D, position.subZ());
@@ -96,7 +96,7 @@ class SpawningPrecisionTest {
 
     @Test
     void liquidObstructionUsesExactBlockAddresses() {
-        for (Int128 coordinate : interiorCoordinates()) {
+        for (Int1088 coordinate : interiorCoordinates()) {
             BlockPos water = new BlockPos(coordinate, 64, coordinate);
             LevelReader level = (LevelReader) java.lang.reflect.Proxy.newProxyInstance(LevelReader.class.getClassLoader(),
                     new Class<?>[] {LevelReader.class}, (proxy, method, args) -> {
@@ -114,8 +114,8 @@ class SpawningPrecisionTest {
 
     @Test
     void spawnBoundsPreserveDimensionsBeyondDoublePrecision() {
-        SectorVec3 position = SectorVec3.fromBlockAndFraction(Int128.of(123L, -1L), 0.5D, 64.0D,
-                Int128.of(-123L, 0L), 0.5D);
+        SectorVec3 position = SectorVec3.fromBlockAndFraction(Int1088.of(-1L, 123L), 0.5D, 64.0D,
+                Int1088.of(0L, -123L), 0.5D);
         var bounds = EntityType.PIG.getAABB(position).getSectorBounds();
         assertNotNull(bounds);
         var local = bounds.toLocalAABB(SectorPhysicsOrigin.from(position));
@@ -123,9 +123,9 @@ class SpawningPrecisionTest {
         assertEquals(EntityType.PIG.getHeight(), local.getYsize(), 1.0E-12D);
     }
 
-    private static Int128[] interiorCoordinates() {
-        return new Int128[] {Int128.fromLong(1L << 60), Int128.fromLong(-(1L << 60)),
-                Int128.of(123L, 0L), Int128.of(-123L, -1L),
-                Int128.MIN.add(Int128.fromLong(8L)), Int128.MAX.subtract(Int128.fromLong(8L))};
+    private static Int1088[] interiorCoordinates() {
+        return new Int1088[] {Int1088.fromLong(1L << 60), Int1088.fromLong(-(1L << 60)),
+                Int1088.of(0L, 123L), Int1088.of(-1L, -123L),
+                Int1088.MIN.add(Int1088.fromLong(8L)), Int1088.MAX.subtract(Int1088.fromLong(8L))};
     }
 }

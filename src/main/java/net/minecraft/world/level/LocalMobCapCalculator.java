@@ -20,7 +20,7 @@ public class LocalMobCapCalculator {
     }
 
     private List<ServerPlayer> getPlayersNear(ChunkPos pPos) {
-        List<ServerPlayer> cached = this.playersNearChunk.get(pPos.xHi(), pPos.xLo(), pPos.zHi(), pPos.zLo());
+        List<ServerPlayer> cached = this.playersNearChunk.get(pPos.x(), pPos.z());
         if (cached != null) {
             return cached;
         }

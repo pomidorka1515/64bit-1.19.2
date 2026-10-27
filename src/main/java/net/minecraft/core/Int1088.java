@@ -1,5 +1,6 @@
 package net.minecraft.core;
 
+import com.mojang.serialization.Codec;
 import java.util.Arrays;
 import java.util.Objects;
 import javax.annotation.concurrent.Immutable;
@@ -13,6 +14,7 @@ public final class Int1088 implements Comparable<Int1088> {
     public static final int LIMBS = 17;
     public static final int BITS = 1088;
     public static final int SIGN_BIT = 1087;
+    public static final Codec<Int1088> CODEC = Int1088Codec.CODEC;
     public static final Int1088 ZERO = new Int1088(new long[]{0});
     public static final Int1088 ONE = new Int1088(new long[]{1});
     public static final Int1088 MAX;

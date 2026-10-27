@@ -10,6 +10,38 @@ import org.junit.jupiter.api.Test;
 
 class ExactVec3Test {
     @Test
+    void splitCodecRoundTripsEveryLimbAndDomainEdge() {
+        java.util.List<Int1088> coordinates = new java.util.ArrayList<>();
+        coordinates.add(Int1088.MIN);
+        coordinates.add(Int1088.MAX);
+        coordinates.add(Int1088.ZERO);
+        for (int bit = 64; bit <= 1024; bit += 64) {
+            coordinates.add(Int1088.ONE.shiftLeftSaturated(bit));
+            coordinates.add(Int1088.ONE.shiftLeftSaturated(bit).negate());
+        }
+        for (Int1088 coordinate : coordinates) {
+            SectorVec3 position = SectorVec3.fromBlockAndFraction(coordinate, 0.125D, -64.75D,
+                    coordinate.not(), 0.875D);
+            var encoded = SectorVec3.CODEC.encodeStart(com.mojang.serialization.JsonOps.INSTANCE, position)
+                    .result().orElseThrow();
+            assertEquals(position, SectorVec3.CODEC.parse(com.mojang.serialization.JsonOps.INSTANCE, encoded)
+                    .result().orElseThrow());
+            var nbt = SectorVec3.CODEC.encodeStart(net.minecraft.nbt.NbtOps.INSTANCE, position)
+                    .result().orElseThrow();
+            net.minecraft.nbt.CompoundTag tag = (net.minecraft.nbt.CompoundTag) nbt;
+            assertEquals(17, tag.getLongArray("block_x").length);
+            assertEquals(17, tag.getLongArray("block_z").length);
+            assertEquals(position, SectorVec3.CODEC.parse(net.minecraft.nbt.NbtOps.INSTANCE, nbt)
+                    .result().orElseThrow());
+            assertEquals(position, ExactVec3.position(position.toExactVec3()));
+            assertTrue(Double.isFinite(position.toExactVec3().x));
+            assertTrue(Double.isFinite(position.toExactVec3().z));
+            tag.putLongArray("block_x", new long[2]);
+            assertTrue(SectorVec3.CODEC.parse(net.minecraft.nbt.NbtOps.INSTANCE, tag).error().isPresent());
+        }
+    }
+
+    @Test
     void blockFactoriesAndPositionInterfacesRetainFullWidthCoordinates() {
         Int1088 huge = Int1088.ONE.shiftLeftSaturated(1024).addSaturated(Int1088.fromLong(37L));
         BlockPos block = new BlockPos(huge, 10, huge.negate());

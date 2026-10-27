@@ -11,6 +11,91 @@ import org.junit.jupiter.api.Test;
 
 class SectorVec3Test {
     @Test
+    void movementCarriesUseAllLimbsThroughTheLargestFiniteDouble() {
+        java.math.BigInteger min = new java.math.BigInteger(Int1088.MIN.toString());
+        java.math.BigInteger max = new java.math.BigInteger(Int1088.MAX.toString());
+        for (Int1088 block : new Int1088[] {Int1088.ZERO, Int1088.MIN, Int1088.MAX,
+                Int1088.ONE.shiftLeftSaturated(1024), Int1088.ONE.shiftLeftSaturated(1024).negate()}) {
+            for (double magnitude : new double[] {1.0D, 0x1.0p53, 0x1.0p63, 0x1.0p127,
+                    0x1.0p1023, Double.MAX_VALUE}) {
+                for (int sign : new int[] {-1, 1}) {
+                    double delta = magnitude * sign;
+                    java.math.BigInteger sum = new java.math.BigInteger(block.toString())
+                            .add(new java.math.BigDecimal(delta).toBigIntegerExact());
+                    SectorVec3 result = SectorVec3.fromBlockAndFraction(block, 0, 4.5D, block, 0)
+                            .add(delta, 0.25D, delta);
+                    assertEquals(Int1088.parseDecimal(sum.max(min).min(max).toString()), result.blockX());
+                    assertEquals(result.blockX(), result.blockZ());
+                    assertEquals(sum.compareTo(max) > 0 ? Math.nextDown(1.0D) : 0.0D, result.subX());
+                    assertEquals(result.subX(), result.subZ());
+                    assertEquals(4.75D, result.y());
+                }
+            }
+        }
+    }
+
+    @Test
+    void everyLimbSeamRetainsFractionsAndExactCarrierIdentity() {
+        for (int bit = 64; bit <= 1024; bit += 64) {
+            for (int sign : new int[] {-1, 1}) {
+                java.math.BigInteger seam = java.math.BigInteger.ONE.shiftLeft(bit)
+                        .multiply(java.math.BigInteger.valueOf(sign));
+                Int1088 before = Int1088.parseDecimal(seam.subtract(java.math.BigInteger.ONE).toString());
+                Int1088 after = Int1088.parseDecimal(seam.toString());
+                SectorVec3 start = SectorVec3.fromBlockAndFraction(before, 0.75D, 10, after, 0.25D);
+                SectorVec3 moved = start.add(0.5D, 0, -0.5D);
+                assertEquals(after, moved.blockX());
+                assertEquals(before, moved.blockZ());
+                assertEquals(0.25D, moved.subX());
+                assertEquals(0.75D, moved.subZ());
+                assertEquals(start, moved.add(-0.5D, 0, 0.5D));
+                Vec3 carrier = start.toExactVec3();
+                assertEquals(start, SectorVec3.fromApproximate(carrier));
+                assertEquals(moved, carrier.add(0.5D, 0, -0.5D).exactPosition());
+                assertEquals(start.hashCode(), SectorVec3.fromApproximate(carrier).hashCode());
+                assertFalse(start.equals(start.withX(Int1088.fromLong(before.limb(0)), start.subX())));
+            }
+        }
+    }
+
+    @Test
+    void decimalReplacementRoundsFractionsWithoutRoundingTheIntegerPart() {
+        String huge = java.math.BigInteger.ONE.shiftLeft(1024).toString();
+        SectorVec3 start = SectorVec3.fromDecimal(huge + ".125", 12.5D, "-" + huge + ".75");
+        SectorVec3 replaced = start.withXDecimal(huge + ".999999999999999999999999999999")
+                .withZDecimal("-" + huge + ".999999999999999999999999999999");
+        assertEquals(start.blockX().add(Int1088.ONE), replaced.blockX());
+        assertEquals(start.blockZ(), replaced.blockZ());
+        assertEquals(0.0D, replaced.subX());
+        assertEquals(0.0D, replaced.subZ());
+        assertEquals(12.5D, replaced.y());
+        assertEquals(start.blockZ(), start.withXDecimal(".5").blockZ());
+        assertEquals(0.5D, start.withXDecimal(".5").subX());
+        assertEquals(Int1088.fromLong(-1), start.withZDecimal("-0.5").blockZ());
+        assertEquals(0.5D, start.withZDecimal("-0.5").subZ());
+        assertEquals(Int1088.MIN, start.withXDecimal(Int1088.MIN.toString()).blockX());
+        assertEquals(Int1088.MAX, start.withZDecimal(Int1088.MAX + ".").blockZ());
+        for (String invalid : new String[] {"", ".", "+", "-", "+-1", "+-1.5", "--1", "1-2",
+                "1.2.3", "NaN", "Infinity", "1e3", " 1", "1 ", Int1088.MIN + ".1",
+                new java.math.BigInteger(Int1088.MAX.toString()).add(java.math.BigInteger.ONE).toString()}) {
+            assertThrows(IllegalArgumentException.class, () -> start.withXDecimal(invalid), invalid);
+            assertThrows(IllegalArgumentException.class, () -> start.withZDecimal(invalid), invalid);
+        }
+    }
+
+    @Test
+    void nonFiniteHorizontalMovementRecoversOrSaturatesWithoutWrapping() {
+        SectorVec3 start = SectorVec3.fromBlockAndFraction(7, 0.25D, 12, -9, 0.75D);
+        assertEquals(start, start.add(Double.NaN, 0, Double.NaN));
+        SectorVec3 moved = start.add(Double.POSITIVE_INFINITY, 0, Double.NEGATIVE_INFINITY);
+        assertEquals(Int1088.MAX, moved.blockX());
+        assertEquals(Math.nextDown(1.0D), moved.subX());
+        assertEquals(Int1088.MIN, moved.blockZ());
+        assertEquals(0.0D, moved.subZ());
+        assertThrows(IllegalArgumentException.class, () -> start.add(0, Double.NaN, 0));
+    }
+
+    @Test
     void decimalFormattingMatchesIndependentOracleAtEveryDisplayPrecision() {
         Int1088[] blocks = {Int1088.MIN, Int1088.MAX, Int1088.ONE.shiftLeftSaturated(1024),
                 Int1088.ONE.shiftLeftSaturated(1024).negate(), Int1088.fromLong(-1), Int1088.ZERO};

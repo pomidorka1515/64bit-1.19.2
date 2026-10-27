@@ -10,6 +10,74 @@ import org.junit.jupiter.api.Test;
 
 class SectorAABBTest {
     @Test
+    void wideBoxesIntersectContainAndRangeAcrossEveryLimbSeam() {
+        for (int bit = 64; bit <= 1024; bit += 64) {
+            for (int sign : new int[] {-1, 1}) {
+                Int1088 seam = Int1088.ONE.shiftLeftSaturated(bit);
+                if (sign < 0) seam = seam.negate();
+                SectorVec3 position = SectorVec3.fromBlockAndFraction(seam, 0, 64, seam, 0);
+                SectorAABB box = SectorAABB.around(position, 1, 2);
+                assertEquals(seam.subtract(Int1088.ONE), box.minBlockXForRange());
+                assertEquals(seam, box.maxBlockXForRangeInclusive());
+                assertEquals(seam.add(Int1088.ONE), box.maxBlockZExclusive());
+                assertEquals(1.0D, box.getXsize());
+                assertEquals(1.0D, box.getZsize());
+                assertEquals(position.withY(65), box.getCenter());
+                org.junit.jupiter.api.Assertions.assertTrue(box.contains(position));
+                org.junit.jupiter.api.Assertions.assertFalse(box.contains(position.add(0.5D, 0, 0)));
+                SectorAABB shifted = box.move(0.25D, 0, -0.25D);
+                org.junit.jupiter.api.Assertions.assertTrue(box.intersects(shifted));
+                SectorAABB intersection = box.intersect(shifted);
+                assertEquals(0.75D, intersection.getXsize());
+                assertEquals(0.75D, intersection.getZsize());
+                assertEquals(1.25D, box.minmax(shifted).getXsize());
+                assertEquals(box, box.move(1, 0, -1).move(-1, 0, 1));
+            }
+        }
+    }
+
+    @Test
+    void midpointUsesFullWidthAverageWithoutOverflow() {
+        java.math.BigInteger min = new java.math.BigInteger(Int1088.MIN.toString());
+        java.math.BigInteger max = new java.math.BigInteger(Int1088.MAX.toString());
+        java.math.BigInteger wide = java.math.BigInteger.ONE.shiftLeft(1024);
+        for (java.math.BigInteger[] pair : new java.math.BigInteger[][] {
+                {min, max}, {min, min.add(java.math.BigInteger.ONE)},
+                {max.subtract(java.math.BigInteger.ONE), max}, {wide.negate(), wide.add(java.math.BigInteger.ONE)}}) {
+            Int1088 low = Int1088.parseDecimal(pair[0].toString());
+            Int1088 high = Int1088.parseDecimal(pair[1].toString());
+            SectorAABB box = new SectorAABB(low, 0.25D, 10, low, 0.25D,
+                    high, 0.75D, 12, high, 0.75D);
+            java.math.BigInteger sum = pair[0].add(pair[1]);
+            // Fractional average is 0.5, plus 0.5 if the integer sum is odd.
+            java.math.BigInteger block = sum.shiftRight(1);
+            double fraction = sum.testBit(0) ? 0.0D : 0.5D;
+            if (sum.testBit(0)) block = block.add(java.math.BigInteger.ONE);
+            SectorVec3 center = box.getCenter();
+            assertEquals(Int1088.parseDecimal(block.toString()), center.blockX());
+            assertEquals(center.blockX(), center.blockZ());
+            assertEquals(fraction, center.subX());
+            assertEquals(fraction, center.subZ());
+            assertEquals(11.0D, center.y());
+        }
+    }
+
+    @Test
+    void edgeBoxesSaturateEndpointsAndInclusiveRanges() {
+        SectorAABB box = SectorAABB.around(
+                SectorVec3.fromBlockAndFraction(Int1088.MAX, 0.75D, 64, Int1088.MIN, 0.25D), 2, 1);
+        assertEquals(Int1088.MAX, box.maxBlockX());
+        assertEquals(Math.nextDown(1.0D), box.maxSubX());
+        assertEquals(Int1088.MIN, box.minBlockZ());
+        assertEquals(0.0D, box.minSubZ());
+        assertEquals(Int1088.MAX, box.maxBlockXForRangeInclusive());
+        assertEquals(Int1088.MAX, box.maxBlockXForCollision());
+        assertEquals(Int1088.MIN, box.minBlockZForCollision());
+        assertEquals(1.25D, box.getXsize(), 1.0E-15D);
+        assertEquals(1.25D, box.getZsize());
+    }
+
+    @Test
     void localConversionAcceptsLimitAndRejectsUnsafeSpansAndDistantOrigins() {
         SectorPhysicsOrigin origin = new SectorPhysicsOrigin(0L, 64, 0L);
         SectorAABB limit = new SectorAABB(0L, 0.0D, 64.0D, 0L, 0.0D,

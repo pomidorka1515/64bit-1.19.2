@@ -102,6 +102,8 @@ public final class SectorVec3 {
                 String integer = point < 0 ? text.substring(start) : text.substring(start, point);
                 String digits = point < 0 ? "" : text.substring(point + 1);
                 if (integer.isEmpty() && digits.isEmpty()) throw new NumberFormatException(text);
+                for (int i = 0; i < integer.length(); i++)
+                    if (integer.charAt(i) < '0' || integer.charAt(i) > '9') throw new NumberFormatException(text);
                 for (int i = 0; i < digits.length(); i++)
                     if (digits.charAt(i) < '0' || digits.charAt(i) > '9') throw new NumberFormatException(text);
                 Int1088 block = Int1088.parseDecimal((negative ? "-" : "") + (integer.isEmpty() ? "0" : integer));

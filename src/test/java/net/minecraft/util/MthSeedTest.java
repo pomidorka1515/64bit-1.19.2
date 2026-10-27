@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.Random;
+import net.minecraft.core.Int1088;
+import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.Test;
 
 class MthSeedTest {
@@ -24,21 +26,28 @@ class MthSeedTest {
     }
 
     @Test
-    void highHalvesInfluenceSeedsOnBothAxes() {
-        long baseline = Mth.getSeed(0L, 17L, 64, 0L, 29L);
-        for (int bit = 0; bit < 64; ++bit) {
-            long hi = 1L << bit;
-            assertNotEquals(17L, Mth.mixCoordinate(hi, 17L));
-            assertNotEquals(baseline, Mth.getSeed(hi, 17L, 64, 0L, 29L));
-            assertNotEquals(baseline, Mth.getSeed(0L, 17L, 64, hi, 29L));
+    void everyHighLimbInfluencesSeedsOnBothAxes() {
+        Int1088 x = Int1088.fromLong(17L), z = Int1088.fromLong(29L);
+        long baseline = Mth.getSeed(x, 64, z);
+        for (int bit = 64; bit < Int1088.BITS; ++bit) {
+            long[] limbs = new long[Int1088.LIMBS];
+            limbs[bit >>> 6] = 1L << (bit & 63);
+            limbs[0] = 17L;
+            Int1088 wideX = Int1088.fromFixedLimbs(limbs);
+            limbs[0] = 29L;
+            Int1088 wideZ = Int1088.fromFixedLimbs(limbs);
+            assertNotEquals(17L, Mth.mixCoordinate(wideX), "bit " + bit);
+            assertNotEquals(baseline, Mth.getSeed(wideX, 64, z), "X bit " + bit);
+            assertNotEquals(baseline, Mth.getSeed(x, 64, wideZ), "Z bit " + bit);
+            assertEquals(Mth.getSeed(wideX, 64, wideZ), Mth.getSeed(new BlockPos(wideX, 64, wideZ)));
         }
     }
 
     private static void assertLegacySeed(long x, int y, long z) {
         long word = x * 3129871L ^ z * 116129781L ^ (long) y;
         long expected = (word * word * 42317861L + word * 11L) >> 16;
-        assertEquals(x, Mth.mixCoordinate(x < 0L ? -1L : 0L, x));
+        assertEquals(x, Mth.mixCoordinate(Int1088.fromLong(x)));
         assertEquals(expected, Mth.getSeed(x, y, z));
-        assertEquals(expected, Mth.getSeed(x < 0L ? -1L : 0L, x, y, z < 0L ? -1L : 0L, z));
+        assertEquals(expected, Mth.getSeed(Int1088.fromLong(x), y, Int1088.fromLong(z)));
     }
 }

@@ -104,7 +104,8 @@ public class NormalNoise {
 
     public double getValueScaled(long blockX, double xzScale, double y, long blockZ) {
         if (FarlandsMode.usesPreciseCoordinates())
-            return getValueScaledShifted(blockX >> 63, blockX, xzScale, 0.0D, y, blockZ >> 63, blockZ, 0.0D);
+            return (this.first.getValueScaled(blockX, xzScale, 0.0D, 0L, 1.0D, y, blockZ, 0.0D)
+                    + this.second.getValueScaled(blockX, xzScale * INPUT_FACTOR, 0.0D, 0L, 1.0D, y * INPUT_FACTOR, blockZ, 0.0D)) * this.valueFactor;
         long cellY = (long) Math.floor(y);
         return this.getValueScaled(blockX, xzScale, cellY, y - (double) cellY, blockZ);
     }
@@ -112,7 +113,8 @@ public class NormalNoise {
     /** Samples a block-coordinate noise function while splitting all three scaled axes. */
     public double getValueScaled(long blockX, double xzScale, long blockY, double yScale, long blockZ) {
         if (FarlandsMode.usesPreciseCoordinates())
-            return getValueScaled(blockX >> 63, blockX, xzScale, blockY, yScale, blockZ >> 63, blockZ);
+            return (this.first.getValueScaled(blockX, xzScale, 0.0D, blockY, yScale, 0.0D, blockZ, 0.0D)
+                    + this.second.getValueScaled(blockX, xzScale * INPUT_FACTOR, 0.0D, blockY, yScale * INPUT_FACTOR, 0.0D, blockZ, 0.0D)) * this.valueFactor;
         PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
         PreciseNoiseCoordinate.scale(blockX, xzScale, scratch);
         long firstX = scratch.lattice;
@@ -138,7 +140,9 @@ public class NormalNoise {
 
     public double getValueScaledShifted(long blockX, double xzScale, double shiftX, double y, long blockZ, double shiftZ) {
         if (FarlandsMode.usesPreciseCoordinates())
-            return getValueScaledShifted(blockX >> 63, blockX, xzScale, shiftX, y, blockZ >> 63, blockZ, shiftZ);
+            return (this.first.getValueScaled(blockX, xzScale, shiftX, 0L, 1.0D, y, blockZ, shiftZ)
+                    + this.second.getValueScaled(blockX, xzScale * INPUT_FACTOR, shiftX * INPUT_FACTOR,
+                    0L, 1.0D, y * INPUT_FACTOR, blockZ, shiftZ * INPUT_FACTOR)) * this.valueFactor;
         PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
         PreciseNoiseCoordinate.scale(blockX, xzScale, scratch);
         long shiftedFirstX = PreciseNoiseCoordinate.shiftedLattice(scratch.lattice, scratch.fraction, shiftX);
@@ -207,21 +211,9 @@ public class NormalNoise {
                 scale * INPUT_FACTOR, 0, z, zo, zl, 0)) * this.valueFactor;
     }
 
-    public double getValueScaled(long xHi, long xLo, double scale, long y, double yScale, long zHi, long zLo) {
-        return (this.first.getValueScaled(xHi, xLo, scale, 0.0D, y >> 63, y, yScale, 0.0D, zHi, zLo, 0.0D)
-                + this.second.getValueScaled(xHi, xLo, scale * INPUT_FACTOR, 0.0D, y >> 63, y, yScale * INPUT_FACTOR, 0.0D, zHi, zLo, 0.0D)) * this.valueFactor;
-    }
 
-    public double getValueScaledShifted(long xHi, long xLo, double scale, double shiftX, double y, long zHi, long zLo, double shiftZ) {
-        return (this.first.getValueScaled(xHi, xLo, scale, shiftX, 0L, 0L, 1.0D, y, zHi, zLo, shiftZ)
-                + this.second.getValueScaled(xHi, xLo, scale * INPUT_FACTOR, shiftX * INPUT_FACTOR, 0L, 0L, 1.0D, y * INPUT_FACTOR, zHi, zLo, shiftZ * INPUT_FACTOR)) * this.valueFactor;
-    }
 
     /** ShiftB rotates X into the vertical noise axis; that axis is full width too. */
-    public double getValueScaledAxes(long xHi, long xLo, long yHi, long yLo, long zHi, long zLo, double scale) {
-        return (this.first.getValueScaled(xHi, xLo, scale, 0.0D, yHi, yLo, scale, 0.0D, zHi, zLo, 0.0D)
-                + this.second.getValueScaled(xHi, xLo, scale * INPUT_FACTOR, 0.0D, yHi, yLo, scale * INPUT_FACTOR, 0.0D, zHi, zLo, 0.0D)) * this.valueFactor;
-    }
 
     @VisibleForTesting
     public void parityConfigString(StringBuilder p_192847_) {

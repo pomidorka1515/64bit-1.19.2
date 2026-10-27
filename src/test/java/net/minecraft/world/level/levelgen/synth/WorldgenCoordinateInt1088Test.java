@@ -73,7 +73,7 @@ class WorldgenCoordinateInt1088Test {
             assertEquals((double)n, WorldgenCoordinate.toDouble(value));
             PreciseNoiseCoordinate.Split a = new PreciseNoiseCoordinate.Split(), b = new PreciseNoiseCoordinate.Split();
             WorldgenCoordinate.scale(value, 0.123, 0, a);
-            WorldgenCoordinate.scale(n >> 63, n, 0.123, 0, b);
+            WorldgenCoordinate.scale(n, 0.123, 0, b);
             assertEquals(a.lattice, b.lattice);
             assertEquals(a.fraction, b.fraction);
         }

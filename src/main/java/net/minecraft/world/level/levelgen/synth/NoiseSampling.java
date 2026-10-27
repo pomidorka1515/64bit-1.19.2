@@ -45,26 +45,18 @@ public final class NoiseSampling {
         boolean extrapolated;
     }
 
-    public static double sample(ImprovedNoise noise,
-            long xHi, long xLo, double xScale, double shiftX,
-            long yHi, long yLo, double yScale, double shiftY,
-            long zHi, long zLo, double zScale, double shiftZ,
-            int octave, double smear, double smearOffset) {
-        Axes axes = SCRATCH.get();
-        WorldgenCoordinate.scale(xHi, xLo, xScale, octave, axes.x);
-        WorldgenCoordinate.scale(yHi, yLo, yScale, octave, axes.y);
-        WorldgenCoordinate.scale(zHi, zLo, zScale, octave, axes.z);
-        route(axes.x, Math.scalb(shiftX, octave) + noise.xo);
-        route(axes.y, Math.scalb(shiftY, octave) + noise.yo);
-        route(axes.z, Math.scalb(shiftZ, octave) + noise.zo);
-        return noise.sampleRouted(axes.x, axes.y, axes.z, smear, smearOffset);
-    }
 
     public static double sample(ImprovedNoise noise,
             long x, double xScale, double shiftX, long y, double yScale, double shiftY,
             long z, double zScale, double shiftZ, int octave, double smear, double smearOffset) {
-        return sample(noise, x >> 63, x, xScale, shiftX, y >> 63, y, yScale, shiftY,
-                z >> 63, z, zScale, shiftZ, octave, smear, smearOffset);
+        Axes axes = SCRATCH.get();
+        WorldgenCoordinate.scale(x, xScale, octave, axes.x);
+        WorldgenCoordinate.scale(y, yScale, octave, axes.y);
+        WorldgenCoordinate.scale(z, zScale, octave, axes.z);
+        route(axes.x, Math.scalb(shiftX, octave) + noise.xo);
+        route(axes.y, Math.scalb(shiftY, octave) + noise.yo);
+        route(axes.z, Math.scalb(shiftZ, octave) + noise.zo);
+        return noise.sampleRouted(axes.x, axes.y, axes.z, smear, smearOffset);
     }
 
     public static double sample(ImprovedNoise noise,

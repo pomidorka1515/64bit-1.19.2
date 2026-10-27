@@ -79,7 +79,15 @@ public class PerlinSimplexNoise {
     }
 
     public double getValueScaled(long x, long z, double scale, boolean offsets) {
-        return getValueScaled(x >> 63, x, z >> 63, z, scale, offsets);
+        double value = 0.0D, weight = this.highestFreqValueFactor;
+        int octave = Math.getExponent(this.highestFreqInputFactor);
+        for (SimplexNoise noise : this.noiseLevels) {
+            if (noise != null) value += noise.getValueScaled(x, z, scale, octave,
+                    offsets ? noise.xo : 0.0D, offsets ? noise.yo : 0.0D) * weight;
+            --octave;
+            weight *= 2.0D;
+        }
+        return value;
     }
 
     public double getValueScaled(Int1088 x, Int1088 z, double scale, boolean offsets) {
@@ -106,18 +114,4 @@ public class PerlinSimplexNoise {
         return value;
     }
 
-    public double getValueScaled(long xHi, long xLo, long zHi, long zLo, double scale, boolean offsets) {
-        double value = 0.0D;
-        double weight = this.highestFreqValueFactor;
-        int octave = Math.getExponent(this.highestFreqInputFactor);
-        for (SimplexNoise noise : this.noiseLevels) {
-            if (noise != null) {
-                value += noise.getValueScaled(xHi, xLo, zHi, zLo, scale, octave,
-                        offsets ? noise.xo : 0.0D, offsets ? noise.yo : 0.0D) * weight;
-            }
-            --octave;
-            weight *= 2.0D;
-        }
-        return value;
-    }
 }

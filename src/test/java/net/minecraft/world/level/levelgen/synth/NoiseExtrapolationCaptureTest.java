@@ -10,12 +10,12 @@ class NoiseExtrapolationCaptureTest {
     void observesFractionsWithoutRepairingBrokenNoise() {
         try (var ignored = GenerationContext.open(new GeneratorConfig(GeneratorMode.BIT_64_STABLE_SHIFTS, CoordinatePrecision.PRECISE))) {
             NormalNoise noise = NormalNoise.create(new XoroshiroRandomSource(0), -7, 1.0);
-            assertFalse(NoiseSampling.hasExtrapolation(() -> noise.getValueScaled(0, 0, 0.67, 64, 0.67, 0, 0)));
-            var x = net.minecraft.core.Int128.parseDecimal("-225214492026149979000000");
-            double before = noise.getValueScaled(x.hi(), x.lo(), 0.67, 64, 0.67, 0, 0);
-            assertTrue(NoiseSampling.hasExtrapolation(() -> noise.getValueScaled(x.hi(), x.lo(), 0.67, 64, 0.67, 0, 0)));
+            assertFalse(NoiseSampling.hasExtrapolation(() -> noise.getValueScaled(0L, 0.67, 64, 0.67, 0L)));
+            var x = net.minecraft.core.Int1088.parseDecimal("-225214492026149979000000");
+            double before = noise.getValueScaled(x, 0.67, 64, 0.67, net.minecraft.core.Int1088.ZERO);
+            assertTrue(NoiseSampling.hasExtrapolation(() -> noise.getValueScaled(x, 0.67, 64, 0.67, net.minecraft.core.Int1088.ZERO)));
             assertTrue(Math.abs(before) > 1.0E10 || !Double.isFinite(before));
-            assertEquals(Double.doubleToLongBits(before), Double.doubleToLongBits(noise.getValueScaled(x.hi(), x.lo(), 0.67, 64, 0.67, 0, 0)));
+            assertEquals(Double.doubleToLongBits(before), Double.doubleToLongBits(noise.getValueScaled(x, 0.67, 64, 0.67, net.minecraft.core.Int1088.ZERO)));
         }
     }
 

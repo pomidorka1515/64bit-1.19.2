@@ -123,21 +123,6 @@ public class SimplexNoise {
         return d13;
     }
 
-    public double getValueAt(long xHi, long xLo, long yHi, long yLo) {
-        if (WorldgenCoordinate.fitsLong(xHi, xLo) && WorldgenCoordinate.fitsLong(yHi, yLo)) return getValueAt(xLo, yLo);
-        PreciseNoiseCoordinate.Split split = PreciseNoiseCoordinate.threadScratch();
-        WorldgenCoordinate.scale(xHi, xLo, F2, 0, split);
-        long skew = split.lattice;
-        double fraction = split.fraction;
-        WorldgenCoordinate.scale(yHi, yLo, F2, 0, split);
-        skew += split.lattice;
-        fraction += split.fraction;
-        long carry = (long) Math.floor(fraction);
-        skew += carry;
-        fraction -= carry;
-        double delta = fraction * (1.0D - 2.0D * G2);
-        return getValue2D(xLo + skew, yLo + skew, delta, delta);
-    }
 
     public double getValueAt(Int1088 x, Int1088 y) {
         if (x.fitsLong() && y.fitsLong()) return getValueAt(x.lowLimb(), y.lowLimb());
@@ -170,7 +155,15 @@ public class SimplexNoise {
     }
 
     public double getValueScaled(long x, long z, double scale, int octave, double offsetX, double offsetZ) {
-        return getValueScaled(x >> 63, x, z >> 63, z, scale, octave, offsetX, offsetZ);
+        PreciseNoiseCoordinate.Split split = PreciseNoiseCoordinate.threadScratch();
+        WorldgenCoordinate.scale(x, scale, octave, split);
+        long lx = split.lattice; double fx = split.fraction + offsetX;
+        WorldgenCoordinate.scale(z, scale, octave, split);
+        long lz = split.lattice; double fz = split.fraction + offsetZ;
+        WorldgenCoordinate.scale(x, scale * F2, octave, split);
+        long skew = split.lattice; double sf = split.fraction;
+        WorldgenCoordinate.scale(z, scale * F2, octave, split);
+        return scaledValue(lx, lz, fx, fz, skew + split.lattice, sf + split.fraction + (offsetX + offsetZ) * F2);
     }
 
     public double getValueScaled(Int1088 x, Int1088 z, double scale, int octave, double offsetX, double offsetZ) {
@@ -206,27 +199,6 @@ public class SimplexNoise {
         return getValue2D(x + skew + ix, z + skew + iz, rx - unskew, rz - unskew);
     }
 
-    public double getValueScaled(long xHi, long xLo, long zHi, long zLo, double scale, int octave, double offsetX, double offsetZ) {
-        PreciseNoiseCoordinate.Split split = PreciseNoiseCoordinate.threadScratch();
-        WorldgenCoordinate.scale(xHi, xLo, scale, octave, split);
-        long x = split.lattice;
-        double fx = split.fraction + offsetX;
-        WorldgenCoordinate.scale(zHi, zLo, scale, octave, split);
-        long z = split.lattice;
-        double fz = split.fraction + offsetZ;
-        WorldgenCoordinate.scale(xHi, xLo, scale * F2, octave, split);
-        long skew = split.lattice;
-        double sf = split.fraction;
-        WorldgenCoordinate.scale(zHi, zLo, scale * F2, octave, split);
-        skew += split.lattice;
-        sf += split.fraction + (offsetX + offsetZ) * F2;
-        long ix = (long) Math.floor(fx + sf);
-        long iz = (long) Math.floor(fz + sf);
-        double rx = fx + sf - ix;
-        double rz = fz + sf - iz;
-        double unskew = (rx + rz) * G2;
-        return getValue2D(x + skew + ix, z + skew + iz, rx - unskew, rz - unskew);
-    }
 
     public static void beginDebugCapture() {
         DEBUG_CAPTURE.set(true);

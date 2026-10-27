@@ -1,5 +1,8 @@
 package net.minecraft.world.level.levelgen.synth;
 
+import net.minecraft.core.Int1088Scratch;
+import net.minecraft.world.level.levelgen.ContextCoordinates;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -85,9 +88,9 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
         }
 
         boolean useLegacy32BitFloor = FarlandsMode.usesLegacyBlendedNoise();
-        double d0 = FarlandsMode.scaledNoiseCoordinate(pContext.blockXHi(), pContext.blockX(), this.xzMultiplier);
+        double d0 = scaledAxis(pContext, true, this.xzMultiplier);
         double d1 = (double) pContext.blockY() * this.yMultiplier;
-        double d2 = FarlandsMode.scaledNoiseCoordinate(pContext.blockZHi(), pContext.blockZ(), this.xzMultiplier);
+        double d2 = scaledAxis(pContext, false, this.xzMultiplier);
         double d3 = d0 / this.xzFactor;
         double d4 = d1 / this.yFactor;
         double d5 = d2 / this.xzFactor;
@@ -149,6 +152,30 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
     }
 
     private double computePrecise(DensityFunction.FunctionContext context) {
+        try (Int1088Scratch x = axis(context, true); Int1088Scratch z = axis(context, false); Int1088Scratch zero = Int1088Scratch.acquire()) {
+            zero.setLength(1);
+            return computePrecise(context, x, z, zero);
+        }
+    }
+
+    private static Int1088Scratch axis(DensityFunction.FunctionContext context, boolean x) {
+        Int1088Scratch scratch = Int1088Scratch.acquire();
+        int length = x ? context.blockXLimbCount() : context.blockZLimbCount();
+        for (int i = 0; i < length; i++) scratch.limbs()[i] = x ? context.blockXLimb(i) : context.blockZLimb(i);
+        scratch.setLength(length);
+        return scratch;
+    }
+
+    private static double scaledAxis(DensityFunction.FunctionContext context, boolean x, double scale) {
+        if (x ? context.blockXFitsLong() : context.blockZFitsLong()) {
+            return FarlandsMode.scaledNoiseCoordinate(x ? context.blockXLow() : context.blockZLow(), scale);
+        }
+        try (Int1088Scratch scratch = axis(context, x)) {
+            return ContextCoordinates.scaled(scratch.limbs(), 0, scratch.length(), scale, 0.0D);
+        }
+    }
+
+    private double computePrecise(DensityFunction.FunctionContext context, Int1088Scratch x, Int1088Scratch z, Int1088Scratch zero) {
         double y = (double) context.blockY() * this.yMultiplier;
         double d4 = y / this.yFactor;
         double d6 = this.yMultiplier * this.smearScaleMultiplier;
@@ -159,8 +186,8 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
             ImprovedNoise noise = this.mainNoise.getOctaveNoise(i);
             if (noise != null) {
                 double scaledY = d4 * octave;
-                selector += NoiseSampling.sample(noise, context.blockXHi(), context.blockX(), this.xzMultiplier / this.xzFactor, 0.0D,
-                        0L, 0L, 1.0D, d4, context.blockZHi(), context.blockZ(), this.xzMultiplier / this.xzFactor, 0.0D,
+                selector += NoiseSampling.sample(noise, x.limbs(), 0, x.length(), this.xzMultiplier / this.xzFactor, 0.0D,
+                        zero.limbs(), 0, 1, 1.0D, d4, z.limbs(), 0, z.length(), this.xzMultiplier / this.xzFactor, 0.0D,
                         -i, d7 * octave, scaledY) / octave;
             }
             octave /= 2.0D;
@@ -177,15 +204,15 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
             if (!high) {
                 ImprovedNoise noise = this.minLimitNoise.getOctaveNoise(j);
                 if (noise != null)
-                    min += NoiseSampling.sample(noise, context.blockXHi(), context.blockX(), this.xzMultiplier, 0.0D,
-                            0L, 0L, 1.0D, y, context.blockZHi(), context.blockZ(), this.xzMultiplier, 0.0D,
+                    min += NoiseSampling.sample(noise, x.limbs(), 0, x.length(), this.xzMultiplier, 0.0D,
+                            zero.limbs(), 0, 1, 1.0D, y, z.limbs(), 0, z.length(), this.xzMultiplier, 0.0D,
                             -j, d6 * octave, scaledY) / octave;
             }
             if (!low) {
                 ImprovedNoise noise = this.maxLimitNoise.getOctaveNoise(j);
                 if (noise != null)
-                    max += NoiseSampling.sample(noise, context.blockXHi(), context.blockX(), this.xzMultiplier, 0.0D,
-                            0L, 0L, 1.0D, y, context.blockZHi(), context.blockZ(), this.xzMultiplier, 0.0D,
+                    max += NoiseSampling.sample(noise, x.limbs(), 0, x.length(), this.xzMultiplier, 0.0D,
+                            zero.limbs(), 0, 1, 1.0D, y, z.limbs(), 0, z.length(), this.xzMultiplier, 0.0D,
                             -j, d6 * octave, scaledY) / octave;
             }
             octave /= 2.0D;
@@ -194,10 +221,10 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
         double density = Mth.clampedLerp(min / 512.0D, max / 512.0D, selectorLerp) / 128.0D;
         if (Thread.currentThread() == debugCaptureThread) {
             PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
-            if (WorldgenCoordinate.fitsLong(context.blockXHi(), context.blockX()))
-                PreciseNoiseCoordinate.scale(context.blockX(), this.xzMultiplier, scratch);
+            if (context.blockXFitsLong())
+                PreciseNoiseCoordinate.scale(context.blockXLow(), this.xzMultiplier, scratch);
             else
-                WorldgenCoordinate.scale(context.blockXHi(), context.blockX(), this.xzMultiplier, 0, scratch);
+                WorldgenCoordinate.scale(x.limbs(), 0, x.length(), this.xzMultiplier, 0, scratch);
             // Formatting must not recombine a precise lattice and fraction in double.
             debugScaledX = Double.isNaN(scratch.failureMagnitude) ? scratch.fraction : scratch.failureMagnitude;
             debugScaledXSplit = Double.isNaN(scratch.failureMagnitude)
@@ -237,9 +264,8 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
     /** Display-only decimal addition; retain every lattice digit before rounding the fraction. */
     static String formatSplitDebugValue(long lattice, double fraction, int digits) {
         if (!Double.isFinite(fraction)) return formatDebugValue(fraction);
-        var value = java.math.BigDecimal.valueOf(lattice).add(java.math.BigDecimal.valueOf(fraction));
-        String text = value.setScale(digits, java.math.RoundingMode.HALF_UP).toPlainString();
-        return value.abs().compareTo(java.math.BigDecimal.valueOf(1_000_000_000L)) > 0
+        String text = net.minecraft.world.phys.SectorVec3.formatCoordinate(lattice, fraction, digits);
+        return lattice > 1_000_000_000L || lattice == 1_000_000_000L && fraction > 0.0D || lattice < -1_000_000_000L
                 ? "\247c" + text + "\247r" : text;
     }
 

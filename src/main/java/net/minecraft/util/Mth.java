@@ -375,7 +375,7 @@ public class Mth {
     }
 
     public static long getSeed(Vec3i pPos) {
-        return getSeed(pPos.getXHi(), pPos.getXLo(), pPos.getY(), pPos.getZHi(), pPos.getZLo());
+        return getSeed(pPos.getX(), pPos.getY(), pPos.getZ());
     }
 
     public static long getSeed(long pX, int pY, long pZ) {
@@ -385,13 +385,17 @@ public class Mth {
     }
 
     /** Folds a coordinate into a seed word, preserving sign-extended 64-bit values. */
-    public static long mixCoordinate(long hi, long lo) {
-        long extendedBits = hi ^ (lo < 0L ? -1L : 0L);
-        return lo ^ HashCommon.mix(extendedBits);
+    public static long mixCoordinate(net.minecraft.core.Int1088 coordinate) {
+        long seed = coordinate.lowLimb();
+        for (int i = 1; i < net.minecraft.core.Int1088.LIMBS; ++i) {
+            long extra = coordinate.limb(i) ^ (coordinate.limb(i - 1) >> 63);
+            if (extra != 0L) seed ^= HashCommon.mix(extra + i * 0x9e3779b97f4a7c15L);
+        }
+        return seed;
     }
 
-    public static long getSeed(long xHi, long xLo, int y, long zHi, long zLo) {
-        return getSeed(mixCoordinate(xHi, xLo), y, mixCoordinate(zHi, zLo));
+    public static long getSeed(net.minecraft.core.Int1088 x, int y, net.minecraft.core.Int1088 z) {
+        return getSeed(mixCoordinate(x), y, mixCoordinate(z));
     }
 
     public static UUID createInsecureUUID(RandomSource pRandom) {

@@ -12,9 +12,6 @@ public final class PreciseNoiseCoordinate {
         return true;
     }
 
-    public static boolean needsPrecisePath(long hi, long lo) {
-        return !WorldgenCoordinate.fitsLong(hi, lo) || needsPrecisePath(lo);
-    }
 
     /** Splits coordinate * scale, retaining the lattice modulo 2^64 for noise permutation lookup. */
     public static long scaledLattice(long coordinate, double scale) {
@@ -36,7 +33,7 @@ public final class PreciseNoiseCoordinate {
     }
 
     public static void scale(long coordinate, double scale, Split out) {
-        WorldgenCoordinate.scale(coordinate >> 63, coordinate, scale, 0, out);
+        WorldgenCoordinate.scale(coordinate, scale, 0, out);
     }
 
     private static void scaleLegacy(long coordinate, double scale, Split out) {

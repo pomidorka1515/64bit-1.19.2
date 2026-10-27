@@ -39,17 +39,7 @@ public class GenerationPolicy {
         return usesNoFarlandsSafeguards() ? WorldBounds.scaledNoiseCoordinate(coordinate, scale) : (double) coordinate * scale;
     }
 
-    public static double scaledNoiseCoordinate(long hi, long lo, double scale) {
-        if (WorldgenCoordinate.fitsLong(hi, lo)) return scaledNoiseCoordinate(lo, scale);
-        double value = WorldgenCoordinate.toDouble(hi, lo) * scale;
-        return usesNoFarlandsSafeguards() ? (Double.isNaN(value) ? 0.0D : Math.max(-0x1.0p63, Math.min(Math.nextDown(0x1.0p63), value))) : value;
-    }
 
-    public static double shiftedNoiseCoordinate(long hi, long lo, double scale, double shift) {
-        if (WorldgenCoordinate.fitsLong(hi, lo)) return shiftedNoiseCoordinate(lo, scale, shift);
-        double value = scaledNoiseCoordinate(hi, lo, scale) + shift;
-        return usesNoFarlandsSafeguards() ? WorldBounds.clampAbsoluteDouble(value) : value;
-    }
 
     /** Applies finite-coordinate handling to shifted noise in no-Far-Lands modes. */
     public static double shiftedNoiseCoordinate(long coordinate, double scale, double shift) {

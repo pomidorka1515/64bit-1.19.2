@@ -203,7 +203,15 @@ public class PerlinNoise {
 
     /** Full-width inputs are scaled at each octave before reducing the lattice. */
     public double getValueScaled(long x, double scale, double shiftX, long y, double yScale, double shiftY, long z, double shiftZ) {
-        return getValueScaled(x >> 63, x, scale, shiftX, y >> 63, y, yScale, shiftY, z >> 63, z, shiftZ);
+        double value = 0.0D;
+        double factor = this.lowestFreqValueFactor;
+        for (int i = 0; i < this.noiseLevels.length; ++i) {
+            ImprovedNoise noise = this.noiseLevels[i];
+            if (noise != null) value += this.amplitudes.getDouble(i) * NoiseSampling.sample(noise,
+                    x, scale, shiftX, y, yScale, shiftY, z, scale, shiftZ, this.firstOctave + i, 0.0D, 0.0D) * factor;
+            factor /= 2.0D;
+        }
+        return value;
     }
 
     public double getValueScaled(Int1088 x, double scale, double shiftX, Int1088 y, double yScale, double shiftY, Int1088 z, double shiftZ) {
@@ -234,24 +242,6 @@ public class PerlinNoise {
         return value;
     }
 
-    public double getValueScaled(long xHi, long xLo, double scale, double shiftX,
-                                 long yHi, long yLo, double yScale, double shiftY,
-                                 long zHi, long zLo, double shiftZ) {
-        double value = 0.0D;
-        double valueFactor = this.lowestFreqValueFactor;
-        PreciseNoiseCoordinate.Split scratch = PreciseNoiseCoordinate.threadScratch();
-        for (int i = 0; i < this.noiseLevels.length; ++i) {
-            ImprovedNoise noise = this.noiseLevels[i];
-            int power = this.firstOctave + i;
-            if (noise != null) {
-                value += this.amplitudes.getDouble(i) * NoiseSampling.sample(noise,
-                        xHi, xLo, scale, shiftX, yHi, yLo, yScale, shiftY,
-                        zHi, zLo, scale, shiftZ, power, 0.0D, 0.0D) * valueFactor;
-            }
-            valueFactor /= 2.0D;
-        }
-        return value;
-    }
 
     private double edgeValue(double p_210650_) {
         double d0 = 0.0D;

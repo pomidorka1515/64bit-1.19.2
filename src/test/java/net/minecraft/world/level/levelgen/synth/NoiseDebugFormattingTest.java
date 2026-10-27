@@ -12,6 +12,10 @@ class NoiseDebugFormattingTest {
         assertEquals("\247c-9223372036854775807.75\247r", BlendedNoise.formatSplitDebugValue(Long.MIN_VALUE, .25D, 2));
         assertEquals("\247c9223372036854775808\247r", BlendedNoise.formatSplitDebugValue(Long.MAX_VALUE, .75D, 0));
         assertEquals("1.25", BlendedNoise.formatSplitDebugValue(1L, .25D, 2));
+        assertEquals("1000000000.00", BlendedNoise.formatSplitDebugValue(1_000_000_000L, 0.0D, 2));
+        assertEquals("\247c1000000000.00\247r", BlendedNoise.formatSplitDebugValue(1_000_000_000L, Double.MIN_VALUE, 2));
+        assertEquals("-1000000000.00", BlendedNoise.formatSplitDebugValue(-1_000_000_000L, 0.0D, 2));
+        assertEquals("\247c-1000000000.00\247r", BlendedNoise.formatSplitDebugValue(-1_000_000_001L, Math.nextDown(1.0D), 2));
     }
 
     @Test

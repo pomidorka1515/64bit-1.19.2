@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.objects.ObjectSet;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
+import java.nio.file.Files;
 import java.util.List;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
@@ -157,6 +158,123 @@ class ChunkSerializerTest {
     }
 
     @Test
+    void newWorldsReloadExactBlockAnchorsThroughNestedAnvilAndExternalChunks() throws Exception {
+        var registries = RegistryAccess.builtinCopy();
+        var settings = new net.minecraft.world.level.LevelSettings("storage-reload",
+                net.minecraft.world.level.GameType.SURVIVAL, false, net.minecraft.world.Difficulty.NORMAL,
+                true, new net.minecraft.world.level.GameRules(), net.minecraft.world.level.DataPackConfig.DEFAULT);
+        var worldgen = net.minecraft.world.level.levelgen.presets.WorldPresets.createNormalWorldFromPreset(registries, 1088, true, false);
+        var source = new net.minecraft.world.level.storage.LevelStorageSource(directory, directory.resolve("backups"));
+        Int1088 power127 = Int1088.ONE.shiftLeftSaturated(127);
+        Int1088 power1024 = Int1088.ONE.shiftLeftSaturated(1024);
+        Int1088[] anchors = {Int1088.ZERO, power127, power127.negate(), power1024, power1024.negate(), Int1088.MAX, Int1088.MIN};
+        byte[] payload = new byte[1_100_000];
+        new java.util.Random(0x1088).nextBytes(payload);
+        TestLevel level = TestLevel.create();
+        level.height = 128;
+        for (int i = 0; i < anchors.length; ++i) {
+            BlockPos block = new BlockPos(anchors[i], 100, anchors[i]);
+            ChunkPos pos = new ChunkPos(block);
+            String name = "world-" + i;
+            CompoundTag written;
+            Path root;
+            try (var access = source.createAccess(name)) {
+                var data = new net.minecraft.world.level.storage.PrimaryLevelData(settings, worldgen, com.mojang.serialization.Lifecycle.stable());
+                data.setSpawn(block, 0);
+                access.saveDataTag(registries, data);
+                root = access.getDimensionPath(net.minecraft.world.level.Level.OVERWORLD);
+                ProtoChunk chunk = new ProtoChunk(pos, UpgradeData.EMPTY, level,
+                        level.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY), null);
+                chunk.setBlockState(block, Blocks.STONE.defaultBlockState(), false);
+                CompoundTag entity = new CompoundTag();
+                entity.putString("id", "minecraft:chest");
+                NbtUtils.writeInt1088(entity, "x", block.getX());
+                entity.putInt("y", 100);
+                NbtUtils.writeInt1088(entity, "z", block.getZ());
+                entity.putByteArray("storageReloadPayload", payload);
+                chunk.setBlockEntityNbt(entity);
+                chunk.getBlockTicks().schedule(new ScheduledTick<>(Blocks.STONE, block, 23, TickPriority.HIGH, 0));
+                written = ChunkSerializer.write(level, chunk);
+                try (RegionFileStorage storage = new RegionFileStorage(root, true)) {
+                    storage.write(pos, written);
+                    storage.flush();
+                }
+            }
+            Path region = RegionPaths.regionFile(root, new RegionPos(pos.getRegionX(), pos.getRegionZ()));
+            Path external = RegionPaths.externalChunkFile(root, pos);
+            assertTrue(Files.isRegularFile(region));
+            assertTrue(Files.isRegularFile(external));
+            assertEquals(new RegionPos(pos.getRegionX(), pos.getRegionZ()), RegionPaths.parseRegionFile(root, region).orElseThrow());
+            assertEquals(pos, RegionPaths.parseExternalChunkFile(root, external).orElseThrow());
+            // Recreate all file-owning services: no region cache or open world lock survives.
+            var reopened = new net.minecraft.world.level.storage.LevelStorageSource(directory, directory.resolve("backups"));
+            try (var access = reopened.createAccess(name);
+                    RegionFileStorage storage = new RegionFileStorage(access.getDimensionPath(net.minecraft.world.level.Level.OVERWORLD), true)) {
+                var data = access.getDataTag(net.minecraft.resources.RegistryOps.create(net.minecraft.nbt.NbtOps.INSTANCE, registries),
+                        net.minecraft.world.level.DataPackConfig.DEFAULT, com.mojang.serialization.Lifecycle.stable());
+                assertNotNull(data);
+                assertEquals(block.getX(), data.overworldData().getXSpawn());
+                assertEquals(100, data.overworldData().getYSpawn());
+                assertEquals(block.getZ(), data.overworldData().getZSpawn());
+                CompoundTag encoded = storage.read(pos);
+                assertEquals(written, encoded);
+                ProtoChunk loaded = ChunkSerializer.read(level, allocate(TestPoiManager.class), pos, encoded);
+                assertEquals(pos, loaded.getPos());
+                assertEquals(Blocks.STONE.defaultBlockState(), loaded.getBlockState(block));
+                assertEquals(written, ChunkSerializer.write(level, loaded));
+                assertArrayEquals(payload, loaded.getBlockEntityNbt(block).getByteArray("storageReloadPayload"));
+            }
+        }
+    }
+
+    @Test
+    void foreignWorldFixturesAreRejectedBeforeLockingWithoutChangingAnyFiles() throws Exception {
+        // Representative pre-Anvil, vanilla Anvil, long-coordinate and two-long fork saves,
+        // plus incomplete and incorrectly typed current markers. These are rejection-only metadata.
+        int[] versions = {19132, 19133, 0x4C534301, 0x4C534302, 0x4C534303, 0x4C534303};
+        String[] series = {"main", "main", "mcp-long-coordinates", "mcp-int128-coordinates",
+                "mcp-int1088-coordinates", "mcp-int1088-coordinates"};
+        for (int i = 0; i < versions.length; ++i) {
+            String name = "foreign-" + i;
+            Path world = Files.createDirectories(directory.resolve(name));
+            CompoundTag data = new CompoundTag();
+            data.putInt("version", versions[i]);
+            CompoundTag version = new CompoundTag();
+            version.putString("Series", series[i]);
+            data.put("Version", version);
+            if (i == 2 || i == 3) data.putString("ForkFormat", i == 2 ? "long-coordinates-v1" : "int128-coordinates-v1");
+            if (i == 5) data.putInt("ForkFormat", 1);
+            CompoundTag tag = new CompoundTag();
+            tag.put("Data", data);
+            NbtIo.writeCompressed(tag, world.resolve("level.dat").toFile());
+            Files.copy(world.resolve("level.dat"), world.resolve("level.dat_old"));
+            for (String store : new String[] {"region", "entities", "poi"}) {
+                Path folder = Files.createDirectories(world.resolve(store));
+                Files.write(folder.resolve("r.0.0.mca"), new byte[] {1, 2, 3});
+                Files.write(folder.resolve("c.0.0.mcc"), new byte[] {4, 5, 6});
+            }
+            var before = snapshot(world);
+            var source = new net.minecraft.world.level.storage.LevelStorageSource(directory, directory.resolve("backups"));
+            var error = assertThrows(java.io.IOException.class, () -> source.createAccess(name));
+            assertTrue(error.getMessage().contains(net.minecraft.world.level.storage.ForkSaveFormat.FORMAT_MARKER));
+            assertFalse(Files.exists(world.resolve("session.lock")));
+            assertEquals(before, snapshot(world));
+        }
+    }
+
+    private static java.util.Map<String, String> snapshot(Path root) throws Exception {
+        var result = new java.util.TreeMap<String, String>();
+        var digest = java.security.MessageDigest.getInstance("SHA-256");
+        try (var paths = Files.walk(root)) {
+            for (Path path : paths.toList()) {
+                result.put(root.relativize(path).toString(), Files.isDirectory(path) ? "directory"
+                        : java.util.HexFormat.of().formatHex(digest.digest(Files.readAllBytes(path))));
+            }
+        }
+        return result;
+    }
+
+    @Test
     void wrongLocationWarningPrintsBothFullAddressesWithoutRewritingInput() throws Exception {
         TestLevel level = TestLevel.create();
         ChunkPos stored = new ChunkPos(Int1088.ONE.shiftLeftSaturated(1024), Int1088.ZERO);
@@ -200,6 +318,7 @@ class ChunkSerializerTest {
         private TestServer server;
         private TestChunkSource source;
         private LevelData data;
+        private int height;
 
         private TestLevel() {
             super(null, null, null, null, null, null, null, false, 0, List.of(), false);
@@ -207,6 +326,7 @@ class ChunkSerializerTest {
 
         static TestLevel create() throws Exception {
             TestLevel level = allocate(TestLevel.class);
+            level.height = 16;
             level.registries = RegistryAccess.builtinCopy().freeze();
             level.server = allocate(TestServer.class);
             level.server.registries = level.registries;
@@ -227,7 +347,7 @@ class ChunkSerializerTest {
         @Override public DedicatedServer getServer() { return server; }
         @Override public ServerChunkCache getChunkSource() { return source; }
         @Override public int getMinBuildHeight() { return 0; }
-        @Override public int getHeight() { return 16; }
+        @Override public int getHeight() { return height; }
         @Override public long getGameTime() { return 0; }
         @Override public long getSeed() { return 0; }
         @Override public LevelData getLevelData() { return data; }

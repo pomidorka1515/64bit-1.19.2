@@ -51,7 +51,7 @@ public class LocationCheck implements LootItemCondition {
     public static class Serializer implements net.minecraft.world.level.storage.loot.Serializer<LocationCheck> {
         public void serialize(JsonObject p_81749_, LocationCheck p_81750_, JsonSerializationContext p_81751_) {
             p_81749_.add("predicate", p_81750_.predicate.serializeToJson());
-            if (!p_81750_.offset.getX().equals(net.minecraft.core.Int128.ZERO)) {
+            if (!p_81750_.offset.getX().equals(net.minecraft.core.Int1088.ZERO)) {
                 p_81749_.addProperty("offsetX", localOffset(p_81750_.offset.getX()));
             }
 
@@ -59,14 +59,15 @@ public class LocationCheck implements LootItemCondition {
                 p_81749_.addProperty("offsetY", p_81750_.offset.getY());
             }
 
-            if (!p_81750_.offset.getZ().equals(net.minecraft.core.Int128.ZERO)) {
+            if (!p_81750_.offset.getZ().equals(net.minecraft.core.Int1088.ZERO)) {
                 p_81749_.addProperty("offsetZ", localOffset(p_81750_.offset.getZ()));
             }
         }
 
-        private static int localOffset(net.minecraft.core.Int128 value) {
-            int local = Math.toIntExact(value.lo());
-            if (!value.equals(net.minecraft.core.Int128.fromLong(local))) {
+        private static int localOffset(net.minecraft.core.Int1088 value) {
+            if (!value.fitsLong()) throw new ArithmeticException("Offset does not fit int");
+            int local = Math.toIntExact(value.lowLimb());
+            if (!value.equals(net.minecraft.core.Int1088.fromLong(local))) {
                 throw new IllegalArgumentException("Loot location offset exceeds signed int range");
             }
             return local;

@@ -197,12 +197,12 @@ public class Block extends BlockBehaviour implements ItemLike {
     }
 
     public static boolean shouldRenderFace(BlockState pState, BlockGetter pLevel, BlockPos pOffset, Direction pFace, BlockPos pPos) {
-        // Neighbor positions saturate at the Int128 limits. Such a neighbor is
+        // Neighbor positions saturate at the Int1088 limits. Such a neighbor is
         // actually void, not the boundary block itself.
-        if ((pFace == Direction.WEST && pOffset.getX().equals(net.minecraft.core.Int128.MIN))
-                || (pFace == Direction.EAST && pOffset.getX().equals(net.minecraft.core.Int128.MAX))
-                || (pFace == Direction.NORTH && pOffset.getZ().equals(net.minecraft.core.Int128.MIN))
-                || (pFace == Direction.SOUTH && pOffset.getZ().equals(net.minecraft.core.Int128.MAX))) {
+        if ((pFace == Direction.WEST && pOffset.getX().equals(net.minecraft.core.Int1088.MIN))
+                || (pFace == Direction.EAST && pOffset.getX().equals(net.minecraft.core.Int1088.MAX))
+                || (pFace == Direction.NORTH && pOffset.getZ().equals(net.minecraft.core.Int1088.MIN))
+                || (pFace == Direction.SOUTH && pOffset.getZ().equals(net.minecraft.core.Int1088.MAX))) {
             return true;
         }
         BlockState blockstate = pLevel.getBlockState(pPos);

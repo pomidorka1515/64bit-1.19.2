@@ -214,7 +214,7 @@ public class DoorBlock extends Block {
     }
 
     public long getSeed(BlockState pState, BlockPos pPos) {
-        return Mth.getSeed(pPos.getX().lo(), pPos.below(pState.getValue(HALF) == DoubleBlockHalf.LOWER ? 0 : 1).getY(), pPos.getZ().lo());
+        return Mth.getSeed(pPos.getX(), pPos.below(pState.getValue(HALF) == DoubleBlockHalf.LOWER ? 0 : 1).getY(), pPos.getZ());
     }
 
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {

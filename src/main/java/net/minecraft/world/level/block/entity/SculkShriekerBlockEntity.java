@@ -176,9 +176,9 @@ public class SculkShriekerBlockEntity extends BlockEntity implements VibrationLi
         SoundEvent soundevent = SOUND_BY_LEVEL.get(this.warningLevel);
         if (soundevent != null) {
             BlockPos blockpos = this.getBlockPos();
-            net.minecraft.core.Int128 i = net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getX(), Mth.randomBetweenInclusive(this.level.random, -10, 10));
+            net.minecraft.core.Int1088 i = net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getX(), Mth.randomBetweenInclusive(this.level.random, -10, 10));
             int j = blockpos.getY() + Mth.randomBetweenInclusive(this.level.random, -10, 10);
-            net.minecraft.core.Int128 k = net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getZ(), Mth.randomBetweenInclusive(this.level.random, -10, 10));
+            net.minecraft.core.Int1088 k = net.minecraft.world.level.WorldBounds.addBlockOffset(blockpos.getZ(), Mth.randomBetweenInclusive(this.level.random, -10, 10));
             this.level.playSound((Player) null, net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(i, 0.0D, j, k, 0.0D), soundevent, SoundSource.HOSTILE, 5.0F, 1.0F);
         }
     }

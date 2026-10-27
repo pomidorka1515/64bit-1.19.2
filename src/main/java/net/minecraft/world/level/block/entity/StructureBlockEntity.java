@@ -268,7 +268,7 @@ public class StructureBlockEntity extends BlockEntity {
                                                                       int k = p_155790_.maxY() - p_155790_.minY();
                                                                       long l = WorldBounds.signedDifferenceAsLong(p_155790_.maxZ(), p_155790_.minZ());
                                                                       if (j > 1 && k > 1 && l > 1) {
-                                                                          this.structurePos = new BlockPos(p_155790_.minX().subtract(blockpos.getX()).add(net.minecraft.core.Int128.ONE), p_155790_.minY() - blockpos.getY() + 1, p_155790_.minZ().subtract(blockpos.getZ()).add(net.minecraft.core.Int128.ONE));
+                                                                          this.structurePos = new BlockPos(WorldBounds.addSubtract(net.minecraft.core.Int1088.ONE, p_155790_.minX(), blockpos.getX()), p_155790_.minY() - blockpos.getY() + 1, WorldBounds.addSubtract(net.minecraft.core.Int1088.ONE, p_155790_.minZ(), blockpos.getZ()));
                                                                           this.structureSize = new Vec3i(j - 1, k - 1, l - 1);
                                                                           this.setChanged();
                                                                           BlockState blockstate = this.level.getBlockState(blockpos);
@@ -450,12 +450,12 @@ public class StructureBlockEntity extends BlockEntity {
         this.showBoundingBox = pShowBoundingBox;
     }
 
-    private static int localInt(net.minecraft.core.Int128 value) {
-        if (value.compareTo(net.minecraft.core.Int128.fromLong(Integer.MIN_VALUE)) < 0
-                || value.compareTo(net.minecraft.core.Int128.fromLong(Integer.MAX_VALUE)) > 0) {
+    private static int localInt(net.minecraft.core.Int1088 value) {
+        if (value.compareTo(net.minecraft.core.Int1088.fromLong(Integer.MIN_VALUE)) < 0
+                || value.compareTo(net.minecraft.core.Int1088.fromLong(Integer.MAX_VALUE)) > 0) {
             throw new IllegalArgumentException("Structure-local coordinate does not fit an int");
         }
-        return (int) value.lo();
+        return (int) value.lowLimb();
     }
 
     public static enum UpdateType {

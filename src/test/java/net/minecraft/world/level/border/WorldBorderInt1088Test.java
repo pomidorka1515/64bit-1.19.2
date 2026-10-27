@@ -4,21 +4,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.SectorVec3;
 import org.junit.jupiter.api.Test;
 
-class WorldBorderInt128Test {
+class WorldBorderInt1088Test {
     @Test
     void delegatedCenterChangesRetainFractionsAndDisabledCollision() {
         WorldBorder source = new WorldBorder();
         WorldBorder target = new WorldBorder();
         source.addListener(new BorderChangeListener.DelegateBorderChangeListener(target));
-        SectorVec3 center = SectorVec3.fromBlockAndFraction(Int128.of(123456L, -3L), 0.125D,
-                0.0D, Int128.of(-123456L, 9L), 0.875D);
+        SectorVec3 center = SectorVec3.fromBlockAndFraction(Int1088.of(-3L, 123456L), 0.125D,
+                0.0D, Int1088.of(9L, -123456L), 0.875D);
         source.setCenter(center);
         assertEquals(center, target.getExactCenter());
         source.setSize(16.0D);
@@ -27,14 +27,14 @@ class WorldBorderInt128Test {
         assertEquals(8.0D, target.getLerpTarget());
         assertTrue(source.getCollisionShape().isEmpty());
         assertTrue(target.getCollisionShape().isEmpty());
-        assertTrue(target.isWithinBounds(new BlockPos(Int128.MAX, 64, Int128.MIN)));
+        assertTrue(target.isWithinBounds(new BlockPos(Int1088.MAX, 64, Int1088.MIN)));
     }
 
     @Test
     void settingsPreserveHighHalvesAndFractions() {
         WorldBorder border = new WorldBorder();
-        SectorVec3 center = SectorVec3.fromBlockAndFraction(Int128.of(42, -7), 0.75D, 0.0D,
-                Int128.MIN, 0.25D);
+        SectorVec3 center = SectorVec3.fromBlockAndFraction(Int1088.of(-7, 42), 0.75D, 0.0D,
+                Int1088.MIN, 0.25D);
         border.setCenter(center);
         CompoundTag tag = new CompoundTag();
         border.createSettings().write(tag);
@@ -44,14 +44,14 @@ class WorldBorderInt128Test {
         assertEquals(center.blockZ(), restored.getExactCenter().blockZ());
         assertEquals(0.75D, restored.getExactCenter().subX());
         assertEquals(0.25D, restored.getExactCenter().subZ());
-        tag.remove("BorderCenterXHi");
+        tag.putLongArray("BorderCenterX", new long[16]);
         assertThrows(IllegalArgumentException.class, () -> WorldBorder.Settings.read(new Dynamic<>(NbtOps.INSTANCE, tag), WorldBorder.DEFAULT_SETTINGS));
     }
 
     @Test
     void disabledBorderAndSpawnBoundsAcceptEntireHorizontalDomain() {
         WorldBorder border = new WorldBorder();
-        BlockPos pos = new BlockPos(Int128.MAX, 64, Int128.MIN);
+        BlockPos pos = new BlockPos(Int1088.MAX, 64, Int1088.MIN);
         assertTrue(border.isWithinBounds(pos));
         assertTrue(border.getCollisionShape().isEmpty());
         assertEquals(Double.POSITIVE_INFINITY, border.getDistanceToBorder(SectorVec3.fromBlockAndFraction(pos.getX(), 0.5D, 64, pos.getZ(), 0.5D)));

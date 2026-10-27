@@ -104,9 +104,9 @@ public class BeaconBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     public static void tick(Level pLevel, BlockPos pPos, BlockState pState, BeaconBlockEntity pBlockEntity) {
-        net.minecraft.core.Int128 i = pPos.getX();
+        net.minecraft.core.Int1088 i = pPos.getX();
         int j = pPos.getY();
-        net.minecraft.core.Int128 k = pPos.getZ();
+        net.minecraft.core.Int1088 k = pPos.getZ();
         BlockPos blockpos;
         if (pBlockEntity.lastCheckY < j) {
             blockpos = pPos;
@@ -180,7 +180,7 @@ public class BeaconBlockEntity extends BlockEntity implements MenuProvider {
         }
     }
 
-    private static int updateBase(Level pLevel, net.minecraft.core.Int128 pX, int pY, net.minecraft.core.Int128 pZ) {
+    private static int updateBase(Level pLevel, net.minecraft.core.Int1088 pX, int pY, net.minecraft.core.Int1088 pZ) {
         int i = 0;
 
         for (int j = 1; j <= 4; i = j++) {
@@ -191,10 +191,10 @@ public class BeaconBlockEntity extends BlockEntity implements MenuProvider {
 
             boolean flag = true;
 
-            net.minecraft.core.Int128 maxX = WorldBounds.addBlockOffset(pX, j);
-            net.minecraft.core.Int128 maxZ = WorldBounds.addBlockOffset(pZ, j);
-            for (net.minecraft.core.Int128 l = WorldBounds.addBlockOffset(pX, -j); flag; l = WorldBounds.addBlockOffset(l, 1L)) {
-                for (net.minecraft.core.Int128 i1 = WorldBounds.addBlockOffset(pZ, -j);; i1 = WorldBounds.addBlockOffset(i1, 1L)) {
+            net.minecraft.core.Int1088 maxX = WorldBounds.addBlockOffset(pX, j);
+            net.minecraft.core.Int1088 maxZ = WorldBounds.addBlockOffset(pZ, j);
+            for (net.minecraft.core.Int1088 l = WorldBounds.addBlockOffset(pX, -j); flag; l = WorldBounds.addBlockOffset(l, 1L)) {
+                for (net.minecraft.core.Int1088 i1 = WorldBounds.addBlockOffset(pZ, -j);; i1 = WorldBounds.addBlockOffset(i1, 1L)) {
                     if (!pLevel.getBlockState(new BlockPos(l, k, i1)).is(BlockTags.BEACON_BASE_BLOCKS)) {
                         flag = false;
                         break;

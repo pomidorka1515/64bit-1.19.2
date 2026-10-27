@@ -3,17 +3,17 @@ package net.minecraft.world.level.storage;
 import java.util.Locale;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.LevelHeightAccessor;
 
 public interface LevelData {
-    Int128 getXSpawn();
+    Int1088 getXSpawn();
 
     int getYSpawn();
 
-    Int128 getZSpawn();
+    Int1088 getZSpawn();
 
     float getSpawnAngle();
 

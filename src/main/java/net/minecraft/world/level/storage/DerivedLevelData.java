@@ -3,7 +3,7 @@ package net.minecraft.world.level.storage;
 import java.util.UUID;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.GameRules;
@@ -21,7 +21,7 @@ public class DerivedLevelData implements ServerLevelData {
         this.wrapped = pWrapped;
     }
 
-    public Int128 getXSpawn() {
+    public Int1088 getXSpawn() {
         return this.wrapped.getXSpawn();
     }
 
@@ -29,7 +29,7 @@ public class DerivedLevelData implements ServerLevelData {
         return this.wrapped.getYSpawn();
     }
 
-    public Int128 getZSpawn() {
+    public Int1088 getZSpawn() {
         return this.wrapped.getZSpawn();
     }
 
@@ -76,13 +76,13 @@ public class DerivedLevelData implements ServerLevelData {
         return this.worldData.getGameType();
     }
 
-    public void setXSpawn(Int128 pX) {
+    public void setXSpawn(Int1088 pX) {
     }
 
     public void setYSpawn(int pY) {
     }
 
-    public void setZSpawn(Int128 pZ) {
+    public void setZSpawn(Int1088 pZ) {
     }
 
     public void setSpawnAngle(float pAngle) {

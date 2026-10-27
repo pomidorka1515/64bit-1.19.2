@@ -181,7 +181,7 @@ public class SculkSpreader {
     public static class ChargeCursor {
         private static final ObjectArrayList<Vec3i> NON_CORNER_NEIGHBOURS = Util.make(new ObjectArrayList<>(18), (p_222338_) -> {
             BlockPos.betweenClosedStream(new BlockPos(-1, -1, -1), new BlockPos(1, 1, 1)).filter((p_222336_) -> {
-                                                                                             return (p_222336_.getX().equals(net.minecraft.core.Int128.ZERO) || p_222336_.getY() == 0 || p_222336_.getZ().equals(net.minecraft.core.Int128.ZERO)) && !p_222336_.equals(BlockPos.ZERO);
+                                                                                             return (p_222336_.getX().equals(net.minecraft.core.Int1088.ZERO) || p_222336_.getY() == 0 || p_222336_.getZ().equals(net.minecraft.core.Int1088.ZERO)) && !p_222336_.equals(BlockPos.ZERO);
                                                                                          })
                     .map(BlockPos::immutable)
                     .forEach(p_222338_::add);
@@ -337,10 +337,10 @@ public class SculkSpreader {
                 return true;
             } else {
                 BlockPos blockpos = pToPos.subtract(pFromPos);
-                Direction direction = Direction.fromAxisAndDirection(Direction.Axis.X, blockpos.getX().hi() < 0 ? Direction.AxisDirection.NEGATIVE : Direction.AxisDirection.POSITIVE);
+                Direction direction = Direction.fromAxisAndDirection(Direction.Axis.X, blockpos.getX().signum() < 0 ? Direction.AxisDirection.NEGATIVE : Direction.AxisDirection.POSITIVE);
                 Direction direction1 = Direction.fromAxisAndDirection(Direction.Axis.Y, blockpos.getY() < 0 ? Direction.AxisDirection.NEGATIVE : Direction.AxisDirection.POSITIVE);
-                Direction direction2 = Direction.fromAxisAndDirection(Direction.Axis.Z, blockpos.getZ().hi() < 0 ? Direction.AxisDirection.NEGATIVE : Direction.AxisDirection.POSITIVE);
-                if (blockpos.getX().equals(net.minecraft.core.Int128.ZERO)) {
+                Direction direction2 = Direction.fromAxisAndDirection(Direction.Axis.Z, blockpos.getZ().signum() < 0 ? Direction.AxisDirection.NEGATIVE : Direction.AxisDirection.POSITIVE);
+                if (blockpos.getX().equals(net.minecraft.core.Int1088.ZERO)) {
                     return isUnobstructed(pLevel, pFromPos, direction1) || isUnobstructed(pLevel, pFromPos, direction2);
                 } else if (blockpos.getY() == 0) {
                     return isUnobstructed(pLevel, pFromPos, direction) || isUnobstructed(pLevel, pFromPos, direction2);

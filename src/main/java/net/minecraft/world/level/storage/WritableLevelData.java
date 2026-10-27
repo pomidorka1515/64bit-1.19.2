@@ -1,21 +1,21 @@
 package net.minecraft.world.level.storage;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 
 public interface WritableLevelData extends LevelData {
-    void setXSpawn(Int128 pXSpawn);
+    void setXSpawn(Int1088 pXSpawn);
 
     default void setXSpawn(long pXSpawn) {
-        this.setXSpawn(Int128.fromLong(pXSpawn));
+        this.setXSpawn(Int1088.fromLong(pXSpawn));
     }
 
     void setYSpawn(int pYSpawn);
 
-    void setZSpawn(Int128 pZSpawn);
+    void setZSpawn(Int1088 pZSpawn);
 
     default void setZSpawn(long pZSpawn) {
-        this.setZSpawn(Int128.fromLong(pZSpawn));
+        this.setZSpawn(Int1088.fromLong(pZSpawn));
     }
 
     void setSpawnAngle(float pSpawnAngle);

@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.phys.SectorVec3;
 import org.junit.jupiter.api.BeforeAll;
@@ -13,8 +13,8 @@ import org.junit.jupiter.api.Test;
 
 class ContainerOpenersCounterTest {
     @Test
-    void recheckRangeAtInt128EdgesUsesUnclippedLocalOffsets() {
-        for (Int128 x : new Int128[] {Int128.MIN, Int128.MAX}) {
+    void recheckRangeAtInt1088EdgesUsesUnclippedLocalOffsets() {
+        for (Int1088 x : new Int1088[] {Int1088.MIN, Int1088.MAX}) {
             BlockPos chest = new BlockPos(x, 64, x);
             SectorVec3 player = SectorVec3.fromBlockAndFraction(x, 0.75D, 64.5D, x, 0.25D);
             assertTrue(ContainerOpenersCounter.isWithinRecheckRange(player, chest));

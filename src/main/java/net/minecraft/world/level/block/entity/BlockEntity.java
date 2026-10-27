@@ -34,7 +34,7 @@ public abstract class BlockEntity {
     }
 
     public static BlockPos getPosFromTag(CompoundTag pTag) {
-        return new BlockPos(NbtUtils.readInt128(pTag, "x"), pTag.getInt("y"), NbtUtils.readInt128(pTag, "z"));
+        return new BlockPos(NbtUtils.readInt1088(pTag, "x"), pTag.getInt("y"), NbtUtils.readInt1088(pTag, "z"));
     }
 
     @Nullable
@@ -98,9 +98,9 @@ public abstract class BlockEntity {
     }
 
     private void savePosition(CompoundTag pTag) {
-        NbtUtils.writeInt128(pTag, "x", this.worldPosition.getX());
+        NbtUtils.writeInt1088(pTag, "x", this.worldPosition.getX());
         pTag.putInt("y", this.worldPosition.getY());
-        NbtUtils.writeInt128(pTag, "z", this.worldPosition.getZ());
+        NbtUtils.writeInt1088(pTag, "z", this.worldPosition.getZ());
     }
 
     @Nullable

@@ -361,7 +361,7 @@ public class WorldBorder {
 
         public static WorldBorder.Settings read(DynamicLike<?> pDynamic, WorldBorder.Settings pDefaultValue) {
             CompoundTag centerTag = new CompoundTag();
-            for (String key : new String[]{"BorderCenterX", "BorderCenterXHi", "BorderCenterZ", "BorderCenterZHi", "BorderCenterXFraction", "BorderCenterZFraction"}) {
+            for (String key : new String[]{"BorderCenterX", "BorderCenterZ", "BorderCenterXFraction", "BorderCenterZFraction"}) {
                 centerTag.put(key, pDynamic.get(key).get().result().orElseThrow(() -> new IllegalArgumentException("Missing required border tag: " + key)).convert(NbtOps.INSTANCE).getValue());
             }
             double fractionX = centerTag.getDouble("BorderCenterXFraction");
@@ -371,8 +371,8 @@ public class WorldBorder {
                     || fractionX < 0.0D || fractionX >= 1.0D || fractionZ < 0.0D || fractionZ >= 1.0D) {
                 throw new IllegalArgumentException("Invalid border center fractions");
             }
-            SectorVec3 center = SectorVec3.fromBlockAndFraction(NbtUtils.readInt128(centerTag, "BorderCenterX"), fractionX,
-                    0.0D, NbtUtils.readInt128(centerTag, "BorderCenterZ"), fractionZ);
+            SectorVec3 center = SectorVec3.fromBlockAndFraction(NbtUtils.readInt1088(centerTag, "BorderCenterX"), fractionX,
+                    0.0D, NbtUtils.readInt1088(centerTag, "BorderCenterZ"), fractionZ);
             double d2 = pDynamic.get("BorderSize").asDouble(pDefaultValue.size);
             long i = pDynamic.get("BorderSizeLerpTime").asLong(pDefaultValue.sizeLerpTime);
             double d3 = pDynamic.get("BorderSizeLerpTarget").asDouble(pDefaultValue.sizeLerpTarget);
@@ -384,8 +384,8 @@ public class WorldBorder {
         }
 
         public void write(CompoundTag pNbt) {
-            NbtUtils.writeInt128(pNbt, "BorderCenterX", this.exactCenter.blockX());
-            NbtUtils.writeInt128(pNbt, "BorderCenterZ", this.exactCenter.blockZ());
+            NbtUtils.writeInt1088(pNbt, "BorderCenterX", this.exactCenter.blockX());
+            NbtUtils.writeInt1088(pNbt, "BorderCenterZ", this.exactCenter.blockZ());
             pNbt.putDouble("BorderCenterXFraction", this.exactCenter.subX());
             pNbt.putDouble("BorderCenterZFraction", this.exactCenter.subZ());
             pNbt.putDouble("BorderSize", this.size);

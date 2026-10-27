@@ -341,7 +341,7 @@ public class BedBlock extends HorizontalDirectionalBlock implements EntityBlock 
 
     public long getSeed(BlockState pState, BlockPos pPos) {
         BlockPos blockpos = pPos.relative(pState.getValue(FACING), pState.getValue(PART) == BedPart.HEAD ? 0 : 1);
-        return Mth.getSeed(blockpos.getX().lo(), pPos.getY(), blockpos.getZ().lo());
+        return Mth.getSeed(blockpos.getX(), pPos.getY(), blockpos.getZ());
     }
 
     public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {

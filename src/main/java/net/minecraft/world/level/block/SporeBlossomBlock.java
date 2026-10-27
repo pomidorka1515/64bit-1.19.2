@@ -34,9 +34,9 @@ public class SporeBlossomBlock extends Block {
     }
 
     public void animateTick(BlockState p_222503_, Level p_222504_, BlockPos p_222505_, RandomSource p_222506_) {
-        net.minecraft.core.Int128 i = p_222505_.getX();
+        net.minecraft.core.Int1088 i = p_222505_.getX();
         int j = p_222505_.getY();
-        net.minecraft.core.Int128 k = p_222505_.getZ();
+        net.minecraft.core.Int1088 k = p_222505_.getZ();
         p_222504_.addParticle(ParticleTypes.FALLING_SPORE_BLOSSOM, SectorVec3.fromBlockAndFraction(i, p_222506_.nextDouble(), (double) j + 0.7D, k, p_222506_.nextDouble()), 0.0D, 0.0D, 0.0D);
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 

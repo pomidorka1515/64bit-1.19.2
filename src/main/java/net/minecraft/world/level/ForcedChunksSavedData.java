@@ -32,8 +32,8 @@ public class ForcedChunksSavedData extends SavedData {
         ObjectSet<ChunkPos> set = new ObjectOpenHashSet<>();
         for (Tag tag : tags) {
             if (tag instanceof CompoundTag tag2) {
-                var x = NbtUtils.readInt128(tag2, "x");
-                var z = NbtUtils.readInt128(tag2, "z");
+                var x = NbtUtils.readInt1088(tag2, "x");
+                var z = NbtUtils.readInt1088(tag2, "z");
                 if (!WorldBounds.clampChunk(x).equals(x) || !WorldBounds.clampChunk(z).equals(z)) {
                     throw new IllegalArgumentException("Forced chunk outside chunk domain");
                 }
@@ -53,8 +53,8 @@ public class ForcedChunksSavedData extends SavedData {
         ListTag tag = new ListTag();
         for (ChunkPos chunkPos : chunks) {
             CompoundTag tag2 = new CompoundTag();
-            NbtUtils.writeInt128(tag2, "x", chunkPos.x());
-            NbtUtils.writeInt128(tag2, "z", chunkPos.z());
+            NbtUtils.writeInt1088(tag2, "x", chunkPos.x());
+            NbtUtils.writeInt1088(tag2, "z", chunkPos.z());
             tag.add(tag2);
         }
         return tag;

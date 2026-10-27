@@ -111,9 +111,9 @@ public class BucketItem extends Item implements DispensibleContainerItem {
             if (!flag1) {
                 return pResult != null && this.emptyContents(pPlayer, pLevel, pResult.getBlockPos().relative(pResult.getDirection()), (BlockHitResult) null);
             } else if (pLevel.dimensionType().ultraWarm() && this.content.is(FluidTags.WATER)) {
-                net.minecraft.core.Int128 i = pPos.getX();
+                net.minecraft.core.Int1088 i = pPos.getX();
                 int j = pPos.getY();
-                net.minecraft.core.Int128 k = pPos.getZ();
+                net.minecraft.core.Int1088 k = pPos.getZ();
                 pLevel.playSound(pPlayer, pPos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.5F, 2.6F + (pLevel.random.nextFloat() - pLevel.random.nextFloat()) * 0.8F);
 
                 for (int l = 0; l < 8; ++l) {

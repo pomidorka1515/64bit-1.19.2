@@ -228,8 +228,8 @@ public class BeehiveBlockEntity extends BlockEntity {
     // the exit offset is applied after loading, without narrowing X/Z.
     static void setReleasePosition(CompoundTag tag, BlockPos pos) {
         CompoundTag exact = new CompoundTag();
-        NbtUtils.writeInt128(exact, "BlockX", pos.getX());
-        NbtUtils.writeInt128(exact, "BlockZ", pos.getZ());
+        NbtUtils.writeInt1088(exact, "BlockX", pos.getX());
+        NbtUtils.writeInt1088(exact, "BlockZ", pos.getZ());
         exact.putDouble("SubX", 0.5D);
         exact.putDouble("SubZ", 0.5D);
         exact.putDouble("Y", (double) pos.getY());

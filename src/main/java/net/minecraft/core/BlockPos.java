@@ -359,6 +359,51 @@ public class BlockPos extends Vec3i {
             return java.util.Collections::emptyIterator;
         }
 
+        if (pX1.fitsLong() && pX2.fitsLong() && pZ1.fitsLong() && pZ2.fitsLong()) {
+            return () -> new java.util.Iterator<BlockPos>() {
+                private final MutableBlockPos cursor = new MutableBlockPos(pX1, pY1, pZ1);
+                private long x = pX1.lowLimb(), z = pZ1.lowLimb();
+                private int y = pY1;
+                private boolean available = true;
+                private boolean ready;
+
+                public boolean hasNext() {
+                    if (this.available && !this.ready) this.prepare();
+                    return this.available;
+                }
+
+                private void prepare() {
+                    // Only a sign transition changes the implicit upper limbs.
+                    if (this.cursor.mutableX[16] != this.x >> 63)
+                        java.util.Arrays.fill(this.cursor.mutableX, 1, Int1088.LIMBS, this.x >> 63);
+                    if (this.cursor.mutableZ[16] != this.z >> 63)
+                        java.util.Arrays.fill(this.cursor.mutableZ, 1, Int1088.LIMBS, this.z >> 63);
+                    this.cursor.mutableX[0] = this.x;
+                    this.cursor.mutableZ[0] = this.z;
+                    this.cursor.setY(this.y);
+                    this.ready = true;
+                }
+
+                public BlockPos next() {
+                    if (!this.hasNext()) throw new java.util.NoSuchElementException();
+                    this.ready = false;
+                    if (this.x != pX2.lowLimb()) {
+                        ++this.x;
+                    } else if (this.y != pY2) {
+                        this.x = pX1.lowLimb();
+                        ++this.y;
+                    } else if (this.z != pZ2.lowLimb()) {
+                        this.x = pX1.lowLimb();
+                        this.y = pY1;
+                        ++this.z;
+                    } else {
+                        this.available = false;
+                    }
+                    return this.cursor;
+                }
+            };
+        }
+
         return () -> new AbstractIterator<BlockPos>() {
             private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
             private final Cursor3D range = new Cursor3D(pX1, pY1, pZ1, pX2, pY2, pZ2);
@@ -368,10 +413,7 @@ public class BlockPos extends Vec3i {
                     return this.endOfData();
                 }
 
-                for (int i = 0; i < Int1088.LIMBS; ++i) {
-                    this.cursor.mutableX[i] = this.range.nextXLimb(i);
-                    this.cursor.mutableZ[i] = this.range.nextZLimb(i);
-                }
+                this.range.copyPosition(this.cursor.mutableX, this.cursor.mutableZ);
                 this.cursor.setY(this.range.nextY());
                 return this.cursor;
             }

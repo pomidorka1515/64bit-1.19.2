@@ -19,6 +19,7 @@ public class Cursor3D {
     private boolean done;
     private long spanX, spanZ;
     private long offsetX, offsetZ;
+    private boolean narrow;
 
     public Cursor3D(long pOriginX, int pOriginY, long pOriginZ, long pEndX, int pEndY, long pEndZ) {
         this(Int1088.fromLong(pOriginX), pOriginY, Int1088.fromLong(pOriginZ),
@@ -38,6 +39,7 @@ public class Cursor3D {
         this.endX = pEndX;
         this.endY = pEndY;
         this.endZ = pEndZ;
+        this.narrow = pOriginX.fitsLong() && pEndX.fitsLong() && pOriginZ.fitsLong() && pEndZ.fitsLong();
         this.spanX = localSpan(this.x, pEndX);
         this.spanZ = localSpan(this.z, pEndZ);
         this.offsetX = this.offsetZ = 0;
@@ -46,6 +48,10 @@ public class Cursor3D {
     }
 
     public boolean advance() {
+        return this.narrow ? this.advanceNarrow() : this.advanceWide();
+    }
+
+    private boolean advanceWide() {
         if (this.done) {
             return false;
         }
@@ -71,11 +77,52 @@ public class Cursor3D {
         return true;
     }
 
-    public Int1088 nextX() { return Int1088.fromFixedLimbs(this.x); }
-    public long nextXLimb(int index) { return this.x[index]; }
+    private boolean advanceNarrow() {
+        if (this.done) return false;
+        if (!this.started) {
+            this.started = true;
+        } else if (this.x[0] != this.endX.lowLimb()) {
+            ++this.x[0];
+        } else if (this.y < this.endY) {
+            this.x[0] = this.originX.lowLimb();
+            this.offsetX = 0;
+            ++this.y;
+        } else if (this.z[0] != this.endZ.lowLimb()) {
+            this.x[0] = this.originX.lowLimb();
+            this.offsetX = 0;
+            this.y = this.originY;
+            ++this.z[0];
+        } else {
+            this.done = true;
+            return false;
+        }
+        return true;
+    }
+
+    public Int1088 nextX() { return this.narrow ? Int1088.fromLong(this.x[0]) : Int1088.fromFixedLimbs(this.x); }
+    public long nextXLimb(int index) {
+        java.util.Objects.checkIndex(index, Int1088.LIMBS);
+        return this.narrow && index > 0 ? this.x[0] >> 63 : this.x[index];
+    }
     public int nextY() { return this.y; }
-    public Int1088 nextZ() { return Int1088.fromFixedLimbs(this.z); }
-    public long nextZLimb(int index) { return this.z[index]; }
+    public Int1088 nextZ() { return this.narrow ? Int1088.fromLong(this.z[0]) : Int1088.fromFixedLimbs(this.z); }
+    public long nextZLimb(int index) {
+        java.util.Objects.checkIndex(index, Int1088.LIMBS);
+        return this.narrow && index > 0 ? this.z[0] >> 63 : this.z[index];
+    }
+
+    /** Copies the full address into a reusable block iterator cursor. */
+    void copyPosition(long[] x, long[] z) {
+        if (this.narrow) {
+            java.util.Arrays.fill(x, this.x[0] >> 63);
+            java.util.Arrays.fill(z, this.z[0] >> 63);
+            x[0] = this.x[0];
+            z[0] = this.z[0];
+        } else {
+            System.arraycopy(this.x, 0, x, 0, Int1088.LIMBS);
+            System.arraycopy(this.z, 0, z, 0, Int1088.LIMBS);
+        }
+    }
 
     // A negative sentinel selects endpoint-checked limb carry for spans larger
     // than a signed long. Bounded offsets never overflow, even at Long.MAX_VALUE.
@@ -100,6 +147,12 @@ public class Cursor3D {
 
     public int getNextType() {
         int type = 0;
+        if (this.narrow) {
+            if (this.x[0] == this.originX.lowLimb() || this.x[0] == this.endX.lowLimb()) ++type;
+            if (this.y == this.originY || this.y == this.endY) ++type;
+            if (this.z[0] == this.originZ.lowLimb() || this.z[0] == this.endZ.lowLimb()) ++type;
+            return type;
+        }
         if ((this.spanX >= 0 ? this.offsetX == 0 : equals(this.x, this.originX)) || atEndX()) ++type;
         if (this.y == this.originY || this.y == this.endY) ++type;
         if ((this.spanZ >= 0 ? this.offsetZ == 0 : equals(this.z, this.originZ)) || atEndZ()) ++type;

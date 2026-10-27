@@ -7,6 +7,43 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class Cursor3DTest {
     @Test
+    void narrowSignCrossingsAndResetFromWideRetainEveryLimb() {
+        Cursor3D cursor = new Cursor3D(Int1088.MIN, 0, Int1088.MAX, Int1088.MIN, 0, Int1088.MAX);
+        cursor.reset(Int1088.fromLong(-1), -1, Int1088.fromLong(-1), Int1088.ONE, 1, Int1088.ONE);
+        var blocks = BlockPos.betweenClosed(-1, -1, -1, 1, 1, 1).iterator();
+        for (int z = -1; z <= 1; ++z) for (int y = -1; y <= 1; ++y) for (int x = -1; x <= 1; ++x) {
+            assertTrue(cursor.advance());
+            assertTrue(blocks.hasNext());
+            BlockPos block = blocks.next();
+            for (int limb = 0; limb < Int1088.LIMBS; ++limb) {
+                assertEquals(Int1088.fromLong(x).limb(limb), cursor.nextXLimb(limb));
+                assertEquals(Int1088.fromLong(z).limb(limb), cursor.nextZLimb(limb));
+                assertEquals(cursor.nextXLimb(limb), block.xLimb(limb));
+                assertEquals(cursor.nextZLimb(limb), block.zLimb(limb));
+            }
+            assertEquals(Int1088.fromLong(x), cursor.nextX());
+            assertEquals(Int1088.fromLong(z), cursor.nextZ());
+            assertEquals(y, block.getY());
+            assertEquals((x == 0 ? 0 : 1) + (y == 0 ? 0 : 1) + (z == 0 ? 0 : 1), cursor.getNextType());
+        }
+        assertFalse(cursor.advance());
+        assertFalse(blocks.hasNext());
+        assertThrows(IndexOutOfBoundsException.class, () -> cursor.nextXLimb(17));
+        assertThrows(IndexOutOfBoundsException.class, () -> cursor.nextZLimb(-1));
+    }
+
+    @Test
+    void narrowIteratorOverwritesCallerMutationsOnLookahead() {
+        var blocks = BlockPos.betweenClosed(1, 0, 1, 2, 0, 1).iterator();
+        BlockPos.MutableBlockPos first = (BlockPos.MutableBlockPos) blocks.next();
+        first.set(Int1088.MIN, 99, Int1088.MIN);
+        assertTrue(blocks.hasNext());
+        assertEquals(new BlockPos(2, 0, 1), first);
+        assertSame(first, blocks.next());
+        assertFalse(blocks.hasNext());
+    }
+
+    @Test
     void localOffsetsPreserveOrderAndBoundaryTypesAtEveryLimbSeam() {
         for (int bit = 64; bit <= 1024; bit += 64) {
             for (int sign : new int[] {-1, 1}) {

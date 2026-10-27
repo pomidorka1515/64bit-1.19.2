@@ -47,6 +47,8 @@ class CoordinateBenchmark {
     private static final int SAMPLES = 9;
     /** Far enough that a double cannot name the block, matching the current exact-position paths. */
     private static final long FAR = 1L << 53;
+    private static final Int1088 WIDE_X = Int1088.ONE.shiftLeftSaturated(1024);
+    private static final Int1088 WIDE_Z = WIDE_X.negate();
     private static final long[] REGION_COORDS = {
             0L, -1L, 1L, 105283943060505L, -105283943060506L, Long.MIN_VALUE >> 5, Long.MAX_VALUE >> 5, 1L << 40
     };
@@ -82,9 +84,12 @@ class CoordinateBenchmark {
         report.append("metric,ops,median_ns,min_ns,max_ns,median_ns_per_op,checksum\n");
 
         report.append(measure("block-iteration", this::iterateBlocks));
+        report.append(measure("block-iteration-wide", this::iterateWideBlocks));
         report.append(measure("collision-iteration", this::iterateCollisions));
+        report.append(measure("collision-iteration-wide", this::iterateWideCollisions));
         report.append(measure("chunk-key-lookup", this::lookupChunkKeys));
         report.append(measure("chunk-key-raw-lookup", this::lookupRawChunkKeys));
+        report.append(measure("chunk-key-lookup-wide", this::lookupWideChunkKeys));
         report.append(measure("chunk-coordinate-access", this::accessChunkCoordinates));
         report.append(measure("block-position-hot-ops", this::blockPositionHotOps));
         report.append(measure("block-position-scratch-hot-ops", this::blockPositionScratchHotOps));
@@ -92,9 +97,12 @@ class CoordinateBenchmark {
         report.append(measure("sector-vec3-relative-math", this::relativeMath));
         report.append("allocation metric,ops,median_bytes,median_bytes_per_op\n");
         report.append(allocations("block-iteration", this::iterateBlocks));
+        report.append(allocations("block-iteration-wide", this::iterateWideBlocks));
         report.append(allocations("collision-iteration", this::iterateCollisions));
+        report.append(allocations("collision-iteration-wide", this::iterateWideCollisions));
         report.append(allocations("chunk-key-lookup", this::lookupChunkKeys));
         report.append(allocations("chunk-key-raw-lookup", this::lookupRawChunkKeys));
+        report.append(allocations("chunk-key-lookup-wide", this::lookupWideChunkKeys));
         report.append(allocations("chunk-coordinate-access", this::accessChunkCoordinates));
         report.append(allocations("block-position-hot-ops", this::blockPositionHotOps));
         report.append(allocations("block-position-scratch-hot-ops", this::blockPositionScratchHotOps));
@@ -104,11 +112,16 @@ class CoordinateBenchmark {
         report.append(allocations("air-collision-large", () -> this.airCollisions(8)));
         report.append("block-iteration: BlockPos.betweenClosed 16x16x16 at ")
                 .append(FAR).append(" plus Cursor3D.advance over the same span, 32 reps\n");
+        report.append("block-iteration-wide: same work at X=2^1024, Z=-2^1024; full upper-limb checksum\n");
         report.append("collision-iteration: SectorBlockCollisions player box 0.6x1.8 at ")
                 .append(FAR).append(", ns/sweep over 2000 sweeps\n");
+        report.append("collision-iteration-wide: same player box at X=2^1024, Z=-2^1024\n");
         report.append("chunk-key-lookup: Object2ObjectOpenHashMap<ChunkPos,Integer>.get(new ChunkPos) ")
                 .append("over a 33x33 window, 20 reps; setup excluded\n");
         report.append("chunk-key-raw-lookup: ChunkPosMap.get(long x,long z), same window/checksum; setup excluded\n");
+        report.append("chunk-key-lookup-wide: prebuilt exact ChunkPos probes at X=2^1024, Z=-2^1024; setup excluded\n");
+        report.append("S4.4 S0 budget: block-iteration <= 7.7308 ns/op (7.028 * 1.10); ")
+                .append("chunk-key-raw-lookup <= 6.5318 ns/op (5.938 * 1.10)\n");
         report.append("chunk-key comparison: historical setup-inclusive results (including 124 ns/op) are not comparable; ")
                 .append("the object-probe row is honest, not evidence of a regression. The raw row remains the optimization target.\n");
         report.append("chunk-coordinate-access: RangeCursor over a 33x33 window, raw region/block limbs; no per-entry snapshots\n");
@@ -119,9 +132,9 @@ class CoordinateBenchmark {
 
         String text = report.toString();
         System.out.print(text);
-        Path benchmarks = Path.of(System.getProperty("user.dir")).resolve("../128bit-migration/benchmarks");
+        Path benchmarks = Path.of(System.getProperty("user.dir")).resolve("docs/1088bit");
         Files.createDirectories(benchmarks);
-        Files.writeString(benchmarks.resolve("current-coordinate-benchmark.txt"), text);
+        Files.writeString(benchmarks.resolve("s4-coordinate-benchmark.txt"), text);
         SINK[0] = text.length();
     }
 
@@ -179,7 +192,25 @@ class CoordinateBenchmark {
             }
             Cursor3D cursor = new Cursor3D(x0, 0, z0, x0 + 15L, 15, z0 + 15L);
             while (cursor.advance()) {
-                checksum += cursor.nextX().lowLimb() ^ (cursor.nextZ().lowLimb() << 1) ^ cursor.nextY();
+                checksum += cursor.nextXLimb(0) ^ (cursor.nextZLimb(0) << 1) ^ cursor.nextY();
+                ++ops;
+            }
+        }
+        return new Result(ops, checksum);
+    }
+
+    private Result iterateWideBlocks() {
+        Int1088 x1 = WIDE_X.add(Int1088.fromLong(15));
+        Int1088 z1 = WIDE_Z.add(Int1088.fromLong(15));
+        long checksum = 1, ops = 0;
+        for (int rep = 0; rep < 32; ++rep) {
+            for (BlockPos pos : BlockPos.betweenClosed(WIDE_X, 0, WIDE_Z, x1, 15, z1)) {
+                checksum += pos.xLimb(0) ^ (pos.zLimb(0) << 1) ^ pos.getY() ^ pos.xLimb(16);
+                ++ops;
+            }
+            Cursor3D cursor = new Cursor3D(WIDE_X, 0, WIDE_Z, x1, 15, z1);
+            while (cursor.advance()) {
+                checksum += cursor.nextXLimb(0) ^ (cursor.nextZLimb(0) << 1) ^ cursor.nextY() ^ cursor.nextXLimb(16);
                 ++ops;
             }
         }
@@ -187,10 +218,18 @@ class CoordinateBenchmark {
     }
 
     private Result iterateCollisions() {
-        BlockPos solid = new BlockPos(FAR, 64, FAR);
+        return this.iterateCollisions(Int1088.fromLong(FAR), Int1088.fromLong(FAR));
+    }
+
+    private Result iterateWideCollisions() {
+        return this.iterateCollisions(WIDE_X, WIDE_Z);
+    }
+
+    private Result iterateCollisions(Int1088 x, Int1088 z) {
+        BlockPos solid = new BlockPos(x, 64, z);
         CollisionGetter level = new SingleBlockCollisionGetter(solid);
-        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(FAR, 64, FAR);
-        SectorVec3 player = SectorVec3.fromBlockAndFraction(FAR, 0.25D, 64.0D, FAR, 0.25D);
+        SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x, 64, z);
+        SectorVec3 player = SectorVec3.fromBlockAndFraction(x, 0.25D, 64.0D, z, 0.25D);
         SectorAABB exactBox = SectorAABB.around(player, 0.6D, 1.8D);
         AABB localBox = exactBox.toLocalAABB(origin);
         long checksum = 1L;
@@ -234,6 +273,8 @@ class CoordinateBenchmark {
 
     // Retained fixtures exclude insertion/key/boxing costs from both probe measurements.
     private final ChunkPosMap<Integer> rawChunkKeys = createRawChunkKeys();
+    private final ChunkPosMap<Integer> wideChunkKeys = createWideChunkKeys();
+    private final ChunkPos[] wideProbes = createWideProbes();
     private final Object2ObjectOpenHashMap<ChunkPos, Integer> objectChunkKeys =
             new Object2ObjectOpenHashMap<>(this.rawChunkKeys);
 
@@ -245,6 +286,37 @@ class CoordinateBenchmark {
             }
         }
         return keys;
+    }
+
+    private static ChunkPos[] createWideProbes() {
+        ChunkPos[] probes = new ChunkPos[1089];
+        int i = 0;
+        for (int dx = -16; dx <= 16; ++dx) {
+            for (int dz = -16; dz <= 16; ++dz) {
+                probes[i++] = new ChunkPos(WIDE_X.add(Int1088.fromLong(dx)), WIDE_Z.add(Int1088.fromLong(dz)));
+            }
+        }
+        return probes;
+    }
+
+    private static ChunkPosMap<Integer> createWideChunkKeys() {
+        ChunkPosMap<Integer> keys = new ChunkPosMap<>(1089);
+        int i = 0;
+        for (ChunkPos key : createWideProbes()) keys.put(key, i++);
+        return keys;
+    }
+
+    private Result lookupWideChunkKeys() {
+        long checksum = 1, ops = 0;
+        for (int rep = 0; rep < 20; ++rep) {
+            for (ChunkPos key : this.wideProbes) {
+                Integer found = this.wideChunkKeys.get(key);
+                if (found == null) throw new IllegalStateException("missing wide chunk key");
+                checksum += found + 1L;
+                ++ops;
+            }
+        }
+        return new Result(ops, checksum);
     }
 
     private Result lookupRawChunkKeys() {

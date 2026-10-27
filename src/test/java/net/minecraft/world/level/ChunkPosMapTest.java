@@ -13,6 +13,34 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class ChunkPosMapTest {
+    @Test
+    void inlineKeysMatchValueConstructionAndDoNotAliasMixedOrUpperWordKeys() {
+        ChunkPosMap<Integer> map = new ChunkPosMap<>(1);
+        for (long x : new long[] {0, -1, 1, Long.MIN_VALUE, Long.MAX_VALUE, 1L << 32, -(1L << 32)}) {
+            for (long z : new long[] {0, -1, Long.MIN_VALUE, Long.MAX_VALUE, 1L << 40}) {
+                ChunkPos raw = new ChunkPos(x, z);
+                ChunkPos values = new ChunkPos(Int1088.fromLong(x), Int1088.fromLong(z));
+                assertEquals(raw, values);
+                assertEquals(raw.hashCode(), values.hashCode());
+                assertEquals(ChunkPos.hash(x, z), raw.hashCode());
+                map.put(raw, map.size());
+                assertEquals(map.get(values), map.get(x, z));
+                assertEquals(Int1088.fromLong(x), raw.x());
+                assertEquals(Int1088.fromLong(z), raw.z());
+                for (int limb = 0; limb < Int1088.LIMBS; ++limb) {
+                    assertEquals(raw.x().limb(limb), raw.xLimb(limb));
+                    assertEquals(raw.z().limb(limb), raw.zLimb(limb));
+                }
+                assertNotEquals(raw, new ChunkPos(Int1088.of(x, 7), raw.z()));
+                assertNotEquals(raw, new ChunkPos(raw.x(), Int1088.of(z, -7)));
+            }
+        }
+        map.trim();
+        for (ChunkPos key : map.keySet()) assertEquals(map.get(key), map.get(key.x(), key.z()));
+        assertNotEquals(ChunkPos.hash(0, 0), ChunkPos.hash(1L << 32, 0));
+        assertNotEquals(ChunkPos.hash(0, 0), ChunkPos.hash(0, 1L << 32));
+    }
+
     private static volatile long lookupChecksum;
 
     @Test

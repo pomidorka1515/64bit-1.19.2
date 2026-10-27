@@ -447,6 +447,11 @@ public final class Int1088Math {
 
     /** Hash a sign-extended single-limb coordinate without allocating a value or array. */
     public static int hashXZ(long value) {
+        return Long.hashCode(hash(value));
+    }
+
+    /** The same full sign-extension fold as the primitive limb view. */
+    public static long hash(long value) {
         long h = 0xcbf29ce484222325L;
         for (int i = 0; i < N; ++i) {
             long word = i == 0 ? value : value >> 63;
@@ -454,6 +459,6 @@ public final class Int1088Math {
             h = (h ^ mixed) * 0x100000001b3L;
         }
         h = HashCommon.murmurHash3(h);
-        return (int) (h ^ (h >>> 32));
+        return h;
     }
 }

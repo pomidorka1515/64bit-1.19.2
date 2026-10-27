@@ -6,9 +6,75 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
 import java.util.Random;
 import net.minecraft.core.Int1088;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.phys.SectorVec3;
 import org.junit.jupiter.api.Test;
 
 class NetworkInt1088Test {
+    @Test
+    void positionsRetainFullIdentityAndIntegerHeight() {
+        Int1088 wide = Int1088.ONE.shiftLeftSaturated(1024);
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+        try {
+            for (int y : new int[] {Integer.MIN_VALUE, 0, Integer.MAX_VALUE}) {
+                BlockPos block = new BlockPos(wide, y, Int1088.MIN);
+                buf.clear();
+                buf.writeBlockPos(block);
+                assertEquals(block, buf.readBlockPos());
+                SectionPos section = SectionPos.of(wide, y, Int1088.MIN);
+                buf.clear();
+                buf.writeSectionPos(section);
+                assertEquals(section, buf.readSectionPos());
+            }
+            ChunkPos chunk = new ChunkPos(wide, wide.negate());
+            buf.clear();
+            buf.writeChunkPos(chunk);
+            assertEquals(chunk, buf.readChunkPos());
+            buf.clear();
+            buf.writeBlockPos(new BlockPos(wide, 42, Int1088.MAX));
+            for (int size = 0; size < buf.writerIndex(); ++size) {
+                FriendlyByteBuf truncated = new FriendlyByteBuf(buf.copy(0, size));
+                try {
+                    assertThrows(RuntimeException.class, truncated::readBlockPos);
+                } finally {
+                    truncated.release();
+                }
+            }
+        } finally {
+            buf.release();
+        }
+    }
+
+    @Test
+    void rejectsInvalidSectorFractions() {
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+        try {
+            for (double fraction : new double[] {Double.NaN, Double.POSITIVE_INFINITY, -0.5D, 1.0D}) {
+                buf.clear();
+                buf.writeInt1088(Int1088.ZERO).writeDouble(fraction).writeDouble(0.0D);
+                buf.writeInt1088(Int1088.ZERO).writeDouble(0.0D);
+                assertThrows(DecoderException.class, buf::readSectorVec3);
+                buf.clear();
+                buf.writeInt1088(Int1088.ZERO).writeDouble(0.0D).writeDouble(0.0D);
+                buf.writeInt1088(Int1088.ZERO).writeDouble(fraction);
+                assertThrows(DecoderException.class, buf::readSectorVec3);
+            }
+            for (double y : new double[] {Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY}) {
+                buf.clear();
+                buf.writeInt1088(Int1088.ZERO).writeDouble(0.0D).writeDouble(y);
+                buf.writeInt1088(Int1088.ZERO).writeDouble(0.0D);
+                assertThrows(DecoderException.class, buf::readSectorVec3);
+            }
+            buf.clear();
+            SectorVec3 position = SectorVec3.fromBlockAndFraction(Int1088.MAX, 0.5D, 42.0D, Int1088.MIN, 0.25D);
+            buf.writeSectorVec3(position);
+            assertEquals(position, buf.readSectorVec3());
+        } finally {
+            buf.release();
+        }
+    }
     @Test
     void roundTripsAndUsesCanonicalLimbOrder() {
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());

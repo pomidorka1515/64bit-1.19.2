@@ -46,7 +46,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.IdMap;
-import net.minecraft.core.Int128;
 import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
@@ -394,52 +393,61 @@ public class FriendlyByteBuf extends ByteBuf {
         }
     }
 
-    /** Fixed-width high half first; there is no legacy single-long decode. */
-    public Int128 readInt128() {
-        return Int128.of(this.readLong(), this.readLong());
+    public FriendlyByteBuf writeInt1088(long[] limbs, int offset, int length) {
+        return this.writeInt1088(Int1088.fromLimbs(limbs, offset, length));
     }
 
-    public FriendlyByteBuf writeInt128(Int128 pValue) {
-        return this.writeInt128(pValue.hi(), pValue.lo());
-    }
-
-    public FriendlyByteBuf writeInt128(long pHi, long pLo) {
-        this.writeLong(pHi);
-        this.writeLong(pLo);
-        return this;
-    }
-
-    /** xHi, xLo, int Y, zHi, zLo (36 bytes). */
     public BlockPos readBlockPos() {
-        return new BlockPos(this.readInt128(), this.readInt(), this.readInt128());
+        return new BlockPos(this.readInt1088(), this.readInt(), this.readInt1088());
     }
 
     public FriendlyByteBuf writeBlockPos(BlockPos pPos) {
-        this.writeInt128(pPos.getXHi(), pPos.getXLo());
+        this.writeInt1088(pPos.getX());
         this.writeInt(pPos.getY());
-        this.writeInt128(pPos.getZHi(), pPos.getZLo());
+        this.writeInt1088(pPos.getZ());
         return this;
     }
 
     public ChunkPos readChunkPos() {
-        return new ChunkPos(this.readInt128(), this.readInt128());
+        return new ChunkPos(this.readInt1088(), this.readInt1088());
     }
 
     public FriendlyByteBuf writeChunkPos(ChunkPos pChunkPos) {
-        this.writeInt128(pChunkPos.xHi(), pChunkPos.xLo());
-        this.writeInt128(pChunkPos.zHi(), pChunkPos.zLo());
+        this.writeInt1088(pChunkPos.x());
+        this.writeInt1088(pChunkPos.z());
         return this;
     }
 
-    /** xHi, xLo, int Y, zHi, zLo (36 bytes). */
     public SectionPos readSectionPos() {
-        return SectionPos.of(this.readInt128(), this.readInt(), this.readInt128());
+        return SectionPos.of(this.readInt1088(), this.readInt(), this.readInt1088());
     }
 
     public FriendlyByteBuf writeSectionPos(SectionPos pSectionPos) {
-        this.writeInt128(pSectionPos.getXHi(), pSectionPos.getXLo());
+        this.writeInt1088(pSectionPos.getX());
         this.writeInt(pSectionPos.getY());
-        this.writeInt128(pSectionPos.getZHi(), pSectionPos.getZLo());
+        this.writeInt1088(pSectionPos.getZ());
+        return this;
+    }
+
+    public SectorVec3 readSectorVec3() {
+        Int1088 x = this.readInt1088();
+        double subX = this.readDouble();
+        double y = this.readDouble();
+        Int1088 z = this.readInt1088();
+        double subZ = this.readDouble();
+        if (!Double.isFinite(subX) || !Double.isFinite(subZ) || !Double.isFinite(y)
+                || subX < 0.0D || subX >= 1.0D || subZ < 0.0D || subZ >= 1.0D) {
+            throw new DecoderException("Invalid sector position");
+        }
+        return SectorVec3.fromBlockAndFraction(x, subX, y, z, subZ);
+    }
+
+    public FriendlyByteBuf writeSectorVec3(SectorVec3 pos) {
+        this.writeInt1088(pos.blockX());
+        this.writeDouble(pos.subX());
+        this.writeDouble(pos.y());
+        this.writeInt1088(pos.blockZ());
+        this.writeDouble(pos.subZ());
         return this;
     }
 
@@ -710,6 +718,9 @@ public class FriendlyByteBuf extends ByteBuf {
         float f1 = this.readFloat();
         float f2 = this.readFloat();
         boolean flag = this.readBoolean();
+        if (!Float.isFinite(f) || !Float.isFinite(f1) || !Float.isFinite(f2)) {
+            throw new DecoderException("Invalid block hit offset");
+        }
         // The packet stores the hit point relative to its full-width block address.
         // Reconstruct that split before creating the compatibility Vec3 mirror.
         return new BlockHitResult(SectorVec3.fromBlockAndFraction(blockpos.getX(), (double) f,
@@ -718,13 +729,13 @@ public class FriendlyByteBuf extends ByteBuf {
     }
 
     public void writeBlockHitResult(BlockHitResult pResult) {
+        SectorVec3 exact = pResult.getExactLocation();
+        if (exact == null) {
+            throw new EncoderException("Block hit requires an exact position");
+        }
         BlockPos blockpos = pResult.getBlockPos();
         this.writeBlockPos(blockpos);
         this.writeEnum(pResult.getDirection());
-        SectorVec3 exact = pResult.getExactLocation();
-        if (exact == null) {
-            exact = SectorVec3.fromApproximate(pResult.getLocation());
-        }
         SectorVec3 origin = SectorVec3.fromBlockAndFraction(blockpos.getX(), 0.0D, blockpos.getY(), blockpos.getZ(), 0.0D);
         this.writeFloat((float) exact.relativeX(origin));
         this.writeFloat((float) exact.relativeY(origin));

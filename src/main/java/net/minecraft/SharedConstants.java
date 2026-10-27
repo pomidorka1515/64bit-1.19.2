@@ -6,12 +6,12 @@ import io.netty.util.ResourceLeakDetector.Level;
 import java.time.Duration;
 import javax.annotation.Nullable;
 import net.minecraft.commands.BrigadierExceptions;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.level.ChunkPos;
 
 /**
- * Shared client/server constants. The 128-bit coordinate wire format requires a matching fork jar
- * on both sides; vanilla clients and older 64-bit fork clients are not compatible.
+ * Shared client/server constants. The 1088-bit coordinate wire format requires a matching fork jar
+ * on both sides; vanilla clients and older coordinate forks are not compatible.
  */
 public class SharedConstants {
     /** @deprecated */
@@ -31,7 +31,7 @@ public class SharedConstants {
     public static final String RELEASE_TARGET = "1.19.2";
     /** @deprecated */
     @Deprecated
-    public static final int RELEASE_NETWORK_PROTOCOL_VERSION = 0x4C534302;
+    public static final int RELEASE_NETWORK_PROTOCOL_VERSION = 0x4C534303;
     /** @deprecated */
     @Deprecated
     public static final int SNAPSHOT_NETWORK_PROTOCOL_VERSION = 103;
@@ -188,13 +188,13 @@ public class SharedConstants {
     }
 
     public static boolean debugVoidTerrain(ChunkPos pChunkPos) {
-        Int128 i = pChunkPos.getMinBlockX();
-        Int128 j = pChunkPos.getMinBlockZ();
+        Int1088 i = pChunkPos.getMinBlockX();
+        Int1088 j = pChunkPos.getMinBlockZ();
         if (!debugGenerateSquareTerrainWithoutNoise) {
             return false;
         } else {
-            return i.compareTo(Int128.fromLong(8192)) > 0 || i.compareTo(Int128.ZERO) < 0
-                || j.compareTo(Int128.fromLong(1024)) > 0 || j.compareTo(Int128.ZERO) < 0;
+            return i.compareTo(Int1088.fromLong(8192)) > 0 || i.compareTo(Int1088.ZERO) < 0
+                || j.compareTo(Int1088.fromLong(1024)) > 0 || j.compareTo(Int1088.ZERO) < 0;
         }
     }
 

@@ -41,8 +41,7 @@ import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Int128;
-import net.minecraft.core.Int128Math;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerLevel;
@@ -58,7 +57,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.level.chunk.storage.RegionFileNames;
+import net.minecraft.world.level.chunk.storage.RegionPaths;
+import net.minecraft.world.level.chunk.storage.RegionPos;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -205,7 +205,7 @@ public class DebugScreenOverlay extends GuiComponent {
 
         BlockPos blockpos = this.minecraft.getCameraEntity().blockPosition();
         if (this.minecraft.showOnlyReducedInfo()) {
-            return Lists.newArrayList("Minecraft " + SharedConstants.getCurrentVersion().getName() + " (" + this.minecraft.getLaunchedVersion() + "/" + ClientBrandRetriever.getClientModName() + ")", this.minecraft.fpsString, s, this.minecraft.levelRenderer.getChunkStatistics(), this.minecraft.levelRenderer.getEntityStatistics(), "P: " + this.minecraft.particleEngine.countParticles() + ". T: " + this.minecraft.level.getEntityCount(), "", "Chunk-relative: " + (blockpos.getXLo() & 15) + " " + (blockpos.getY() & 15) + " " + (blockpos.getZLo() & 15));
+            return Lists.newArrayList("Minecraft " + SharedConstants.getCurrentVersion().getName() + " (" + this.minecraft.getLaunchedVersion() + "/" + ClientBrandRetriever.getClientModName() + ")", this.minecraft.fpsString, s, this.minecraft.levelRenderer.getChunkStatistics(), this.minecraft.levelRenderer.getEntityStatistics(), "P: " + this.minecraft.particleEngine.countParticles() + ". T: " + this.minecraft.level.getEntityCount(), "", "Chunk-relative: " + (blockpos.getX().lowLimb() & 15) + " " + (blockpos.getY() & 15) + " " + (blockpos.getZ().lowLimb() & 15));
         } else {
             Entity entity = this.minecraft.getCameraEntity();
             Direction direction = entity.getDirection();
@@ -245,8 +245,7 @@ public class DebugScreenOverlay extends GuiComponent {
             list.add(this.positionDisplay.xLine);
             list.add(this.positionDisplay.yLine);
             list.add(this.positionDisplay.zLine);
-            list.add(this.positionDisplay.halvesLine);
-            list.add("Block: [" + (blockpos.getXLo() & 15) + " " + (blockpos.getY() & 15) + " " + (blockpos.getZLo() & 15) + "]");
+            list.add("Block: [" + (blockpos.getX().lowLimb() & 15) + " " + (blockpos.getY() & 15) + " " + (blockpos.getZ().lowLimb() & 15) + "]");
             this.regionDisplay.update(this.minecraft.gameRenderer.getMainCamera().getBlockPosition());
             list.add(this.chunkXLine);
             list.add(this.chunkZLine);
@@ -323,10 +322,6 @@ public class DebugScreenOverlay extends GuiComponent {
         list.add("Z: " + formatCoordinate(exact.blockZ(), exact.subZ()));
     }
 
-    static String formatCoordinateHalves(String axis, Int128 coordinate) {
-        return axis + "Lo/Hi: " + Long.toHexString(coordinate.lo()) + " / " + Long.toHexString(coordinate.hi());
-    }
-
     static String formatSubPosition(SectorVec3 exact) {
         return "SubPos: [X: " + signedFraction(exact.subX()) + ", Y: " + signedFraction(exact.subY()) + ", Z: " + signedFraction(exact.subZ()) + "]";
     }
@@ -339,15 +334,15 @@ public class DebugScreenOverlay extends GuiComponent {
         return (Double.doubleToRawLongBits(value) < 0 ? "" : "+") + fixed(value, 7);
     }
 
-    static String formatCoordinate(Int128 block, double fraction) {
+    static String formatCoordinate(Int1088 block, double fraction) {
         // SectorVec3 stores a floor block and a nonnegative fraction. Round the
         // decimal fraction separately, never converting the full coordinate to double.
-        boolean negative = block.hi() < 0;
+        boolean negative = block.signum() < 0;
         int rounded = roundedThousandths(fraction, !negative);
         String integer;
         if (negative) {
-            // Complementing the limbs gives abs(block) - 1, including Int128.MIN.
-            Int128 magnitude = Int128.of(~block.hi(), ~block.lo());
+            // Complement gives abs(block) - 1, including MIN.
+            Int1088 magnitude = block.not();
             if (rounded == 0) {
                 integer = block.toDecimalString();
             } else {
@@ -355,8 +350,8 @@ public class DebugScreenOverlay extends GuiComponent {
                 rounded = 1000 - rounded;
             }
         } else if (rounded == 1000) {
-            // MAX + 1 is a valid display result even though it is not a signed Int128.
-            integer = block.equals(Int128.MAX) ? "170141183460469231731687303715884105728" : block.add(Int128.ONE).toDecimalString();
+            // MAX + 1 is a valid display value outside the signed domain.
+            integer = block.equals(Int1088.MAX) ? incrementDecimal(block.toDecimalString()) : block.addSaturated(Int1088.ONE).toDecimalString();
             rounded = 0;
         } else {
             integer = block.toDecimalString();
@@ -364,6 +359,18 @@ public class DebugScreenOverlay extends GuiComponent {
         // BigDecimal's historical display did not retain a negative zero.
         if (integer.equals("-0") && rounded == 0) integer = "0";
         return integer + "." + padded(rounded, 3);
+    }
+
+    private static String incrementDecimal(String value) {
+        char[] digits = value.toCharArray();
+        for (int i = digits.length - 1; i >= 0; --i) {
+            if (digits[i] != '9') {
+                ++digits[i];
+                return new String(digits);
+            }
+            digits[i] = '0';
+        }
+        return "1" + new String(digits);
     }
 
     private static int roundedThousandths(double fraction, boolean roundTieUp) {
@@ -401,8 +408,17 @@ public class DebugScreenOverlay extends GuiComponent {
     }
 
     private static boolean containsBlock(@Nullable ChunkPos chunk, BlockPos block) {
-        return chunk != null && chunk.equals(block.xHi() >> 4, Int128Math.rightShiftLo(block.xHi(), block.xLo(), 4),
-                block.zHi() >> 4, Int128Math.rightShiftLo(block.zHi(), block.zLo(), 4));
+        return chunk != null && sameChunkCoordinate(block.getX(), chunk.x())
+                && sameChunkCoordinate(block.getZ(), chunk.z());
+    }
+
+    private static boolean sameChunkCoordinate(Int1088 block, Int1088 chunk) {
+        for (int i = 0; i < Int1088.LIMBS; ++i) {
+            long shifted = i == Int1088.LIMBS - 1 ? block.limb(i) >> 4
+                    : (block.limb(i) >>> 4) | (block.limb(i + 1) << 60);
+            if (shifted != chunk.limb(i)) return false;
+        }
+        return true;
     }
 
     private static final class NumberFormats {
@@ -424,13 +440,12 @@ public class DebugScreenOverlay extends GuiComponent {
     }
 
     static final class PositionDisplayCache {
-        private Int128 x;
-        private Int128 z;
+        private Int1088 x;
+        private Int1088 z;
         private double subX = Double.NaN;
         private double subZ = Double.NaN;
         private double y = Double.NaN;
-        String xLine, yLine, zLine, xHalves, zHalves, subLine;
-        String halvesLine;
+        String xLine, yLine, zLine, subLine;
 
         void update(SectorVec3 position) {
             boolean xChanged = !position.blockX().equals(this.x);
@@ -441,14 +456,9 @@ public class DebugScreenOverlay extends GuiComponent {
             boolean fractionsChanged = xFractionChanged || zFractionChanged || yChanged;
             if (xChanged) {
                 this.x = position.blockX();
-                this.xHalves = formatCoordinateHalves("x", this.x);
             }
             if (zChanged) {
                 this.z = position.blockZ();
-                this.zHalves = formatCoordinateHalves("z", this.z);
-            }
-            if (xChanged || zChanged) {
-                this.halvesLine = this.xHalves + " | " + this.zHalves;
             }
             if (xChanged || xFractionChanged) this.xLine = "X: " + formatCoordinate(this.x, position.subX());
             if (zChanged || zFractionChanged) this.zLine = "Z: " + formatCoordinate(this.z, position.subZ());
@@ -460,17 +470,14 @@ public class DebugScreenOverlay extends GuiComponent {
         }
     }
 
-    private static int magnitudeBits(Int128 value) {
-        // Unsigned magnitude also preserves the extra bit of Int128.MIN.
-        long lo = value.hi() < 0 ? -value.lo() : value.lo();
-        long hi = value.hi() < 0 ? ~value.hi() + (value.lo() == 0 ? 1 : 0) : value.hi();
-        return hi != 0 ? 128 - Long.numberOfLeadingZeros(hi) : 64 - Long.numberOfLeadingZeros(lo);
+    private static int magnitudeBits(Int1088 value) {
+        return value.bitLength();
     }
 
     static final class RegionDisplayCache {
         private ChunkPos chunk;
-        private Int128 regionX;
-        private Int128 regionZ;
+        private Int1088 regionX;
+        private Int1088 regionZ;
         String firstLine;
         String secondLine;
         String thirdLine;
@@ -482,8 +489,8 @@ public class DebugScreenOverlay extends GuiComponent {
         }
 
         void update(ChunkPos chunk) {
-            Int128 x = chunk.getRegionX();
-            Int128 z = chunk.getRegionZ();
+            Int1088 x = chunk.getRegionX();
+            Int1088 z = chunk.getRegionZ();
             if (!x.equals(this.regionX) || !z.equals(this.regionZ)) {
                 this.regionX = x;
                 this.regionZ = z;
@@ -491,7 +498,7 @@ public class DebugScreenOverlay extends GuiComponent {
                 String decimalZ = z.toDecimalString();
                 this.firstLine = "Region X: " + decimalX;
                 this.secondLine = "Region Z: " + decimalZ;
-                this.thirdLine = " in " + RegionFileNames.regionFileName(x, z);
+                this.thirdLine = " in " + RegionPaths.displayRegionPath(new RegionPos(x, z));
             }
         }
     }

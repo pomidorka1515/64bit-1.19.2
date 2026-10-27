@@ -3,7 +3,7 @@ package net.minecraft.client.particle;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Optional;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.PositionSource;
 import net.minecraft.world.level.gameevent.PositionSourceType;
@@ -14,8 +14,8 @@ import org.junit.jupiter.api.Test;
 class VibrationSignalParticleTest {
     @Test
     void finalLiveTickArrivesWithoutNonFiniteCoordinates() {
-        SectorVec3 spawn = SectorVec3.fromBlockAndFraction(Int128.of(123, -1), 0.75D,
-                64.5D, Int128.of(-123, Long.MAX_VALUE), 0.25D);
+        SectorVec3 spawn = SectorVec3.fromBlockAndFraction(Int1088.of(-1, 123), 0.75D,
+                64.5D, Int1088.of(Long.MAX_VALUE, -123), 0.25D);
         for (int lifetime : new int[] {1, 2, 5}) {
             for (Vec3 offset : new Vec3[] {Vec3.ZERO, new Vec3(0, 3, 0), new Vec3(4, -2, -6)}) {
                 SectorVec3 destination = spawn.add(offset.x, offset.y, offset.z);

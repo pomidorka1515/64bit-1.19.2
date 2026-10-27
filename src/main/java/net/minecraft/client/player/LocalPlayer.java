@@ -262,7 +262,7 @@ public class LocalPlayer extends AbstractClientPlayer {
             boolean flag2 = d2 != 0.0D || d3 != 0.0D;
             if (this.isPassenger()) {
                 Vec3 vec3 = this.getDeltaMovement();
-                this.connection.send(new ServerboundMovePlayerPacket.PosRot(vec3.x, -999.0D, vec3.z, this.getYRot(), this.getXRot(), this.onGround));
+                this.connection.send(new ServerboundMovePlayerPacket.PosRot(SectorVec3.fromApproximate(vec3.x, -999.0D, vec3.z), this.getYRot(), this.getXRot(), this.onGround));
                 flag1 = false;
             } else if (flag1 && flag2) {
                 this.connection.send(new ServerboundMovePlayerPacket.PosRot(this.sectorPosition(), this.getYRot(), this.getXRot(), this.onGround));

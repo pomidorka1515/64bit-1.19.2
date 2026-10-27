@@ -4,19 +4,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.SectorVec3;
 import org.junit.jupiter.api.Test;
 
-class SoundPositionInt128Test {
+class SoundPositionInt1088Test {
     @Test
     void worldSourcesSubtractBeforeConversionAndRebaseImmutableSnapshots() {
-        for (Int128 base : new Int128[] {Int128.ZERO, Int128.of(123, -1),
-                Int128.of(-123, Long.MAX_VALUE), Int128.MIN.add(Int128.fromLong(8)),
-                Int128.MAX.subtract(Int128.fromLong(8))}) {
+        for (Int1088 base : new Int1088[] {Int1088.ZERO, Int1088.of(-1, 123),
+                Int1088.of(Long.MAX_VALUE, -123), Int1088.MIN.add(Int1088.fromLong(8)),
+                Int1088.MAX.subtract(Int1088.fromLong(8))}) {
             SectorVec3 listener = SectorVec3.fromBlockAndFraction(base, 0.75D, 64, base, 0.25D);
             SectorVec3 source = listener.add(1.5D, 2, -0.5D);
             SimpleSoundInstance sound = new SimpleSoundInstance(new ResourceLocation("test", "sound"),

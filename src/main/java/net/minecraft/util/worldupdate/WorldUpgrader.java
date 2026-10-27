@@ -12,13 +12,13 @@ import it.unimi.dsi.fastutil.objects.Object2FloatOpenCustomHashMap;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ThreadFactory;
-import net.minecraft.core.Int128;
-import net.minecraft.world.level.WorldBounds;
-import net.minecraft.world.level.chunk.storage.RegionFileNames;
+import net.minecraft.core.Int1088;
+import net.minecraft.world.level.chunk.storage.RegionPaths;
 import net.minecraft.world.level.chunk.storage.RegionPos;
 import net.minecraft.ReportedException;
 import net.minecraft.Util;
@@ -93,7 +93,7 @@ public class WorldUpgrader {
 
             for (ResourceKey<Level> resourcekey1 : immutableset) {
                 Path path = this.levelStorage.getDimensionPath(resourcekey1);
-                builder1.put(resourcekey1, new ChunkStorage(path.resolve("region"), true));
+                builder1.put(resourcekey1, new ChunkStorage(path, true));
             }
 
             ImmutableMap<ResourceKey<Level>, ChunkStorage> immutablemap1 = builder1.build();
@@ -114,7 +114,13 @@ public class WorldUpgrader {
                         try {
                             CompoundTag compoundtag = chunkstorage.read(chunkpos).join().orElse((CompoundTag) null);
                             if (compoundtag != null) {
-                                ChunkPos chunkpos1 = new ChunkPos(NbtUtils.readInt128(compoundtag, "xPos"), NbtUtils.readInt128(compoundtag, "zPos"));
+                                Int1088 x = NbtUtils.readInt1088(compoundtag, "xPos");
+                                Int1088 z = NbtUtils.readInt1088(compoundtag, "zPos");
+                                if (x.compareTo(ChunkPos.MIN_CHUNK_COORDINATE) < 0 || x.compareTo(ChunkPos.MAX_CHUNK_COORDINATE) > 0
+                                        || z.compareTo(ChunkPos.MIN_CHUNK_COORDINATE) < 0 || z.compareTo(ChunkPos.MAX_CHUNK_COORDINATE) > 0) {
+                                    throw new IllegalArgumentException("Chunk position outside domain at " + chunkpos);
+                                }
+                                ChunkPos chunkpos1 = new ChunkPos(x, z);
                                 if (!chunkpos1.equals(chunkpos)) {
                                     LOGGER.warn("Chunk {} has invalid position {}", chunkpos, chunkpos1);
                                 }
@@ -187,63 +193,38 @@ public class WorldUpgrader {
     }
 
     private List<ChunkPos> getAllChunkPos(ResourceKey<Level> p_18831_) {
-        File file1 = this.levelStorage.getDimensionPath(p_18831_).toFile();
-        File file2 = new File(file1, "region");
-        return getAllChunkPos(file2);
+        return getAllChunkPos(this.levelStorage.getDimensionPath(p_18831_).toFile());
     }
 
-    static List<ChunkPos> getAllChunkPos(File file2) {
-        File[] afile = file2.listFiles((p_18822_, p_18823_) -> {
-            return p_18823_.endsWith(".mca");
-        });
-        if (afile == null) {
-            return ImmutableList.of();
-        } else {
-            List<ChunkPos> list = Lists.newArrayList();
-
-            for (File file3 : afile) {
-                RegionPos region = RegionFileNames.parseRegionFileName(file3.getName()).orElse(null);
-                if (region != null && isRegionInBounds(region)) {
-                    Int128 i = region.x().shiftLeftSaturated(5);
-                    Int128 j = region.z().shiftLeftSaturated(5);
-
-                    try {
-                        RegionFile regionfile = new RegionFile(file3.toPath(), file2.toPath(), true);
-
-                        try {
-                            for (int k = 0; k < 32; ++k) {
-                                for (int l = 0; l < 32; ++l) {
-                                    ChunkPos chunkpos = new ChunkPos(i.add(Int128.fromLong(k)), j.add(Int128.fromLong(l)));
-                                    if (regionfile.doesChunkExist(chunkpos)) {
-                                        list.add(chunkpos);
-                                    }
-                                }
-                            }
-                        } catch (Throwable throwable1) {
-                            try {
-                                regionfile.close();
-                            } catch (Throwable throwable) {
-                                throwable1.addSuppressed(throwable);
-                            }
-
-                            throw throwable1;
-                        }
-
-                        regionfile.close();
-                    } catch (Throwable throwable2) {
-                    }
+    static List<ChunkPos> getAllChunkPos(File rootFile) {
+        Path root = rootFile.toPath();
+        Path tree = root.resolve("region");
+        List<ChunkPos> list = Lists.newArrayList();
+        if (!Files.isDirectory(tree)) return list;
+        try (var paths = Files.walk(tree)) {
+            paths.filter(Files::isRegularFile).filter(path -> path.getFileName().toString().equals("r.mca")).forEach(path -> {
+                RegionPos region = RegionPaths.parseRegionFile(root, path).orElse(null);
+                if (region == null) {
+                    LOGGER.warn("Ignoring invalid region path {}", path);
+                    return;
                 }
-            }
-
-            return list;
+                Int1088 x = region.x().shiftLeftSaturated(5);
+                Int1088 z = region.z().shiftLeftSaturated(5);
+                try (RegionFile file = new RegionFile(path, root, true)) {
+                    for (int dx = 0; dx < 32; ++dx) {
+                        for (int dz = 0; dz < 32; ++dz) {
+                            ChunkPos pos = new ChunkPos(x.add(Int1088.fromLong(dx)), z.add(Int1088.fromLong(dz)));
+                            if (file.doesChunkExist(pos)) list.add(pos);
+                        }
+                    }
+                } catch (IOException e) {
+                    LOGGER.warn("Failed to scan region {}", path, e);
+                }
+            });
+        } catch (IOException e) {
+            LOGGER.warn("Failed to scan region tree {}", tree, e);
         }
-    }
-
-    private static boolean isRegionInBounds(RegionPos region) {
-        Int128 min = WorldBounds.MIN_CHUNK.shiftRight(5);
-        Int128 max = WorldBounds.MAX_CHUNK.shiftRight(5);
-        return region.x().compareTo(min) >= 0 && region.x().compareTo(max) <= 0
-                && region.z().compareTo(min) >= 0 && region.z().compareTo(max) <= 0;
+        return list;
     }
 
     public boolean isFinished() {

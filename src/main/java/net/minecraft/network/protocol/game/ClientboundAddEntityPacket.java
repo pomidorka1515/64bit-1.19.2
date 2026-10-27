@@ -2,7 +2,7 @@ package net.minecraft.network.protocol.game;
 
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
@@ -52,11 +52,6 @@ public class ClientboundAddEntityPacket implements Packet<ClientGamePacketListen
                 pEntity.getType(), pData, pEntity.getDeltaMovement(), 0.0D);
     }
 
-    public ClientboundAddEntityPacket(int pId, UUID pUuid, double pX, double pY, double pZ, float pXRot, float pYRot, EntityType<?> pType, int pData, Vec3 pDeltaMovement, double pYHeadRot) {
-        this(pId, pUuid, SectorVec3.fromApproximate(pX, pY, pZ), pXRot, pYRot,
-                pType, pData, pDeltaMovement, pYHeadRot);
-    }
-
     public ClientboundAddEntityPacket(int id, UUID uuid, SectorVec3 position, float xRot, float yRot, EntityType<?> type,
             int data, Vec3 velocity, double yHeadRot) {
         this.id = id;
@@ -77,12 +72,8 @@ public class ClientboundAddEntityPacket implements Packet<ClientGamePacketListen
         this.id = pBuffer.readVarInt();
         this.uuid = pBuffer.readUUID();
         this.type = pBuffer.readById(Registry.ENTITY_TYPE);
-        Int128 blockX = pBuffer.readInt128();
-        double subX = pBuffer.readDouble();
-        this.y = pBuffer.readDouble();
-        Int128 blockZ = pBuffer.readInt128();
-        double subZ = pBuffer.readDouble();
-        this.exactPosition = SectorVec3.fromBlockAndFraction(blockX, subX, this.y, blockZ, subZ);
+        this.exactPosition = pBuffer.readSectorVec3();
+        this.y = this.exactPosition.y();
         this.xRot = pBuffer.readByte();
         this.yRot = pBuffer.readByte();
         this.yHeadRot = pBuffer.readByte();
@@ -97,11 +88,7 @@ public class ClientboundAddEntityPacket implements Packet<ClientGamePacketListen
         pBuffer.writeUUID(this.uuid);
         pBuffer.writeId(Registry.ENTITY_TYPE, this.type);
         SectorVec3 position = this.exactPosition;
-        pBuffer.writeInt128(position.blockX());
-        pBuffer.writeDouble(position.subX());
-        pBuffer.writeDouble(position.y());
-        pBuffer.writeInt128(position.blockZ());
-        pBuffer.writeDouble(position.subZ());
+        pBuffer.writeSectorVec3(position);
         pBuffer.writeByte(this.xRot);
         pBuffer.writeByte(this.yRot);
         pBuffer.writeByte(this.yHeadRot);

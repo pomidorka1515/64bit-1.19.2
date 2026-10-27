@@ -1,7 +1,7 @@
 package net.minecraft.network.protocol.game;
 
 import javax.annotation.Nullable;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.phys.SectorVec3;
@@ -14,21 +14,14 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
     protected final boolean hasPos;
     protected final boolean hasRot;
     @Nullable
-    private final Int128 exactBlockX;
+    private final Int1088 exactBlockX;
     private final double exactSubX;
     @Nullable
-    private final Int128 exactBlockZ;
+    private final Int1088 exactBlockZ;
     private final double exactSubZ;
 
-    protected ServerboundMovePlayerPacket(double pX, double pY, double pZ, float pYRot, float pXRot, boolean pOnGround, boolean pHasPos, boolean pHasRot) {
-        this(pX, pY, pZ, pYRot, pXRot, pOnGround, pHasPos, pHasRot, null);
-    }
-
-    protected ServerboundMovePlayerPacket(double x, double y, double z, float yRot, float xRot, boolean onGround,
+    protected ServerboundMovePlayerPacket(double y, float yRot, float xRot, boolean onGround,
             boolean hasPos, boolean hasRot, @Nullable SectorVec3 exactPosition) {
-        if (hasPos && exactPosition == null) {
-            exactPosition = SectorVec3.fromApproximate(x, y, z);
-        }
         this.y = exactPosition == null ? y : exactPosition.y();
         this.yRot = yRot;
         this.xRot = xRot;
@@ -65,13 +58,13 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
         return this.exactBlockX != null;
     }
 
-    public Int128 getExactBlockX() {
+    public Int1088 getExactBlockX() {
         return this.exactBlockX;
     }
     public double getExactSubX() {
         return this.exactSubX;
     }
-    public Int128 getExactBlockZ() {
+    public Int1088 getExactBlockZ() {
         return this.exactBlockZ;
     }
     public double getExactSubZ() {
@@ -99,65 +92,54 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
     }
 
     public static class Pos extends ServerboundMovePlayerPacket {
-        public Pos(double x, double y, double z, boolean onGround) {
-            super(x, y, z, 0.0F, 0.0F, onGround, true, false);
-        }
-
         public Pos(SectorVec3 position, boolean onGround) {
-            super(0.0D, position.y(), 0.0D,
+            super(position.y(),
                     0.0F, 0.0F, onGround, true, false, position);
         }
 
         public static ServerboundMovePlayerPacket.Pos read(FriendlyByteBuf buf) {
-            Int128 blockX = buf.readInt128();
-            double subX = buf.readDouble();
-            double y = buf.readDouble();
-            Int128 blockZ = buf.readInt128();
-            double subZ = buf.readDouble();
+            SectorVec3 position = buf.readSectorVec3();
             boolean onGround = buf.readUnsignedByte() != 0;
-            return new Pos(SectorVec3.fromBlockAndFraction(blockX, subX, y, blockZ, subZ), onGround);
+            return new Pos(position, onGround);
         }
 
         public void write(FriendlyByteBuf buf) {
             SectorVec3 position = this.getExactPosition(this.y);
-            buf.writeInt128(position.blockX());
-            buf.writeDouble(position.subX());
-            buf.writeDouble(this.y);
-            buf.writeInt128(position.blockZ());
-            buf.writeDouble(position.subZ());
+            buf.writeSectorVec3(position);
             buf.writeByte(this.onGround ? 1 : 0);
         }
     }
 
     public static class PosRot extends ServerboundMovePlayerPacket {
-        public PosRot(double x, double y, double z, float yRot, float xRot, boolean onGround) {
-            super(x, y, z, yRot, xRot, onGround, true, true);
+        /** Passenger input uses local velocity components, not world coordinates. */
+        public static PosRot vehicleInput(double velocityX, double velocityZ, float yRot, float xRot, boolean onGround) {
+            if (!Double.isFinite(velocityX) || !Double.isFinite(velocityZ)) {
+                throw new IllegalArgumentException("Non-finite vehicle input");
+            }
+            double floorX = Math.floor(velocityX);
+            double floorZ = Math.floor(velocityZ);
+            SectorVec3 input = SectorVec3.fromBlockAndFraction(Int1088.fromDoubleFloorSaturated(velocityX),
+                    velocityX - floorX, -999.0D, Int1088.fromDoubleFloorSaturated(velocityZ),
+                    velocityZ - floorZ);
+            return new PosRot(input, yRot, xRot, onGround);
         }
 
         public PosRot(SectorVec3 position, float yRot, float xRot, boolean onGround) {
-            super(0.0D, position.y(), 0.0D,
+            super(position.y(),
                     yRot, xRot, onGround, true, true, position);
         }
 
         public static ServerboundMovePlayerPacket.PosRot read(FriendlyByteBuf buf) {
-            Int128 blockX = buf.readInt128();
-            double subX = buf.readDouble();
-            double y = buf.readDouble();
-            Int128 blockZ = buf.readInt128();
-            double subZ = buf.readDouble();
+            SectorVec3 position = buf.readSectorVec3();
             float yRot = buf.readFloat();
             float xRot = buf.readFloat();
             boolean onGround = buf.readUnsignedByte() != 0;
-            return new PosRot(SectorVec3.fromBlockAndFraction(blockX, subX, y, blockZ, subZ), yRot, xRot, onGround);
+            return new PosRot(position, yRot, xRot, onGround);
         }
 
         public void write(FriendlyByteBuf buf) {
             SectorVec3 position = this.getExactPosition(this.y);
-            buf.writeInt128(position.blockX());
-            buf.writeDouble(position.subX());
-            buf.writeDouble(this.y);
-            buf.writeInt128(position.blockZ());
-            buf.writeDouble(position.subZ());
+            buf.writeSectorVec3(position);
             buf.writeFloat(this.yRot);
             buf.writeFloat(this.xRot);
             buf.writeByte(this.onGround ? 1 : 0);
@@ -166,7 +148,7 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
 
     public static class Rot extends ServerboundMovePlayerPacket {
         public Rot(float pYRot, float pXRot, boolean pOnGround) {
-            super(0.0D, 0.0D, 0.0D, pYRot, pXRot, pOnGround, false, true);
+            super(0.0D, pYRot, pXRot, pOnGround, false, true, null);
         }
 
         public static ServerboundMovePlayerPacket.Rot read(FriendlyByteBuf pBuffer) {
@@ -185,7 +167,7 @@ public abstract class ServerboundMovePlayerPacket implements Packet<ServerGamePa
 
     public static class StatusOnly extends ServerboundMovePlayerPacket {
         public StatusOnly(boolean pOnGround) {
-            super(0.0D, 0.0D, 0.0D, 0.0F, 0.0F, pOnGround, false, false);
+            super(0.0D, 0.0F, 0.0F, pOnGround, false, false, null);
         }
 
         public static ServerboundMovePlayerPacket.StatusOnly read(FriendlyByteBuf pBuffer) {

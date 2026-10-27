@@ -17,18 +17,13 @@ public class ClientboundMoveVehiclePacket implements Packet<ClientGamePacketList
     }
 
     public ClientboundMoveVehiclePacket(FriendlyByteBuf pBuffer) {
-        this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readInt128(), pBuffer.readDouble(),
-                pBuffer.readDouble(), pBuffer.readInt128(), pBuffer.readDouble());
+        this.exactPosition = pBuffer.readSectorVec3();
         this.yRot = pBuffer.readFloat();
         this.xRot = pBuffer.readFloat();
     }
 
     public void write(FriendlyByteBuf pBuffer) {
-        pBuffer.writeInt128(this.exactPosition.blockX());
-        pBuffer.writeDouble(this.exactPosition.subX());
-        pBuffer.writeDouble(this.exactPosition.y());
-        pBuffer.writeInt128(this.exactPosition.blockZ());
-        pBuffer.writeDouble(this.exactPosition.subZ());
+        pBuffer.writeSectorVec3(this.exactPosition);
         pBuffer.writeFloat(this.yRot);
         pBuffer.writeFloat(this.xRot);
     }

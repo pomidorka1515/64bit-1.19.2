@@ -23,8 +23,7 @@ public class ClientboundTeleportEntityPacket implements Packet<ClientGamePacketL
 
     public ClientboundTeleportEntityPacket(FriendlyByteBuf pBuffer) {
         this.id = pBuffer.readVarInt();
-        this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readInt128(), pBuffer.readDouble(),
-                pBuffer.readDouble(), pBuffer.readInt128(), pBuffer.readDouble());
+        this.exactPosition = pBuffer.readSectorVec3();
         this.yRot = pBuffer.readByte();
         this.xRot = pBuffer.readByte();
         this.onGround = pBuffer.readBoolean();
@@ -33,11 +32,7 @@ public class ClientboundTeleportEntityPacket implements Packet<ClientGamePacketL
     public void write(FriendlyByteBuf pBuffer) {
         pBuffer.writeVarInt(this.id);
         SectorVec3 position = this.exactPosition;
-        pBuffer.writeInt128(position.blockX());
-        pBuffer.writeDouble(position.subX());
-        pBuffer.writeDouble(position.y());
-        pBuffer.writeInt128(position.blockZ());
-        pBuffer.writeDouble(position.subZ());
+        pBuffer.writeSectorVec3(position);
         pBuffer.writeByte(this.yRot);
         pBuffer.writeByte(this.xRot);
         pBuffer.writeBoolean(this.onGround);

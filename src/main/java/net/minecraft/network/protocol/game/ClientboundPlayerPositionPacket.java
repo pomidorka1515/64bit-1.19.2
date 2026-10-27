@@ -2,7 +2,7 @@ package net.minecraft.network.protocol.game;
 
 import java.util.EnumSet;
 import java.util.Set;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.phys.SectorVec3;
@@ -17,12 +17,6 @@ public class ClientboundPlayerPositionPacket implements Packet<ClientGamePacketL
     /** Split-coordinate target carried by both local and network packets. */
     private final SectorVec3 exactPosition;
 
-    public ClientboundPlayerPositionPacket(double x, double y, double z, float yRot, float xRot,
-            Set<ClientboundPlayerPositionPacket.RelativeArgument> relativeArguments,
-            int id, boolean dismountVehicle) {
-        this(SectorVec3.fromApproximate(x, y, z), yRot, xRot, relativeArguments, id, dismountVehicle);
-    }
-
     public ClientboundPlayerPositionPacket(SectorVec3 position, float yRot, float xRot,
             Set<ClientboundPlayerPositionPacket.RelativeArgument> relativeArguments,
             int id, boolean dismountVehicle) {
@@ -35,12 +29,8 @@ public class ClientboundPlayerPositionPacket implements Packet<ClientGamePacketL
     }
 
     public ClientboundPlayerPositionPacket(FriendlyByteBuf buf) {
-        Int128 blockX = buf.readInt128();
-        double subX = buf.readDouble();
-        double y = buf.readDouble();
-        Int128 blockZ = buf.readInt128();
-        double subZ = buf.readDouble();
-        this.exactPosition = SectorVec3.fromBlockAndFraction(blockX, subX, y, blockZ, subZ);
+        SectorVec3 position = buf.readSectorVec3();
+        this.exactPosition = position;
         this.yRot = buf.readFloat();
         this.xRot = buf.readFloat();
         this.relativeArguments = ClientboundPlayerPositionPacket.RelativeArgument.unpack(buf.readUnsignedByte());
@@ -54,11 +44,7 @@ public class ClientboundPlayerPositionPacket implements Packet<ClientGamePacketL
 
     public void write(FriendlyByteBuf buf) {
         SectorVec3 position = this.exactPosition;
-        buf.writeInt128(position.blockX());
-        buf.writeDouble(position.subX());
-        buf.writeDouble(position.y());
-        buf.writeInt128(position.blockZ());
-        buf.writeDouble(position.subZ());
+        buf.writeSectorVec3(position);
         buf.writeFloat(this.yRot);
         buf.writeFloat(this.xRot);
         buf.writeByte(ClientboundPlayerPositionPacket.RelativeArgument.pack(this.relativeArguments));

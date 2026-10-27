@@ -24,8 +24,7 @@ public class ClientboundAddPlayerPacket implements Packet<ClientGamePacketListen
     public ClientboundAddPlayerPacket(FriendlyByteBuf pBuffer) {
         this.entityId = pBuffer.readVarInt();
         this.playerId = pBuffer.readUUID();
-        this.exactPosition = SectorVec3.fromBlockAndFraction(pBuffer.readInt128(), pBuffer.readDouble(),
-                pBuffer.readDouble(), pBuffer.readInt128(), pBuffer.readDouble());
+        this.exactPosition = pBuffer.readSectorVec3();
         this.yRot = pBuffer.readByte();
         this.xRot = pBuffer.readByte();
     }
@@ -33,11 +32,7 @@ public class ClientboundAddPlayerPacket implements Packet<ClientGamePacketListen
     public void write(FriendlyByteBuf pBuffer) {
         pBuffer.writeVarInt(this.entityId);
         pBuffer.writeUUID(this.playerId);
-        pBuffer.writeInt128(this.exactPosition.blockX());
-        pBuffer.writeDouble(this.exactPosition.subX());
-        pBuffer.writeDouble(this.exactPosition.y());
-        pBuffer.writeInt128(this.exactPosition.blockZ());
-        pBuffer.writeDouble(this.exactPosition.subZ());
+        pBuffer.writeSectorVec3(this.exactPosition);
         pBuffer.writeByte(this.yRot);
         pBuffer.writeByte(this.xRot);
     }

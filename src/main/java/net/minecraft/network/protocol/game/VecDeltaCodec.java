@@ -1,6 +1,6 @@
 package net.minecraft.network.protocol.game;
 
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
 
@@ -12,7 +12,7 @@ public class VecDeltaCodec {
     /** Outside the relative wire range: ServerEntity must send an absolute teleport. */
     public static final long ABSOLUTE_POSITION_REQUIRED = MAX_RELATIVE_DELTA + 1L;
 
-    private SectorVec3 sectorBase = SectorVec3.fromApproximate(Vec3.ZERO);
+    private SectorVec3 sectorBase = SectorVec3.fromBlockAndFraction(0L, 0.0D, 0.0D, 0L, 0.0D);
     private Vec3 base = Vec3.ZERO;
 
     private static long encode(double delta) {
@@ -25,15 +25,15 @@ public class VecDeltaCodec {
         return (long) steps;
     }
 
-    private static long encode(Int128 block, double fraction, Int128 baseBlock, double baseFraction) {
-        // Saturation prevents opposite Int128 edges wrapping into a tiny delta.
+    private static long encode(Int1088 block, double fraction, Int1088 baseBlock, double baseFraction) {
+        // Saturation prevents opposite Int1088 edges wrapping into a tiny delta.
         // Only bounded local differences are ever projected to double.
-        Int128 difference = block.subtractSaturated(baseBlock);
-        if (difference.compareTo(Int128.fromLong(-8L)) < 0
-                || difference.compareTo(Int128.fromLong(8L)) > 0) {
+        Int1088 difference = block.subtractSaturated(baseBlock);
+        if (difference.compareTo(Int1088.fromLong(-8L)) < 0
+                || difference.compareTo(Int1088.fromLong(8L)) > 0) {
             return ABSOLUTE_POSITION_REQUIRED;
         }
-        return encode((double) difference.lo() + (fraction - baseFraction));
+        return encode((double) difference.lowLimb() + (fraction - baseFraction));
     }
 
     private static double decode(long delta) {
@@ -51,7 +51,7 @@ public class VecDeltaCodec {
 
     /**
      * Applies validated local deltas to the last network target, never the render
-     * interpolation position. SectorVec3 clamps outward movement at Int128 world
+     * interpolation position. SectorVec3 clamps outward movement at Int1088 world
      * edges rather than wrapping; zero deltas preserve the exact fractions.
      */
     public SectorVec3 decodeExact(long x, long y, long z) {
@@ -62,10 +62,6 @@ public class VecDeltaCodec {
             return this.sectorBase;
         }
         return this.sectorBase.add(dx, dy, dz);
-    }
-
-    public long encodeX(Vec3 position) {
-        return this.encodeX(SectorVec3.fromApproximate(position));
     }
 
     public long encodeX(SectorVec3 position) {
@@ -80,20 +76,8 @@ public class VecDeltaCodec {
         return encode(position.y() - this.sectorBase.y());
     }
 
-    public long encodeZ(Vec3 position) {
-        return this.encodeZ(SectorVec3.fromApproximate(position));
-    }
-
     public long encodeZ(SectorVec3 position) {
         return encode(position.blockZ(), position.subZ(), this.sectorBase.blockZ(), this.sectorBase.subZ());
-    }
-
-    public Vec3 delta(Vec3 position) {
-        return SectorVec3.fromApproximate(position).relativeTo(this.sectorBase);
-    }
-
-    public void setBase(Vec3 position) {
-        this.setBase(SectorVec3.fromApproximate(position));
     }
 
     public void setBase(SectorVec3 position) {

@@ -2,13 +2,13 @@ package net.minecraft.network.protocol.game;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.world.phys.SectorVec3;
 import org.junit.jupiter.api.Test;
 
 class VecDeltaCodecTest {
-    private static final Int128 HUGE_X = Int128.of(1234L, -1L);
-    private static final Int128 HUGE_Z = Int128.of(-1234L, 1L);
+    private static final Int1088 HUGE_X = Int1088.of(-1L, 1234L);
+    private static final Int1088 HUGE_Z = Int1088.of(1L, -1234L);
 
     @Test
     void repeatedRelativePacketsAdvanceFromPreviousPacketTarget() {
@@ -56,17 +56,17 @@ class VecDeltaCodecTest {
             }
         }
         SectorVec3 crossed = codec.decodeExact(1024L, 0L, -1024L);
-        assertEquals(Int128.of(1235L, 0L), crossed.blockX());
-        assertEquals(Int128.of(-1234L, 0L), crossed.blockZ());
+        assertEquals(Int1088.of(0L, 1235L), crossed.blockX());
+        assertEquals(Int1088.of(0L, -1234L), crossed.blockZ());
     }
 
     @Test
     void oversizedAndOverflowingDeltasRequireAbsolutePosition() {
         VecDeltaCodec codec = new VecDeltaCodec();
-        for (Int128 coordinate : new Int128[] {Int128.ZERO, Int128.MIN, Int128.MAX}) {
+        for (Int1088 coordinate : new Int1088[] {Int1088.ZERO, Int1088.MIN, Int1088.MAX}) {
             SectorVec3 base = SectorVec3.fromBlockAndFraction(coordinate, 0.0D, 0.0D, coordinate, 0.0D);
             codec.setBase(base);
-            Int128 opposite = coordinate.equals(Int128.MIN) ? Int128.MAX : Int128.MIN;
+            Int1088 opposite = coordinate.equals(Int1088.MIN) ? Int1088.MAX : Int1088.MIN;
             SectorVec3 target = SectorVec3.fromBlockAndFraction(opposite, 0.0D, 0.0D, opposite, 0.0D);
             assertEquals(VecDeltaCodec.ABSOLUTE_POSITION_REQUIRED, codec.encodeX(target));
             assertEquals(VecDeltaCodec.ABSOLUTE_POSITION_REQUIRED, codec.encodeZ(target));
@@ -89,10 +89,10 @@ class VecDeltaCodecTest {
     @Test
     void outwardDeltasSaturateInsteadOfWrappingAtWorldEdges() {
         VecDeltaCodec codec = new VecDeltaCodec();
-        codec.setBase(SectorVec3.fromBlockAndFraction(Int128.MAX, 0.75D, 0.0D, Int128.MIN, 0.0D));
+        codec.setBase(SectorVec3.fromBlockAndFraction(Int1088.MAX, 0.75D, 0.0D, Int1088.MIN, 0.0D));
         SectorVec3 target = codec.decodeExact(4096L, 0L, -4096L);
-        assertEquals(Int128.MAX, target.blockX());
-        assertEquals(Int128.MIN, target.blockZ());
+        assertEquals(Int1088.MAX, target.blockX());
+        assertEquals(Int1088.MIN, target.blockZ());
         assertEquals(Math.nextDown(1.0D), target.subX());
         assertEquals(0.0D, target.subZ());
     }

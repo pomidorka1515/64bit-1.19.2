@@ -74,9 +74,9 @@ public final class SectorClipper {
     }
 
     private static boolean additionOverflows(Int1088 base, Int1088 offset) {
-        Int1088 sum = base.add(offset);
-        return base.signum() == offset.signum() && base.signum() != 0
-                && sum.signum() != base.signum();
+        // Compare domain headroom without constructing a wrapping coordinate.
+        return offset.signum() > 0 ? base.compareTo(Int1088.MAX.subtractSaturated(offset)) > 0
+                : offset.signum() < 0 && base.compareTo(Int1088.MIN.subtractSaturated(offset)) < 0;
     }
 
     private static void requireSafeRay(Vec3 from, Vec3 to) {
@@ -110,9 +110,9 @@ public final class SectorClipper {
         BlockPos worldPos = new BlockPos(blockX, blockY, blockZ);
         BlockState state = level.getBlockState(worldPos);
         FluidState fluid = level.getFluidState(worldPos);
-        double localX = WorldBounds.signedDifference(localPos.getX(), Int1088.ZERO);
+        double localX = WorldBounds.signedDifference(blockX, origin.originBlockX());
         double localY = (double) localPos.getY();
-        double localZ = WorldBounds.signedDifference(localPos.getZ(), Int1088.ZERO);
+        double localZ = WorldBounds.signedDifference(blockZ, origin.originBlockZ());
 
         VoxelShape blockShape = context.getBlockShape(state, level, worldPos);
         BlockHitResult blockHit = clipShape(context.getFrom(), context.getTo(),

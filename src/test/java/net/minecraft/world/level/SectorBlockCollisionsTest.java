@@ -36,6 +36,47 @@ class SectorBlockCollisionsTest {
     }
 
     @Test
+    void everySignedLimbSeamUsesExactAddressesAndPoolOffsetsFollowTheSolveOrigin() {
+        java.util.List<Int1088> coordinates = new java.util.ArrayList<>();
+        coordinates.add(Int1088.ZERO);
+        coordinates.add(Int1088.ONE.shiftLeftSaturated(127));
+        coordinates.add(Int1088.MIN);
+        coordinates.add(Int1088.MAX);
+        for (int bit = 64; bit <= 1024; bit += 64) {
+            Int1088 seam = Int1088.ONE.shiftLeftSaturated(bit);
+            coordinates.add(seam.subtractSaturated(Int1088.ONE));
+            coordinates.add(seam.negate());
+        }
+        for (Int1088 x : coordinates) {
+            Int1088 z = x.equals(Int1088.MIN) ? Int1088.MAX : x.negate();
+            SingleBlockCollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x, 64, z));
+            SectorVec3 position = SectorVec3.fromBlockAndFraction(x, 0.5, 64, z, 0.5);
+            SectorAABB box = SectorAABB.around(position, 0.6, 1.8);
+            // Reuse the same immutable range with different origins and source shapes.
+            for (int offset : new int[] {0, 3, -3, 0}) {
+                SectorPhysicsOrigin origin = new SectorPhysicsOrigin(x.addSaturated(Int1088.fromLong(offset)),
+                        63, z.addSaturated(Int1088.fromLong(-offset)));
+                double localX = WorldBounds.signedDifference(x, origin.originBlockX());
+                double localZ = WorldBounds.signedDifference(z, origin.originBlockZ());
+                for (BlockState state : new BlockState[] {Blocks.STONE.defaultBlockState(),
+                        Blocks.OAK_SLAB.defaultBlockState(), Blocks.OAK_FENCE.defaultBlockState()}) {
+                    level.state = state;
+                    VoxelShape expected = state.getCollisionShape(level, level.solid)
+                            .move(localX, 1, localZ);
+                    try (var collisions = SectorBlockCollisions.acquire(level, null, box,
+                            box.toLocalAABB(origin), origin, false)) {
+                        assertTrue(collisions.hasNext(), "Missing collision at " + x);
+                        VoxelShape shape = collisions.next();
+                        assertEquals(expected.toAabbs(), shape.toAabbs());
+                        shape.getFaceShape(net.minecraft.core.Direction.EAST);
+                        assertFalse(collisions.hasNext());
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     void scopedIteratorReusesStateAfterEarlyExitAndKeepsNestedQueriesIndependent() {
         Int1088 x = Int1088.of(-1L, 7L);
         SingleBlockCollisionGetter level = new SingleBlockCollisionGetter(new BlockPos(x, 64, x));

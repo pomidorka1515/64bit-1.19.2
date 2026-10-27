@@ -36,7 +36,7 @@ public class BlockHitResult extends HitResult {
         super(pLocation);
         this.miss = pMiss;
         this.direction = pDirection;
-        this.blockPos = pBlockPos;
+        this.blockPos = pBlockPos.immutable();
         this.inside = pInside;
         this.exactLocation = exactLocation;
     }

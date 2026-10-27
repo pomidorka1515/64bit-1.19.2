@@ -48,6 +48,7 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
     private final VoxelShape.TranslationPool translations = new VoxelShape.TranslationPool();
     private SectorAABB rangeBox;
     private Int1088 minX, maxX, minZ, maxZ;
+    private double localMinX, localMinZ;
     private int minY, maxY;
     // A validated sweep spans at most 65 blocks on either horizontal axis.
     // Materialize addresses once per immutable box, not once per visited block.
@@ -155,6 +156,10 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
         // Keep hostile ranges out of the cursor even though it now advances
         // by endpoints rather than by an overflowing linear index.
         if (!this.invalidRange) {
+            // Subtract this solve's origin once per axis; cursor offsets are
+            // bounded by 64 and retain exact local-double precision.
+            this.localMinX = WorldBounds.signedDifference(minX, origin.originBlockX());
+            this.localMinZ = WorldBounds.signedDifference(minZ, origin.originBlockZ());
             if (!this.hasRangeCoordinates) {
                 fillCoordinates(this.blockXs, this.chunkXs, minX, maxX);
                 fillCoordinates(this.blockZs, this.chunkZs, minZ, maxZ);
@@ -312,9 +317,9 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
                 if (this.onlySuffocatingBlocks) {
                     continue;
                 }
-                double localX = WorldBounds.signedDifference(x, this.origin.originBlockX());
+                double localX = this.localMinX + ix;
                 double localY = (double) blockY - (double) this.origin.originBlockY();
-                double localZ = WorldBounds.signedDifference(z, this.origin.originBlockZ());
+                double localZ = this.localMinZ + iz;
                 VoxelShape localShape = this.translate(Shapes.block(), localX, localY, localZ);
                 if (this.localBox.intersects(localX, localY, localZ,
                             localX + 1.0D, localY + 1.0D, localZ + 1.0D)
@@ -336,10 +341,10 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
             if (shape.isEmpty()) {
                 continue;
             }
-            // Exact integer subtraction happens before conversion to local doubles.
-            double localX = WorldBounds.signedDifference(x, this.origin.originBlockX());
+            // Exact origin subtraction was performed once when resetting the solve.
+            double localX = this.localMinX + ix;
             double localY = (double) blockY - (double) this.origin.originBlockY();
-            double localZ = WorldBounds.signedDifference(z, this.origin.originBlockZ());
+            double localZ = this.localMinZ + iz;
             if (shape == Shapes.block()) {
                 if (this.localBox.intersects(localX, localY, localZ,
                         localX + 1.0D, localY + 1.0D, localZ + 1.0D)) {

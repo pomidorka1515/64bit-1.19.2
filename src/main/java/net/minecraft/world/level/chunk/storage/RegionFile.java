@@ -32,7 +32,7 @@ public class RegionFile implements AutoCloseable {
     private static final int EXTERNAL_CHUNK_THRESHOLD = 256;
     private static final int CHUNK_NOT_PRESENT = 0;
     private final FileChannel file;
-    private final Path externalFileDir;
+    private final Path storageRoot;
     final RegionFileVersion version;
     private final ByteBuffer header = ByteBuffer.allocateDirect(8192);
     private final IntBuffer offsets;
@@ -40,24 +40,28 @@ public class RegionFile implements AutoCloseable {
     @VisibleForTesting
     protected final RegionBitmap usedSectors = new RegionBitmap();
 
-    public RegionFile(Path pRegionFile, Path pContainingFolder, boolean pSync) throws IOException {
-        this(pRegionFile, pContainingFolder, RegionFileVersion.VERSION_DEFLATE, pSync);
+    public RegionFile(Path pRegionFile, Path pStorageRoot, boolean pSync) throws IOException {
+        this(pRegionFile, pStorageRoot, RegionFileVersion.VERSION_DEFLATE, pSync);
     }
 
-    public RegionFile(Path pRegionFile, Path pContainingFolder, RegionFileVersion pVersion, boolean pSync) throws IOException {
+    public RegionFile(Path pRegionFile, Path pStorageRoot, RegionFileVersion pVersion, boolean pSync) throws IOException {
         this.version = pVersion;
-        if (!Files.isDirectory(pContainingFolder)) {
-            throw new IllegalArgumentException("Expected directory, got " + pContainingFolder.toAbsolutePath());
+        if (!Files.isDirectory(pStorageRoot)) {
+            throw new IllegalArgumentException("Expected directory, got " + pStorageRoot.toAbsolutePath());
         } else {
-            this.externalFileDir = pContainingFolder;
+            this.storageRoot = pStorageRoot;
             this.offsets = this.header.asIntBuffer();
             this.offsets.limit(1024);
             this.header.position(4096);
             this.timestamps = this.header.asIntBuffer();
-            if (pSync) {
-                this.file = FileChannel.open(pRegionFile, StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.DSYNC);
-            } else {
-                this.file = FileChannel.open(pRegionFile, StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
+            try {
+                if (pSync) {
+                    this.file = FileChannel.open(pRegionFile, StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.DSYNC);
+                } else {
+                    this.file = FileChannel.open(pRegionFile, StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
+                }
+            } catch (IOException e) {
+                throw new IOException("Cannot open region path " + pRegionFile + "; long-path support is required", e);
             }
 
             this.usedSectors.force(0, 2);
@@ -94,7 +98,7 @@ public class RegionFile implements AutoCloseable {
     }
 
     private Path getExternalChunkPath(ChunkPos pChunkPos) {
-        return this.externalFileDir.resolve(RegionFileNames.externalChunkFileName(pChunkPos.x(), pChunkPos.z()));
+        return RegionPaths.externalChunkFile(this.storageRoot, pChunkPos);
     }
 
     @Nullable
@@ -305,30 +309,35 @@ public class RegionFile implements AutoCloseable {
     }
 
     private RegionFile.CommitOp writeToExternalFile(Path pExternalChunkFile, ByteBuffer pChunkData) throws IOException {
-        Path path = Files.createTempFile(this.externalFileDir, "tmp", (String) null);
-        FileChannel filechannel = FileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-
         try {
-            pChunkData.position(5);
-            filechannel.write(pChunkData);
-        } catch (Throwable throwable1) {
-            if (filechannel != null) {
-                try {
-                    filechannel.close();
-                } catch (Throwable throwable) {
-                    throwable1.addSuppressed(throwable);
-                }
-            }
-
-            throw throwable1;
+            Files.createDirectories(pExternalChunkFile.getParent());
+        } catch (IOException e) {
+            throw new IOException("Cannot create external chunk path " + pExternalChunkFile + "; long-path support is required", e);
         }
-
-        if (filechannel != null) {
-            filechannel.close();
+        Path path;
+        try {
+            path = Files.createTempFile(pExternalChunkFile.getParent(), "tmp", (String) null);
+        } catch (IOException e) {
+            throw new IOException("Cannot create temporary external chunk at " + pExternalChunkFile + "; long-path support is required", e);
+        }
+        try (FileChannel filechannel = FileChannel.open(path, StandardOpenOption.WRITE)) {
+            pChunkData.position(5);
+            while (pChunkData.hasRemaining()) filechannel.write(pChunkData);
+        } catch (IOException e) {
+            try {
+                Files.deleteIfExists(path);
+            } catch (IOException cleanup) {
+                e.addSuppressed(cleanup);
+            }
+            throw new IOException("Cannot write external chunk " + pExternalChunkFile + "; long-path support is required", e);
         }
 
         return () -> {
-            Files.move(path, pExternalChunkFile, StandardCopyOption.REPLACE_EXISTING);
+            try {
+                Files.move(path, pExternalChunkFile, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                throw new IOException("Cannot install external chunk " + pExternalChunkFile + "; long-path support is required", e);
+            }
         };
     }
 

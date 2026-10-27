@@ -1,10 +1,10 @@
 package net.minecraft.world.level.chunk.storage;
 
 import java.util.Objects;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 
 /** Immutable region address, distinct from a chunk address. */
-public record RegionPos(Int128 x, Int128 z) {
+public record RegionPos(Int1088 x, Int1088 z) {
     public RegionPos {
         Objects.requireNonNull(x, "x");
         Objects.requireNonNull(z, "z");

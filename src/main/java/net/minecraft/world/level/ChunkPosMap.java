@@ -20,6 +20,9 @@ public class ChunkPosMap<V> extends Object2ObjectOpenHashMap<ChunkPos, V> {
      * just as stored ChunkPos keys do. Missing keys return the map's default value.
      */
     public V get(Int1088 x, Int1088 z) {
+        if (x.fitsLong() && z.fitsLong()) {
+            return this.get(x.lowLimb(), z.lowLimb());
+        }
         int slot = HashCommon.mix(ChunkPos.hash(x, z)) & this.mask;
         // View as Object[]: fastutil's generic backing array is not a ChunkPos[].
         Object[] keys = this.key;

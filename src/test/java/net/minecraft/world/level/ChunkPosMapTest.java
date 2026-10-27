@@ -128,4 +128,63 @@ class ChunkPosMapTest {
     private static <V> V probe(ChunkPosMap<V> map, ChunkPos key) {
         return map.get(key.x(), key.z());
     }
+
+    @Test
+    void everyLimbRemainsDistinctAfterRehashAndRemoval() {
+        ChunkPosMap<Integer> map = new ChunkPosMap<>(1);
+        Map<ChunkPos, Integer> expected = new HashMap<>();
+        for (int limb = 0; limb < Int1088.LIMBS; ++limb) {
+            for (int sign : new int[] {-1, 1}) {
+                long[] words = new long[Int1088.LIMBS];
+                words[limb] = 1L;
+                Int1088 coordinate = Int1088.fromFixedLimbs(words);
+                if (sign < 0) coordinate = coordinate.negate();
+                for (ChunkPos key : List.of(new ChunkPos(coordinate, Int1088.ZERO),
+                        new ChunkPos(Int1088.ZERO, coordinate))) {
+                    int value = expected.size();
+                    assertNull(expected.put(key, value));
+                    map.put(key, value);
+                }
+            }
+        }
+        assertEquals(4 * Int1088.LIMBS, map.size());
+        for (var entry : expected.entrySet()) {
+            ChunkPos key = entry.getKey();
+            assertEquals(entry.getValue(), probe(map, key));
+            assertEquals(entry.getValue(), map.get(new ChunkPos(key.x(), key.z())));
+            if (!key.xFitsLong() || !key.zFitsLong()) {
+                assertNull(map.get(key.xLow(), key.zLow()), "raw probe must not match a wide alias");
+            }
+        }
+        for (var entry : expected.entrySet()) {
+            if ((entry.getValue() & 1) == 0) map.remove(entry.getKey());
+        }
+        map.trim();
+        for (var entry : expected.entrySet()) {
+            assertEquals((entry.getValue() & 1) == 0 ? null : entry.getValue(), probe(map, entry.getKey()));
+        }
+    }
+
+    @Test
+    void valueProbesUseRawPathOnlyWhenBothAxesFitLong() {
+        class ProbeMap extends ChunkPosMap<String> {
+            int narrowProbes;
+
+            @Override
+            public String get(long x, long z) {
+                ++this.narrowProbes;
+                return super.get(x, z);
+            }
+        }
+        ProbeMap map = new ProbeMap();
+        Int1088 wide = Int1088.ONE.shiftLeftSaturated(1024);
+        map.put(new ChunkPos(Long.MIN_VALUE, Long.MAX_VALUE), "narrow");
+        map.put(new ChunkPos(wide, Int1088.ZERO), "wide x");
+        map.put(new ChunkPos(Int1088.ZERO, wide), "wide z");
+        assertEquals("narrow", map.get(Int1088.fromLong(Long.MIN_VALUE), Int1088.fromLong(Long.MAX_VALUE)));
+        assertEquals(1, map.narrowProbes);
+        assertEquals("wide x", map.get(wide, Int1088.ZERO));
+        assertEquals("wide z", map.get(Int1088.ZERO, wide));
+        assertEquals(1, map.narrowProbes);
+    }
 }

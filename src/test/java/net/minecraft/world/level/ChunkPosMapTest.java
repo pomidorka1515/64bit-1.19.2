@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Random;
 import java.lang.management.ManagementFactory;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,7 +24,7 @@ class ChunkPosMapTest {
         allocations.setThreadAllocatedMemoryEnabled(true);
         ChunkPosMap<Integer> map = new ChunkPosMap<>(256);
         for (int i = 0; i < 256; ++i) {
-            map.put(new ChunkPos(Int128.of(7L, i), Int128.of(-8L, i)), Integer.valueOf(i));
+            map.put(new ChunkPos(i, -i), Integer.valueOf(i));
         }
         for (int i = 0; i < 20; ++i) lookupChecksum = rawProbeLoop(map);
         long thread = Thread.currentThread().getId();
@@ -38,7 +38,7 @@ class ChunkPosMapTest {
     private static long rawProbeLoop(ChunkPosMap<Integer> map) {
         long checksum = 0L;
         for (int i = 0; i < 100_000; ++i) {
-            checksum += map.get(7L, i & 255, -8L, i & 255).intValue();
+            checksum += map.get(i & 255, -(i & 255)).intValue();
         }
         return checksum;
     }
@@ -48,23 +48,23 @@ class ChunkPosMapTest {
         ChunkPosMap<String> map = new ChunkPosMap<>(1);
         map.defaultReturnValue("missing");
         List<ChunkPos> keys = List.of(ChunkPos.ZERO, new ChunkPos(-1L, Long.MIN_VALUE),
-                new ChunkPos(Int128.of(7L, 13L), Int128.of(-8L, 17L)),
-                new ChunkPos(Int128.of(8L, 13L), Int128.of(-8L, 17L)),
-                new ChunkPos(Int128.of(7L, 14L), Int128.of(-8L, 17L)),
-                new ChunkPos(Int128.of(7L, 13L), Int128.of(-9L, 17L)),
-                new ChunkPos(Int128.of(7L, 13L), Int128.of(-8L, 18L)),
+                new ChunkPos(Int1088.of(13L, 7L), Int1088.of(17L, -8L)),
+                new ChunkPos(Int1088.of(13L, 8L), Int1088.of(17L, -8L)),
+                new ChunkPos(Int1088.of(14L, 7L), Int1088.of(17L, -8L)),
+                new ChunkPos(Int1088.of(13L, 7L), Int1088.of(17L, -9L)),
+                new ChunkPos(Int1088.of(13L, 7L), Int1088.of(18L, -8L)),
                 new ChunkPos(WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK));
         for (int i = 0; i < keys.size(); ++i) map.put(keys.get(i), "value" + i);
         map.put(null, "null key");
         for (ChunkPos key : keys) {
             assertEquals(map.get(key), probe(map, key));
-            assertEquals(key.hashCode(), ChunkPos.hash(key.xHi(), key.xLo(), key.zHi(), key.zLo()));
-            assertTrue(key.equals(key.xHi(), key.xLo(), key.zHi(), key.zLo()));
+            assertEquals(key.hashCode(), ChunkPos.hash(key.x(), key.z()));
+            assertTrue(key.equals(key.x(), key.z()));
         }
-        assertEquals("value0", map.get(0L, 0L, 0L, 0L));
-        assertEquals("missing", map.get(0L, 1L, 0L, 1L));
+        assertEquals("value0", map.get(0L, 0L));
+        assertEquals("missing", map.get(1L, 1L));
         map.put(ChunkPos.ZERO, null);
-        assertNull(map.get(0L, 0L, 0L, 0L));
+        assertNull(map.get(0L, 0L));
         map.clear();
         assertEquals("missing", probe(map, keys.get(2)));
     }
@@ -75,8 +75,8 @@ class ChunkPosMapTest {
         Map<ChunkPos, Integer> expected = new HashMap<>();
         Random random = new Random(0x128L);
         for (int i = 0; i < 4096; ++i) {
-            ChunkPos key = new ChunkPos(Int128.of(random.nextInt(128) - 64, random.nextLong()),
-                    Int128.of(random.nextInt(128) - 64, random.nextLong()));
+            ChunkPos key = new ChunkPos(Int1088.of(random.nextLong(), random.nextInt(128) - 64),
+                    Int1088.of(random.nextLong(), random.nextInt(128) - 64));
             map.put(key, Integer.valueOf(i));
             expected.put(key, i);
         }
@@ -96,10 +96,15 @@ class ChunkPosMapTest {
     @Test
     void collidingProbesSurviveClusterDeletion() {
         ChunkPosMap<String> map = new ChunkPosMap<>(4);
-        ChunkPos first = new ChunkPos(Int128.of(7L, 13L), Int128.of(-8L, 17L));
-        ChunkPos second = new ChunkPos(Int128.of((1L << 32) ^ 6L, 13L), Int128.of(-8L, 17L));
+        ChunkPos first = new ChunkPos(Int1088.of(13L, 7L), Int1088.of(17L, -8L));
+        ChunkPos second = null;
+        int bucket = it.unimi.dsi.fastutil.HashCommon.mix(first.hashCode()) & 7;
+        for (int i = 0; i < 1000; ++i) {
+            ChunkPos candidate = new ChunkPos(i, 42);
+            if ((it.unimi.dsi.fastutil.HashCommon.mix(candidate.hashCode()) & 7) == bucket) { second = candidate; break; }
+        }
+        assertNotNull(second);
         assertNotEquals(first, second);
-        assertEquals(first.hashCode(), second.hashCode());
         map.put(first, "first");
         map.put(second, "second");
         assertEquals("second", probe(map, second));
@@ -111,8 +116,8 @@ class ChunkPosMapTest {
     @Test
     void containingBlockProbeUsesSignedFullWidthShift() {
         ChunkPosMap<String> map = new ChunkPosMap<>();
-        for (Int128 coordinate : List.of(Int128.MIN, Int128.MAX, Int128.of(7L, -1L),
-                Int128.of(-8L, 0L), Int128.fromLong(-1L))) {
+        for (Int1088 coordinate : List.of(Int1088.MIN, Int1088.MAX, Int1088.of(-1L, 7L),
+                Int1088.of(0L, -8L), Int1088.fromLong(-1L))) {
             BlockPos block = new BlockPos(coordinate, 64, coordinate);
             map.put(new ChunkPos(block), "found");
             assertEquals("found", map.getContaining(block));
@@ -121,6 +126,6 @@ class ChunkPosMapTest {
     }
 
     private static <V> V probe(ChunkPosMap<V> map, ChunkPos key) {
-        return map.get(key.xHi(), key.xLo(), key.zHi(), key.zLo());
+        return map.get(key.x(), key.z());
     }
 }

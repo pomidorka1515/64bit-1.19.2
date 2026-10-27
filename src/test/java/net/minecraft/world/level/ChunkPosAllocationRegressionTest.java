@@ -2,7 +2,7 @@ package net.minecraft.world.level;
 
 import java.util.List;
 import java.util.ArrayList;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,24 +13,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ChunkPosAllocationRegressionTest {
     @Test
     void blockAndRegionCoordinatesRetainAllLimbs() {
-        for (Int128 coordinate : List.of(WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK,
-                Int128.of(123L, -1L), Int128.of(-124L, 0L), Int128.fromLong(-1L))) {
+        for (Int1088 coordinate : List.of(WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK,
+                Int1088.of(-1L, 123L), Int1088.of(0L, -124L), Int1088.fromLong(-1L))) {
             ChunkPos pos = new ChunkPos(coordinate, coordinate);
             assertEquals(WorldBounds.chunkToBlock(coordinate), pos.getMinBlockX());
             assertEquals(WorldBounds.chunkToBlock(coordinate), pos.getMinBlockZ());
             assertEquals(coordinate.shiftRight(5), pos.getRegionX());
             assertEquals(coordinate.shiftRight(5), pos.getRegionZ());
-            assertSame(pos.getRegionX(), pos.getRegionX());
-            assertSame(pos.getRegionZ(), pos.getRegionZ());
-            assertEquals(pos.getRegionX(), Int128.of(pos.getRegionXHi(), pos.getRegionXLo()));
-            assertEquals(pos.getRegionZ(), Int128.of(pos.getRegionZHi(), pos.getRegionZLo()));
+            assertEquals(pos.getRegionX(), pos.x().shiftRight(5));
+            assertEquals(pos.getRegionZ(), pos.z().shiftRight(5));
         }
     }
 
     @Test
     void rangesCrossUnsignedLowLimbBoundariesInBothDirections() {
-        ChunkPos start = new ChunkPos(Int128.of(7L, -1L), Int128.of(-8L, -1L));
-        ChunkPos end = new ChunkPos(Int128.of(8L, 0L), Int128.of(-7L, 0L));
+        ChunkPos start = new ChunkPos(Int1088.of(-1L, 7L), Int1088.of(-1L, -8L));
+        ChunkPos end = new ChunkPos(Int1088.of(0L, 8L), Int1088.of(0L, -7L));
         List<ChunkPos> forward = List.of(start,
                 new ChunkPos(end.x(), start.z()), new ChunkPos(start.x(), end.z()), end);
         List<ChunkPos> backward = List.of(end,
@@ -55,12 +53,12 @@ class ChunkPosAllocationRegressionTest {
     @Test
     void cursorRegionLimbsMatchShiftsAcrossRegionAndLimbBoundaries() {
         ChunkPos.RangeCursor cursor = new ChunkPos.RangeCursor();
-        for (Int128 boundary : List.of(Int128.ZERO, Int128.fromLong(32L), Int128.fromLong(-32L),
-                Int128.of(7L, 0L), Int128.of(-8L, 0L), Int128.of(32L, 0L), Int128.of(-32L, 0L),
-                WorldBounds.MIN_CHUNK.add(Int128.fromLong(33L)),
-                WorldBounds.MAX_CHUNK.subtract(Int128.fromLong(33L)))) {
-            Int128 low = boundary.subtract(Int128.fromLong(33L));
-            Int128 high = boundary.add(Int128.fromLong(33L));
+        for (Int1088 boundary : List.of(Int1088.ZERO, Int1088.fromLong(32L), Int1088.fromLong(-32L),
+                Int1088.of(0L, 7L), Int1088.of(0L, -8L), Int1088.of(0L, 32L), Int1088.of(0L, -32L),
+                WorldBounds.MIN_CHUNK.add(Int1088.fromLong(33L)),
+                WorldBounds.MAX_CHUNK.subtract(Int1088.fromLong(33L)))) {
+            Int1088 low = boundary.subtract(Int1088.fromLong(33L));
+            Int1088 high = boundary.add(Int1088.fromLong(33L));
             for (boolean reverseX : new boolean[]{false, true}) {
                 for (boolean reverseZ : new boolean[]{false, true}) {
                     ChunkPos start = new ChunkPos(reverseX ? high : low, reverseZ ? high : low);
@@ -68,12 +66,10 @@ class ChunkPosAllocationRegressionTest {
                     cursor.reset(start, end);
                     int count = 0;
                     while (cursor.advance()) {
-                        Int128 expectedX = Int128.of(cursor.xHi(), cursor.xLo()).shiftRight(5);
-                        Int128 expectedZ = Int128.of(cursor.zHi(), cursor.zLo()).shiftRight(5);
-                        assertEquals(expectedX.hi(), cursor.getRegionXHi());
-                        assertEquals(expectedX.lo(), cursor.getRegionXLo());
-                        assertEquals(expectedZ.hi(), cursor.getRegionZHi());
-                        assertEquals(expectedZ.lo(), cursor.getRegionZLo());
+                        Int1088 expectedX = cursor.x().shiftRight(5);
+                        Int1088 expectedZ = cursor.z().shiftRight(5);
+                        assertEquals(expectedX, cursor.getRegionX());
+                        assertEquals(expectedZ, cursor.getRegionZ());
                         ++count;
                     }
                     assertEquals(67 * 67, count);
@@ -87,23 +83,23 @@ class ChunkPosAllocationRegressionTest {
     void cursorMatchesStreamInEveryDirectionAndCanBeReused() {
         ChunkPos.RangeCursor cursor = new ChunkPos.RangeCursor();
         assertFalse(cursor.advance());
-        for (Int128 low : List.of(Int128.of(7L, -1L), Int128.fromLong(-1L), WorldBounds.MIN_CHUNK,
-                WorldBounds.MAX_CHUNK.subtract(Int128.ONE))) {
+        for (Int1088 low : List.of(Int1088.of(-1L, 7L), Int1088.fromLong(-1L), WorldBounds.MIN_CHUNK,
+                WorldBounds.MAX_CHUNK.subtract(Int1088.ONE))) {
             for (int dx : new int[]{0, 1}) {
                 for (int dz : new int[]{0, 1}) {
-                    ChunkPos start = new ChunkPos(low.add(Int128.fromLong(dx)), low.add(Int128.fromLong(dz)));
-                    ChunkPos end = new ChunkPos(low.add(Int128.fromLong(1 - dx)), low.add(Int128.fromLong(1 - dz)));
+                    ChunkPos start = new ChunkPos(low.add(Int1088.fromLong(dx)), low.add(Int1088.fromLong(dz)));
+                    ChunkPos end = new ChunkPos(low.add(Int1088.fromLong(1 - dx)), low.add(Int1088.fromLong(1 - dz)));
                     assertSame(cursor, cursor.reset(start, end));
                     List<ChunkPos> actual = new ArrayList<>();
                     while (cursor.advance()) {
                         ChunkPos snapshot = cursor.toChunkPos();
                         actual.add(snapshot);
-                        assertEquals(snapshot.xHi(), cursor.xHi());
-                        assertEquals(snapshot.xLo(), cursor.xLo());
-                        assertEquals(snapshot.zHi(), cursor.zHi());
-                        assertEquals(snapshot.zLo(), cursor.zLo());
-                        assertEquals(snapshot.getRegionX(), Int128.of(cursor.getRegionXHi(), cursor.getRegionXLo()));
-                        assertEquals(snapshot.getRegionZ(), Int128.of(cursor.getRegionZHi(), cursor.getRegionZLo()));
+                        assertEquals(snapshot.xLimb(1), cursor.xLimb(1));
+                        assertEquals(snapshot.xLimb(0), cursor.xLimb(0));
+                        assertEquals(snapshot.zLimb(1), cursor.zLimb(1));
+                        assertEquals(snapshot.zLimb(0), cursor.zLimb(0));
+                        assertEquals(snapshot.getRegionX(), cursor.getRegionX());
+                        assertEquals(snapshot.getRegionZ(), cursor.getRegionZ());
                         assertEquals(snapshot.getChessboardDistance(start), cursor.getChessboardDistance(start));
                     }
                     assertFalse(cursor.advance());
@@ -113,7 +109,7 @@ class ChunkPosAllocationRegressionTest {
                 }
             }
         }
-        for (Int128 edge : List.of(WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK)) {
+        for (Int1088 edge : List.of(WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK)) {
             ChunkPos center = new ChunkPos(edge, edge);
             cursor.reset(center, 1);
             int count = 0;

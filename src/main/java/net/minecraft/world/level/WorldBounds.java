@@ -1,11 +1,12 @@
 package net.minecraft.world.level;
 
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
+import net.minecraft.core.Int1088Math;
 
 /**
  * The representable horizontal coordinate limits of the world.
  *
- * <p>A block coordinate is a signed 128-bit integer. Dividing the two block limits by
+ * <p>A block coordinate is a signed 1088-bit integer. Dividing the two block limits by
  * sixteen gives the only chunk coordinates that can contain a representable
  * block.  Keeping these values in one place is important: an overflowing
  * subtraction must never turn a request at an edge of the world into a request
@@ -13,10 +14,10 @@ import net.minecraft.core.Int128;
  * 64-bit projections for worldgen and local/test callers, not world limits.</p>
  */
 public final class WorldBounds {
-    public static final Int128 MIN_BLOCK = Int128.MIN;
-    public static final Int128 MAX_BLOCK = Int128.MAX;
-    public static final Int128 MIN_CHUNK = MIN_BLOCK.shiftRight(4);
-    public static final Int128 MAX_CHUNK = MAX_BLOCK.shiftRight(4);
+    public static final Int1088 MIN_BLOCK = Int1088.MIN;
+    public static final Int1088 MAX_BLOCK = Int1088.MAX;
+    public static final Int1088 MIN_CHUNK = MIN_BLOCK.shiftRight(4);
+    public static final Int1088 MAX_CHUNK = MAX_BLOCK.shiftRight(4);
 
     /** Limits of the explicit 64-bit block/chunk projection. */
     public static final long MIN_BLOCK_LONG = Long.MIN_VALUE;
@@ -31,90 +32,81 @@ public final class WorldBounds {
     public static final long MAX_SAFE_LOCAL_SPAN = 1L << 20;
 
     /** Exact integer subtraction followed by signed-long saturation; never projects absolute coordinates. */
-    public static long signedDifferenceAsLong(Int128 value, Int128 origin) {
-        long low = value.lo() - origin.lo();
-        long borrow = Long.compareUnsigned(value.lo(), origin.lo()) < 0 ? 1L : 0L;
-        long high = value.hi() - origin.hi() - borrow;
-        if ((value.hi() < 0L) != (origin.hi() < 0L) && (high < 0L) != (value.hi() < 0L))
-            return value.hi() < 0L ? Long.MIN_VALUE : Long.MAX_VALUE;
-        if (high == (low < 0L ? -1L : 0L))
-            return low;
-        return high < 0L ? Long.MIN_VALUE : Long.MAX_VALUE;
+    public static long signedDifferenceAsLong(Int1088 value, Int1088 origin) {
+        return Int1088Math.signedDifferenceAsLong(value, origin);
     }
 
-    public static boolean localSpanExceeds(Int128 value, Int128 origin) {
+    public static boolean localSpanExceeds(Int1088 value, Int1088 origin) {
         long difference = signedDifferenceAsLong(value, origin);
         return difference < -MAX_SAFE_LOCAL_SPAN || difference > MAX_SAFE_LOCAL_SPAN;
     }
 
     /** Local differences are exact; distant hints saturate to signed-long sentinels. */
-    public static double signedDifference(Int128 value, Int128 origin) {
+    public static double signedDifference(Int1088 value, Int1088 origin) {
         return (double) signedDifferenceAsLong(value, origin);
     }
 
     /** Reports physics-local exactness separately from the approximate distance hint. */
-    public static double signedDifference(Int128 value, Int128 origin, boolean[] exactOut) {
+    public static double signedDifference(Int1088 value, Int1088 origin, boolean[] exactOut) {
         exactOut[0] = !localSpanExceeds(value, origin);
         return signedDifference(value, origin);
     }
 
-    public static double signedDifferenceExact(Int128 value, Int128 origin) {
+    public static double signedDifferenceExact(Int1088 value, Int1088 origin) {
         return localSpanExceeds(value, origin) ? Double.NaN : signedDifference(value, origin);
     }
 
-    public static double distance(Int128 first, Int128 second) {
+    public static double distance(Int1088 first, Int1088 second) {
         return Math.abs(signedDifference(first, second));
     }
 
-    public static boolean isAscendingBlockRange(Int128 first, Int128 last) {
+    public static boolean isAscendingBlockRange(Int1088 first, Int1088 last) {
         return first.compareTo(last) <= 0;
     }
 
-    public static boolean isWithinBlockRange(Int128 coordinate, Int128 min, Int128 max) {
+    public static boolean isWithinBlockRange(Int1088 coordinate, Int1088 min, Int1088 max) {
         return isAscendingBlockRange(min, max) && coordinate.compareTo(min) >= 0 && coordinate.compareTo(max) <= 0;
     }
 
-    public static boolean canAdvanceBlock(Int128 coordinate, Int128 last) {
+    public static boolean canAdvanceBlock(Int1088 coordinate, Int1088 last) {
         return coordinate.compareTo(last) < 0;
     }
 
-    /** Inclusive count, saturated to the signed 128-bit domain. */
-    public static Int128 inclusiveBlockSpan(Int128 min, Int128 max) {
-        return isAscendingBlockRange(min, max) ? max.subtractSaturated(min).addSaturated(Int128.ONE) : Int128.ZERO;
+    /** Inclusive count, saturated to the signed 1088-bit domain. */
+    public static Int1088 inclusiveBlockSpan(Int1088 min, Int1088 max) {
+        return isAscendingBlockRange(min, max) ? max.subtractSaturated(min).addSaturated(Int1088.ONE) : Int1088.ZERO;
     }
 
     /** Approximate count retaining the magnitude even when the signed count saturates. */
-    public static double inclusiveBlockSpanDouble(Int128 min, Int128 max) {
+    public static double inclusiveBlockSpanDouble(Int1088 min, Int1088 max) {
         if (!isAscendingBlockRange(min, max))
             return 0.0D;
-        long low = max.lo() - min.lo();
-        long high = max.hi() - min.hi() - (Long.compareUnsigned(max.lo(), min.lo()) < 0 ? 1L : 0L);
-        double unsignedLow = (double) (low >>> 1) * 2.0D + (low & 1L);
-        double unsignedHigh = (double) (high >>> 1) * 2.0D + (high & 1L);
-        return Math.scalb(unsignedHigh, 64) + unsignedLow + 1.0D;
+        Int1088 halfDifference = max.shiftRight(1).subtractSaturated(min.shiftRight(1));
+        return halfDifference.toDoubleRounded() * 2.0D
+                + (max.lowLimb() & 1L) - (min.lowLimb() & 1L) + 1.0D;
     }
 
     /** Clamped non-negative offset; an unordered range has no local offsets. */
-    public static Int128 blockOffsetInRange(Int128 coordinate, Int128 min, Int128 max) {
+    public static Int1088 blockOffsetInRange(Int1088 coordinate, Int1088 min, Int1088 max) {
         if (!isAscendingBlockRange(min, max) || coordinate.compareTo(min) <= 0)
-            return Int128.ZERO;
+            return Int1088.ZERO;
         return (coordinate.compareTo(max) >= 0 ? max : coordinate).subtractSaturated(min);
     }
 
     /** Upper midpoint without overflowing either a sum or a difference. */
-    public static Int128 middleBlockCoordinate(Int128 min, Int128 max) {
-        Int128 halves = min.shiftRight(1).add(max.shiftRight(1));
-        return halves.add(Int128.fromLong((min.lo() & 1L) | (max.lo() & 1L)));
+    public static Int1088 middleBlockCoordinate(Int1088 min, Int1088 max) {
+        Int1088 halves = min.shiftRight(1).add(max.shiftRight(1));
+        return halves.add(Int1088.fromLong((min.lowLimb() & 1L) | (max.lowLimb() & 1L)));
     }
 
     /** Floors the offset independently, preserving every bit of the absolute coordinate. */
-    public static Int128 addDoubleBlockOffset(Int128 block, double offset) {
+    public static Int1088 addDoubleBlockOffset(Int1088 block, double offset) {
         if (!Double.isFinite(offset) || offset == 0.0D)
             return block;
-        return block.addSaturated(Int128.fromDoubleFloorSaturated(offset));
+        return block.addSaturated(Int1088.fromDoubleFloorSaturated(offset));
     }
 
-    public static Int128 clampChunk(Int128 chunk) {
+    public static Int1088 clampChunk(Int1088 chunk) {
         if (chunk.compareTo(MIN_CHUNK) < 0)
             return MIN_CHUNK;
         if (chunk.compareTo(MAX_CHUNK) > 0)
@@ -123,79 +115,78 @@ public final class WorldBounds {
     }
 
     /** Converts a chunk coordinate to its first block without overflowing. */
-    public static Int128 chunkToBlock(Int128 chunk) {
+    public static Int1088 chunkToBlock(Int1088 chunk) {
         return clampChunk(chunk).shiftLeftSaturated(4);
     }
 
     /** Adds a chunk offset, saturating to the representable chunk interval. */
-    public static Int128 addChunkOffset(Int128 chunk, long offset) {
-        return clampChunk(chunk.addSaturated(Int128.fromLong(offset)));
+    public static Int1088 addChunkOffset(Int1088 chunk, long offset) {
+        return clampChunk(chunk.addSaturated(Int1088.fromLong(offset)));
     }
 
     /** Returns null when the offset would leave the representable chunk range. */
-    public static Int128 tryAddChunkOffset(Int128 chunk, long offset) {
-        Int128 result = chunk.addSaturated(Int128.fromLong(offset));
+    public static Int1088 tryAddChunkOffset(Int1088 chunk, long offset) {
+        Int1088 result = chunk.addSaturated(Int1088.fromLong(offset));
         return result.compareTo(MIN_CHUNK) < 0 || result.compareTo(MAX_CHUNK) > 0 ? null : result;
     }
 
-    /** Converts a region and local chunk offset, saturating each operation to 128 bits. */
-    public static Int128 regionToChunk(Int128 region, long localChunk) {
-        return region.shiftLeftSaturated(5).addSaturated(Int128.fromLong(localChunk));
+    /** Converts a region and local chunk offset, saturating each operation to 1088 bits. */
+    public static Int1088 regionToChunk(Int1088 region, long localChunk) {
+        return clampChunk(region.shiftLeftSaturated(5).addSaturated(Int1088.fromLong(localChunk)));
     }
 
-    /** Adds a block offset, saturating only at the signed 128-bit edges. */
-    public static Int128 addBlockOffset(Int128 block, long offset) {
-        return addBlockOffset(block, Int128.fromLong(offset));
+    /** Adds a block offset, saturating only at the signed 1088-bit edges. */
+    public static Int1088 addBlockOffset(Int1088 block, long offset) {
+        return addBlockOffset(block, Int1088.fromLong(offset));
     }
 
-    public static Int128 addBlockOffset(Int128 block, int offset) {
+    public static Int1088 addBlockOffset(Int1088 block, int offset) {
         return addBlockOffset(block, (long) offset);
     }
 
-    public static Int128 addBlockOffset(Int128 block, Int128 offset) {
+    public static Int1088 addBlockOffset(Int1088 block, Int1088 offset) {
         return block.addSaturated(offset);
     }
 
-    public static Int128 subtractBlockOffset(Int128 block, long offset) {
-        return block.subtractSaturated(Int128.fromLong(offset));
+    public static Int1088 subtractBlockOffset(Int1088 block, long offset) {
+        return block.subtractSaturated(Int1088.fromLong(offset));
     }
 
-    public static Int128 subtractBlockOffset(Int128 block, int offset) {
+    public static Int1088 subtractBlockOffset(Int1088 block, int offset) {
         return subtractBlockOffset(block, (long) offset);
     }
 
-    public static Int128 multiplySaturated(Int128 coordinate, long factor) {
+    public static Int1088 multiplySaturated(Int1088 coordinate, long factor) {
         return coordinate.multiplySaturated(factor);
     }
 
-    public static Int128 multiplySaturated(Int128 coordinate, int factor) {
+    public static Int1088 multiplySaturated(Int1088 coordinate, int factor) {
         return multiplySaturated(coordinate, (long) factor);
     }
 
     /** Saturates each product and then their difference in the horizontal domain. */
-    public static Int128 crossComponent(Int128 a, long b, Int128 c, long d) {
+    public static Int1088 crossComponent(Int1088 a, long b, Int1088 c, long d) {
         return a.multiplySaturated(b).subtractSaturated(c.multiplySaturated(d));
     }
 
     /** Adds two coordinates and subtracts a third, clamping only the final result. */
-    public static Int128 addSubtract(Int128 first, Int128 second, Int128 subtrahend) {
+    public static Int1088 addSubtract(Int1088 first, Int1088 second, Int1088 subtrahend) {
         // Same-sign subtraction cannot overflow; do it first to preserve cancellation.
-        if ((first.hi() < 0L) == (subtrahend.hi() < 0L))
+        if ((first.signum() < 0) == (subtrahend.signum() < 0))
             return first.subtract(subtrahend).addSaturated(second);
-        return first.addSaturated(second).subtractSaturated(subtrahend);
+        if ((second.signum() < 0) == (subtrahend.signum() < 0))
+            return second.subtract(subtrahend).addSaturated(first);
+        return first.subtractSaturated(subtrahend).addSaturated(second);
     }
 
     /** Full signed coordinate, rounded only at the floating-point sampling boundary. */
-    public static double noiseCoordinate(Int128 coordinate) {
-        if (coordinate.hi() == (coordinate.lo() >> 63)) return noiseCoordinate(coordinate.lo());
-        return clampProjectedNoiseCoordinate(net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(coordinate.hi(), coordinate.lo()));
+    public static double noiseCoordinate(Int1088 coordinate) {
+        return coordinate.toDoubleRounded();
     }
 
     /** Full-width scaling with the existing finite-coordinate safeguards. */
-    public static double scaledNoiseCoordinate(Int128 coordinate, double scale) {
-        if (coordinate.hi() == (coordinate.lo() >> 63)) return scaledNoiseCoordinate(coordinate.lo(), scale);
-        double result = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(coordinate.hi(), coordinate.lo()) * scale;
-        return Double.isNaN(result) ? 0.0D : clampProjectedNoiseCoordinate(result);
+    public static double scaledNoiseCoordinate(Int1088 coordinate, double scale) {
+        return coordinate.toDoubleRounded() * scale;
     }
 
     public static long clampChunk(long chunk) {
@@ -264,20 +255,20 @@ public final class WorldBounds {
 
     /** Computes a determinant before clamping, preserving cancellation. */
     public static long crossComponent(long a, long b, long c, long d) {
-        return clampToLong(crossComponent(Int128.fromLong(a), b, Int128.fromLong(c), d));
+        return clampToLong(crossComponent(Int1088.fromLong(a), b, Int1088.fromLong(c), d));
     }
 
     /** Adds two coordinates and subtracts a third, clamping only the final result. */
     public static long addSubtract(long first, long second, long subtrahend) {
-        return clampToLong(addSubtract(Int128.fromLong(first), Int128.fromLong(second), Int128.fromLong(subtrahend)));
+        return clampToLong(addSubtract(Int1088.fromLong(first), Int1088.fromLong(second), Int1088.fromLong(subtrahend)));
     }
 
-    private static long clampToLong(Int128 value) {
-        if (value.compareTo(Int128.fromLong(Long.MIN_VALUE)) < 0)
+    private static long clampToLong(Int1088 value) {
+        if (value.compareTo(Int1088.fromLong(Long.MIN_VALUE)) < 0)
             return Long.MIN_VALUE;
-        if (value.compareTo(Int128.fromLong(Long.MAX_VALUE)) > 0)
+        if (value.compareTo(Int1088.fromLong(Long.MAX_VALUE)) > 0)
             return Long.MAX_VALUE;
-        return value.toLongLow();
+        return value.lowLimb();
     }
 
     /**
@@ -296,12 +287,12 @@ public final class WorldBounds {
     }
 
     /** Always true; not a security, availability, or movement-validation check. */
-    public static boolean isValidBlock(Int128 coordinate) {
+    public static boolean isValidBlock(Int1088 coordinate) {
         return true;
     }
 
     /** Always true; not a security, availability, or movement-validation check. */
-    public static boolean isValidBlock(Int128 x, Int128 z) {
+    public static boolean isValidBlock(Int1088 x, Int1088 z) {
         return true;
     }
 
@@ -339,7 +330,7 @@ public final class WorldBounds {
     }
 
     /** Always true; not a security, availability, or movement-validation check. */
-    public static boolean isValidChunk(Int128 x, Int128 z) {
+    public static boolean isValidChunk(Int1088 x, Int1088 z) {
         return true;
     }
 
@@ -574,13 +565,7 @@ public final class WorldBounds {
     public static double clampAbsoluteDouble(double coordinate) {
         if (Double.isNaN(coordinate))
             return 0.0D;
-        if (coordinate == Double.NEGATIVE_INFINITY || coordinate < -0x1.0p127)
-            return -0x1.0p127;
-        // 2^127 itself has no valid floor block. The next representable double
-        // below it has a representable floor block and is the correct safe edge.
-        double upperExclusive = 0x1.0p127;
-        if (coordinate == Double.POSITIVE_INFINITY || coordinate >= upperExclusive)
-            return Math.nextDown(upperExclusive);
-        return coordinate;
+        return coordinate == Double.NEGATIVE_INFINITY ? -Double.MAX_VALUE
+                : coordinate == Double.POSITIVE_INFINITY ? Double.MAX_VALUE : coordinate;
     }
 }

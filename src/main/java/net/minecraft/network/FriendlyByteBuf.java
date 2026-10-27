@@ -47,6 +47,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.IdMap;
 import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
@@ -351,6 +352,46 @@ public class FriendlyByteBuf extends ByteBuf {
         byte[] abyte = new byte[i];
         this.getBytes(0, abyte);
         return abyte;
+    }
+
+    public FriendlyByteBuf writeInt1088(Int1088 value) {
+        this.writeVarInt(value.limbCount());
+        for (int i = 0; i < value.limbCount(); ++i) {
+            long limb = value.limb(i);
+            this.writeVarLong((limb << 1) ^ (limb >> 63));
+        }
+        return this;
+    }
+
+    public Int1088 readInt1088() {
+        try {
+            int start = this.readerIndex();
+            int count = this.readVarInt();
+            if (count < 1 || count > Int1088.LIMBS || this.readerIndex() - start != 1) {
+                throw new DecoderException("Invalid Int1088 limb count: " + count);
+            }
+            long[] limbs = new long[count];
+            for (int i = 0; i < count; ++i) {
+                start = this.readerIndex();
+                long encoded = this.readVarLong();
+                int size = this.readerIndex() - start;
+                if (size != getVarLongSize(encoded) || size == 10 && (this.getUnsignedByte(start + 9) & 126) != 0) {
+                    throw new DecoderException("Non-canonical Int1088 limb VarLong");
+                }
+                limbs[i] = (encoded >>> 1) ^ -(encoded & 1L);
+            }
+            Int1088 value = Int1088.fromLimbs(limbs, 0, count);
+            if (value.limbCount() != count) {
+                throw new DecoderException("Non-canonical Int1088 limb count: " + count);
+            }
+            return value;
+        } catch (DecoderException exception) {
+            throw exception;
+        } catch (IndexOutOfBoundsException exception) {
+            throw new DecoderException("Truncated Int1088", exception);
+        } catch (RuntimeException exception) {
+            throw new DecoderException("Invalid Int1088", exception);
+        }
     }
 
     /** Fixed-width high half first; there is no legacy single-long decode. */

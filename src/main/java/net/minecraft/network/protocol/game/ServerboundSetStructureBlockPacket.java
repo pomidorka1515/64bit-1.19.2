@@ -1,7 +1,7 @@
 package net.minecraft.network.protocol.game;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
@@ -100,10 +100,10 @@ public class ServerboundSetStructureBlockPacket implements Packet<ServerGamePack
         pBuffer.writeByte(i);
     }
 
-    private static int localByte(Int128 value, int min, int max) {
-        if (value.compareTo(Int128.fromLong(min)) < 0) return min;
-        if (value.compareTo(Int128.fromLong(max)) > 0) return max;
-        return (int) value.toLongLow();
+    private static int localByte(Int1088 value, int min, int max) {
+        if (value.compareTo(Int1088.fromLong(min)) < 0) return min;
+        if (value.compareTo(Int1088.fromLong(max)) > 0) return max;
+        return (int) value.lowLimb();
     }
 
     public void handle(ServerGamePacketListener pHandler) {

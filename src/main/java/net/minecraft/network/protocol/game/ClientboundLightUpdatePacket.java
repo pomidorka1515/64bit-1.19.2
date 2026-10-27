@@ -2,15 +2,15 @@ package net.minecraft.network.protocol.game;
 
 import java.util.BitSet;
 import javax.annotation.Nullable;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 
 public class ClientboundLightUpdatePacket implements Packet<ClientGamePacketListener> {
-    private final Int128 x;
-    private final Int128 z;
+    private final Int1088 x;
+    private final Int1088 z;
     private final ClientboundLightUpdatePacketData lightData;
 
     public ClientboundLightUpdatePacket(ChunkPos pChunkPos, LevelLightEngine pLightEngine, @Nullable BitSet pChangedSkySections, @Nullable BitSet pChangedBlockSections, boolean pTrustEdges) {
@@ -35,11 +35,11 @@ public class ClientboundLightUpdatePacket implements Packet<ClientGamePacketList
         pHandler.handleLightUpdatePacket(this);
     }
 
-    public Int128 getX() {
+    public Int1088 getX() {
         return this.x;
     }
 
-    public Int128 getZ() {
+    public Int1088 getZ() {
         return this.z;
     }
 

@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import java.util.BitSet;
 import java.util.List;
 import javax.annotation.Nullable;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.SectionPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.ChunkPos;
@@ -41,7 +41,7 @@ public class ClientboundLightUpdatePacketData {
         }
     }
 
-    public ClientboundLightUpdatePacketData(FriendlyByteBuf p_195737_, Int128 p_195738_, Int128 p_195739_) {
+    public ClientboundLightUpdatePacketData(FriendlyByteBuf p_195737_, Int1088 p_195738_, Int1088 p_195739_) {
         this.trustEdges = p_195737_.readBoolean();
         this.skyYMask = p_195737_.readBitSet();
         this.blockYMask = p_195737_.readBitSet();

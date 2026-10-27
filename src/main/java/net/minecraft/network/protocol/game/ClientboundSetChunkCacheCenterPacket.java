@@ -1,19 +1,19 @@
 package net.minecraft.network.protocol.game;
 
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.level.ChunkPos;
 
 public class ClientboundSetChunkCacheCenterPacket implements Packet<ClientGamePacketListener> {
-    private final Int128 x;
-    private final Int128 z;
+    private final Int1088 x;
+    private final Int1088 z;
 
     public ClientboundSetChunkCacheCenterPacket(long pX, long pZ) {
-        this(Int128.fromLong(pX), Int128.fromLong(pZ));
+        this(Int1088.fromLong(pX), Int1088.fromLong(pZ));
     }
 
-    public ClientboundSetChunkCacheCenterPacket(Int128 pX, Int128 pZ) {
+    public ClientboundSetChunkCacheCenterPacket(Int1088 pX, Int1088 pZ) {
         ChunkPos chunkpos = new ChunkPos(pX, pZ);
         this.x = chunkpos.x();
         this.z = chunkpos.z();
@@ -33,11 +33,11 @@ public class ClientboundSetChunkCacheCenterPacket implements Packet<ClientGamePa
         pHandler.handleSetChunkCacheCenter(this);
     }
 
-    public Int128 getX() {
+    public Int1088 getX() {
         return this.x;
     }
 
-    public Int128 getZ() {
+    public Int1088 getZ() {
         return this.z;
     }
 }

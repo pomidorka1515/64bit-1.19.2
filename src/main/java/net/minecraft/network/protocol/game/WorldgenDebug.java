@@ -73,7 +73,7 @@ public final class WorldgenDebug {
         if (!(generator instanceof NoiseBasedChunkGenerator noiseGenerator && noiseGenerator.stable(NoiseGeneratorSettings.END))) {
             SimplexNoise.beginDebugCapture();
             try (var ignored = net.minecraft.world.level.levelgen.synth.GenerationContext.open(config)) {
-                Biome.BIOME_INFO_NOISE.getValueScaled(pos.getXHi(), pos.getXLo(), pos.getZHi(), pos.getZLo(), 1.0D, false);
+                Biome.BIOME_INFO_NOISE.getValueScaled(pos.getX(), pos.getZ(), 1.0D, false);
                 lines.add(SimplexNoise.getDebugString());
             } finally {
                 SimplexNoise.endDebugCapture();

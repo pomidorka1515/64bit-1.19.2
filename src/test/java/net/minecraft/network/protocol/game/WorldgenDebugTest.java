@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.biome.Biomes;
@@ -42,14 +42,14 @@ class WorldgenDebugTest {
         try (var ignored = GenerationContext.open(config)) {
             var random = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 1234L);
             for (long hi : new long[] {1L, -2L}) {
-                var pos = new BlockPos(Int128.of(hi, 4747L), 64, Int128.of(hi, -456L));
+                var pos = new BlockPos(Int1088.of(4747L, hi), 64, Int1088.of(-456L, hi));
                 List<String> expected;
                 List<String> truncated;
                 SimplexNoise.beginDebugCapture();
                 try {
-                    Biome.BIOME_INFO_NOISE.getValueScaled(pos.getXHi(), pos.getXLo(), pos.getZHi(), pos.getZLo(), 1.0D, false);
+                    Biome.BIOME_INFO_NOISE.getValueScaled(pos.getX(), pos.getZ(), 1.0D, false);
                     expected = List.of(SimplexNoise.getDebugString());
-                    Biome.BIOME_INFO_NOISE.getValue((double) pos.getXLo(), (double) pos.getZLo(), false);
+                    Biome.BIOME_INFO_NOISE.getValue((double) pos.xLimb(0), (double) pos.zLimb(0), false);
                     truncated = List.of(SimplexNoise.getDebugString());
                     assertNotEquals(truncated, expected);
                 } finally {
@@ -76,11 +76,11 @@ class WorldgenDebugTest {
                 new FixedBiomeSource(BuiltinRegistries.BIOME.getHolderOrThrow(Biomes.PLAINS)), settings);
         var config = new GeneratorConfig(GeneratorMode.BIT_64_STABLE_SHIFTS, CoordinatePrecision.PRECISE);
         var random = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 1234L);
-        var x = Int128.parseDecimal("1855315496539495033392");
+        var x = Int1088.parseDecimal("1855315496539495033392");
         String expected = null;
         for (int y : new int[] {255, 256, 257, 320, 1000}) {
             var data = WorldgenDebug.sample(NoiseGeneratorSettings.OVERWORLD.location(), generator, random,
-                    new BlockPos(x, y, Int128.ZERO), config).getData();
+                    new BlockPos(x, y, Int1088.ZERO), config).getData();
             try {
                 data.readResourceLocation();
                 int count = data.readVarInt();
@@ -104,8 +104,8 @@ class WorldgenDebugTest {
         var generator = new NoiseBasedChunkGenerator(BuiltinRegistries.STRUCTURE_SETS, BuiltinRegistries.NOISE,
                 new FixedBiomeSource(BuiltinRegistries.BIOME.getHolderOrThrow(Biomes.PLAINS)), settings);
         var config = new GeneratorConfig(GeneratorMode.BIT_64_STABLE_SHIFTS, CoordinatePrecision.PRECISE);
-        var x = Int128.of(1L, 4747L);
-        var z = Int128.of(1L, -456L);
+        var x = Int1088.of(4747L, 1L);
+        var z = Int1088.of(-456L, 1L);
         try (var ignored = GenerationContext.open(config)) {
             var random = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 1234L);
             BlendedNoise.beginDebugCapture();

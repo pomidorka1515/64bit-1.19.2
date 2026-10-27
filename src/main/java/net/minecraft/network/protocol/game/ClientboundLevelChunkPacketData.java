@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.WorldBounds;
@@ -45,7 +45,7 @@ public class ClientboundLevelChunkPacketData {
         }
     }
 
-    public ClientboundLevelChunkPacketData(FriendlyByteBuf pHeightmaps, Int128 pChunkX, Int128 pChunkZ) {
+    public ClientboundLevelChunkPacketData(FriendlyByteBuf pHeightmaps, Int1088 pChunkX, Int1088 pChunkZ) {
         this.heightmaps = pHeightmaps.readNbt();
         if (this.heightmaps == null) {
             throw new RuntimeException("Can't read heightmap in packet for [" + pChunkX + ", " + pChunkZ + "]");
@@ -92,20 +92,20 @@ public class ClientboundLevelChunkPacketData {
         }
     }
 
-    public Consumer<ClientboundLevelChunkPacketData.BlockEntityTagOutput> getBlockEntitiesTagsConsumer(Int128 pX, Int128 pZ) {
+    public Consumer<ClientboundLevelChunkPacketData.BlockEntityTagOutput> getBlockEntitiesTagsConsumer(Int1088 pX, Int1088 pZ) {
         return (p_195663_) -> {
             this.getBlockEntitiesTags(p_195663_, pX, pZ);
         };
     }
 
-    private void getBlockEntitiesTags(ClientboundLevelChunkPacketData.BlockEntityTagOutput pOutput, Int128 pChunkX, Int128 pChunkZ) {
-        Int128 i = WorldBounds.chunkToBlock(pChunkX);
-        Int128 j = WorldBounds.chunkToBlock(pChunkZ);
+    private void getBlockEntitiesTags(ClientboundLevelChunkPacketData.BlockEntityTagOutput pOutput, Int1088 pChunkX, Int1088 pChunkZ) {
+        Int1088 i = WorldBounds.chunkToBlock(pChunkX);
+        Int1088 j = WorldBounds.chunkToBlock(pChunkZ);
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
         for (ClientboundLevelChunkPacketData.BlockEntityInfo clientboundlevelchunkpacketdata$blockentityinfo : this.blockEntitiesData) {
-            Int128 k = WorldBounds.addBlockOffset(i, SectionPos.sectionRelative(clientboundlevelchunkpacketdata$blockentityinfo.packedXZ >> 4));
-            Int128 l = WorldBounds.addBlockOffset(j, SectionPos.sectionRelative(clientboundlevelchunkpacketdata$blockentityinfo.packedXZ));
+            Int1088 k = WorldBounds.addBlockOffset(i, SectionPos.sectionRelative(clientboundlevelchunkpacketdata$blockentityinfo.packedXZ >> 4));
+            Int1088 l = WorldBounds.addBlockOffset(j, SectionPos.sectionRelative(clientboundlevelchunkpacketdata$blockentityinfo.packedXZ));
             blockpos$mutableblockpos.set(k, clientboundlevelchunkpacketdata$blockentityinfo.y, l);
             pOutput.accept(blockpos$mutableblockpos, clientboundlevelchunkpacketdata$blockentityinfo.type, clientboundlevelchunkpacketdata$blockentityinfo.tag);
         }

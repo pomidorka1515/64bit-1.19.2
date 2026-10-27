@@ -134,8 +134,8 @@ public class WanderingTraderSpawner implements CustomSpawner {
         BlockPos blockpos = null;
 
         for (int i = 0; i < 10; ++i) {
-            net.minecraft.core.Int128 j = net.minecraft.world.level.WorldBounds.addBlockOffset(pPos.getX(), this.random.nextInt(pMaxDistance * 2) - pMaxDistance);
-            net.minecraft.core.Int128 k = net.minecraft.world.level.WorldBounds.addBlockOffset(pPos.getZ(), this.random.nextInt(pMaxDistance * 2) - pMaxDistance);
+            net.minecraft.core.Int1088 j = net.minecraft.world.level.WorldBounds.addBlockOffset(pPos.getX(), this.random.nextInt(pMaxDistance * 2) - pMaxDistance);
+            net.minecraft.core.Int1088 k = net.minecraft.world.level.WorldBounds.addBlockOffset(pPos.getZ(), this.random.nextInt(pMaxDistance * 2) - pMaxDistance);
             int l = pLevel.getHeight(Heightmap.Types.WORLD_SURFACE, j, k);
             BlockPos blockpos1 = new BlockPos(j, l, k);
             if (NaturalSpawner.isSpawnPositionOk(SpawnPlacements.Type.ON_GROUND, pLevel, blockpos1, EntityType.WANDERING_TRADER)) {

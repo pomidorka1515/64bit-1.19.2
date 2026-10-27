@@ -2,7 +2,7 @@ package net.minecraft.world.entity;
 
 import net.minecraft.world.level.WorldBounds;
 
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 
 import net.minecraft.world.phys.SectorAABB;
 
@@ -501,7 +501,7 @@ public abstract class Mob extends LivingEntity {
         if (!this.level.isClientSide && this.canPickUpLoot() && this.isAlive() && !this.dead && this.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
             Vec3i vec3i = this.getPickupReach();
 
-            for (ItemEntity itementity : this.level.getEntitiesOfClass(ItemEntity.class, this.exactBoundingBox().inflate(WorldBounds.signedDifference(vec3i.getX(), Int128.ZERO), (double) vec3i.getY(), WorldBounds.signedDifference(vec3i.getZ(), Int128.ZERO)))) {
+            for (ItemEntity itementity : this.level.getEntitiesOfClass(ItemEntity.class, this.exactBoundingBox().inflate(WorldBounds.signedDifference(vec3i.getX(), Int1088.ZERO), (double) vec3i.getY(), WorldBounds.signedDifference(vec3i.getZ(), Int1088.ZERO)))) {
                 if (!itementity.isRemoved() && !itementity.getItem().isEmpty() && !itementity.hasPickUpDelay() && this.wantsToPickUp(itementity.getItem())) {
                     this.pickUpItem(itementity);
                 }
@@ -1389,10 +1389,10 @@ public abstract class Mob extends LivingEntity {
 
     public Iterable<BlockPos> iteratePathfindingStartNodeCandidatePositions() {
         SectorAABB box = this.getSectorBoundingBox();
-        Int128 minX = box.minBlockXForRange();
-        Int128 maxX = box.maxBlockXForRangeInclusive();
-        Int128 minZ = box.minBlockZForRange();
-        Int128 maxZ = box.maxBlockZForRangeInclusive();
+        Int1088 minX = box.minBlockXForRange();
+        Int1088 maxX = box.maxBlockXForRangeInclusive();
+        Int1088 minZ = box.minBlockZForRange();
+        Int1088 maxZ = box.maxBlockZForRangeInclusive();
         return ImmutableSet.of(
                 new BlockPos(minX, this.getBlockY(), minZ),
                 new BlockPos(minX, this.getBlockY(), maxZ),

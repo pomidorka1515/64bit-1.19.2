@@ -666,9 +666,9 @@ public abstract class LivingEntity extends Entity {
 
         pCompound.putBoolean("FallFlying", this.isFallFlying());
         this.getSleepingPos().ifPresent((p_21099_) -> {
-            net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "SleepingX", p_21099_.getX());
+            net.minecraft.nbt.NbtUtils.writeInt1088(pCompound, "SleepingX", p_21099_.getX());
             pCompound.putInt("SleepingY", p_21099_.getY());
-            net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "SleepingZ", p_21099_.getZ());
+            net.minecraft.nbt.NbtUtils.writeInt1088(pCompound, "SleepingZ", p_21099_.getZ());
         });
         DataResult<Tag> dataresult = this.brain.serializeStart(NbtOps.INSTANCE);
         dataresult.resultOrPartial(LOGGER::error).ifPresent((p_21102_) -> {
@@ -717,7 +717,7 @@ public abstract class LivingEntity extends Entity {
         if (pCompound.contains("SleepingX") || pCompound.contains("SleepingZ") || pCompound.contains("SleepingY")) {
             if (!pCompound.contains("SleepingY", 3))
                 throw new IllegalArgumentException("Missing SleepingY entity coordinate");
-            BlockPos blockpos = new BlockPos(net.minecraft.nbt.NbtUtils.readInt128(pCompound, "SleepingX"), pCompound.getInt("SleepingY"), net.minecraft.nbt.NbtUtils.readInt128(pCompound, "SleepingZ"));
+            BlockPos blockpos = new BlockPos(net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "SleepingX"), pCompound.getInt("SleepingY"), net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "SleepingZ"));
             this.setSleepingPos(blockpos);
             this.entityData.set(DATA_POSE, Pose.SLEEPING);
             if (!this.firstTick) {

@@ -3,7 +3,7 @@ package net.minecraft.world.entity;
 import static org.junit.jupiter.api.Assertions.*;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.server.Bootstrap;
@@ -24,7 +24,7 @@ class EntitySpawnNbtTest {
     void lightningLoadsFromMinimalSpawnNbt() {
         CompoundTag tag = new CompoundTag();
         tag.putString("id", "minecraft:lightning_bolt");
-        for (Int128 coordinate : coordinates()) {
+        for (Int1088 coordinate : coordinates()) {
             SectorVec3 position = position(coordinate);
             Entity entity = EntityType.loadEntityRecursive(tag, level, position, loaded -> loaded);
             assertNotNull(entity);
@@ -40,7 +40,7 @@ class EntitySpawnNbtTest {
                 "minecraft:marker", "minecraft:end_crystal", "minecraft:boat", "minecraft:falling_block"}) {
             CompoundTag tag = new CompoundTag();
             tag.putString("id", id);
-            SectorVec3 position = position(Int128.of(123L, 7L));
+            SectorVec3 position = position(Int1088.of(7L, 123L));
             Entity entity = EntityType.loadEntityRecursive(tag, level, position, loaded -> loaded);
             assertNotNull(entity, id);
             assertEquals(position, entity.exactPosition(), id);
@@ -61,7 +61,7 @@ class EntitySpawnNbtTest {
         passengers.add(child);
         root.put("Passengers", passengers);
         CompoundTag original = root.copy();
-        SectorVec3 position = position(Int128.MIN);
+        SectorVec3 position = position(Int1088.MIN);
         int[] loadedCount = {0};
         Entity entity = EntityType.loadEntityRecursive(root, level, position, loaded -> {
             assertEquals(position, loaded.exactPosition());
@@ -84,7 +84,7 @@ class EntitySpawnNbtTest {
 
     @Test
     void spawnedEntityRoundTripsThroughStrictDecoder() {
-        SectorVec3 position = position(Int128.MAX);
+        SectorVec3 position = position(Int1088.MAX);
         CompoundTag tag = new CompoundTag();
         tag.putString("id", "minecraft:marker");
         Entity entity = EntityType.loadEntityRecursive(tag, level, position, loaded -> loaded);
@@ -95,12 +95,12 @@ class EntitySpawnNbtTest {
         assertEquals(position, restored.exactPosition());
     }
 
-    private static SectorVec3 position(Int128 coordinate) {
+    private static SectorVec3 position(Int1088 coordinate) {
         return SectorVec3.fromBlockAndFraction(coordinate, 0.25D, 64.5D, coordinate, 0.75D);
     }
 
-    private static Int128[] coordinates() {
-        return new Int128[] {Int128.ZERO, Int128.fromLong(-10L), Int128.fromLong(1L << 54),
-                Int128.of(123L, 7L), Int128.of(-123L, 7L), Int128.MIN, Int128.MAX};
+    private static Int1088[] coordinates() {
+        return new Int1088[] {Int1088.ZERO, Int1088.fromLong(-10L), Int1088.fromLong(1L << 54),
+                Int1088.of(7L, 123L), Int1088.of(7L, -123L), Int1088.ONE.shiftLeftSaturated(1024), Int1088.MIN, Int1088.MAX};
     }
 }

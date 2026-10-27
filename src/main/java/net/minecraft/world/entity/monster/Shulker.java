@@ -74,7 +74,7 @@ public class Shulker extends AbstractGolem implements Enemy {
     private static final float PEEK_PER_TICK = 0.05F;
     static final Vector3f FORWARD = Util.make(() -> {
         Vec3i vec3i = Direction.SOUTH.getNormal();
-        return new Vector3f((float) vec3i.getX().lo(), (float) vec3i.getY(), (float) vec3i.getZ().lo());
+        return new Vector3f((float) vec3i.getX().toDoubleSaturated(), (float) vec3i.getY(), (float) vec3i.getZ().toDoubleSaturated());
     });
     private float currentPeekAmountO;
     private float currentPeekAmount;
@@ -625,7 +625,7 @@ public class Shulker extends AbstractGolem implements Enemy {
             Vector3f vector3f = Shulker.FORWARD.copy();
             vector3f.transform(direction.getRotation());
             Vec3i vec3i = direction.getNormal();
-            Vector3f vector3f1 = new Vector3f((float) vec3i.getX().lo(), (float) vec3i.getY(), (float) vec3i.getZ().lo());
+            Vector3f vector3f1 = new Vector3f((float) vec3i.getX().toDoubleSaturated(), (float) vec3i.getY(), (float) vec3i.getZ().toDoubleSaturated());
             vector3f1.cross(vector3f);
             Vec3 wantedDelta = this.wantedDelta(this.mob.getEyeY());
             double d0 = wantedDelta.x;

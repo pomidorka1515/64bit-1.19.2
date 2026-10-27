@@ -101,7 +101,7 @@ public class Vex extends Monster {
     public void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         if (pCompound.contains("BoundX")) {
-            this.boundOrigin = new BlockPos(net.minecraft.nbt.NbtUtils.readInt128(pCompound, "BoundX"), pCompound.getInt("BoundY"), net.minecraft.nbt.NbtUtils.readInt128(pCompound, "BoundZ"));
+            this.boundOrigin = new BlockPos(net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "BoundX"), pCompound.getInt("BoundY"), net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "BoundZ"));
         }
 
         if (pCompound.contains("LifeTicks")) {
@@ -112,9 +112,9 @@ public class Vex extends Monster {
     public void addAdditionalSaveData(CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
         if (this.boundOrigin != null) {
-            net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "BoundX", this.boundOrigin.getX());
+            net.minecraft.nbt.NbtUtils.writeInt1088(pCompound, "BoundX", this.boundOrigin.getX());
             pCompound.putInt("BoundY", this.boundOrigin.getY());
-            net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "BoundZ", this.boundOrigin.getZ());
+            net.minecraft.nbt.NbtUtils.writeInt1088(pCompound, "BoundZ", this.boundOrigin.getZ());
         }
 
         if (this.hasLimitedLife) {

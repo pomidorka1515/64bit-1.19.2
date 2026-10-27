@@ -385,8 +385,8 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
     * entity-collision semantics.</p>
     */
     private static double getExactYOffset(LevelReader level, BlockPos position, boolean canSpawnBelow, Entity entity) {
-        net.minecraft.core.Int128 probeMaxX = WorldBounds.addBlockOffset(position.getX(), 1L);
-        net.minecraft.core.Int128 probeMaxZ = WorldBounds.addBlockOffset(position.getZ(), 1L);
+        net.minecraft.core.Int1088 probeMaxX = WorldBounds.addBlockOffset(position.getX(), 1L);
+        net.minecraft.core.Int1088 probeMaxZ = WorldBounds.addBlockOffset(position.getZ(), 1L);
         SectorAABB exactProbe = new SectorAABB(position.getX(), 0.0D, (double) position.getY(),
                 position.getZ(), 0.0D, probeMaxX, probeMaxX.equals(position.getX()) ? Math.nextDown(1.0D) : 0.0D,
                 (double) position.getY() + 1.0D, probeMaxZ,
@@ -535,8 +535,8 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
 
     private static void setSpawnPosition(CompoundTag tag, SectorVec3 position) {
         CompoundTag exactTag = new CompoundTag();
-        NbtUtils.writeInt128(exactTag, "BlockX", position.blockX());
-        NbtUtils.writeInt128(exactTag, "BlockZ", position.blockZ());
+        NbtUtils.writeInt1088(exactTag, "BlockX", position.blockX());
+        NbtUtils.writeInt1088(exactTag, "BlockZ", position.blockZ());
         exactTag.putDouble("SubX", position.subX());
         exactTag.putDouble("SubZ", position.subZ());
         exactTag.putDouble("Y", position.y());

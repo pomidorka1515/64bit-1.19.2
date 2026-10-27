@@ -260,7 +260,9 @@ public class Slime extends Mob implements Enemy {
             }
 
             ChunkPos chunkpos = new ChunkPos(pPos);
-            boolean flag = WorldgenRandom.seedSlimeChunk(chunkpos.xLo(), chunkpos.zLo(), ((WorldGenLevel) pLevel).getSeed(), 987234911L).nextInt(10) == 0;
+            // The legacy slime seed polynomial is defined modulo 2^64; this is
+            // a seed reduction, not the chunk's identity or a cache key.
+            boolean flag = WorldgenRandom.seedSlimeChunk(chunkpos.xLimb(0), chunkpos.zLimb(0), ((WorldGenLevel) pLevel).getSeed(), 987234911L).nextInt(10) == 0;
             if (pRandom.nextInt(10) == 0 && flag && pPos.getY() < 40) {
                 return checkMobSpawnRules(pSlime, pLevel, pSpawnType, pPos, pRandom);
             }

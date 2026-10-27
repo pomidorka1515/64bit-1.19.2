@@ -5,7 +5,7 @@ import net.minecraft.world.phys.SectorPhysicsOrigin;
 import net.minecraft.world.phys.SectorAABB;
 
 import net.minecraft.world.phys.SectorVec3;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.nbt.NbtUtils;
 
 import com.google.common.collect.ImmutableList;
@@ -299,7 +299,7 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     }
 
     public void syncPacketPositionCodec(double pX, double pY, double pZ) {
-        this.packetPositionCodec.setBase(new Vec3(pX, pY, pZ));
+        this.packetPositionCodec.setBase(SectorVec3.fromApproximate(pX, pY, pZ));
     }
 
     /** Updates the packet delta codec with the authoritative split-coordinate position. */
@@ -670,9 +670,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
     protected final boolean sectorContainsAnyLiquid(SectorAABB exactBox) {
         if (!isSafeEntityScan(exactBox))
             return true;
-        for (Int128 x = exactBox.minBlockXForRange();; x = WorldBounds.addBlockOffset(x, 1L)) {
+        for (Int1088 x = exactBox.minBlockXForRange();; x = WorldBounds.addBlockOffset(x, 1L)) {
             for (int y = exactBox.minBlockYForRange(); y < exactBox.maxBlockYExclusive(); ++y) {
-                for (Int128 z = exactBox.minBlockZForRange();; z = WorldBounds.addBlockOffset(z, 1L)) {
+                for (Int1088 z = exactBox.minBlockZForRange();; z = WorldBounds.addBlockOffset(z, 1L)) {
                     if (!this.level.getFluidState(new BlockPos(x, y, z)).isEmpty())
                         return true;
                     if (z.equals(exactBox.maxBlockZForRangeInclusive()))
@@ -1169,9 +1169,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         if (this.level.hasChunksAt(blockpos, blockpos1)) {
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-            for (Int128 i = blockpos.getX();; i = WorldBounds.addBlockOffset(i, 1L)) {
+            for (Int1088 i = blockpos.getX();; i = WorldBounds.addBlockOffset(i, 1L)) {
                 for (int j = blockpos.getY(); j <= blockpos1.getY(); ++j) {
-                    for (Int128 k = blockpos.getZ();; k = WorldBounds.addBlockOffset(k, 1L)) {
+                    for (Int1088 k = blockpos.getZ();; k = WorldBounds.addBlockOffset(k, 1L)) {
                         blockpos$mutableblockpos.set(i, j, k);
                         BlockState blockstate = this.level.getBlockState(blockpos$mutableblockpos);
 
@@ -1205,9 +1205,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
                     scan.maxBlockXForRangeInclusive(), scan.maxBlockYExclusive(), scan.maxBlockZForRangeInclusive()))
             return;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-        for (Int128 x = scan.minBlockXForRange();; x = WorldBounds.addBlockOffset(x, 1L)) {
+        for (Int1088 x = scan.minBlockXForRange();; x = WorldBounds.addBlockOffset(x, 1L)) {
             for (int y = scan.minBlockYForRange(); y < scan.maxBlockYExclusive(); ++y) {
-                for (Int128 z = scan.minBlockZForRange();; z = WorldBounds.addBlockOffset(z, 1L)) {
+                for (Int1088 z = scan.minBlockZForRange();; z = WorldBounds.addBlockOffset(z, 1L)) {
                     pos.set(x, y, z);
                     BlockState state = this.level.getBlockState(pos);
                     try {
@@ -1732,10 +1732,10 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             SectorVec3 exactPosition = this.sectorPosition;
             if (exactPosition != null) {
                 CompoundTag exactTag = new CompoundTag();
-                NbtUtils.writeInt128(exactTag, "BlockX", exactPosition.blockX());
+                NbtUtils.writeInt1088(exactTag, "BlockX", exactPosition.blockX());
                 exactTag.putDouble("SubX", exactPosition.subX());
                 exactTag.putDouble("Y", exactPosition.y());
-                NbtUtils.writeInt128(exactTag, "BlockZ", exactPosition.blockZ());
+                NbtUtils.writeInt1088(exactTag, "BlockZ", exactPosition.blockZ());
                 exactTag.putDouble("SubZ", exactPosition.subZ());
                 pCompound.put("ExactPos", exactTag);
             }
@@ -1835,8 +1835,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             double y = exactTag.getDouble("Y");
             if (!(subX >= 0.0D && subX < 1.0D) || !(subZ >= 0.0D && subZ < 1.0D) || !Double.isFinite(y))
                 throw new IllegalArgumentException("Invalid ExactPos entity fractions or height");
-            this.applyExactPosition(SectorVec3.fromBlockAndFraction(NbtUtils.readInt128(exactTag, "BlockX"),
-                    subX, y, NbtUtils.readInt128(exactTag, "BlockZ"), subZ));
+            this.applyExactPosition(SectorVec3.fromBlockAndFraction(NbtUtils.readInt1088(exactTag, "BlockX"),
+                    subX, y, NbtUtils.readInt1088(exactTag, "BlockZ"), subZ));
             this.setYRot(listtag2.getFloat(0));
             this.setXRot(listtag2.getFloat(1));
             this.setOldPosAndRot();
@@ -2620,32 +2620,22 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
             return origin;
         if (scale == 0.125D) {
             return SectorVec3.fromBlockAndFraction(origin.blockX().shiftRight(3),
-                    ((origin.blockX().lo() & 7L) + origin.subX()) / 8.0D, origin.y(),
-                    origin.blockZ().shiftRight(3), ((origin.blockZ().lo() & 7L) + origin.subZ()) / 8.0D);
+                    ((origin.blockX().limb(0) & 7L) + origin.subX()) / 8.0D, origin.y(),
+                    origin.blockZ().shiftRight(3), ((origin.blockZ().limb(0) & 7L) + origin.subZ()) / 8.0D);
         }
         if (scale == 8.0D) {
-            Int128 x = origin.blockX().shiftLeftSaturated(3);
-            Int128 z = origin.blockZ().shiftLeftSaturated(3);
+            Int1088 x = origin.blockX().shiftLeftSaturated(3);
+            Int1088 z = origin.blockZ().shiftLeftSaturated(3);
             double fractionX = origin.subX() * 8.0D;
             double fractionZ = origin.subZ() * 8.0D;
             boolean overflowX = !x.shiftRight(3).equals(origin.blockX());
             boolean overflowZ = !z.shiftRight(3).equals(origin.blockZ());
-            return SectorVec3.fromBlockAndFraction(overflowX ? x : x.addSaturated(Int128.fromLong((long) fractionX)),
-                    overflowX ? (x.hi() < 0L ? 0.0D : Math.nextDown(1.0D)) : fractionX - Math.floor(fractionX), origin.y(),
-                    overflowZ ? z : z.addSaturated(Int128.fromLong((long) fractionZ)),
-                    overflowZ ? (z.hi() < 0L ? 0.0D : Math.nextDown(1.0D)) : fractionZ - Math.floor(fractionZ));
+            return SectorVec3.fromBlockAndFraction(overflowX ? x : x.addSaturated(Int1088.fromLong((long) fractionX)),
+                    overflowX ? (x.signum() < 0 ? 0.0D : Math.nextDown(1.0D)) : fractionX - Math.floor(fractionX), origin.y(),
+                    overflowZ ? z : z.addSaturated(Int1088.fromLong((long) fractionZ)),
+                    overflowZ ? (z.signum() < 0 ? 0.0D : Math.nextDown(1.0D)) : fractionZ - Math.floor(fractionZ));
         }
-        java.math.BigDecimal multiplier = java.math.BigDecimal.valueOf(scale);
-        return SectorVec3.fromDecimal(
-                clampPortalCoordinate(new java.math.BigDecimal(origin.blockX().toString()).add(java.math.BigDecimal.valueOf(origin.subX())).multiply(multiplier)),
-                origin.y(),
-                clampPortalCoordinate(new java.math.BigDecimal(origin.blockZ().toString()).add(java.math.BigDecimal.valueOf(origin.subZ())).multiply(multiplier)));
-    }
-
-    private static String clampPortalCoordinate(java.math.BigDecimal value) {
-        java.math.BigDecimal min = new java.math.BigDecimal(Int128.MIN.toString());
-        java.math.BigDecimal max = new java.math.BigDecimal(Int128.MAX.toString()).add(java.math.BigDecimal.valueOf(Math.nextDown(1.0D)));
-        return value.max(min).min(max).toPlainString();
+        return net.minecraft.commands.CoordinateScale.scale(origin, scale);
     }
 
     @Nullable
@@ -3236,9 +3226,9 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         Vec3 flow = Vec3.ZERO;
         int flowCount = 0;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-        for (Int128 x = box.minBlockXForRange();; x = WorldBounds.addBlockOffset(x, 1L)) {
+        for (Int1088 x = box.minBlockXForRange();; x = WorldBounds.addBlockOffset(x, 1L)) {
             for (int y = box.minBlockYForRange(); y < box.maxBlockYExclusive(); ++y) {
-                for (Int128 z = box.minBlockZForRange();; z = WorldBounds.addBlockOffset(z, 1L)) {
+                for (Int1088 z = box.minBlockZForRange();; z = WorldBounds.addBlockOffset(z, 1L)) {
                     pos.set(x, y, z);
                     FluidState state = this.level.getFluidState(pos);
                     if (state.is(tag)) {
@@ -3408,16 +3398,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         this.setDeltaMovement(new Vec3(pX, pY, pZ));
     }
 
-    public final Int128 getBlockX() {
+    public final Int1088 getBlockX() {
         return this.blockPosition.getX();
-    }
-
-    public final long getBlockXHi() {
-        return this.blockPosition.getXHi();
-    }
-
-    public final long getBlockXLo() {
-        return this.blockPosition.getXLo();
     }
 
     public final int getBlockY() {
@@ -3440,16 +3422,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
         return this.position.y + (double) this.eyeHeight;
     }
 
-    public final Int128 getBlockZ() {
+    public final Int1088 getBlockZ() {
         return this.blockPosition.getZ();
-    }
-
-    public final long getBlockZHi() {
-        return this.blockPosition.getZHi();
-    }
-
-    public final long getBlockZLo() {
-        return this.blockPosition.getZLo();
     }
 
     public void checkDespawn() {

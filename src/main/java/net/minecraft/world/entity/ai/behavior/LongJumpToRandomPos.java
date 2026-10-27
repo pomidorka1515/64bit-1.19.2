@@ -10,7 +10,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -91,9 +91,9 @@ public class LongJumpToRandomPos<E extends Mob> extends Behavior<E> {
         this.findJumpTries = 20;
         this.initialPosition = Optional.of(pEntity.sectorPosition());
         BlockPos blockpos = pEntity.blockPosition();
-        Int128 i = blockpos.getX();
+        Int1088 i = blockpos.getX();
         int j = blockpos.getY();
-        Int128 k = blockpos.getZ();
+        Int1088 k = blockpos.getZ();
         this.jumpCandidates = BlockPos.betweenClosedStream(net.minecraft.world.level.WorldBounds.subtractBlockOffset(i, this.maxLongJumpWidth), j - this.maxLongJumpHeight, net.minecraft.world.level.WorldBounds.subtractBlockOffset(k, this.maxLongJumpWidth), net.minecraft.world.level.WorldBounds.addBlockOffset(i, this.maxLongJumpWidth), j + this.maxLongJumpHeight, net.minecraft.world.level.WorldBounds.addBlockOffset(k, this.maxLongJumpWidth)).filter((p_217317_) -> {
                                                                                                                                                                                                                                   return !p_217317_.equals(blockpos);
                                                                                                                                                                                                                               })
@@ -165,8 +165,8 @@ public class LongJumpToRandomPos<E extends Mob> extends Behavior<E> {
 
     protected boolean isAcceptableLandingPosition(ServerLevel pLevel, E pEntity, BlockPos pPos) {
         BlockPos blockpos = pEntity.blockPosition();
-        Int128 i = blockpos.getX();
-        Int128 j = blockpos.getZ();
+        Int1088 i = blockpos.getX();
+        Int1088 j = blockpos.getZ();
         if (i.equals(pPos.getX()) && j.equals(pPos.getZ())) {
             return false;
         } else if (!pEntity.getNavigation().isStableDestination(pPos) && !this.acceptableLandingSpot.test(pLevel.getBlockState(pPos.below()))) {

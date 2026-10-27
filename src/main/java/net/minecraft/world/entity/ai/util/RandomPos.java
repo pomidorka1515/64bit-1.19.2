@@ -6,7 +6,7 @@ import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.PathfinderMob;
@@ -116,8 +116,8 @@ public class RandomPos {
 
     public static BlockPos generateRandomPosTowardDirection(PathfinderMob mob, int horizontalRange,
             RandomSource random, BlockPos offset) {
-        Int128 offsetX = offset.getX();
-        Int128 offsetZ = offset.getZ();
+        Int1088 offsetX = offset.getX();
+        Int1088 offsetZ = offset.getZ();
         if (mob.hasRestriction() && horizontalRange > 1) {
             BlockPos restriction = mob.getRestrictCenter();
             // Vanilla compares the mob's coordinate with the restriction block's

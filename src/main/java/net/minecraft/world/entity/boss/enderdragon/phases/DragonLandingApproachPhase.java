@@ -56,8 +56,8 @@ public class DragonLandingApproachPhase extends AbstractDragonPhaseInstance {
             int j;
             if (player != null) {
                 Vec3 vec3 = player.sectorPosition().withY(0.0D).relativeTo(
-                        net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(net.minecraft.core.Int128.ZERO,
-                                0.0D, 0.0D, net.minecraft.core.Int128.ZERO, 0.0D)).normalize();
+                        net.minecraft.world.phys.SectorVec3.fromBlockAndFraction(net.minecraft.core.Int1088.ZERO,
+                                0.0D, 0.0D, net.minecraft.core.Int1088.ZERO, 0.0D)).normalize();
                 j = this.dragon.findClosestNode(-vec3.x * 40.0D, 105.0D, -vec3.z * 40.0D);
             } else {
                 j = this.dragon.findClosestNode(40.0D, (double) blockpos.getY(), 0.0D);

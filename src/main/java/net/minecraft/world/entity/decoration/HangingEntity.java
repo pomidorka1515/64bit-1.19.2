@@ -179,13 +179,13 @@ public abstract class HangingEntity extends Entity {
 
     public void addAdditionalSaveData(CompoundTag pCompound) {
         BlockPos blockpos = this.getPos();
-        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "TileX", blockpos.getX());
+        net.minecraft.nbt.NbtUtils.writeInt1088(pCompound, "TileX", blockpos.getX());
         pCompound.putInt("TileY", blockpos.getY());
-        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "TileZ", blockpos.getZ());
+        net.minecraft.nbt.NbtUtils.writeInt1088(pCompound, "TileZ", blockpos.getZ());
     }
 
     public void readAdditionalSaveData(CompoundTag pCompound) {
-        BlockPos blockpos = new BlockPos(net.minecraft.nbt.NbtUtils.readInt128(pCompound, "TileX"), pCompound.getInt("TileY"), net.minecraft.nbt.NbtUtils.readInt128(pCompound, "TileZ"));
+        BlockPos blockpos = new BlockPos(net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "TileX"), pCompound.getInt("TileY"), net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "TileZ"));
         if (!blockpos.closerThan(this.blockPosition(), 16.0D)) {
             LOGGER.error("Hanging entity at invalid position: {}", (Object) blockpos);
         } else {

@@ -148,7 +148,7 @@ public class Phantom extends FlyingMob implements Enemy {
     public void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         if (pCompound.contains("AX")) {
-            this.anchorPoint = new BlockPos(net.minecraft.nbt.NbtUtils.readInt128(pCompound, "AX"), pCompound.getInt("AY"), net.minecraft.nbt.NbtUtils.readInt128(pCompound, "AZ"));
+            this.anchorPoint = new BlockPos(net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "AX"), pCompound.getInt("AY"), net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "AZ"));
         }
 
         this.setPhantomSize(pCompound.getInt("Size"));
@@ -156,9 +156,9 @@ public class Phantom extends FlyingMob implements Enemy {
 
     public void addAdditionalSaveData(CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
-        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "AX", this.anchorPoint.getX());
+        net.minecraft.nbt.NbtUtils.writeInt1088(pCompound, "AX", this.anchorPoint.getX());
         pCompound.putInt("AY", this.anchorPoint.getY());
-        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "AZ", this.anchorPoint.getZ());
+        net.minecraft.nbt.NbtUtils.writeInt1088(pCompound, "AZ", this.anchorPoint.getZ());
         pCompound.putInt("Size", this.getPhantomSize());
     }
 

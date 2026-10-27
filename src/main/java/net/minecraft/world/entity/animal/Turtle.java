@@ -143,25 +143,25 @@ public class Turtle extends Animal {
 
     public void addAdditionalSaveData(CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
-        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "HomePosX", this.getHomePos().getX());
+        net.minecraft.nbt.NbtUtils.writeInt1088(pCompound, "HomePosX", this.getHomePos().getX());
         pCompound.putInt("HomePosY", this.getHomePos().getY());
-        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "HomePosZ", this.getHomePos().getZ());
+        net.minecraft.nbt.NbtUtils.writeInt1088(pCompound, "HomePosZ", this.getHomePos().getZ());
         pCompound.putBoolean("HasEgg", this.hasEgg());
-        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "TravelPosX", this.getTravelPos().getX());
+        net.minecraft.nbt.NbtUtils.writeInt1088(pCompound, "TravelPosX", this.getTravelPos().getX());
         pCompound.putInt("TravelPosY", this.getTravelPos().getY());
-        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "TravelPosZ", this.getTravelPos().getZ());
+        net.minecraft.nbt.NbtUtils.writeInt1088(pCompound, "TravelPosZ", this.getTravelPos().getZ());
     }
 
     public void readAdditionalSaveData(CompoundTag pCompound) {
-        net.minecraft.core.Int128 i = net.minecraft.nbt.NbtUtils.readInt128(pCompound, "HomePosX");
+        net.minecraft.core.Int1088 i = net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "HomePosX");
         int j = pCompound.getInt("HomePosY");
-        net.minecraft.core.Int128 k = net.minecraft.nbt.NbtUtils.readInt128(pCompound, "HomePosZ");
+        net.minecraft.core.Int1088 k = net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "HomePosZ");
         this.setHomePos(new BlockPos(i, j, k));
         super.readAdditionalSaveData(pCompound);
         this.setHasEgg(pCompound.getBoolean("HasEgg"));
-        net.minecraft.core.Int128 l = net.minecraft.nbt.NbtUtils.readInt128(pCompound, "TravelPosX");
+        net.minecraft.core.Int1088 l = net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "TravelPosX");
         int i1 = pCompound.getInt("TravelPosY");
-        net.minecraft.core.Int128 j1 = net.minecraft.nbt.NbtUtils.readInt128(pCompound, "TravelPosZ");
+        net.minecraft.core.Int1088 j1 = net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "TravelPosZ");
         this.setTravelPos(new BlockPos(l, i1, j1));
     }
 
@@ -621,8 +621,8 @@ public class Turtle extends Animal {
                 }
 
                 if (vec31 != null) {
-                    net.minecraft.core.Int128 i = vec31.blockX();
-                    net.minecraft.core.Int128 j = vec31.blockZ();
+                    net.minecraft.core.Int1088 i = vec31.blockX();
+                    net.minecraft.core.Int1088 j = vec31.blockZ();
                     int k = 34;
                     if (!this.turtle.level.hasChunksAt(net.minecraft.world.level.WorldBounds.addBlockOffset(i, -34), net.minecraft.world.level.WorldBounds.addBlockOffset(j, -34), net.minecraft.world.level.WorldBounds.addBlockOffset(i, 34), net.minecraft.world.level.WorldBounds.addBlockOffset(j, 34))) {
                         vec31 = null;

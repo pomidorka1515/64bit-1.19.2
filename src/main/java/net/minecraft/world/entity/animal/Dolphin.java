@@ -126,17 +126,17 @@ public class Dolphin extends WaterAnimal {
 
     public void addAdditionalSaveData(CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
-        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "TreasurePosX", this.getTreasurePos().getX());
+        net.minecraft.nbt.NbtUtils.writeInt1088(pCompound, "TreasurePosX", this.getTreasurePos().getX());
         pCompound.putInt("TreasurePosY", this.getTreasurePos().getY());
-        net.minecraft.nbt.NbtUtils.writeInt128(pCompound, "TreasurePosZ", this.getTreasurePos().getZ());
+        net.minecraft.nbt.NbtUtils.writeInt1088(pCompound, "TreasurePosZ", this.getTreasurePos().getZ());
         pCompound.putBoolean("GotFish", this.gotFish());
         pCompound.putInt("Moistness", this.getMoistnessLevel());
     }
 
     public void readAdditionalSaveData(CompoundTag pCompound) {
-        net.minecraft.core.Int128 i = net.minecraft.nbt.NbtUtils.readInt128(pCompound, "TreasurePosX");
+        net.minecraft.core.Int1088 i = net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "TreasurePosX");
         int j = pCompound.getInt("TreasurePosY");
-        net.minecraft.core.Int128 k = net.minecraft.nbt.NbtUtils.readInt128(pCompound, "TreasurePosZ");
+        net.minecraft.core.Int1088 k = net.minecraft.nbt.NbtUtils.readInt1088(pCompound, "TreasurePosZ");
         this.setTreasurePos(new BlockPos(i, j, k));
         super.readAdditionalSaveData(pCompound);
         this.setGotFish(pCompound.getBoolean("GotFish"));

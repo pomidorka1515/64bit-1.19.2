@@ -1064,7 +1064,7 @@ mode does not intentionally take these overflow routes
 
 ## IEEE-754 infinity and NaN progression
 
-these are **floating-point overflows**, not the earlier 2^31 orb 2^63 / 2^63 lattice
+these are **floating-point overflows**, not the earlier 2^31 / 2^63 lattice
 failures. both generation modes use the same IEEE-754 binary64 (`double`)
 limit; that does **not** give them the same world-coordinate failure points.
 stable shifts prevent one route to failure, not compound cave overflow.
@@ -1119,6 +1119,18 @@ evidence labels:
   operation, not necessarily a world-generation infinity.
 - **P**: observed at the first affected 64-bit shift grid plane, other axis=0,
   Y=64; this is not an independently located infinity onset.
+- **S2**: extended `InfinityProbe`, precise 64-bit ordinary and stable-shifts,
+  Y=64, other axis=0, all four signed axes, 16 samples per power-of-two
+  interval from exponent 94 through 1086 inclusive. Only new later events
+  are added below; an event already present at the survey start is not a
+  newly located onset. Full per-field/sign results, including unit-scale raw
+  samplers and signed infinities, are in
+  [`tools/worldgen-evidence/infinity.tsv`](tools/worldgen-evidence/infinity.tsv).
+- **D**: `DistantTerrainProbe`, actual NoiseChunk columns or real
+  BIOMES/NOISE/SURFACE chunk stages; exact conditions and local-window limits
+  are specified in the [late-stage investigation](#beyond-the-old-survey-cap-density-death-and-surviving-ice).
+  Neither a sampled empty chunk nor a locally verified edge proves a global
+  last block.
 
 `ordinary` and `stable` refer to the corresponding generator modes. `both
 widths / both` covers ordinary and stable-shifts 32/64-bit modes. duplicate
@@ -1181,6 +1193,41 @@ converted input, not the returned noise or density.
 | cave cheese_layer sum (layer plus clamped cheese terms) | both widths, stable only | ±Z | +Infinity | S | ≈2^92.9542 | 9,594,035,304,461,697,130,468,212,736 |
 | pre-clamp cave layer: `4*cave_layer²` | both widths / both | ±X | +Infinity | S | ≈2^93.1699 | 11,141,460,353,568,422,474,092,118,016 |
 | cave cheese_layer sum (layer plus clamped cheese terms) | both widths, stable only | ±X | +Infinity | S | ≈2^93.1699 | 11,141,460,353,568,422,474,092,118,016 |
+| BlendedNoise / sloped_cheese | 64-bit stable (base noise also ordinary) | ±Z; Y=64, other=0 | +Infinity | S2 | ≈2^162.7549 | 9,865,136,051,983,594,697,874,872,620,834,910,382,677,544,665,088 |
+| BlendedNoise; stable sloped_cheese / cave selection / direct final density | 64-bit ordinary for base; stable for all listed fields | ±X; Y=64, other=0 | NaN | S2 | ≈2^162.8580 | 10,595,886,870,649,046,156,976,715,037,193,051,892,505,510,936,576 |
+| BlendedNoise; stable sloped_cheese / cave selection / direct final density | 64-bit ordinary for base; stable for all listed fields | ±Z; Y=64, other=0 | NaN | S2 | ≈2^163.5236 | 16,807,268,829,305,383,559,342,375,576,237,254,726,043,224,244,224 |
+| local bottom-band solid loss, **not permanent** | 64-bit stable | +Z, X=51, full column | 8 solids → 0; solids return 16 blocks later | D | ≈2^165.3878 | 61,190,897,294,192,142,547,271,579,610,383,892,756,375,251,976,164 |
+| supplied teleport: NOISE → SURFACE | 64-bit stable | chunk containing X=51 and +Z=N | 0 solids → 22,259 ice/snow solids | D | ≈2^166.2523 | 111,414,603,535,684,224,740,921,180,149,999,999,999,999,999,999,999 |
+| aquifer lava | 64-bit ordinary / stable | ±X; Y=64, other=0 | NaN | S2 | ≈2^171.0875 | 3,180,227,562,832,044,750,011,218,195,990,631,850,771,309,213,515,776 |
+| compound pillars / gated pillars | 64-bit ordinary / stable | ±X; Y=64, other=0 | NaN | S2 | ≈2^171.4594 | 4,115,588,610,723,822,617,661,576,488,929,052,983,351,106,041,020,416 |
+| aquifer lava | 64-bit ordinary / stable | ±Z; Y=64, other=0 | NaN | S2 | ≈2^171.7004 | 4,863,877,449,037,244,911,781,863,123,279,789,889,414,943,503,024,128 |
+| compound pillars / gated pillars | 64-bit ordinary / stable | ±Z; Y=64, other=0 | NaN | S2 | ≈2^171.7549 | 5,050,949,658,615,600,485,311,934,781,867,474,115,930,902,868,525,056 |
+| continentalness | 64-bit stable | ±X; Y=64, other=0 | NaN | S2 | ≈2^172.9542 | 11,598,476,993,858,045,558,864,442,832,436,422,043,989,480,661,057,536 |
+| aquifer barrier | 64-bit ordinary / stable | ±X; Y=64, other=0 | NaN | S2 | ≈2^173.0875 | 12,720,910,251,328,179,000,044,872,783,962,527,403,085,236,854,063,104 |
+| furthest nonempty SURFACE chunk **in the specified sparse survey** | 64-bit stable | +Z, requested X=51; actual ice at X=48 | 127 packed ice blocks, top Y=74 | D | ≈2^173.5850 | 17,958,932,119,522,135,058,886,879,224,417,685,745,532,099,088,089,088 |
+| continentalness | 64-bit stable | ±Z; Y=64, other=0 | NaN | S2 | ≈2^173.8074 | 20,952,087,472,775,824,235,368,025,761,820,633,369,787,448,936,103,936 |
+| unit-scale surface / iceberg_surface samples (not surface feature outcome) | 64-bit ordinary / stable | ±X; Y=64, other=0 | NaN | S2 | ≈2^174.0875 | 25,441,820,502,656,358,000,089,745,567,925,054,806,170,473,708,126,208 |
+| ore gap | 64-bit ordinary / stable | ±X; Y=64, other=0 | NaN | S2 | ≈2^174.9069 | 44,897,330,298,805,337,647,217,198,061,044,214,363,830,247,720,222,720 |
+| spaghetti roughness product; aquifer spread | 64-bit ordinary / stable | ±X; Y=64, other=0 | NaN | S2 | ≈2^175.0875 | 50,883,641,005,312,716,000,179,491,135,850,109,612,340,947,416,252,416 |
+| unit-scale surface sample | 64-bit ordinary / stable | ±Z; Y=64, other=0 | NaN | S2 | ≈2^175.1699 | 53,876,796,358,566,405,176,660,637,673,253,057,236,596,297,264,267,264 |
+| spaghetti roughness product; aquifer spread | 64-bit ordinary / stable | ±Z; Y=64, other=0 | NaN | S2 | ≈2^175.5236 | 68,842,573,124,834,851,059,066,370,360,267,795,357,873,046,504,341,504 |
+| noodles | 64-bit ordinary / stable | ±X; Y=64, other=0 | NaN | S2 | ≈2^175.5850 | 71,835,728,478,088,540,235,547,516,897,670,742,982,128,396,352,356,352 |
+| ore gap | 64-bit ordinary / stable | ±Z; Y=64, other=0 | NaN | S2 | ≈2^175.5850 | 71,835,728,478,088,540,235,547,516,897,670,742,982,128,396,352,356,352 |
+| unit-scale iceberg_surface sample | 64-bit ordinary / stable | ±Z; Y=64, other=0 | NaN | S2 | ≈2^175.7004 | 77,822,039,184,595,918,588,509,809,972,476,638,230,639,096,048,386,048 |
+| locally verified all-height interpolated density loss | 64-bit stable | +Z, X=51, Y=-64..319 | 376 → 384 NaN heights | D | ≈2^175.7854 | 82,541,967,024,202,331,355,893,425,568,107,005,193,777,286,113,028,040 |
+| 2D spaghetti | 64-bit ordinary / stable | ±X; Y=64, other=0 | NaN | S2 | ≈2^176.0875 | 101,767,282,010,625,432,000,358,982,271,700,219,224,681,894,832,504,832 |
+| 2D spaghetti | 64-bit ordinary / stable | ±Z; Y=64, other=0 | NaN | S2 | ≈2^176.2479 | 113,739,903,423,640,188,706,283,568,421,312,009,721,703,294,224,564,224 |
+| erosion / ridges / offset / depth / initial density without jaggedness | 64-bit stable | ±X; Y=64, other=0 | NaN | S2 | ≈2^177.0875 | 203,534,564,021,250,864,000,717,964,543,400,438,449,363,789,665,009,664 |
+| aquifer floodedness | 64-bit ordinary / stable | ±X; Y=64, other=0 | NaN | S2 | ≈2^177.2479 | 227,479,806,847,280,377,412,567,136,842,624,019,443,406,588,449,128,448 |
+| aquifer floodedness | 64-bit ordinary / stable | ±Z; Y=64, other=0 | NaN | S2 | ≈2^177.9069 | 359,178,642,390,442,701,177,737,584,488,353,714,910,641,981,761,781,760 |
+| erosion | 64-bit stable | ±Z; Y=64, other=0 | NaN | S2 | ≈2^177.9542 | 371,151,263,803,457,457,883,662,170,637,965,505,407,663,381,153,841,152 |
+| noodles | 64-bit ordinary / stable | ±Z; Y=64, other=0 | NaN | S2 | ≈2^178.1699 | 431,014,370,868,531,241,413,285,101,386,024,457,892,770,378,114,138,112 |
+| ridges / offset / depth / initial density without jaggedness | 64-bit stable | ±Z; Y=64, other=0 | NaN | S2 | ≈2^179.0875 | 814,138,256,085,003,456,002,871,858,173,601,753,797,455,158,660,038,656 |
+| vegetation / humidity | 64-bit stable | ±X; Y=64, other=0 | NaN | S2 | ≈2^179.2479 | 909,919,227,389,121,509,650,268,547,370,496,077,773,626,353,796,513,792 |
+| temperature | 64-bit stable | ±X; Y=64, other=0 | NaN | S2 | ≈2^180.2479 | 1,819,838,454,778,243,019,300,537,094,740,992,155,547,252,707,593,027,584 |
+| vegetation / humidity | 64-bit stable | ±Z; Y=64, other=0 | NaN | S2 | ≈2^180.6439 | 2,394,524,282,602,951,341,184,917,229,922,358,099,404,279,878,411,878,400 |
+| temperature | 64-bit stable | ±Z; Y=64, other=0 | NaN | S2 | ≈2^181.3219 | 3,831,238,852,164,722,145,895,867,567,875,772,959,046,847,805,459,005,440 |
+| aquifer barrier, exceptionally late first sampled NaN (earlier values include −Infinity) | 64-bit ordinary / stable | ±Z; Y=64, other=0 | NaN | S2 | exact 2^1026 | 719077253944926363091722076315609893447190791576922629093720324630930703222003852530833909289630144084480455519485573430635159075257666489971389722557896497511071573699461941105208878404984376477812331808340023075352602729369851525895652442163308948653402042738345192959788983753918865219341425318496896548864 |
 | positive world-coordinate storage limit | signed Int1088, all modes | any positive axis | not a sampler Infinity onset; absolute binary64 projection overflows | E | 2^1087 − 1 | exact `(1 << 1087) - 1` |
 | negative world-coordinate storage limit (magnitude) | signed Int1088, all modes | any negative axis | not a sampler Infinity onset; absolute binary64 projection overflows | E | 2^1087 | exact `1 << 1087` |
 | jagged scaled-input conversion reference, **inside address domain** | IEEE-754 round-to-nearest, ties-to-even | scale 1500.0, ±X / ±Z; exact product then convert | ±Infinity | E | ≈2^1013.4493; exact ceil(T / 1500) | 119846208990821053862485980936868943386622755140025217957449185986963312195176500631099345318391471397553524277795258607297703698567960268420438325781003880454605934667138922450849236563878474354509650486846713237047577973081895276546573889957650195146049445629577007136228474373133005395361920118602782999 |
@@ -1192,3 +1239,224 @@ converted input, not the returned noise or density.
 | first exact integer magnitude converting to binary64 Infinity | IEEE-754 round-to-nearest, ties-to-even | ±, axes irrelevant; inside 1088-bit address domain | ±Infinity | E | ≈2^1024; exact **2^1024 − 2^970** | 179769313486231580793728971405303415079934132710037826936173778980444968292764750946649017977587207096330286416692887910946555547851940402630657488671505820681908902000708383676273854845817711531764475730270069855571366959622842914819860834936475292719074168444365510704342711559699508093042880177904174497792 |
 | cave_entrance scaled-input conversion reference, **inside address domain** | IEEE-754 round-to-nearest, ties-to-even | scale 0.75 (3/4), ±X / ±Z; exact product then convert | ±Infinity | E | ≈2^1024.4150; exact (2^1026 − 2^972 + 1) / 3 | 239692417981642107724971961873737886773245510280050435914898371973926624390353001262198690636782942795107048555590517214595407397135920536840876651562007760909211869334277844901698473127756948709019300973693426474095155946163790553093147779915300390292098891259154014272456948746266010790723840237205565997056 |
 | zero-shift climate scaled-input conversion reference, **inside address domain** | IEEE-754 round-to-nearest, ties-to-even | scale 0.25, ±X / ±Z; exact product then convert | ±Infinity | E | 2^1026 − 2^972 | 719077253944926323174915885621213660319736530840151307744695115921779873171059003786596071910348828385321145666771551643786222191407761610522629954686023282727635608002833534705095419383270846127057902921080279422285467838491371659279443339745901170876296673777462042817370846238798032372171520711616697991168 |
+
+## Beyond the old survey cap: density death and surviving ice
+
+**The old 2^127 survey cap was not a terrain endpoint.** The new probes extend
+raw/function sampling through exponent 1086, and measure late columns and
+actual BIOMES/NOISE/SURFACE chunks separately. Seed 0, default overworld,
+**64bit-stable-shifts / precise** unless explicitly stated otherwise.
+The supplied screenshots show this mode, not ordinary `64bit`.
+
+Evidence and reproduction commands are checked in under
+[`tools/worldgen-evidence/`](tools/worldgen-evidence/README.md). Values described
+as sampled are not adjacent-block boundaries. All column counts cover
+Y=-64..319. A solid is a non-air block with empty fluid state; water/lava do
+not count. SURFACE tests do not include structures, carvers, decoration or a
+running client's existing chunks.
+
+### 1. The supplied teleport: why some terrain survives
+
+The command's integer block location is:
+
+```text
+X = 51
+Y = 136
+Z = 111414603535684224740921180149999999999999999999999
+```
+
+At that exact point, the second screenshot's finite direct-router result is
+reproduced: offset=-0.4597500264644623, factor=3.950000047683716,
+depth=-0.5222500264644623, base 3D noise=+Infinity,
+sloped_cheese=+Infinity, pillars=+Infinity, underground=+Infinity,
+selected caves=+Infinity, but **direct final density=0.4583333333333333**.
+All 15 direct router fields are non-NaN at this point. The shifts remain
+bounded (shift_x=2.7837989796788927, shift_z=-2.1414478847119276).
+
+This is not contradictory: `SQUEEZE` first clamps its input to [-1,1], then
+computes `d/2 - d³/24`. Positive infinity can therefore become **11/24**;
+NaN cannot. The initial-density field is a different, clamped height-gradient
+path, not a preview of interpolated final density. Both screenshots show
+jaggedness=0 even though the separately displayed jagged sampler is NaN:
+the density multiplication short-circuits when its first argument is zero,
+so an unevaluated jagged term need not poison sloped cheese.
+
+At **the same X/Z**, actual NoiseChunk evaluation instead reports:
+
+| Measurement | Result |
+| --- | --- |
+| direct final-density NaN heights | 295 / 384 |
+| interpolated final-density NaN heights | 320 / 384 |
+| noise-fill solid blocks in this column | **0** |
+| noise-fill solid blocks in the containing 16×16 chunk | **0** |
+| after actual surface generation | **22,259 solid blocks**, top Y=134 |
+| surface-generated materials | **21,689 packed ice + 570 snow blocks** |
+
+**The visible ice/snow is a later surface-generated survivor, not proof of
+surviving positive interpolated terrain density.** `SurfaceSystem.buildSurface`
+calls `frozenOceanExtension` for frozen/deep-frozen ocean biomes *after* noise
+fill. That extension can replace air/water with packed ice and snow; it does
+not require positive final density at the replacement block. This matches
+the screenshot's frozen-ocean biome and ice/snow geometry.
+
+The surface path also uses this project's `WorldBounds.clampNoise`:
+NaN→0, negative infinity→-1, positive infinity→1. Its iceberg test uses
+`min(abs(surface * 8.25), pillar * 15)` and requires a result above 1.8.
+Thus a huge/infinite **positive** pillar can still build an iceberg; a negative
+pillar or a NaN pillar mapped to zero can disable it. Surface-noise failure
+is not equivalent to final-density failure. Nearby X/Z positions can choose
+different extrapolated gradients, signs and branches; there is no universal
+one-block screen-space wall. The first screenshot is independently reproduced
+at **X=48, Y=136, Z=111414603535684224740921180150000000000000000000002**:
+base noise, sloped cheese, cheese_layer, underground and final density are
+NaN, while pillars=-Infinity. Its climate channels and depth are still finite.
+The shifts are 2.291934608365561 and -2.4447690658649748. Only final density
+is NaN among its 15 router fields. This is a measured local contrast to the
+second screenshot, not a change of generator mode or coordinate precision.
+
+### 2. Late base-noise NaNs and successive column losses
+
+Beyond pillar infinity, BlendedNoise itself reaches infinity/NaN. On the
+Y=64, other=0 survey, first newly observed base-noise NaNs are around
+2^162.8580 on ±X and 2^163.5236 on ±Z. Stable shifts do not stabilize this
+sampler. At these sampled points, sloped cheese, cave candidate/selection and
+direct final density also become NaN. Ordinary mode's base noise matches;
+its climate-driven density had already failed much earlier.
+
+For actual columns, the first **sampled** empty and all-NaN columns in the
+new survey are below. Positive X/Z, other=0 use exponents 150..180; negative
+X/Z use 150..185. The X=51 transect uses exponents 140..180. Every interval
+has four samples `2^e * (1 + step/4)`. Matching signs here were measured,
+not assumed; this does not prove matching behavior between samples.
+
+| Transect | First sampled column with zero noise-fill solids | NaN heights there | First sampled column with all 384 interpolated heights NaN |
+| --- | ---: | ---: | ---: |
+| ±X, Z=0; magnitudes | 10,230,511,461,316,320,427,425,793,829,013,981,137,591,527,800,832 | 320 | 83,808,349,891,103,296,941,472,103,047,282,533,479,149,795,744,415,744 |
+| ±Z, X=0; magnitudes | 35,076,039,295,941,670,036,888,435,985,190,792,471,742,381,031,424 | 320 | 119,726,214,130,147,567,059,245,861,496,117,904,970,213,993,920,593,920 |
+| +Z, X=51 | 70,152,078,591,883,340,073,776,871,970,381,584,943,484,762,062,848 | 320 | 83,808,349,891,103,296,941,472,103,047,282,533,479,149,795,744,415,744 |
+
+Empty does **not** require all 384 densities to be NaN. Remaining finite
+heights may have nonpositive density. Conversely, a direct-router positive
+sample does not imply an interpolated solid block.
+
+### 3. A false "last block": exact loss, then recurrence
+
+At X=51 on +Z, a local bracket search found the adjacent columns below.
+An exhaustive 33-column verification exposed why bisection alone is unsafe:
+
+| Z | Solid Y values | Solid count | Interpolated NaN heights |
+| ---: | --- | ---: | ---: |
+| 61190897294192142547271579610383892756375251976163 | -64..-57 | 8 | 312 |
+| 61190897294192142547271579610383892756375251976164 | none | 0 | 320 |
+| 61190897294192142547271579610383892756375251976180 | **-64..-57 return** | **8** | 312 |
+
+The first row contains a locally last block at Y=-57, but **not the last
+terrain block on this transect**. The supposedly dead bottom band returns
+just 16 blocks beyond the empty boundary. Noise fill can still be locally
+nonmonotonic even at these enormous magnitudes. The checked-in probe reports
+`MONOTONIC_LOCAL_WINDOW=false`; it must not label this a permanent endpoint.
+
+### 4. Where the entire interpolated density column dies locally
+
+A separate all-height-NaN bracket at X=51 gives:
+
+| +Z coordinate | Interpolated NaN heights | Direct-router NaN heights | Solids |
+| ---: | ---: | ---: | ---: |
+| 82541967024202331355893425568107005193777286113028039 | 376 | 319 | 0 |
+| **82541967024202331355893425568107005193777286113028040** | **384** | **319** | 0 |
+
+Every column from 16 blocks inward through 16 outward was checked; this local
+window **is** monotonic for the all-NaN predicate. This is an exact adjacent
+**local all-height interpolated-density boundary**, not the first global NaN,
+first empty column, surface-ice endpoint, or proof that all farther columns
+are NaN. The unchanged 319 direct NaNs demonstrate the distinction: 65 direct
+height samples are still non-NaN while interpolation leaves no non-NaN height.
+
+### 5. Ice outlives noise fill; the furthest measured block
+
+The real chunk-stage survey fixes requested X=51 and samples +Z at `2^e`
+and `1.5*2^e`, e=160..185 inclusive: **52 chunks**. Chunk material counts
+include X=48..63 and all 16 Z columns, not only the requested X=51.
+Results include repeated ice disappearance and reappearance:
+
+| Requested Z | NOISE solids | SURFACE solids | Highest solid Y |
+| ---: | ---: | ---: | ---: |
+| 374144419156711147060143317175368453031918731001856 | 0 | 23,490 | 134 |
+| 561216628735066720590214975763052679547878096502784 | 0 | **0** | none |
+| 748288838313422294120286634350736906063837462003712 | 0 | **933** | 134 |
+| 8979466059761067529443439612208842872766049544044544 | 0 | 7,998 | 134 |
+| 11972621413014756705924586149611790497021399392059392 | 0 | **0** | none |
+| **17958932119522135058886879224417685745532099088089088** | 0 | **127 packed ice** | **74** |
+| 23945242826029513411849172299223580994042798784118784 | 0 | 0 | none |
+
+All **later sampled** chunks through `1.5*2^185` had zero solids after
+SURFACE. The furthest nonempty sampled chunk was re-generated and every
+block inspected. Its furthest +Z solid (then furthest X, then highest Y) is:
+
+```mcfunction
+/execute in minecraft:overworld run tp @s 48 75 17958932119522135058886879224417685745532099088089088
+```
+
+The measured packed-ice block itself is at **X=48, Y=74**, at that exact Z;
+the teleport stands one block above it. This is the **furthest block found
+in this survey**, not a certified global last block. The gaps between these
+astronomically separated samples were not exhaustively generated. Ice already
+returned after earlier empty samples, so extending one empty chunk into a
+claim that every farther chunk is empty would be demonstrably unsound.
+Other seeds, transverse coordinates, biomes and later decoration are also
+outside that endpoint claim.
+
+### 6. Climate, aquifers and raw samplers keep failing after terrain is gone
+
+The extended catalog separates several later events instead of calling them
+one universal death wall:
+
+- Compound pillars turn from infinity into sampled NaN near 2^171.46..171.75.
+- Stable-shift continentalness reaches sampled NaN near 2^172.95..173.81.
+- Roughness, noodles and 2D spaghetti get sampled NaNs around 2^175..178.
+- Erosion, ridges, offset/depth and initial density follow their own later
+  branches, around 2^177..179 in the measured Y=64 transects.
+- Stable-shift humidity/temperature get sampled NaNs around 2^179..181,
+  **after** the measured noise-fill and surface-ice losses above.
+- Some raw unit-scale samplers and the +Z aquifer barrier retain infinities
+  rather than NaN until input-conversion-scale distances near 2^1024..1035.
+  These are new arithmetic result kinds, not reappearing terrain.
+
+The TSV retains all surveyed raw noises, branch nodes and all 15 router
+fields. Unit-scale raw rows must not be mistaken for call-site scaled world
+walls. A first observed NaN need not stay NaN forever, and this survey does
+not establish any field's global permanent-NaN coordinate.
+
+### 7. At the supplied huge jagged-conversion reference
+
+Let **J** be the exact 306-digit integer in the jagged scaled-input conversion
+row above (`ceil((2^1024 - 2^970) / 1500)`). At **X=0, Y=64, Z=J**, actual
+seed-0 stable-shifts evaluation confirms the important part of the report:
+T, V, C, E, depth, ridges, initial density and final density are already NaN.
+Base noise, selected caves and compound pillars are NaN too. This is far
+beyond their earlier measured failures; **J is not their first onset**.
+
+It is not literally all router fields, however:
+
+| Fields at (0,64,J) | Actual result |
+| --- | --- |
+| 12 of the 15 router fields | NaN |
+| aquifer barrier | **−Infinity** |
+| vein toggle | **0.0** (Y=64 is outside the ore-vein activation bands) |
+| vein ridged | **-0.07999999821186066** |
+| stable shift_x / shift_z | **-0.8748079656617059 / 2.9739286478886484** |
+| terrain factor / jaggedness | **4.690000057220459 / 0.0** |
+
+The containing chunk was generated through actual biome, noise and surface
+stages: **zero noise-fill solids and zero surface-stage solids**. This is an
+explicit checked empty chunk, not proof of global emptiness at every X/Z of
+that magnitude. Stable shifts still retain bounded outputs; constant/gated
+fields can stay finite even when every F3 climate channel displays NaN.
+
+Finally, the mathematical exact-product conversion references are still
+distinct from sampler implementation onsets. `WorldgenCoordinate.scale`
+reconstructs fallback doubles by summing scaled product limbs; octave scales,
+NormalNoise's second stack and shifted inputs add further operation order.
+Integer storage continues to signed **1088 bits** even when these double
+arithmetic consumers have long since failed. Neither J nor the binary64
+conversion threshold is the world's address limit or a measured last block.

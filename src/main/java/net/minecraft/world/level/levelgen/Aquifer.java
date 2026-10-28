@@ -270,6 +270,10 @@ public interface Aquifer {
         }
 
         private Int1088 columnCoordinate(DensityFunction.FunctionContext context, boolean x) {
+            if (context == this.noiseChunk) {
+                Int1088 interpolated = x ? this.noiseChunk.interpolatedBlockX() : this.noiseChunk.interpolatedBlockZ();
+                if (interpolated != null) return interpolated;
+            }
             // Low bits select a candidate, never identity: verify every significant limb.
             int length = x ? context.blockXLimbCount() : context.blockZLimbCount();
             long low = x ? context.blockXLow() : context.blockZLow();

@@ -390,6 +390,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
         ChunkPos chunkpos = pChunk.getPos();
         Int1088 i = chunkpos.getMinBlockX();
         Int1088 j = chunkpos.getMinBlockZ();
+        boolean voidTerrain = SharedConstants.debugVoidTerrain(chunkpos);
         Aquifer aquifer = noisechunk.aquifer();
         noisechunk.initializeForFirstCellX();
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
@@ -442,9 +443,9 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
                                 }
 
                                 blockstate = this.debugPreliminarySurfaceLevel(noisechunk, k3, k2, j4, blockstate);
-                                if (blockstate != AIR && !SharedConstants.debugVoidTerrain(pChunk.getPos())) {
+                                if (blockstate != AIR && !voidTerrain) {
                                     if (blockstate.getLightEmission() != 0 && pChunk instanceof ProtoChunk) {
-                                        blockpos$mutableblockpos.set(chunkpos.getBlockX(k1 * k + j3), k2, chunkpos.getBlockZ(l1 * k + i4));
+                                        blockpos$mutableblockpos.set(k3, k2, j4);
                                         ((ProtoChunk) pChunk).addLight(blockpos$mutableblockpos);
                                     }
 
@@ -452,7 +453,7 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
                                     heightmap.update(l3, k2, k4, blockstate);
                                     heightmap1.update(l3, k2, k4, blockstate);
                                     if (aquifer.shouldScheduleFluidUpdate() && !blockstate.getFluidState().isEmpty()) {
-                                        blockpos$mutableblockpos.set(chunkpos.getBlockX(k1 * k + j3), k2, chunkpos.getBlockZ(l1 * k + i4));
+                                        blockpos$mutableblockpos.set(k3, k2, j4);
                                         pChunk.markPosForPostprocessing(blockpos$mutableblockpos);
                                     }
                                 }

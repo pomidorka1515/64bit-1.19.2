@@ -31,6 +31,33 @@ class NoiseChunkTest {
     }
 
     @Test
+    void interpolatedPositionsAreReusedOnlyWhileCellAndOffsetStillMatch() {
+        for (Int1088 origin : new Int1088[]{Int1088.ZERO, Int1088.ONE.shiftLeftSaturated(160),
+                Int1088.ONE.shiftLeftSaturated(1024), Int1088.MIN, Int1088.MAX.subtractSaturated(Int1088.fromLong(15))}) {
+            NoiseChunk chunk = chunk(origin, origin);
+            assertNull(chunk.interpolatedBlockX());
+            assertNull(chunk.interpolatedBlockZ());
+            chunk.initializeForFirstCellX();
+            chunk.advanceCellX(0);
+            chunk.selectCellYZ(0, 0);
+            Int1088 x = origin.addSaturated(Int1088.fromLong(3));
+            Int1088 z = origin.addSaturated(Int1088.fromLong(2));
+            chunk.updateForX(x, 0.75);
+            chunk.updateForZ(z, 0.5);
+            assertSame(x, chunk.interpolatedBlockX());
+            assertSame(z, chunk.interpolatedBlockZ());
+            chunk.forIndex(0);
+            assertNull(chunk.interpolatedBlockX());
+            assertNull(chunk.interpolatedBlockZ());
+            chunk.updateForX(x, 0.75);
+            chunk.updateForZ(z, 0.5);
+            chunk.selectCellYZ(0, 1);
+            assertNull(chunk.interpolatedBlockZ());
+            chunk.stopInterpolation();
+        }
+    }
+
+    @Test
     void cachedCoordinatesCarryBorrowSaturateAndShrinkWithoutStaleLimbs() throws Exception {
         NoiseChunk chunk = chunk(Int1088.ZERO, Int1088.ZERO);
         var xField = NoiseChunk.class.getDeclaredField("cellStartBlockX");

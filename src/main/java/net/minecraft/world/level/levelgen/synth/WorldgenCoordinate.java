@@ -122,34 +122,36 @@ public final class WorldgenCoordinate {
         }
         long shift = -power;
         long integer = 0;
-        if (shift < 1152) {
+        if (shift < (long)len * 64) {
             int word = (int)(shift >>> 6), bit = (int)shift & 63;
             integer = product[word] >>> bit;
-            if (bit != 0 && word + 1 < 18) integer |= product[word + 1] << (64 - bit);
+            if (bit != 0 && word + 1 < len) integer |= product[word + 1] << (64 - bit);
         }
         boolean remainder = false;
-        for (int i = 0; i < 18; ++i) {
+        int fractionLength = Math.min(len, (int)Math.min(18, (shift + 63) >>> 6));
+        for (int i = 0; i < fractionLength; ++i) {
             product[i] = maskBelow(product[i], (int)Math.max(0, Math.min(64, shift - 64L * i)));
             remainder |= product[i] != 0;
         }
         long lattice = negative ? -integer - (remainder ? 1 : 0) : integer;
         if (negative && remainder && shift <= 1152) {
+            fractionLength = (int)((shift + 63) >>> 6);
             long carry = 1;
-            for (int i = 0; i < 18; ++i) {
+            for (int i = 0; i < fractionLength; ++i) {
                 long v = ~product[i] + carry;
                 carry = carry != 0 && v == 0 ? 1 : 0;
                 product[i] = maskBelow(v, (int)Math.max(0, Math.min(64, shift - 64L * i)));
             }
         }
-        double fraction = fractionRounded(product, shift);
+        double fraction = fractionRounded(product, shift, fractionLength);
         if (negative && remainder && shift > 1152) fraction = 1.0D - fraction;
         if (fraction >= 1.0D) { ++lattice; fraction = 0; }
         out.lattice = lattice;
         out.fraction = fraction;
     }
 
-    private static double fractionRounded(long[] words, long shift) {
-        int topWord = words.length - 1;
+    private static double fractionRounded(long[] words, long shift, int length) {
+        int topWord = length - 1;
         while (topWord >= 0 && words[topWord] == 0L) --topWord;
         if (topWord < 0) return 0;
         int top = topWord * 64 + 63 - Long.numberOfLeadingZeros(words[topWord]);

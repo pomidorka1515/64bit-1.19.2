@@ -70,6 +70,8 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     private Int1088 cachedCellX, cachedCellZ;
     private long cachedOffsetX, cachedOffsetZ;
     private int absoluteXLength = 1, absoluteZLength = 1;
+    private Int1088 interpolatedX, interpolatedZ, interpolatedCellX, interpolatedCellZ;
+    private long interpolatedOffsetX, interpolatedOffsetZ;
     long inCellX;
     int inCellY;
     long inCellZ;
@@ -368,6 +370,9 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
 
     public void updateForX(Int1088 x, double p_209232_) {
         this.inCellX = WorldBounds.signedDifferenceAsLong(x, this.cellStartBlockX);
+        this.interpolatedX = x;
+        this.interpolatedCellX = this.cellStartBlockX;
+        this.interpolatedOffsetX = this.inCellX;
         for (int i = 0; i < this.interpolators.size(); ++i) this.interpolators.get(i).updateForX(p_209232_);
     }
 
@@ -377,8 +382,28 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
 
     public void updateForZ(Int1088 z, double p_209243_) {
         this.inCellZ = WorldBounds.signedDifferenceAsLong(z, this.cellStartBlockZ);
+        this.interpolatedZ = z;
+        this.interpolatedCellZ = this.cellStartBlockZ;
+        this.interpolatedOffsetZ = this.inCellZ;
         ++this.interpolationCounter;
         for (int i = 0; i < this.interpolators.size(); ++i) this.interpolators.get(i).updateForZ(p_209243_);
+    }
+
+    // These are the exact positions supplied by the block-fill loop, not a
+    // low-word guess. Array/slice sampling may change either the cell or its
+    // local offset, so both must still match before reusing a position.
+    @Nullable
+    Int1088 interpolatedBlockX() {
+        return this.interpolatedCellX == this.cellStartBlockX && this.interpolatedOffsetX == this.inCellX
+                && this.inCellX >= -WorldBounds.MAX_SAFE_LOCAL_SPAN && this.inCellX <= WorldBounds.MAX_SAFE_LOCAL_SPAN
+                ? this.interpolatedX : null;
+    }
+
+    @Nullable
+    Int1088 interpolatedBlockZ() {
+        return this.interpolatedCellZ == this.cellStartBlockZ && this.interpolatedOffsetZ == this.inCellZ
+                && this.inCellZ >= -WorldBounds.MAX_SAFE_LOCAL_SPAN && this.inCellZ <= WorldBounds.MAX_SAFE_LOCAL_SPAN
+                ? this.interpolatedZ : null;
     }
 
     public void stopInterpolation() {

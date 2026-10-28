@@ -50,11 +50,7 @@ public interface Aquifer {
     }
 
     private static Int1088 coordinate(DensityFunction.FunctionContext context, boolean x) {
-        try (net.minecraft.core.Int1088Scratch scratch = net.minecraft.core.Int1088Scratch.acquire()) {
-            int length = x ? context.blockXLimbCount() : context.blockZLimbCount();
-            for (int i = 0; i < length; i++) scratch.limbs()[i] = x ? context.blockXLimb(i) : context.blockZLimb(i);
-            return Int1088.fromLimbs(scratch.limbs(), 0, length);
-        }
+        return ContextCoordinates.copy(context, x);
     }
 
     public static final class FluidStatus {
@@ -102,6 +98,8 @@ public interface Aquifer {
         private final Int1088 originZ;
         private final Int1088 originGridX;
         private final Int1088 originGridZ;
+        private final Int1088[] columnX = new Int1088[16];
+        private final Int1088[] columnZ = new Int1088[16];
         private final long minGridX;
         private final int minGridY;
         private final long minGridZ;
@@ -122,6 +120,10 @@ public interface Aquifer {
             this.originZ = pChunkPos.getMinBlockZ();
             this.originGridX = this.originX.shiftRight(4);
             this.originGridZ = this.originZ.shiftRight(4);
+            for (int offset = 0; offset < 16; ++offset) {
+                this.columnX[offset] = pChunkPos.getBlockX(offset);
+                this.columnZ[offset] = pChunkPos.getBlockZ(offset);
+            }
             // Geometry is chunk-local; noise, random and picker inputs stay absolute.
             long minGridBlockX = 0L;
             long maxGridBlockX = 15L;
@@ -152,16 +154,16 @@ public interface Aquifer {
 
         @Nullable
         public BlockState computeSubstance(DensityFunction.FunctionContext pContext, double pSubstance) {
-            Int1088 globalX = coordinate(pContext, true);
-            int j = pContext.blockY();
-            Int1088 globalZ = coordinate(pContext, false);
-            // Full-width geometry stays local; noise/random/surface sampling translate to global limbs.
-            long i = WorldBounds.signedDifferenceAsLong(globalX, this.originX);
-            long k = WorldBounds.signedDifferenceAsLong(globalZ, this.originZ);
             if (pSubstance > 0.0D) {
                 this.shouldScheduleFluidUpdate = false;
                 return null;
             } else {
+                Int1088 globalX = this.columnCoordinate(pContext, true);
+                int j = pContext.blockY();
+                Int1088 globalZ = this.columnCoordinate(pContext, false);
+                // Full-width geometry stays local; noise/random/surface sampling translate to global limbs.
+                long i = WorldBounds.signedDifferenceAsLong(globalX, this.originX);
+                long k = WorldBounds.signedDifferenceAsLong(globalZ, this.originZ);
                 Aquifer.FluidStatus aquifer$fluidstatus = this.globalFluidPicker.computeFluid(globalX, j, globalZ);
                 if (aquifer$fluidstatus.at(j).is(Blocks.LAVA)) {
                     this.shouldScheduleFluidUpdate = false;
@@ -194,9 +196,10 @@ public interface Aquifer {
                                     this.aquiferLocationCache[k4] = l4;
                                 }
 
-                                double i6 = WorldBounds.signedDifference(l4.getX(), Int1088.fromLong(i));
+                                // Both centers and query offsets are bounded chunk-local longs.
+                                double i6 = WorldBounds.signedDifference(l4.getX().lowLimb(), i);
                                 int j5 = l4.getY() - j;
-                                double k5 = WorldBounds.signedDifference(l4.getZ(), Int1088.fromLong(k));
+                                double k5 = WorldBounds.signedDifference(l4.getZ().lowLimb(), k);
                                 double l5 = i6 * i6 + (double) j5 * j5 + k5 * k5;
                                 if (k1 >= l5) {
                                     l2 = k2;
@@ -264,6 +267,21 @@ public interface Aquifer {
 
         public boolean shouldScheduleFluidUpdate() {
             return this.shouldScheduleFluidUpdate;
+        }
+
+        private Int1088 columnCoordinate(DensityFunction.FunctionContext context, boolean x) {
+            // Low bits select a candidate, never identity: verify every significant limb.
+            int length = x ? context.blockXLimbCount() : context.blockZLimbCount();
+            long low = x ? context.blockXLow() : context.blockZLow();
+            Int1088 candidate = (x ? this.columnX : this.columnZ)[(int) (low & 15L)];
+            if (candidate.limbCount() == length) {
+                int index = 0;
+                while (index < length && candidate.limb(index) == (x ? context.blockXLimb(index) : context.blockZLimb(index))) {
+                    ++index;
+                }
+                if (index == length) return candidate;
+            }
+            return coordinate(context, x);
         }
 
         private BlockState filterWaterOutput(Aquifer.FluidStatus status, BlockState state) {

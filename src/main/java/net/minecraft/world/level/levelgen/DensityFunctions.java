@@ -857,16 +857,16 @@ public final class DensityFunctions {
         public static final KeyDispatchDataCodec<DensityFunctions.Noise> CODEC = DensityFunctions.makeCodec(DATA_CODEC);
 
         public double compute(DensityFunction.FunctionContext pContext) {
-            try (Int1088Scratch x = axis(pContext, true); Int1088Scratch z = axis(pContext, false)) {
-                if (FarlandsMode.usesPreciseCoordinates() && needsPrecise(pContext)) {
+            if (FarlandsMode.usesPreciseCoordinates() && needsPrecise(pContext)) {
+                try (Int1088Scratch x = axis(pContext, true); Int1088Scratch z = axis(pContext, false)) {
                     return this.noise.getValueScaled(x.limbs(), 0, x.length(), this.xzScale, pContext.blockY(), this.yScale, z.limbs(), 0, z.length());
                 }
-                double dx = pContext.blockXFitsLong() ? FarlandsMode.scaledNoiseCoordinate(pContext.blockXLow(), this.xzScale)
-                        : ContextCoordinates.scaled(x.limbs(), 0, x.length(), this.xzScale, 0.0D);
-                double dz = pContext.blockZFitsLong() ? FarlandsMode.scaledNoiseCoordinate(pContext.blockZLow(), this.xzScale)
-                        : ContextCoordinates.scaled(z.limbs(), 0, z.length(), this.xzScale, 0.0D);
-                return this.noise.getValue(dx, (double) pContext.blockY() * this.yScale, dz);
             }
+            double dx = pContext.blockXFitsLong() ? FarlandsMode.scaledNoiseCoordinate(pContext.blockXLow(), this.xzScale)
+                    : ContextCoordinates.scaled(pContext, true, this.xzScale, 0.0D);
+            double dz = pContext.blockZFitsLong() ? FarlandsMode.scaledNoiseCoordinate(pContext.blockZLow(), this.xzScale)
+                    : ContextCoordinates.scaled(pContext, false, this.xzScale, 0.0D);
+            return this.noise.getValue(dx, (double) pContext.blockY() * this.yScale, dz);
         }
 
         public void fillArray(double[] pArray, DensityFunction.ContextProvider pContextProvider) {
@@ -1074,14 +1074,14 @@ public final class DensityFunctions {
             double shiftX = this.shiftX.compute(pContext);
             double shiftZ = this.shiftZ.compute(pContext);
             double d1 = (double) pContext.blockY() * this.yScale + this.shiftY.compute(pContext);
-            try (Int1088Scratch x = axis(pContext, true); Int1088Scratch z = axis(pContext, false)) {
-                if (FarlandsMode.usesPreciseCoordinates() && needsPrecise(pContext)) {
+            if (FarlandsMode.usesPreciseCoordinates() && needsPrecise(pContext)) {
+                try (Int1088Scratch x = axis(pContext, true); Int1088Scratch z = axis(pContext, false)) {
                     return this.noise.getValueScaledShifted(x.limbs(), 0, x.length(), this.xzScale, shiftX, d1, z.limbs(), 0, z.length(), shiftZ);
                 }
-                double d0 = ContextCoordinates.scaled(x.limbs(), 0, x.length(), this.xzScale, shiftX);
-                double d2 = ContextCoordinates.scaled(z.limbs(), 0, z.length(), this.xzScale, shiftZ);
-                return this.noise.getValue(d0, d1, d2);
             }
+            double d0 = ContextCoordinates.scaled(pContext, true, this.xzScale, shiftX);
+            double d2 = ContextCoordinates.scaled(pContext, false, this.xzScale, shiftZ);
+            return this.noise.getValue(d0, d1, d2);
         }
 
         public void fillArray(double[] pArray, DensityFunction.ContextProvider pContextProvider) {

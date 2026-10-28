@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class AquiferOverflowTest {
+    private static volatile net.minecraft.world.level.block.state.BlockState sink;
     @BeforeAll
     static void bootstrap() {
         SharedConstants.tryDetectVersion();
@@ -129,5 +130,40 @@ class AquiferOverflowTest {
             assertEquals(2, samples[0], "Surface returns must not sample floodedness");
             assertEquals(Blocks.WATER.defaultBlockState(), output.invoke(aquifer, surface, surface.at(63)));
         }
+    }
+
+    @Test
+    void changingWideColumnsReuseAbsoluteCoordinatesWithoutPerBlockCopies() {
+        var bean = (com.sun.management.ThreadMXBean) java.lang.management.ManagementFactory.getThreadMXBean();
+        org.junit.jupiter.api.Assumptions.assumeTrue(bean.isThreadAllocatedMemorySupported());
+        bean.setThreadAllocatedMemoryEnabled(true);
+        var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(NoiseGeneratorSettings.OVERWORLD).value();
+        var random = RandomState.create(settings, BuiltinRegistries.NOISE, 0);
+        var lava = new Aquifer.FluidStatus(63, Blocks.LAVA.defaultBlockState());
+        Aquifer.FluidPicker picker = (x, y, z) -> lava;
+        for (Int1088 address : new Int1088[] {Int1088.ZERO, Int1088.ONE.shiftLeftSaturated(127),
+                Int1088.ONE.shiftLeftSaturated(1024), Int1088.MIN, Int1088.MAX}) {
+            Int1088 origin = address.shiftRight(4).shiftLeftSaturated(4);
+            var chunk = new NoiseChunk(4, random, origin, origin, settings.noiseSettings(),
+                    DensityFunctions.BeardifierMarker.INSTANCE, settings, picker, Blender.empty());
+            var aquifer = new Aquifer.NoiseBasedAquifer(chunk, new ChunkPos(origin.shiftRight(4), origin.shiftRight(4)),
+                    random.router(), random.aquiferRandom(), -64, 384, picker);
+            chunk.initializeForFirstCellX();
+            chunk.advanceCellX(0);
+            chunk.selectCellYZ(0, 0);
+            for (int i = 0; i < 100_000; ++i) sample(aquifer, chunk, i);
+            long thread = Thread.currentThread().getId();
+            long before = bean.getThreadAllocatedBytes(thread);
+            for (int i = 0; i < 10_000; ++i) sample(aquifer, chunk, i);
+            long allocated = bean.getThreadAllocatedBytes(thread) - before;
+            assertTrue(allocated < 1024, "Aquifer column path allocated " + allocated + " bytes at " + address);
+            assertEquals(Blocks.LAVA.defaultBlockState(), sink);
+            chunk.stopInterpolation();
+        }
+    }
+
+    private static void sample(Aquifer aquifer, NoiseChunk chunk, int index) {
+        chunk.forIndex(index & 63);
+        sink = aquifer.computeSubstance(chunk, -1);
     }
 }

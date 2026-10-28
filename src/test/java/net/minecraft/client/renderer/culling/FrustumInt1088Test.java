@@ -16,6 +16,44 @@ import net.minecraft.world.phys.SectorVec3;
 import org.junit.jupiter.api.Test;
 
 class FrustumInt1088Test {
+    private static volatile int visibleCount;
+
+    @Test
+    void blockOriginCullingMatchesChunkCullingWithoutPerSectionAllocations() {
+        Matrix4f identity = new Matrix4f();
+        identity.setIdentity();
+        Matrix4f projection = Matrix4f.createScaleMatrix(0.001F, 0.001F, 0.001F);
+        var memory = (com.sun.management.ThreadMXBean) java.lang.management.ManagementFactory.getThreadMXBean();
+        org.junit.jupiter.api.Assumptions.assumeTrue(memory.isThreadAllocatedMemorySupported());
+        memory.setThreadAllocatedMemoryEnabled(true);
+        for (Int1088 base : new Int1088[]{Int1088.ZERO, Int1088.ONE.shiftLeftSaturated(160), Int1088.MIN,
+                WorldBounds.chunkToBlock(WorldBounds.MAX_CHUNK)}) {
+            SectorVec3 position = SectorVec3.fromBlockAndFraction(base, 0.5D, 8.5D, base, 0.5D);
+            Camera camera = new Camera() {
+                @Override public SectorVec3 getExactPosition() { return position; }
+            };
+            Frustum frustum = new Frustum(projection, identity);
+            frustum.prepare(camera);
+            BlockPos[] origins = new BlockPos[129];
+            for (int i = 0; i < origins.length; ++i) {
+                Int1088 block = base.addSaturated(Int1088.fromLong((i - 64L) * 16)).shiftRight(4).shiftLeftSaturated(4);
+                origins[i] = new BlockPos(block, 0, base);
+                assertEquals(frustum.isChunkVisible(block.shiftRight(4), 0, base.shiftRight(4)), frustum.isRenderSectionVisible(origins[i]));
+            }
+            for (int i = 0; i < 30; ++i) visibleCount = cull(frustum, origins);
+            long before = memory.getThreadAllocatedBytes(Thread.currentThread().getId());
+            visibleCount = cull(frustum, origins);
+            long bytes = memory.getThreadAllocatedBytes(Thread.currentThread().getId()) - before;
+            assertTrue(bytes < 2048, "culling allocated " + bytes + " bytes");
+        }
+    }
+
+    private static int cull(Frustum frustum, BlockPos[] origins) {
+        int count = 0;
+        for (int i = 0; i < 100; ++i) for (BlockPos origin : origins) if (frustum.isRenderSectionVisible(origin)) ++count;
+        return count;
+    }
+
     @Test
     void chunkCullingRejectsUnsafeSpansEvenInsideAnEnormousFrustum() {
         Matrix4f identity = new Matrix4f();

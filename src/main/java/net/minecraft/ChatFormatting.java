@@ -40,6 +40,10 @@ public enum ChatFormatting implements StringRepresentable {
     public static final char PREFIX_CODE = '\u00a7';
     private static final Map<String, ChatFormatting> FORMATTING_BY_NAME = Arrays.stream(values()).collect(Collectors.toMap((p_126660_) -> { return cleanName(p_126660_.name); }, (p_126652_) -> { return p_126652_; }));
     private static final Pattern STRIP_FORMATTING_PATTERN = Pattern.compile("(?i)\u00a7[0-9A-FK-OR]");
+    private static final ChatFormatting[] FORMATTING_BY_CODE = new ChatFormatting[128];
+    static {
+        for (ChatFormatting formatting : values()) FORMATTING_BY_CODE[formatting.code] = formatting;
+    }
     private final String name;
     private final char code;
     private final boolean isFormat;
@@ -125,6 +129,12 @@ public enum ChatFormatting implements StringRepresentable {
 
     @Nullable
     public static ChatFormatting getByCode(char pFormattingCode) {
+        // F3 draws many formatting codes every frame. Avoid a String, byte
+        // array and cloned enum array for every ASCII lookup.
+        if (pFormattingCode < FORMATTING_BY_CODE.length) {
+            char code = pFormattingCode >= 'A' && pFormattingCode <= 'Z' ? (char)(pFormattingCode + ('a' - 'A')) : pFormattingCode;
+            return FORMATTING_BY_CODE[code];
+        }
         char c0 = Character.toString(pFormattingCode).toLowerCase(Locale.ROOT).charAt(0);
 
         for (ChatFormatting chatformatting : values()) {

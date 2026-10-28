@@ -978,6 +978,12 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         BlockPos blockpos1 = blockpos.offset(8, 8, 8);
         Entity.setViewScale(Mth.clamp((double) this.minecraft.options.getEffectiveRenderDistance() / 8.0D, 1.0D, 2.5D) * this.minecraft.options.entityDistanceScaling().get());
 
+        // Mark roots before visiting their neighbors too. Otherwise a walk can
+        // rediscover its seed and enqueue it again.
+        for (LevelRenderer.RenderChunkInfo root : pInfoQueue) {
+            pInfoMap.put(root.chunk, root);
+        }
+
         while (!pInfoQueue.isEmpty()) {
             LevelRenderer.RenderChunkInfo levelrenderer$renderchunkinfo = pInfoQueue.poll();
             ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk = levelrenderer$renderchunkinfo.chunk;
@@ -3219,14 +3225,16 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
         }
 
         public int hashCode() {
-            return this.chunk.getOrigin().hashCode();
+            return System.identityHashCode(this.chunk);
         }
 
         public boolean equals(Object p_194373_) {
             if (!(p_194373_ instanceof LevelRenderer.RenderChunkInfo levelrenderer$renderchunkinfo)) {
                 return false;
             } else {
-                return this.chunk.getOrigin().equals(levelrenderer$renderchunkinfo.chunk.getOrigin());
+                // ViewArea reuses RenderChunks at new origins. A set key must
+                // not change its hash/equality while that ring moves.
+                return this.chunk == levelrenderer$renderchunkinfo.chunk;
             }
         }
     }

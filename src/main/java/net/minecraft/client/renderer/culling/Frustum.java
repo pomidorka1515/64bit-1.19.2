@@ -143,6 +143,15 @@ public class Frustum {
     public boolean isChunkVisible(Int1088 chunkX, int originBlockY, Int1088 chunkZ) {
         Int1088 blockMinX = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkX);
         Int1088 blockMinZ = net.minecraft.core.SectionPos.sectionToBlockCoord(chunkZ);
+        return this.isRenderSectionVisible(blockMinX, originBlockY, blockMinZ);
+    }
+
+    /** A render section already has an exact block origin; do not shift it out and back. */
+    public boolean isRenderSectionVisible(BlockPos origin) {
+        return this.isRenderSectionVisible(origin.getX(), origin.getY(), origin.getZ());
+    }
+
+    private boolean isRenderSectionVisible(Int1088 blockMinX, int originBlockY, Int1088 blockMinZ) {
 
         if (net.minecraft.world.level.WorldBounds.localSpanExceeds(blockMinX, this.cameraRelativePosition.baseX())
                 || net.minecraft.world.level.WorldBounds.localSpanExceeds(blockMinZ, this.cameraRelativePosition.baseZ())) {
@@ -189,12 +198,23 @@ public class Frustum {
     private boolean cubeInFrustum(float pMinX, float pMinY, float pMinZ, float pMaxX, float pMaxY, float pMaxZ) {
         for (int i = 0; i < 6; ++i) {
             Vector4f vector4f = this.frustumData[i];
-            if (!(vector4f.dot(new Vector4f(pMinX, pMinY, pMinZ, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(pMaxX, pMinY, pMinZ, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(pMinX, pMaxY, pMinZ, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(pMaxX, pMaxY, pMinZ, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(pMinX, pMinY, pMaxZ, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(pMaxX, pMinY, pMaxZ, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(pMinX, pMaxY, pMaxZ, 1.0F)) > 0.0F) && !(vector4f.dot(new Vector4f(pMaxX, pMaxY, pMaxZ, 1.0F)) > 0.0F)) {
+            if (!(dotPoint(vector4f, pMinX, pMinY, pMinZ) > 0.0F)
+                    && !(dotPoint(vector4f, pMaxX, pMinY, pMinZ) > 0.0F)
+                    && !(dotPoint(vector4f, pMinX, pMaxY, pMinZ) > 0.0F)
+                    && !(dotPoint(vector4f, pMaxX, pMaxY, pMinZ) > 0.0F)
+                    && !(dotPoint(vector4f, pMinX, pMinY, pMaxZ) > 0.0F)
+                    && !(dotPoint(vector4f, pMaxX, pMinY, pMaxZ) > 0.0F)
+                    && !(dotPoint(vector4f, pMinX, pMaxY, pMaxZ) > 0.0F)
+                    && !(dotPoint(vector4f, pMaxX, pMaxY, pMaxZ) > 0.0F)) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    private static float dotPoint(Vector4f plane, float x, float y, float z) {
+        return plane.x() * x + plane.y() * y + plane.z() * z + plane.w();
     }
 
     private boolean cubeCompletelyInFrustum(float p_194444_, float p_194445_, float p_194446_, float p_194447_, float p_194448_, float p_194449_) {

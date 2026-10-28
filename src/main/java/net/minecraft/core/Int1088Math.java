@@ -142,7 +142,10 @@ public final class Int1088Math {
         long carry = subtract ? 1L : 0L;
         long at = word(a, ao, alen, N - 1);
         long bt = word(b, bo, blen, N - 1);
-        for (int i = 0; i < N; ++i) {
+        // One extra sign word contains every possible carry. Do not process
+        // all 17 words for a two- or three-word distant coordinate.
+        int length = Math.min(N, Math.max(alen, blen) + 1);
+        for (int i = 0; i < length; ++i) {
             long x = word(a, ao, alen, i);
             long y = word(b, bo, blen, i);
             if (subtract) y = ~y;
@@ -151,9 +154,9 @@ public final class Int1088Math {
             carry = Long.compareUnsigned(s, x) < 0 || Long.compareUnsigned(r, s) < 0 ? 1L : 0L;
             out[oo + i] = r;
         }
-        long rt = out[oo + N - 1];
+        long rt = out[oo + length - 1];
         boolean overflow = subtract ? ((at ^ bt) & (at ^ rt)) < 0 : ((at ^ rt) & (bt ^ rt)) < 0;
-        return saturate && overflow ? limit(at < 0, out, oo) : canonicalLength(out, oo, N);
+        return saturate && overflow ? limit(at < 0, out, oo) : canonicalLength(out, oo, length);
     }
 
     public static int add(long[] a, int ao, int alen, long[] b, int bo, int blen, long[] out, int oo) {

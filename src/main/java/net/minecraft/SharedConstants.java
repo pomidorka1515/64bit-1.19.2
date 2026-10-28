@@ -188,11 +188,11 @@ public class SharedConstants {
     }
 
     public static boolean debugVoidTerrain(ChunkPos pChunkPos) {
-        Int1088 i = pChunkPos.getMinBlockX();
-        Int1088 j = pChunkPos.getMinBlockZ();
         if (!debugGenerateSquareTerrainWithoutNoise) {
             return false;
         } else {
+            Int1088 i = pChunkPos.getMinBlockX();
+            Int1088 j = pChunkPos.getMinBlockZ();
             return i.compareTo(Int1088.fromLong(8192)) > 0 || i.compareTo(Int1088.ZERO) < 0
                 || j.compareTo(Int1088.fromLong(1024)) > 0 || j.compareTo(Int1088.ZERO) < 0;
         }

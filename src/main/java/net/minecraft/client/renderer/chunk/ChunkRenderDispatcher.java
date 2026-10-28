@@ -118,9 +118,9 @@ public class ChunkRenderDispatcher {
     private void runTask() {
         if (!this.freeBuffers.isEmpty()) {
             ChunkRenderDispatcher.RenderChunk.ChunkCompileTask chunkrenderdispatcher$renderchunk$chunkcompiletask = this.pollTask();
+            this.toBatchCount = this.toBatchHighPriority.size() + this.toBatchLowPriority.size();
             if (chunkrenderdispatcher$renderchunk$chunkcompiletask != null) {
                 ChunkBufferBuilderPack chunkbufferbuilderpack = this.freeBuffers.poll();
-                this.toBatchCount = this.toBatchHighPriority.size() + this.toBatchLowPriority.size();
                 this.freeBufferCount = this.freeBuffers.size();
                 CompletableFuture.supplyAsync(Util.wrapThreadWithTaskName(chunkrenderdispatcher$renderchunk$chunkcompiletask.name(), () -> {
                                      return chunkrenderdispatcher$renderchunk$chunkcompiletask.doTask(chunkbufferbuilderpack);
@@ -150,6 +150,17 @@ public class ChunkRenderDispatcher {
 
     @Nullable
     private ChunkRenderDispatcher.RenderChunk.ChunkCompileTask pollTask() {
+        ChunkRenderDispatcher.RenderChunk.ChunkCompileTask task;
+        do {
+            task = this.pollTaskWithPriority();
+        } while (task != null && task.isCancelled.get());
+        // Cancelled rebuilds are common after movement/light updates. Drain
+        // them here instead of scheduling a worker/future/buffer cycle each.
+        return task;
+    }
+
+    @Nullable
+    private ChunkRenderDispatcher.RenderChunk.ChunkCompileTask pollTaskWithPriority() {
         if (this.highPriorityQuota <= 0) {
             ChunkRenderDispatcher.RenderChunk.ChunkCompileTask chunkrenderdispatcher$renderchunk$chunkcompiletask = this.toBatchLowPriority.poll();
             if (chunkrenderdispatcher$renderchunk$chunkcompiletask != null) {
@@ -214,6 +225,7 @@ public class ChunkRenderDispatcher {
 
     public void schedule(ChunkRenderDispatcher.RenderChunk.ChunkCompileTask pTask) {
         this.mailbox.tell(() -> {
+            if (pTask.isCancelled.get()) return;
             if (pTask.isHighPriority) {
                 this.toBatchHighPriority.offer(pTask);
             } else {
@@ -313,7 +325,9 @@ public class ChunkRenderDispatcher {
         private final Map<RenderType, VertexBuffer> buffers = RenderType.chunkBufferLayers().stream().collect(Collectors.toMap((p_112837_) -> { return p_112837_; }, (p_112834_) -> { return new VertexBuffer(); }));
         private AABB bb;
         private boolean dirty = true;
-        final BlockPos.MutableBlockPos origin = new BlockPos.MutableBlockPos(-1, -1, -1);
+        // Origins change only when the view ring is repositioned. Keep a stable
+        // snapshot, rather than copying 1088-bit mutable axes on every read.
+        private BlockPos origin = new BlockPos(-1, -1, -1);
         private final BlockPos.MutableBlockPos[] relativeOrigins = Util.make(new BlockPos.MutableBlockPos[6], (p_112831_) -> {
             for (int i = 0; i < p_112831_.length; ++i) {
                 p_112831_[i] = new BlockPos.MutableBlockPos();
@@ -349,10 +363,7 @@ public class ChunkRenderDispatcher {
         }
 
         public boolean isVisible(Frustum p_234467_) {
-            return p_234467_.isChunkVisible(
-                    SectionPos.blockToSectionCoord(this.origin.getX()),
-                    this.origin.getY(),
-                    SectionPos.blockToSectionCoord(this.origin.getZ()));
+            return p_234467_.isRenderSectionVisible(this.origin);
         }
 
         public VertexBuffer getBuffer(RenderType pRenderType) {
@@ -365,7 +376,7 @@ public class ChunkRenderDispatcher {
 
         public void setOrigin(net.minecraft.core.Int1088 pX, int pY, net.minecraft.core.Int1088 pZ) {
             this.reset();
-            this.origin.set(pX, pY, pZ);
+            this.origin = new BlockPos(pX, pY, pZ);
             this.bb = AABB.fromSectorBounds(new net.minecraft.world.phys.SectorAABB(
                     pX, 0.0D, pY, pZ, 0.0D, pX, 0.0D, (double) pY + 16.0D, pZ, 0.0D)
                     .expandTowards(16.0D, 0.0D, 16.0D));
@@ -607,8 +618,7 @@ public class ChunkRenderDispatcher {
                             }
                         }
 
-                        BlockState blockstate1 = renderchunkregion.getBlockState(blockpos2);
-                        FluidState fluidstate = blockstate1.getFluidState();
+                        FluidState fluidstate = blockstate.getFluidState();
                         if (!fluidstate.isEmpty()) {
                             RenderType rendertype = ItemBlockRenderTypes.getRenderLayer(fluidstate);
                             BufferBuilder bufferbuilder = p_234471_.builder(rendertype);
@@ -616,7 +626,7 @@ public class ChunkRenderDispatcher {
                                 RenderChunk.this.beginLayer(bufferbuilder);
                             }
 
-                            blockrenderdispatcher.renderLiquid(blockpos2, renderchunkregion, bufferbuilder, blockstate1, fluidstate);
+                            blockrenderdispatcher.renderLiquid(blockpos2, renderchunkregion, bufferbuilder, blockstate, fluidstate);
                         }
 
                         if (blockstate.getRenderShape() != RenderShape.INVISIBLE) {
@@ -627,7 +637,7 @@ public class ChunkRenderDispatcher {
                             }
 
                             posestack.pushPose();
-                            posestack.translate((double) (blockpos2.getX().lowLimb() & 15), (double) (blockpos2.getY() & 15), (double) (blockpos2.getZ().lowLimb() & 15));
+                            posestack.translate((double) (blockpos2.xLow() & 15), (double) (blockpos2.getY() & 15), (double) (blockpos2.zLow() & 15));
                             blockrenderdispatcher.renderBatched(blockstate, blockpos2, renderchunkregion, posestack, bufferbuilder2, true, randomsource);
                             posestack.popPose();
                         }

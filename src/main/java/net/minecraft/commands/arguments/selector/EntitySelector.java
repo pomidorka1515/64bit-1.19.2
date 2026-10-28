@@ -12,6 +12,7 @@ import javax.annotation.Nullable;
 import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.core.Int1088;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.server.level.ServerLevel;
@@ -239,10 +240,16 @@ public class EntitySelector {
 
         if (!this.range.isAny()) {
             predicate = predicate.and((entity) -> {
-                double distance = entity.exactPosition() != null
-                         ? distanceSquared(entity.exactPosition(), exactOrigin)
-                        : entity.distanceToSqr(pPos);
-                return this.range.matchesSqr(distance);
+                SectorVec3 position = entity.sectorPosition();
+                double squared = distanceSquared(position, exactOrigin);
+                // Preserve ordinary squared comparisons, but do not compare infinities
+                // produced by squaring otherwise finite wide distances/range bounds.
+                if (Double.isFinite(squared)
+                        && (this.range.getMin() == null || Double.isFinite(this.range.getMin() * this.range.getMin()))
+                        && (this.range.getMax() == null || Double.isFinite(this.range.getMax() * this.range.getMax()))) {
+                    return this.range.matchesSqr(squared);
+                }
+                return this.range.matches(distance(position, exactOrigin));
             });
         }
 
@@ -253,7 +260,18 @@ public class EntitySelector {
         if (entities.size() > 1) {
             if (this.exactOriginForSorting != null && this.order != EntitySelectorParser.ORDER_RANDOM && this.order != EntitySelectorParser.ORDER_ARBITRARY) {
                 entities.sort((first, second) -> {
-                    int comparison = Double.compare(exactDistance(first), exactDistance(second));
+                    double firstDistance = exactDistance(first);
+                    double secondDistance = exactDistance(second);
+                    int comparison = Double.compare(firstDistance, secondDistance);
+                    if (Double.isInfinite(firstDistance) && Double.isInfinite(secondDistance)) {
+                        firstDistance = distance(first.sectorPosition(), this.exactOriginForSorting);
+                        secondDistance = distance(second.sectorPosition(), this.exactOriginForSorting);
+                        comparison = Double.compare(firstDistance, secondDistance);
+                        if (Double.isInfinite(firstDistance) && Double.isInfinite(secondDistance)) {
+                            comparison = Double.compare(scaledDistance(first.sectorPosition(), this.exactOriginForSorting),
+                                    scaledDistance(second.sectorPosition(), this.exactOriginForSorting));
+                        }
+                    }
                     return EntitySelectorParser.ORDER_FURTHEST.equals(this.order) ? -comparison : comparison;
                 });
             } else {
@@ -278,10 +296,36 @@ public class EntitySelector {
     }
 
     private static double distanceSquared(SectorVec3 position, SectorVec3 origin) {
-        double x = WorldBounds.signedDifference(position.blockX(), origin.blockX()) + position.subX() - origin.subX();
-        double z = WorldBounds.signedDifference(position.blockZ(), origin.blockZ()) + position.subZ() - origin.subZ();
+        double x = horizontalDifference(position.blockX(), origin.blockX()) + position.subX() - origin.subX();
+        double z = horizontalDifference(position.blockZ(), origin.blockZ()) + position.subZ() - origin.subZ();
         double y = position.y() - origin.y();
         return x * x + y * y + z * z;
+    }
+
+    private static double distance(SectorVec3 position, SectorVec3 origin) {
+        double x = horizontalDifference(position.blockX(), origin.blockX()) + position.subX() - origin.subX();
+        double z = horizontalDifference(position.blockZ(), origin.blockZ()) + position.subZ() - origin.subZ();
+        return Math.hypot(Math.hypot(x, z), position.y() - origin.y());
+    }
+
+    private static double horizontalDifference(Int1088 value, Int1088 origin) {
+        long local = WorldBounds.signedDifferenceAsLong(value, origin);
+        if (local != Long.MIN_VALUE && local != Long.MAX_VALUE) {
+            return (double) local;
+        }
+        // This span helper subtracts wide integers before projecting and retains
+        // magnitude even when the difference exceeds the signed coordinate domain.
+        return value.compareTo(origin) >= 0
+                ? WorldBounds.inclusiveBlockSpanDouble(origin, value) - 1.0D
+                : -(WorldBounds.inclusiveBlockSpanDouble(value, origin) - 1.0D);
+    }
+
+    private static double scaledDistance(SectorVec3 position, SectorVec3 origin) {
+        // Only used when both distances exceed Double.MAX_VALUE. A common
+        // power-of-two scale preserves their order without overflowing doubles.
+        double x = horizontalDifference(position.blockX().shiftRight(128), origin.blockX().shiftRight(128));
+        double z = horizontalDifference(position.blockZ().shiftRight(128), origin.blockZ().shiftRight(128));
+        return Math.hypot(Math.hypot(x, z), Math.scalb(position.y(), -128) - Math.scalb(origin.y(), -128));
     }
 
     public static Component joinNames(List<? extends Entity> pNames) {

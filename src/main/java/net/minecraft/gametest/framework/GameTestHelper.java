@@ -74,7 +74,7 @@ public class GameTestHelper {
     public ItemEntity spawnItem(Item pItem, float pX, float pY, float pZ) {
         ServerLevel serverlevel = this.getLevel();
         Vec3 vec3 = this.absoluteVec(new Vec3((double) pX, (double) pY, (double) pZ));
-        ItemEntity itementity = new ItemEntity(serverlevel, vec3.x, vec3.y, vec3.z, new ItemStack(pItem, 1));
+        ItemEntity itementity = new ItemEntity(serverlevel, vec3.exactPosition(), new ItemStack(pItem, 1));
         itementity.setDeltaMovement(0.0D, 0.0D, 0.0D);
         serverlevel.addFreshEntity(itementity);
         return itementity;

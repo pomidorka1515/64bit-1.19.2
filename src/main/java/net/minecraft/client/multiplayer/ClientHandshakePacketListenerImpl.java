@@ -9,7 +9,6 @@ import com.mojang.authlib.exceptions.InvalidCredentialsException;
 import com.mojang.authlib.exceptions.UserBannedException;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.logging.LogUtils;
-import java.math.BigInteger;
 import java.security.PublicKey;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
@@ -67,7 +66,7 @@ public class ClientHandshakePacketListenerImpl implements ClientLoginPacketListe
         try {
             SecretKey secretkey = Crypt.generateSecretKey();
             PublicKey publickey = pPacket.getPublicKey();
-            s = (new BigInteger(Crypt.digestData(pPacket.getServerId(), publickey, secretkey))).toString(16);
+            s = Crypt.digestData(pPacket.getServerId(), publickey, secretkey);
             cipher = Crypt.getCipher(2, secretkey);
             cipher1 = Crypt.getCipher(1, secretkey);
             byte[] abyte = pPacket.getNonce();

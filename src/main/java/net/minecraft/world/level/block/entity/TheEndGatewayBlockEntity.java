@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Int1088;
 import net.minecraft.data.worldgen.features.EndFeatures;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -208,7 +209,7 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
 
     private static net.minecraft.world.phys.SectorVec3 findExitPortalXZPosTentative(ServerLevel pLevel, BlockPos pPos) {
         // Only a direction toward the origin is needed; the destination remains local to spawn.
-        Vec3 vec3 = (new Vec3(pPos.getX().toDoubleSaturated(), 0.0D, pPos.getZ().toDoubleSaturated())).normalize();
+        Vec3 vec3 = exitSearchDirection(pPos);
         int i = 1024;
         net.minecraft.world.phys.SectorVec3 vec31 = net.minecraft.world.phys.SectorVec3.fromApproximate(vec3.scale(1024.0D));
 
@@ -222,6 +223,14 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
 
         LOGGER.debug("Found chunk at {}", (Object) vec31);
         return vec31;
+    }
+
+    private static Vec3 exitSearchDirection(BlockPos pos) {
+        Int1088 x = pos.getX(), z = pos.getZ();
+        // A common scale preserves direction and leaves room for both squared axes.
+        int shift = Math.max(0, Math.max(x.bitLength(), z.bitLength()) - 500);
+        return new Vec3(x.shiftRight(shift).toDoubleRounded(), 0.0D,
+                z.shiftRight(shift).toDoubleRounded()).normalize();
     }
 
     private static boolean isChunkEmpty(ServerLevel pLevel, net.minecraft.world.phys.SectorVec3 pPos) {

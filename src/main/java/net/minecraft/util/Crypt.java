@@ -73,9 +73,9 @@ public class Crypt {
         }
     }
 
-    public static byte[] digestData(String pServerId, PublicKey pPublicKey, SecretKey pSecretKey) throws CryptException {
+    public static String digestData(String pServerId, PublicKey pPublicKey, SecretKey pSecretKey) throws CryptException {
         try {
-            return digestData(pServerId.getBytes("ISO_8859_1"), pSecretKey.getEncoded(), pPublicKey.getEncoded());
+            return signedHex(digestData(pServerId.getBytes("ISO_8859_1"), pSecretKey.getEncoded(), pPublicKey.getEncoded()));
         } catch (Exception exception) {
             throw new CryptException(exception);
         }
@@ -89,6 +89,24 @@ public class Crypt {
         }
 
         return messagedigest.digest();
+    }
+
+    /** Authentication uses a signed, unpadded hexadecimal integer, not raw hex bytes. */
+    private static String signedHex(byte[] digest) {
+        boolean negative = digest[0] < 0;
+        byte[] magnitude = digest.clone();
+        if (negative) {
+            int carry = 1;
+            for (int i = magnitude.length - 1; i >= 0; --i) {
+                int value = (~magnitude[i] & 255) + carry;
+                magnitude[i] = (byte) value;
+                carry = value >>> 8;
+            }
+        }
+        String hex = java.util.HexFormat.of().formatHex(magnitude);
+        int first = 0;
+        while (first < hex.length() - 1 && hex.charAt(first) == '0') ++first;
+        return (negative ? "-" : "") + hex.substring(first);
     }
 
     private static <T extends Key> T rsaStringToKey(String p_216072_, String p_216073_, String p_216074_, Crypt.ByteArrayToKeyFunction<T> p_216075_) throws CryptException {

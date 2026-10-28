@@ -4,7 +4,6 @@ import com.google.common.primitives.Ints;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.exceptions.AuthenticationUnavailableException;
 import com.mojang.logging.LogUtils;
-import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -188,7 +187,7 @@ public class ServerLoginPacketListenerImpl implements TickablePacketListener, Se
             SecretKey secretkey = pPacket.getSecretKey(privatekey);
             Cipher cipher = Crypt.getCipher(2, secretkey);
             Cipher cipher1 = Crypt.getCipher(1, secretkey);
-            s = (new BigInteger(Crypt.digestData("", this.server.getKeyPair().getPublic(), secretkey))).toString(16);
+            s = Crypt.digestData("", this.server.getKeyPair().getPublic(), secretkey);
             this.state = ServerLoginPacketListenerImpl.State.AUTHENTICATING;
             this.connection.setEncryptionKey(cipher, cipher1);
         } catch (CryptException cryptexception) {

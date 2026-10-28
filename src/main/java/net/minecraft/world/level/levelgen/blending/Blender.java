@@ -39,11 +39,7 @@ import org.apache.commons.lang3.mutable.MutableObject;
 
 public class Blender {
     private static Int1088 coordinate(DensityFunction.FunctionContext context, boolean x) {
-        try (net.minecraft.core.Int1088Scratch scratch = net.minecraft.core.Int1088Scratch.acquire()) {
-            int length = x ? context.blockXLimbCount() : context.blockZLimbCount();
-            for (int i = 0; i < length; i++) scratch.limbs()[i] = x ? context.blockXLimb(i) : context.blockZLimb(i);
-            return Int1088.fromLimbs(scratch.limbs(), 0, length);
-        }
+        return net.minecraft.world.level.levelgen.ContextCoordinates.copy(context, x);
     }
     private static final Blender EMPTY = new Blender(new ChunkPosMap<>(), new ChunkPosMap<>()) {
         public Blender.BlendingOutput blendOffsetAndFactor(Int1088 p_209724_, Int1088 p_209725_) {

@@ -397,6 +397,13 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
         int l = noisechunk.cellHeight();
         int i1 = 16 / k;
         int j1 = 16 / k;
+        // Absolute values are API boundaries; reuse the chunk's 16 columns at every Y.
+        Int1088[] blockX = new Int1088[16];
+        Int1088[] blockZ = new Int1088[16];
+        for (int offset = 0; offset < 16; ++offset) {
+            blockX[offset] = WorldBounds.addBlockOffset(i, offset);
+            blockZ[offset] = WorldBounds.addBlockOffset(j, offset);
+        }
 
         for (int k1 = 0; k1 < i1; ++k1) {
             noisechunk.advanceCellX(k1);
@@ -419,13 +426,13 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
                         noisechunk.updateForY(k2, d0);
 
                         for (int j3 = 0; j3 < k; ++j3) {
-                            Int1088 k3 = WorldBounds.addBlockOffset(i, k1 * k + j3);
+                            Int1088 k3 = blockX[k1 * k + j3];
                             int l3 = (int) (k3.limb(0) & 15);
                             double d1 = (double) j3 / (double) k;
                             noisechunk.updateForX(k3, d1);
 
                             for (int i4 = 0; i4 < k; ++i4) {
-                                Int1088 j4 = WorldBounds.addBlockOffset(j, l1 * k + i4);
+                                Int1088 j4 = blockZ[l1 * k + i4];
                                 int k4 = (int) (j4.limb(0) & 15);
                                 double d2 = (double) i4 / (double) k;
                                 noisechunk.updateForZ(j4, d2);

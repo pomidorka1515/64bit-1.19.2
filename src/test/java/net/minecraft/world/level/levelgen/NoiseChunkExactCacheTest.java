@@ -250,6 +250,30 @@ class NoiseChunkExactCacheTest {
         }
     }
 
+    @Test
+    void exactCacheMissesReadEveryUpperLimbAndIgnoreY() {
+        for (FarlandsMode.Mode mode : FarlandsMode.Mode.values()) {
+            FarlandsMode.setMode(mode);
+            ColumnDensity density = new ColumnDensity();
+            NoiseChunk.Cache2D cache = new NoiseChunk.Cache2D(density);
+            int calls = 0;
+            for (int limb = 1; limb < Int1088.LIMBS; ++limb) {
+                for (int sign : new int[] {-1, 1}) {
+                    Int1088 high = Int1088.ONE.shiftLeftSaturated(limb * 64);
+                    if (sign < 0) high = high.negate();
+                    for (boolean x : new boolean[] {true, false}) {
+                        Int1088 bx = x ? high : Int1088.of(3L, 1L);
+                        Int1088 bz = x ? Int1088.of(5L, 1L) : high;
+                        cache.compute(new DensityFunction.SinglePointContext(bx, 0, bz));
+                        assertEquals(++calls, density.calls.get(), "limb " + limb + " " + mode);
+                        cache.compute(new DensityFunction.SinglePointContext(bx.copy(), Integer.MIN_VALUE, bz.copy()));
+                        assertEquals(calls, density.calls.get(), "Y must not invalidate a 2D cache");
+                    }
+                }
+            }
+        }
+    }
+
     private static NoiseChunk chunk(long origin, NoiseGeneratorSettings settings) {
         RandomState state = RandomState.create(settings, BuiltinRegistries.NOISE, 42L);
         return new NoiseChunk(4, state, origin, origin, settings.noiseSettings(),

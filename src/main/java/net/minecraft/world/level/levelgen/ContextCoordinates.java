@@ -2,11 +2,12 @@ package net.minecraft.world.level.levelgen;
 
 import net.minecraft.core.Int1088;
 import net.minecraft.core.Int1088Math;
+import net.minecraft.core.Int1088Scratch;
 import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.level.levelgen.synth.GenerationPolicy;
 import net.minecraft.world.level.levelgen.synth.WorldgenCoordinate;
 
-/** Coordinate projections at cold density-function boundaries. */
+/** Coordinate projections and cold copies of density-function limb views. */
 public final class ContextCoordinates {
     private ContextCoordinates() {}
 
@@ -14,6 +15,36 @@ public final class ContextCoordinates {
 
     public static double toDouble(long[] limbs, int offset, int length) {
         return WorldgenCoordinate.toDouble(limbs, offset, length);
+    }
+
+    public static double toDouble(DensityFunction.FunctionContext context, boolean x) {
+        int length = x ? context.blockXLimbCount() : context.blockZLimbCount();
+        if (length == 1) return (double) (x ? context.blockXLow() : context.blockZLow());
+        try (Int1088Scratch scratch = Int1088Scratch.acquire()) {
+            copyLimbs(context, x, scratch.limbs(), length);
+            return toDouble(scratch.limbs(), 0, length);
+        }
+    }
+
+    public static double scaled(DensityFunction.FunctionContext context, boolean x, double scale, double shift) {
+        if (x ? context.blockXFitsLong() : context.blockZFitsLong()) {
+            return GenerationPolicy.shiftedNoiseCoordinate(x ? context.blockXLow() : context.blockZLow(), scale, shift);
+        }
+        return scaledWide(toDouble(context, x), scale, shift);
+    }
+
+    public static Int1088 copy(DensityFunction.FunctionContext context, boolean x) {
+        if (context instanceof DensityFunction.SinglePointContext point) return x ? point.blockX() : point.blockZ();
+        int length = x ? context.blockXLimbCount() : context.blockZLimbCount();
+        if (length == 1) return Int1088.fromLong(x ? context.blockXLow() : context.blockZLow());
+        try (Int1088Scratch scratch = Int1088Scratch.acquire()) {
+            copyLimbs(context, x, scratch.limbs(), length);
+            return copy(scratch.limbs(), 0, length);
+        }
+    }
+
+    private static void copyLimbs(DensityFunction.FunctionContext context, boolean x, long[] out, int length) {
+        for (int i = 0; i < length; ++i) out[i] = x ? context.blockXLimb(i) : context.blockZLimb(i);
     }
 
     public static double scaled(Int1088 value, double scale, double shift) {

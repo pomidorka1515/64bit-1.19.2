@@ -174,7 +174,9 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
 
     private void updateAbsoluteX() {
         if (this.cachedCellX != this.cellStartBlockX || this.cachedOffsetX != this.inCellX) {
-            this.cellStartBlockX.copyFixed(this.cellX, 0);
+            if (this.cachedCellX != this.cellStartBlockX) {
+                for (int i = 0; i < this.cellStartBlockX.limbCount(); ++i) this.cellX[i] = this.cellStartBlockX.limb(i);
+            }
             this.localOffset[0] = this.inCellX;
             this.absoluteXLength = Int1088Math.addSaturated(this.cellX, 0, this.cellStartBlockX.limbCount(), this.localOffset, 0, 1, this.absoluteX, 0);
             this.cachedCellX = this.cellStartBlockX;
@@ -188,7 +190,9 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
 
     private void updateAbsoluteZ() {
         if (this.cachedCellZ != this.cellStartBlockZ || this.cachedOffsetZ != this.inCellZ) {
-            this.cellStartBlockZ.copyFixed(this.cellZ, 0);
+            if (this.cachedCellZ != this.cellStartBlockZ) {
+                for (int i = 0; i < this.cellStartBlockZ.limbCount(); ++i) this.cellZ[i] = this.cellStartBlockZ.limb(i);
+            }
             this.localOffset[0] = this.inCellZ;
             this.absoluteZLength = Int1088Math.addSaturated(this.cellZ, 0, this.cellStartBlockZ.limbCount(), this.localOffset, 0, 1, this.absoluteZ, 0);
             this.cachedCellZ = this.cellStartBlockZ;
@@ -355,9 +359,7 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
 
     public void updateForY(int p_209192_, double p_209193_) {
         this.inCellY = p_209192_ - this.cellStartBlockY;
-        this.interpolators.forEach((p_209238_) -> {
-            p_209238_.updateForY(p_209193_);
-        });
+        for (int i = 0; i < this.interpolators.size(); ++i) this.interpolators.get(i).updateForY(p_209193_);
     }
 
     public void updateForX(long p_209231_, double p_209232_) {
@@ -366,9 +368,7 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
 
     public void updateForX(Int1088 x, double p_209232_) {
         this.inCellX = WorldBounds.signedDifferenceAsLong(x, this.cellStartBlockX);
-        this.interpolators.forEach((p_209229_) -> {
-            p_209229_.updateForX(p_209232_);
-        });
+        for (int i = 0; i < this.interpolators.size(); ++i) this.interpolators.get(i).updateForX(p_209232_);
     }
 
     public void updateForZ(long p_209242_, double p_209243_) {
@@ -378,9 +378,7 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     public void updateForZ(Int1088 z, double p_209243_) {
         this.inCellZ = WorldBounds.signedDifferenceAsLong(z, this.cellStartBlockZ);
         ++this.interpolationCounter;
-        this.interpolators.forEach((p_209188_) -> {
-            p_209188_.updateForZ(p_209243_);
-        });
+        for (int i = 0; i < this.interpolators.size(); ++i) this.interpolators.get(i).updateForZ(p_209243_);
     }
 
     public void stopInterpolation() {
@@ -537,19 +535,14 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     }
 
     private static Int1088 contextCoordinate(DensityFunction.FunctionContext context, boolean x) {
-        try (net.minecraft.core.Int1088Scratch scratch = net.minecraft.core.Int1088Scratch.acquire()) {
-            int length = x ? context.blockXLimbCount() : context.blockZLimbCount();
-            long[] limbs = scratch.limbs();
-            for (int i = 0; i < length; i++) limbs[i] = x ? context.blockXLimb(i) : context.blockZLimb(i);
-            return Int1088.fromLimbs(limbs, 0, length);
-        }
+        return ContextCoordinates.copy(context, x);
     }
 
-    private static boolean matchesCoordinate(Int1088 value, DensityFunction.FunctionContext context, boolean x) {
+    private static boolean matchesCoordinate(long[] value, int valueLength, DensityFunction.FunctionContext context, boolean x) {
         int length = x ? context.blockXLimbCount() : context.blockZLimbCount();
-        if (value == null || value.limbCount() != length) return false;
+        if (valueLength != length) return false;
         for (int i = 0; i < length; i++) {
-            if (value.limb(i) != (x ? context.blockXLimb(i) : context.blockZLimb(i))) return false;
+            if (value[i] != (x ? context.blockXLimb(i) : context.blockZLimb(i))) return false;
         }
         return true;
     }
@@ -557,7 +550,9 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     static class Cache2D implements DensityFunctions.MarkerOrMarked, NoiseChunk.NoiseChunkDensityFunction {
         private final DensityFunction function;
         private long lastX, lastZ;
-        private Int1088 lastExactX, lastExactZ;
+        private final long[] lastExactX = new long[Int1088.LIMBS];
+        private final long[] lastExactZ = new long[Int1088.LIMBS];
+        private int lastExactXLength, lastExactZLength;
         private boolean hasLastPos2D, hasLastExactPos2D;
         private double lastExactValue;
         private double lastValue;
@@ -570,10 +565,12 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
             long i = pContext.blockXLow();
             long j = pContext.blockZLow();
             if (FarlandsMode.usesPreciseCoordinates() || !pContext.blockXFitsLong() || !pContext.blockZFitsLong()) {
-                if (!this.hasLastExactPos2D || !matchesCoordinate(this.lastExactX, pContext, true) || !matchesCoordinate(this.lastExactZ, pContext, false)) {
+                if (!this.hasLastExactPos2D || !matchesCoordinate(this.lastExactX, this.lastExactXLength, pContext, true) || !matchesCoordinate(this.lastExactZ, this.lastExactZLength, pContext, false)) {
                     this.hasLastExactPos2D = true;
-                    this.lastExactX = contextCoordinate(pContext, true);
-                    this.lastExactZ = contextCoordinate(pContext, false);
+                    this.lastExactXLength = pContext.blockXLimbCount();
+                    this.lastExactZLength = pContext.blockZLimbCount();
+                    for (int limb = 0; limb < this.lastExactXLength; ++limb) this.lastExactX[limb] = pContext.blockXLimb(limb);
+                    for (int limb = 0; limb < this.lastExactZLength; ++limb) this.lastExactZ[limb] = pContext.blockZLimb(limb);
                     this.lastExactValue = this.function.compute(pContext);
                 }
                 return this.lastExactValue;
@@ -695,9 +692,13 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
     class FlatCache implements DensityFunctions.MarkerOrMarked, NoiseChunk.NoiseChunkDensityFunction {
         private final DensityFunction noiseFiller;
         final double[][] values;
+        private final long[] firstX = new long[Int1088.LIMBS];
+        private final long[] firstZ = new long[Int1088.LIMBS];
 
         FlatCache(DensityFunction p_209330_, boolean p_209331_) {
             this.noiseFiller = p_209330_;
+            NoiseChunk.this.firstNoiseX.copyFixed(this.firstX, 0);
+            NoiseChunk.this.firstNoiseZ.copyFixed(this.firstZ, 0);
             this.values = new double[NoiseChunk.this.noiseSizeXZ + 1][NoiseChunk.this.noiseSizeXZ + 1];
             if (p_209331_) {
                 for (int i = 0; i <= NoiseChunk.this.noiseSizeXZ; ++i) {
@@ -714,12 +715,28 @@ public class NoiseChunk implements DensityFunction.ContextProvider, DensityFunct
         }
 
         public double compute(DensityFunction.FunctionContext p_209333_) {
-            Int1088 i = contextCoordinate(p_209333_, true).shiftRight(2);
-            Int1088 j = contextCoordinate(p_209333_, false).shiftRight(2);
-            long k = Int1088Math.signedDifferenceAsLong(i, NoiseChunk.this.firstNoiseX);
-            long l = Int1088Math.signedDifferenceAsLong(j, NoiseChunk.this.firstNoiseZ);
+            long k = this.quartOffset(p_209333_, true);
+            long l = this.quartOffset(p_209333_, false);
             int i1 = this.values.length;
             return k >= 0 && l >= 0 && k < i1 && l < i1 ? this.values[(int) k][(int) l] : this.noiseFiller.compute(p_209333_);
+        }
+
+        private long quartOffset(DensityFunction.FunctionContext context, boolean x) {
+            Int1088 first = x ? NoiseChunk.this.firstNoiseX : NoiseChunk.this.firstNoiseZ;
+            if ((x ? context.blockXFitsLong() : context.blockZFitsLong())
+                    && (x ? NoiseChunk.this.originX : NoiseChunk.this.originZ).fitsLong()) {
+                long quart = (x ? context.blockXLow() : context.blockZLow()) >> 2;
+                // Both block coordinates fit long: their quart difference fits in 63 bits.
+                return quart - first.limb(0);
+            }
+            try (net.minecraft.core.Int1088Scratch scratch = net.minecraft.core.Int1088Scratch.acquire()) {
+                int length = x ? context.blockXLimbCount() : context.blockZLimbCount();
+                long[] limbs = scratch.limbs();
+                for (int i = 0; i < length; ++i) limbs[i] = x ? context.blockXLimb(i) : context.blockZLimb(i);
+                length = Int1088Math.shiftRight(limbs, 0, length, 2, limbs, 0);
+                return Int1088Math.signedDifferenceAsLong(limbs, 0, length, x ? this.firstX : this.firstZ, 0,
+                        first.limbCount());
+            }
         }
 
         public void fillArray(double[] p_209335_, DensityFunction.ContextProvider p_209336_) {

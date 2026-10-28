@@ -16,7 +16,7 @@ public interface PositionalRandomFactory {
 
     RandomSource fromHashOf(String pName);
 
-    /** Legacy content/seed domain: horizontal inputs are explicitly projected low 64 bits. */
+    /** Narrow coordinate entry point; wide callers fold every limb before seeding. */
     RandomSource at(long pX, int pY, long pZ);
 
     default RandomSource at(net.minecraft.core.Int1088 x, int y, net.minecraft.core.Int1088 z) {

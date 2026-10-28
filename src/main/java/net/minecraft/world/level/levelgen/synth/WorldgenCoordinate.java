@@ -35,6 +35,7 @@ public final class WorldgenCoordinate {
     public static Int1088 floorDivide(Int1088 value, int divisor) { return value.floorDivideSaturated(divisor); }
 
     public static long seedCoordinate(Int1088 value) {
+        if (value.fitsLong()) return value.lowLimb();
         long seed = value.limb(0);
         for (int i = 1; i < Int1088.LIMBS; ++i) {
             long extra = value.limb(i) ^ (value.limb(i - 1) >> 63);

@@ -25,6 +25,44 @@ class WorldgenDiagnosticsTest {
     }
 
     @Test
+    void surfaceProbesShareGenerationSamplingAtUpperLimbsAndDomainEdges() {
+        var high = java.math.BigInteger.ONE.shiftLeft(1024).add(java.math.BigInteger.valueOf(123));
+        var coordinates = List.of(Int1088.parseDecimal(high.toString()), Int1088.parseDecimal(high.negate().toString()),
+                Int1088.MIN, Int1088.MAX);
+        for (var dimension : List.of(NoiseGeneratorSettings.OVERWORLD, NoiseGeneratorSettings.NETHER, NoiseGeneratorSettings.END)) {
+            var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(dimension);
+            for (var mode : GeneratorMode.values()) {
+                for (var precision : CoordinatePrecision.values()) {
+                    try (var ignored = GenerationContext.open(new GeneratorConfig(mode, precision))) {
+                        var random = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 1234L);
+                        for (var x : coordinates) {
+                            var z = x.not();
+                            List<String> lines = new ArrayList<>();
+                            WorldgenDiagnostics.append(lines, random, new BlockPos(x, 64, z), settings);
+                            if (dimension.equals(NoiseGeneratorSettings.END)) {
+                                assertTrue(lines.isEmpty());
+                            } else {
+                                assertTrue(lines.contains("Surface primary: " + BlendedNoise.formatDebugValue(
+                                        SurfaceSystem.sampleNoise(random.getOrCreateNoise(Noises.SURFACE), x, 1.0, z))
+                                        + " secondary: " + BlendedNoise.formatDebugValue(
+                                        SurfaceSystem.sampleNoise(random.getOrCreateNoise(Noises.SURFACE_SECONDARY), x, 1.0, z))));
+                                if (dimension.equals(NoiseGeneratorSettings.OVERWORLD)) {
+                                    assertTrue(lines.contains("Badlands surface: " + BlendedNoise.formatDebugValue(
+                                            SurfaceSystem.sampleNoise(random.getOrCreateNoise(Noises.BADLANDS_SURFACE), x, 1.0, z))
+                                            + " pillar: " + BlendedNoise.formatDebugValue(
+                                            SurfaceSystem.sampleNoise(random.getOrCreateNoise(Noises.BADLANDS_PILLAR), x, 0.2, z))
+                                            + " roof: " + BlendedNoise.formatDebugValue(
+                                            SurfaceSystem.sampleNoise(random.getOrCreateNoise(Noises.BADLANDS_PILLAR_ROOF), x, 0.75, z))));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     void roughnessWallIsVisibleWithoutTruncatingCoordinatesOrChangingTheRouter() {
         var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(NoiseGeneratorSettings.OVERWORLD);
         var config = new GeneratorConfig(GeneratorMode.BIT_64, CoordinatePrecision.PRECISE);

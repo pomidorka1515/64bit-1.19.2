@@ -6,6 +6,23 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class WorldgenInformationLayoutTest {
+    @Test
+    void fullDomainCoordinateLinesFitWithoutLosingAnyDigits() {
+        String min = java.math.BigInteger.ONE.shiftLeft(1087).negate().toString();
+        String max = java.math.BigInteger.ONE.shiftLeft(1087).subtract(java.math.BigInteger.ONE).toString();
+        List<String> lines = List.of("X: " + max + ".250", "Y: 64.12500", "Z: " + min + ".000");
+        int widest = lines.stream().mapToInt(String::length).max().orElseThrow() * 6;
+        for (int width : new int[] {854, 1920, 3840}) {
+            int divider = DebugScreenOverlay.informationDivider(width);
+            float scale = DebugInformationLayout.singleColumnScale(widest, lines.size(), divider, 480, 2);
+            assertTrue(Float.isFinite(scale) && scale > 0);
+            assertTrue((widest + 4.0) * scale <= divider + 0.001);
+            var layout = DebugInformationLayout.arrange(lines, width, 480, 2, WorldgenInformationLayoutTest::wrap);
+            assertEquals(String.join("", lines), String.join("", layout.lines()));
+            assertTrue(layout.lines().size() <= layout.rows() * layout.columns());
+        }
+    }
+
     private static List<String> wrap(String text, int width) {
         int characters = Math.max(1, width / 6);
         List<String> result = new ArrayList<>();

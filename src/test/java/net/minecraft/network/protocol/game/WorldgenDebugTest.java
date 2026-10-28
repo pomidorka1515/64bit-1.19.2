@@ -34,6 +34,45 @@ class WorldgenDebugTest {
     }
 
     @Test
+    void payloadRetainsFullWidthGeneratorSamplesForEveryPolicyAndRestoresContext() {
+        var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(NoiseGeneratorSettings.OVERWORLD);
+        var generator = new NoiseBasedChunkGenerator(BuiltinRegistries.STRUCTURE_SETS, BuiltinRegistries.NOISE,
+                new FixedBiomeSource(BuiltinRegistries.BIOME.getHolderOrThrow(Biomes.PLAINS)), settings);
+        var high = java.math.BigInteger.ONE.shiftLeft(1024).add(java.math.BigInteger.valueOf(4747));
+        for (var mode : GeneratorMode.values()) {
+            for (var precision : CoordinatePrecision.values()) {
+                var config = new GeneratorConfig(mode, precision);
+                for (var x : List.of(Int1088.parseDecimal(high.toString()), Int1088.parseDecimal(high.negate().toString()),
+                        Int1088.MIN, Int1088.MAX)) {
+                    var pos = new BlockPos(x, 64, x.not());
+                    RandomState random;
+                    List<String> expected = new ArrayList<>();
+                    try (var ignored = GenerationContext.open(config)) {
+                        random = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 1234L);
+                        generator.addDebugScreenInfo(expected, random, pos);
+                    }
+                    // Sample must install the requested policy even inside a different caller's scope.
+                    var caller = new GeneratorConfig(GeneratorMode.BIT_32, CoordinatePrecision.LOSSY);
+                    try (var ignored = GenerationContext.open(caller)) {
+                        var data = WorldgenDebug.sample(NoiseGeneratorSettings.OVERWORLD.location(), generator, random, pos, config).getData();
+                        try {
+                            assertEquals(NoiseGeneratorSettings.OVERWORLD.location(), data.readResourceLocation());
+                            int count = data.readVarInt();
+                            List<String> received = new ArrayList<>();
+                            for (int i = 0; i < count; i++) received.add(data.readUtf());
+                            assertEquals(expected, received.subList(1, 1 + expected.size()));
+                            assertFalse(data.isReadable());
+                        } finally {
+                            data.release();
+                        }
+                        assertEquals(caller, GenerationContext.current());
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     void simplexDiagnosticsUseFullWidthCoordinates() {
         var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(NoiseGeneratorSettings.OVERWORLD);
         var generator = new NoiseBasedChunkGenerator(BuiltinRegistries.STRUCTURE_SETS, BuiltinRegistries.NOISE,
@@ -76,24 +115,27 @@ class WorldgenDebugTest {
                 new FixedBiomeSource(BuiltinRegistries.BIOME.getHolderOrThrow(Biomes.PLAINS)), settings);
         var config = new GeneratorConfig(GeneratorMode.BIT_64_STABLE_SHIFTS, CoordinatePrecision.PRECISE);
         var random = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 1234L);
-        var x = Int1088.parseDecimal("1855315496539495033392");
-        String expected = null;
-        for (int y : new int[] {255, 256, 257, 320, 1000}) {
-            var data = WorldgenDebug.sample(NoiseGeneratorSettings.OVERWORLD.location(), generator, random,
-                    new BlockPos(x, y, Int1088.ZERO), config).getData();
-            try {
-                data.readResourceLocation();
-                int count = data.readVarInt();
-                String offsets = null;
-                for (int i = 0; i < count; ++i) {
-                    String line = data.readUtf();
-                    if (line.startsWith("Grid Sample point:")) offsets = line;
+        var original = new java.math.BigInteger("1855315496539495033392");
+        for (var coordinate : List.of(original, java.math.BigInteger.ONE.shiftLeft(1024).add(original))) {
+            var x = Int1088.parseDecimal(coordinate.toString());
+            String expected = null;
+            for (int y : new int[] {255, 256, 257, 320, 1000}) {
+                var data = WorldgenDebug.sample(NoiseGeneratorSettings.OVERWORLD.location(), generator, random,
+                        new BlockPos(x, y, Int1088.ZERO), config).getData();
+                try {
+                    data.readResourceLocation();
+                    int count = data.readVarInt();
+                    String offsets = null;
+                    for (int i = 0; i < count; ++i) {
+                        String line = data.readUtf();
+                        if (line.startsWith("Grid Sample point:")) offsets = line;
+                    }
+                    assertNotNull(offsets);
+                    if (y == 255) expected = offsets;
+                    else assertEquals(expected, offsets, "Y=" + y);
+                } finally {
+                    data.release();
                 }
-                assertNotNull(offsets);
-                if (y == 255) expected = offsets;
-                else assertEquals(expected, offsets, "Y=" + y);
-            } finally {
-                data.release();
             }
         }
     }

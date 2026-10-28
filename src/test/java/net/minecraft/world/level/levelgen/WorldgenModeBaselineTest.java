@@ -1,4 +1,4 @@
-package net.minecraft.world.level.levelgen.synth;
+package net.minecraft.world.level.levelgen;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -6,6 +6,9 @@ import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
+import net.minecraft.world.level.levelgen.synth.BlendedNoise;
+import net.minecraft.world.level.levelgen.synth.FarlandsMode;
+import net.minecraft.world.level.levelgen.synth.NormalNoise;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

@@ -20,6 +20,129 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class FullWidthWorldgenTest {
+    @org.junit.jupiter.api.io.TempDir java.nio.file.Path directory;
+
+    @org.junit.jupiter.api.TestFactory
+    java.util.stream.Stream<org.junit.jupiter.api.DynamicTest> generatedChunksReloadAndRegenerateAcrossTheFullMatrix() {
+        java.util.List<java.math.BigInteger[]> addresses = new java.util.ArrayList<>();
+        addresses.add(new java.math.BigInteger[] {java.math.BigInteger.ZERO, java.math.BigInteger.ZERO});
+        java.util.List<java.math.BigInteger> magnitudes = new java.util.ArrayList<>();
+        for (int bit : new int[] {53, 63, 127, 128})
+            magnitudes.add(java.math.BigInteger.ONE.shiftLeft(bit).add(java.math.BigInteger.ONE));
+        magnitudes.add(java.math.BigInteger.ONE.shiftLeft(1023));
+        magnitudes.add(java.math.BigInteger.ONE.shiftLeft(1024).subtract(java.math.BigInteger.ONE.shiftLeft(971)));
+        magnitudes.add(java.math.BigInteger.ONE.shiftLeft(1024));
+        magnitudes.add(java.math.BigInteger.ONE.shiftLeft(1087).subtract(java.math.BigInteger.ONE));
+        for (var magnitude : magnitudes) {
+            addresses.add(new java.math.BigInteger[] {magnitude, magnitude});
+            addresses.add(new java.math.BigInteger[] {magnitude.negate(), magnitude.negate()});
+            addresses.add(new java.math.BigInteger[] {magnitude, magnitude.negate()});
+            addresses.add(new java.math.BigInteger[] {magnitude.negate(), magnitude});
+        }
+        var min = java.math.BigInteger.ONE.shiftLeft(1087).negate();
+        addresses.add(new java.math.BigInteger[] {min, min});
+        addresses.add(new java.math.BigInteger[] {min, min.negate().subtract(java.math.BigInteger.ONE)});
+        addresses.add(new java.math.BigInteger[] {min.negate().subtract(java.math.BigInteger.ONE), min});
+        java.util.List<org.junit.jupiter.api.DynamicTest> tests = new java.util.ArrayList<>();
+        for (var dimension : java.util.List.of(NoiseGeneratorSettings.OVERWORLD, NoiseGeneratorSettings.NETHER, NoiseGeneratorSettings.END)) {
+            for (GeneratorMode mode : GeneratorMode.values()) {
+                for (CoordinatePrecision precision : CoordinatePrecision.values()) {
+                    for (int index = 0; index < addresses.size(); index++) {
+                        var address = addresses.get(index);
+                        String name = dimension.location() + "/" + mode + "/" + precision + "/" + index;
+                        tests.add(org.junit.jupiter.api.DynamicTest.dynamicTest(name, () -> {
+                            try (var ignored = GenerationContext.open(new GeneratorConfig(mode, precision))) {
+                                var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(dimension);
+                                var generator = matrixGenerator(dimension);
+                                var pos = new net.minecraft.world.level.ChunkPos(new net.minecraft.core.BlockPos(
+                                        Int1088.parseDecimal(address[0].toString()), 0, Int1088.parseDecimal(address[1].toString())));
+                                // Independent floor division: matrix entries are block addresses, not chunk indices.
+                                assertEquals(address[0].shiftRight(4).toString(), pos.x().toDecimalString());
+                                assertEquals(address[1].shiftRight(4).toString(), pos.z().toDecimalString());
+                                var height = settings.value().noiseSettings();
+                                var chunk = new net.minecraft.world.level.chunk.ProtoChunk(pos,
+                                        net.minecraft.world.level.chunk.UpgradeData.EMPTY,
+                                        LevelHeightAccessor.create(height.minY(), height.height()), BuiltinRegistries.BIOME, null);
+                                var state = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 1234L);
+                                generateNoise(generator, settings.value(), state, chunk);
+                                var before = snapshot(chunk, state);
+                                var loaded = WorldgenReloadFixture.reload(directory.resolve(name), chunk, height);
+                                assertEquals(pos, loaded.getPos());
+                                assertEquals(before, snapshot(loaded, RandomState.create(settings.value(), BuiltinRegistries.NOISE, 1234L)));
+                                // Re-run actual biome/noise stages with a deserialized chunk and fresh sampler/cache state.
+                                var reloadedState = RandomState.create(settings.value(), BuiltinRegistries.NOISE, 1234L);
+                                generateNoise(matrixGenerator(dimension), settings.value(), reloadedState, loaded);
+                                assertEquals(pos, loaded.getPos());
+                                assertEquals(before, snapshot(loaded, reloadedState));
+                            }
+                        }));
+                    }
+                }
+            }
+        }
+        return tests.stream();
+    }
+
+    private static NoiseBasedChunkGenerator matrixGenerator(net.minecraft.resources.ResourceKey<NoiseGeneratorSettings> dimension) {
+        net.minecraft.world.level.biome.BiomeSource biomes = dimension.equals(NoiseGeneratorSettings.END)
+                ? new net.minecraft.world.level.biome.TheEndBiomeSource(BuiltinRegistries.BIOME)
+                : (dimension.equals(NoiseGeneratorSettings.NETHER)
+                        ? net.minecraft.world.level.biome.MultiNoiseBiomeSource.Preset.NETHER
+                        : net.minecraft.world.level.biome.MultiNoiseBiomeSource.Preset.OVERWORLD)
+                        .biomeSource(BuiltinRegistries.BIOME);
+        return new NoiseBasedChunkGenerator(BuiltinRegistries.STRUCTURE_SETS, BuiltinRegistries.NOISE, biomes,
+                BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(dimension));
+    }
+
+    private static void generateNoise(NoiseBasedChunkGenerator generator, NoiseGeneratorSettings settings,
+            RandomState state, net.minecraft.world.level.chunk.ProtoChunk chunk) {
+        var water = new Aquifer.FluidStatus(settings.seaLevel(), settings.defaultFluid());
+        var lava = new Aquifer.FluidStatus(-54, net.minecraft.world.level.block.Blocks.LAVA.defaultBlockState());
+        chunk.getOrCreateNoiseChunk(c -> NoiseChunk.forChunk(c, state, DensityFunctions.BeardifierMarker.INSTANCE,
+                settings, (x, y, z) -> y < Math.min(-54, settings.seaLevel()) ? lava : water,
+                net.minecraft.world.level.levelgen.blending.Blender.empty()));
+        generator.createBiomes(BuiltinRegistries.BIOME, Runnable::run, state,
+                net.minecraft.world.level.levelgen.blending.Blender.empty(), null, chunk).join();
+        chunk.setStatus(net.minecraft.world.level.chunk.ChunkStatus.BIOMES);
+        generator.fillFromNoise(Runnable::run, net.minecraft.world.level.levelgen.blending.Blender.empty(), state, null, chunk).join();
+        // These are real BIOMES/NOISE stage tests, not a claim of FULL/live-server generation.
+        chunk.setStatus(net.minecraft.world.level.chunk.ChunkStatus.NOISE);
+    }
+
+    private record ChunkSnapshot(net.minecraft.world.level.chunk.ChunkStatus status, int nonAir,
+            java.util.List<net.minecraft.world.level.block.state.BlockState> blocks,
+            java.util.List<net.minecraft.resources.ResourceKey<net.minecraft.world.level.biome.Biome>> biomes,
+            java.util.List<Long> densityBits) {
+        @Override public String toString() {
+            return "ChunkSnapshot[status=" + status + ", nonAir=" + nonAir + ", blockHash=" + blocks.hashCode()
+                    + ", biomeHash=" + biomes.hashCode() + ", densityBits=" + densityBits + "]";
+        }
+    }
+
+    private static ChunkSnapshot snapshot(net.minecraft.world.level.chunk.ProtoChunk chunk, RandomState state) {
+        int nonAir = 0;
+        var blocks = new java.util.ArrayList<net.minecraft.world.level.block.state.BlockState>();
+        var biomes = new java.util.ArrayList<net.minecraft.resources.ResourceKey<net.minecraft.world.level.biome.Biome>>();
+        for (var section : chunk.getSections()) {
+            for (int y = 0; y < 16; y++) for (int z = 0; z < 16; z++) for (int x = 0; x < 16; x++) {
+                var block = section.getBlockState(x, y, z);
+                blocks.add(block);
+                if (!block.isAir()) nonAir++;
+            }
+            for (int y = 0; y < 4; y++) for (int z = 0; z < 4; z++) for (int x = 0; x < 4; x++)
+                biomes.add(section.getNoiseBiome(x, y, z).unwrapKey().orElseThrow());
+        }
+        var bits = new java.util.ArrayList<Long>();
+        for (int[] offset : new int[][] {{0, 0, 0}, {7, 73, 11}, {15, 127, 15}}) {
+            var point = new DensityFunction.SinglePointContext(chunk.getPos().getMinBlockX().addSaturated(Int1088.fromLong(offset[0])),
+                    offset[1], chunk.getPos().getMinBlockZ().addSaturated(Int1088.fromLong(offset[2])));
+            for (var density : java.util.List.of(state.router().temperature(), state.router().vegetation(),
+                    state.router().continents(), state.router().initialDensityWithoutJaggedness(), state.router().finalDensity()))
+                bits.add(Double.doubleToRawLongBits(density.compute(point)));
+        }
+        return new ChunkSnapshot(chunk.getStatus(), nonAir, blocks, biomes, bits);
+    }
+
     @BeforeAll static void bootstrap() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();

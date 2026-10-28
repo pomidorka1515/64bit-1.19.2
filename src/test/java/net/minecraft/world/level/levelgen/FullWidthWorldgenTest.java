@@ -23,6 +23,7 @@ class FullWidthWorldgenTest {
     @org.junit.jupiter.api.io.TempDir java.nio.file.Path directory;
 
     @org.junit.jupiter.api.TestFactory
+    @org.junit.jupiter.api.Tag("worldgen-matrix")
     java.util.stream.Stream<org.junit.jupiter.api.DynamicTest> generatedChunksReloadAndRegenerateAcrossTheFullMatrix() {
         java.util.List<java.math.BigInteger[]> addresses = new java.util.ArrayList<>();
         addresses.add(new java.math.BigInteger[] {java.math.BigInteger.ZERO, java.math.BigInteger.ZERO});
@@ -50,7 +51,9 @@ class FullWidthWorldgenTest {
                     for (int index = 0; index < addresses.size(); index++) {
                         var address = addresses.get(index);
                         String name = dimension.location() + "/" + mode + "/" + precision + "/" + index;
-                        tests.add(org.junit.jupiter.api.DynamicTest.dynamicTest(name, () -> {
+                        // @Timeout on a factory only times test discovery, not its dynamic cases.
+                        tests.add(org.junit.jupiter.api.DynamicTest.dynamicTest(name, () -> assertTimeoutPreemptively(
+                                java.time.Duration.ofMinutes(2), () -> {
                             try (var ignored = GenerationContext.open(new GeneratorConfig(mode, precision))) {
                                 var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(dimension);
                                 var generator = matrixGenerator(dimension);
@@ -75,7 +78,7 @@ class FullWidthWorldgenTest {
                                 assertEquals(pos, loaded.getPos());
                                 assertEquals(before, snapshot(loaded, reloadedState));
                             }
-                        }));
+                        })));
                     }
                 }
             }
@@ -102,9 +105,11 @@ class FullWidthWorldgenTest {
                 settings, (x, y, z) -> y < Math.min(-54, settings.seaLevel()) ? lava : water,
                 net.minecraft.world.level.levelgen.blending.Blender.empty()));
         generator.createBiomes(BuiltinRegistries.BIOME, Runnable::run, state,
-                net.minecraft.world.level.levelgen.blending.Blender.empty(), null, chunk).join();
+                net.minecraft.world.level.levelgen.blending.Blender.empty(), null, chunk)
+                .orTimeout(60, java.util.concurrent.TimeUnit.SECONDS).join();
         chunk.setStatus(net.minecraft.world.level.chunk.ChunkStatus.BIOMES);
-        generator.fillFromNoise(Runnable::run, net.minecraft.world.level.levelgen.blending.Blender.empty(), state, null, chunk).join();
+        generator.fillFromNoise(Runnable::run, net.minecraft.world.level.levelgen.blending.Blender.empty(), state, null, chunk)
+                .orTimeout(60, java.util.concurrent.TimeUnit.SECONDS).join();
         // These are real BIOMES/NOISE stage tests, not a claim of FULL/live-server generation.
         chunk.setStatus(net.minecraft.world.level.chunk.ChunkStatus.NOISE);
     }

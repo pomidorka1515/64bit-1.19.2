@@ -199,5 +199,20 @@ tasks.withType(JavaCompile) {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'worldgen-matrix'
+    }
+}
+
+// Full-height generation + disk reload at every mode/precision/address pair is
+// an acceptance gate, not a fast unit test. Keep all cases available explicitly.
+tasks.register('worldgenMatrixTest', Test) {
+    group = 'verification'
+    description = 'Runs the slow full-width worldgen generation/reload matrix'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'worldgen-matrix'
+    }
+    shouldRunAfter test
 }

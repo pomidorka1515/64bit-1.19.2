@@ -19,9 +19,9 @@ public class EndGatewayFeature extends Feature<EndGatewayConfiguration> {
         EndGatewayConfiguration endgatewayconfiguration = pContext.config();
 
         for (BlockPos blockpos1 : BlockPos.betweenClosed(blockpos.offset(-1, -2, -1), blockpos.offset(1, 2, 1))) {
-            boolean flag = blockpos1.getX() == blockpos.getX();
+            boolean flag = blockpos1.getX().equals(blockpos.getX());
             boolean flag1 = blockpos1.getY() == blockpos.getY();
-            boolean flag2 = blockpos1.getZ() == blockpos.getZ();
+            boolean flag2 = blockpos1.getZ().equals(blockpos.getZ());
             boolean flag3 = Math.abs(blockpos1.getY() - blockpos.getY()) == 2;
             if (flag && flag1 && flag2) {
                 BlockPos blockpos2 = blockpos1.immutable();

@@ -2,14 +2,23 @@ package net.minecraft.client.renderer.entity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import net.minecraft.SharedConstants;
 import net.minecraft.core.Int1088;
+import net.minecraft.server.Bootstrap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.SectorAABB;
 import net.minecraft.world.phys.SectorVec3;
 import net.minecraft.world.phys.Vec3;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class EntityRenderCoordinatesTest {
+    @BeforeAll
+    static void bootstrap() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+    }
+
     @Test
     void shadowVerticesPreserveFractionsAcrossHighHalvesAndLowWordSeams() {
         for (Int1088 origin : new Int1088[] {Int1088.ZERO, Int1088.of(-1, 123),

@@ -44,9 +44,14 @@ class ForkSaveFormatTest {
                 data.putString("ForkFormat", ForkSaveFormat.FORMAT_MARKER);
                 yield data;
             }
-            case FOREIGN -> {
+            case INT128_FORK -> {
                 CompoundTag data = metadata(0x4C534302, "mcp-int128-coordinates");
                 data.putString("ForkFormat", "int128-coordinates-v1");
+                yield data;
+            }
+            case FOREIGN -> {
+                CompoundTag data = metadata(0x4C534301, "other-coordinates");
+                data.putString("ForkFormat", "other-coordinates-v1");
                 yield data;
             }
             case UNKNOWN -> metadata(ForkSaveFormat.STORAGE_VERSION, ForkSaveFormat.SERIES);
@@ -81,11 +86,11 @@ class ForkSaveFormatTest {
             assertEquals(format, ForkSaveFormat.inspect(metadata(format)));
             if (format != ForkSaveFormat.Format.CURRENT) {
                 IOException error = assertThrows(IOException.class, () -> ForkSaveFormat.validate(metadata(format)));
-                assertTrue(error.getMessage().contains(format.name()));
+                assertTrue(error.getMessage().contains(format.toString()));
             }
         }
         assertEquals(ForkSaveFormat.Format.UNKNOWN, ForkSaveFormat.inspect(metadata(19132, "main")));
-        CompoundTag mixed = metadata(ForkSaveFormat.Format.FOREIGN);
+        CompoundTag mixed = metadata(ForkSaveFormat.Format.INT128_FORK);
         mixed.putString("ForkFormat", ForkSaveFormat.FORMAT_MARKER);
         assertEquals(ForkSaveFormat.Format.FOREIGN, ForkSaveFormat.inspect(mixed));
     }
@@ -124,7 +129,7 @@ class ForkSaveFormatTest {
         data = metadata(ForkSaveFormat.Format.CURRENT);
         data.putString("ForkFormat", ForkSaveFormat.FORMAT_MARKER + "-unknown");
         assertForeignRejection(data);
-        data = metadata(ForkSaveFormat.Format.FOREIGN);
+        data = metadata(ForkSaveFormat.Format.INT128_FORK);
         data.putString("ForkFormat", ForkSaveFormat.FORMAT_MARKER);
         assertForeignRejection(data);
     }
@@ -167,7 +172,7 @@ class ForkSaveFormatTest {
         }
         Map<String, String> before = checksums(world);
         IOException error = assertThrows(IOException.class, () -> storage().createAccess("world"));
-        assertTrue(error.getMessage().contains(format.name()));
+        assertTrue(error.getMessage().contains(format.toString()));
         assertTrue(error.getMessage().contains(world.toString()));
         assertEquals(before, checksums(world));
         assertFalse(Files.exists(world.resolve("session.lock")));
@@ -201,7 +206,10 @@ class ForkSaveFormatTest {
                     assertEquals(locked || format != ForkSaveFormat.Format.CURRENT, summary.isDisabled());
                     assertFalse(summary.requiresManualConversion());
                     if (format != ForkSaveFormat.Format.CURRENT) {
-                        assertTrue(summary.getInfo().getString().contains(format.name()));
+                        assertTrue(summary.getInfo().getString().contains(format.toString()));
+                        if (format == ForkSaveFormat.Format.INT128_FORK) {
+                            assertTrue(summary.getInfo().getString().contains("(128BIT_FORK)"));
+                        }
                     }
                 }
             }

@@ -28,6 +28,10 @@ public final class ForkSaveFormat {
                 && FORMAT_MARKER.equals(data.getString("ForkFormat"))) {
             return Format.CURRENT;
         }
+        if (storageVersion == 0x4C534302 && "mcp-int128-coordinates".equals(series)
+                && "int128-coordinates-v1".equals(data.getString("ForkFormat"))) {
+            return Format.INT128_FORK;
+        }
         return Format.FOREIGN;
     }
 
@@ -40,6 +44,12 @@ public final class ForkSaveFormat {
 
     public enum Format {
         CURRENT,
+        INT128_FORK {
+            @Override
+            public String toString() {
+                return "128BIT_FORK";
+            }
+        },
         FOREIGN,
         UNKNOWN
     }

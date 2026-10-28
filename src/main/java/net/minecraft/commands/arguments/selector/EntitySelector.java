@@ -12,6 +12,8 @@ import javax.annotation.Nullable;
 import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.coordinates.CoordinateExpression;
+import net.minecraft.commands.arguments.coordinates.WorldCoordinate;
 import net.minecraft.core.Int1088;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
@@ -44,11 +46,15 @@ public class EntitySelector {
     private final MinMaxBounds.Doubles range;
     private final Function<Vec3, Vec3> position;
     @Nullable
-    private final String exactX;
+    private final WorldCoordinate exactX;
     @Nullable
     private final Double exactY;
     @Nullable
-    private final String exactZ;
+    private final WorldCoordinate exactZ;
+    @Nullable
+    private final CoordinateExpression.Value exactDeltaX;
+    @Nullable
+    private final CoordinateExpression.Value exactDeltaZ;
     @Nullable
     private final AABB aabb;
     private final BiConsumer<Vec3, List<? extends Entity>> order;
@@ -62,7 +68,7 @@ public class EntitySelector {
     private EntityTypeTest<Entity, ?> type;
     private final boolean usesSelector;
 
-    public EntitySelector(int pMaxResults, boolean pIncludeEntities, boolean pWorldLimited, Predicate<Entity> pPredicate, MinMaxBounds.Doubles pRange, Function<Vec3, Vec3> pPositions, @Nullable String exactX, @Nullable Double exactY, @Nullable String exactZ, @Nullable AABB pAabb, BiConsumer<Vec3, List<? extends Entity>> pOrder, boolean pCurrentEntity, @Nullable String pPlayerName, @Nullable UUID pEntityUUID, @Nullable EntityType<?> pType, boolean pUsesSelector) {
+    public EntitySelector(int pMaxResults, boolean pIncludeEntities, boolean pWorldLimited, Predicate<Entity> pPredicate, MinMaxBounds.Doubles pRange, Function<Vec3, Vec3> pPositions, @Nullable WorldCoordinate exactX, @Nullable Double exactY, @Nullable WorldCoordinate exactZ, @Nullable CoordinateExpression.Value exactDeltaX, @Nullable CoordinateExpression.Value exactDeltaZ, @Nullable AABB pAabb, BiConsumer<Vec3, List<? extends Entity>> pOrder, boolean pCurrentEntity, @Nullable String pPlayerName, @Nullable UUID pEntityUUID, @Nullable EntityType<?> pType, boolean pUsesSelector) {
         this.maxResults = pMaxResults;
         this.includesEntities = pIncludeEntities;
         this.worldLimited = pWorldLimited;
@@ -72,6 +78,8 @@ public class EntitySelector {
         this.exactX = exactX;
         this.exactY = exactY;
         this.exactZ = exactZ;
+        this.exactDeltaX = exactDeltaX;
+        this.exactDeltaZ = exactDeltaZ;
         this.aabb = pAabb;
         this.order = pOrder;
         this.currentEntity = pCurrentEntity;
@@ -219,11 +227,11 @@ public class EntitySelector {
     private SectorVec3 exactOrigin(CommandSourceStack source) {
         SectorVec3 result = source.getExactPosition();
         if (this.exactX != null) {
-            var coordinate = net.minecraft.commands.arguments.coordinates.WorldCoordinate.absoluteDecimal(this.exactX, false);
+            var coordinate = this.exactX;
             result = SectorVec3.fromBlockAndFraction(coordinate.getAbsoluteBlock(), coordinate.getAbsoluteFraction(), result.y(), result.blockZ(), result.subZ());
         }
         if (this.exactZ != null) {
-            var coordinate = net.minecraft.commands.arguments.coordinates.WorldCoordinate.absoluteDecimal(this.exactZ, false);
+            var coordinate = this.exactZ;
             result = SectorVec3.fromBlockAndFraction(result.blockX(), result.subX(), result.y(), coordinate.getAbsoluteBlock(), coordinate.getAbsoluteFraction());
         }
         return this.exactY == null ? result : result.withY(this.exactY);
@@ -289,10 +297,29 @@ public class EntitySelector {
     }
 
     private SectorAABB exactBox(SectorVec3 origin) {
+        if (this.exactDeltaX != null || this.exactDeltaZ != null) {
+            var x = CoordinateExpression.Value.fromSplit(origin.blockX(), origin.subX());
+            var z = CoordinateExpression.Value.fromSplit(origin.blockZ(), origin.subZ());
+            var minX = boxEndpoint(x, this.exactDeltaX, false);
+            var maxX = boxEndpoint(x, this.exactDeltaX, true);
+            var minZ = boxEndpoint(z, this.exactDeltaZ, false);
+            var maxZ = boxEndpoint(z, this.exactDeltaZ, true);
+            return new SectorAABB(minX.block(), minX.fraction(), origin.y() + this.aabb.minY, minZ.block(), minZ.fraction(),
+                    maxX.block(), maxX.fraction(), origin.y() + this.aabb.maxY, maxZ.block(), maxZ.fraction());
+        }
         SectorVec3 min = origin.add(this.aabb.minX, this.aabb.minY, this.aabb.minZ);
         SectorVec3 max = origin.add(this.aabb.maxX, this.aabb.maxY, this.aabb.maxZ);
         return new SectorAABB(min.blockX(), min.subX(), min.y(), min.blockZ(), min.subZ(),
                 max.blockX(), max.subX(), max.y(), max.blockZ(), max.subZ());
+    }
+
+    private static CoordinateExpression.Split boxEndpoint(
+            CoordinateExpression.Value exactAxis, @Nullable CoordinateExpression.Value delta, boolean max) {
+        var zero = CoordinateExpression.ZERO;
+        if (delta == null) delta = zero;
+        var offset = (delta.numerator().signum() < 0) != max ? delta : zero;
+        if (max) offset = offset.add(CoordinateExpression.ONE);
+        return exactAxis.add(offset).splitSaturated();
     }
 
     private static double distanceSquared(SectorVec3 position, SectorVec3 origin) {

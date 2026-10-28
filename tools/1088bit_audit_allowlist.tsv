@@ -1,5 +1,6 @@
 # category<TAB>path<TAB>sha256 of sorted matched source text<TAB>review reason
 # S11 review, 2026-10-28: exact matched-text sets only; additions/changes require review.
+big	src/main/java/net/minecraft/commands/arguments/coordinates/CoordinateExpression.java	053c9570a398bf7563f722772fc2da95146f61c4b7f2e8d88969b6e83291d2a1	Bounded command-only rational evaluation preserves cancellation beyond world bounds; converts once to Int1088 block plus double fraction. No physics/worldgen/storage hot-path use.
 low	src/main/java/net/minecraft/client/gui/components/DebugScreenOverlay.java	b214c75a04a917e1c32645366fa2e49896596c51c7bf43b8b47fed7b13f1b7d1	F3 section-local X/Z residues masked to 0..15; full world coordinates are displayed separately.
 low	src/main/java/net/minecraft/server/level/ServerLevel.java	e027df2cb465916f8869d0d8276bf344171da3b7ea2b40ad0de5211f167e3fb4	Offsets sampled at origin zero by Level.getBlockRandomPos are 0..15; added to exact wide origins, not used as world identity.
 low	src/main/java/net/minecraft/core/Int1088Map.java	0e19520bb489aa36252430b594ba76b18f81b8c13003a6e8ddfa64dd9c55af75	Primitive-long probe compares low word only after stored key.fitsLong(); wide keys cannot alias it.

@@ -3,6 +3,7 @@ package net.minecraft.commands.arguments.coordinates;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import net.minecraft.commands.CommandRuntimeException;
 import net.minecraft.core.Int1088;
 import net.minecraft.network.chat.Component;
 
@@ -15,6 +16,7 @@ public class WorldCoordinate {
     private final String literal;
     private final Int1088 absoluteBlock;
     private final double fraction;
+    private final CoordinateExpression.Value exactValue;
 
     public WorldCoordinate(boolean relative, double value) {
         this(relative, value, relative ? Double.toString(value) : plainDouble(value));
@@ -39,6 +41,7 @@ public class WorldCoordinate {
     }
 
     private WorldCoordinate(boolean relative, double value, String literal) {
+        this.exactValue = null;
         this.relative = relative;
         this.value = value;
         this.literal = literal;
@@ -93,7 +96,7 @@ public class WorldCoordinate {
         return this.fraction;
     }
 
-    public static WorldCoordinate parseDouble(StringReader pReader, boolean pCenterCorrect) throws CommandSyntaxException {
+    public static WorldCoordinate parseLegacyDouble(StringReader pReader, boolean pCenterCorrect) throws CommandSyntaxException {
         if (pReader.canRead() && pReader.peek() == '^') {
             throw Vec3Argument.ERROR_MIXED_TYPE.createWithContext(pReader);
         } else if (!pReader.canRead()) {
@@ -127,7 +130,7 @@ public class WorldCoordinate {
         }
     }
 
-    public static WorldCoordinate parseInt(StringReader pReader) throws CommandSyntaxException {
+    public static WorldCoordinate parseLegacyInt(StringReader pReader) throws CommandSyntaxException {
         if (pReader.canRead() && pReader.peek() == '^') {
             throw Vec3Argument.ERROR_MIXED_TYPE.createWithContext(pReader);
         } else if (!pReader.canRead()) {
@@ -155,6 +158,62 @@ public class WorldCoordinate {
         int start = reader.getCursor();
         while (reader.canRead() && reader.peek() != ' ') reader.skip();
         return reader.getString().substring(start, reader.getCursor());
+    }
+
+    private WorldCoordinate(boolean relative, CoordinateExpression.Value exact, String literal) {
+        this.relative = relative;
+        this.exactValue = exact;
+        this.value = exact.doubleValue();
+        this.literal = literal;
+        if (relative) {
+            // Offsets are not absolute positions: a valid cross-world displacement
+            // can exceed the signed coordinate domain. Validate after resolution.
+            this.absoluteBlock = null;
+            this.fraction = 0.0D;
+        } else {
+            CoordinateExpression.Split split = exact.split();
+            this.absoluteBlock = split.block();
+            this.fraction = split.fraction();
+        }
+    }
+
+    public static WorldCoordinate parseDouble(StringReader reader, boolean centerCorrect) throws CommandSyntaxException {
+        return parseHorizontal(reader, centerCorrect, false);
+    }
+
+    public static WorldCoordinate parseInt(StringReader reader) throws CommandSyntaxException {
+        return parseHorizontal(reader, false, true);
+    }
+
+    private static WorldCoordinate parseHorizontal(StringReader reader, boolean centerCorrect, boolean integer) throws CommandSyntaxException {
+        if (reader.canRead() && reader.peek() == '^') throw Vec3Argument.ERROR_MIXED_TYPE.createWithContext(reader);
+        boolean relative = reader.canRead() && isRelative(reader);
+        int start = reader.getCursor();
+        String token = readCoordinateToken(reader);
+        try {
+            CoordinateExpression.Value exact = CoordinateExpression.parse(relative && token.isEmpty() ? "0" : token);
+            if (integer && !relative && !exact.isInteger()) throw new NumberFormatException("Expected integer coordinate");
+            if (centerCorrect && !relative && exact.isInteger() && !token.contains(".")) {
+                exact = exact.add(CoordinateExpression.parse("0.5"));
+                token = exact.toDecimalString();
+            }
+            return new WorldCoordinate(relative, exact, token.isEmpty() ? "0" : token);
+        } catch (NumberFormatException exception) {
+            reader.setCursor(start);
+            throw new SimpleCommandExceptionType(Component.literal(exception.getMessage())).createWithContext(reader);
+        }
+    }
+
+    /** Resolve a horizontal offset before converting to the world's block/fraction storage. */
+    public CoordinateExpression.Split resolve(Int1088 block, double fraction) {
+        if (!this.relative) return new CoordinateExpression.Split(this.absoluteBlock, this.fraction);
+        CoordinateExpression.Value offset = this.exactValue != null ? this.exactValue
+                : CoordinateExpression.Value.fromSplit(Int1088.ZERO, this.value);
+        try {
+            return CoordinateExpression.Value.fromSplit(block, fraction).add(offset).split();
+        } catch (NumberFormatException exception) {
+            throw new CommandRuntimeException(Component.literal(exception.getMessage()));
+        }
     }
 
     private static boolean isDecimal(String token) {
@@ -194,7 +253,7 @@ public class WorldCoordinate {
             if (this.relative != worldcoordinate.relative) {
                 return false;
             } else {
-                return this.relative ? Double.compare(worldcoordinate.value, this.value) == 0
+                return this.relative ? this.relativeValue().equals(worldcoordinate.relativeValue())
                         : this.absoluteBlock.equals(worldcoordinate.absoluteBlock) && Double.compare(this.fraction, worldcoordinate.fraction) == 0;
             }
         }
@@ -203,9 +262,11 @@ public class WorldCoordinate {
     public int hashCode() {
         if (!this.relative)
             return 31 * this.absoluteBlock.hashCode() + Double.hashCode(this.fraction);
-        int i = this.relative ? 1 : 0;
-        long j = Double.doubleToLongBits(this.value);
-        return 31 * i + (int) (j ^ j >>> 32);
+        return 31 + this.relativeValue().hashCode();
+    }
+
+    private CoordinateExpression.Value relativeValue() {
+        return this.exactValue != null ? this.exactValue : CoordinateExpression.parse(Double.toString(this.value));
     }
 
     public boolean isRelative() {
@@ -214,15 +275,16 @@ public class WorldCoordinate {
 
     @Override
     public String toString() {
-        if (this.relative) return "~" + (this.value == 0.0D ? "" : this.literal);
+        if (this.relative) return "~" + (this.relativeValue().numerator().signum() == 0 ? "" : this.literal);
         return this.fraction == 0.0D ? this.absoluteBlock.toDecimalString() : this.literal;
     }
 
     public static WorldCoordinate absoluteDecimal(String value, boolean centerCorrect) {
-        if (!isDecimal(value))
-            throw new IllegalArgumentException("Invalid coordinate: " + value);
         try {
-            return parseDouble(new StringReader(value), centerCorrect);
+            StringReader reader = new StringReader(value);
+            WorldCoordinate coordinate = parseDouble(reader, centerCorrect);
+            if (reader.canRead() || coordinate.isRelative()) throw new IllegalArgumentException("Invalid absolute coordinate: " + value);
+            return coordinate;
         } catch (CommandSyntaxException exception) {
             throw new IllegalArgumentException("Invalid coordinate: " + value, exception);
         }

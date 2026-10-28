@@ -47,9 +47,32 @@ class CommandCoordinatesTest {
 
             SectorVec3 origin = entity.exactPosition();
             CommandSourceStack relativeSource = new Source(entity);
+            if (axis.equals(Int1088.MIN) || axis.equals(Int1088.MAX)) {
+                assertThrows(net.minecraft.commands.CommandRuntimeException.class,
+                        () -> dispatcher.execute("tp @s ~.75 ~1.25 ~-.75", relativeSource));
+                assertEquals(origin, entity.exactPosition());
+                continue;
+            }
             assertEquals(1, dispatcher.execute("tp @s ~.75 ~1.25 ~-.75", relativeSource));
             assertEquals(origin.add(0.75D, 1.25D, -0.75D), entity.exactPosition());
         }
+    }
+
+    @Test
+    void teleportExpressionsAndScientificNotationUseTheSameCommandPath() throws Exception {
+        CommandDispatcher<CommandSourceStack> dispatcher = new CommandDispatcher<>();
+        TeleportCommand.register(dispatcher);
+        TestEntity entity = new TestEntity();
+        assertEquals(1, dispatcher.execute("tp @s (2^1099+1-2^1099) 100 2^^3", new Source(entity)));
+        assertEquals(Int1088.ONE, entity.exactPosition().blockX());
+        assertEquals(0.5D, entity.exactPosition().subX());
+        assertEquals(Int1088.fromLong(16), entity.exactPosition().blockZ());
+        assertEquals(1, dispatcher.execute("tp @s 5.123456e+306 100 -223.293E302", new Source(entity)));
+        assertEquals(new java.math.BigDecimal("5.123456e+306").toBigIntegerExact().toString(), entity.exactPosition().blockX().toDecimalString());
+        var invalid = dispatcher.parse("tp @s 2^1088+1 0 0", new Source(entity));
+        assertTrue(invalid.getReader().canRead() || !invalid.getExceptions().isEmpty());
+        assertThrows(com.mojang.brigadier.exceptions.CommandSyntaxException.class,
+                () -> dispatcher.execute("tp @s 2^1088+1 0 0", new Source(entity)));
     }
 
     private static class Source extends CommandSourceStack {

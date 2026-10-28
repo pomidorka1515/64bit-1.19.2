@@ -49,8 +49,13 @@ class CoordinatesTest {
     }
 
     @Test
-    void relativeCarrySaturatesAndNeverAliasesTheOppositeEdge() throws Exception {
+    void relativeCarryRejectsOutOfWorldDestinationsAndNeverAliasesTheOppositeEdge() throws Exception {
         for (Int1088 axis : axes()) {
+            if (axis.equals(Int1088.MIN) || axis.equals(Int1088.MAX)) {
+                assertThrows(net.minecraft.commands.CommandRuntimeException.class,
+                        () -> WorldCoordinates.parseDouble(new StringReader("~1 ~ ~-1"), false).getExactPosition(source(axis)));
+                continue;
+            }
             SectorVec3 plus = WorldCoordinates.parseDouble(new StringReader("~1 ~ ~-1"), false).getExactPosition(source(axis));
             BigInteger integer = new BigInteger(axis.toDecimalString());
             BigInteger min = BigInteger.ONE.shiftLeft(1087).negate();

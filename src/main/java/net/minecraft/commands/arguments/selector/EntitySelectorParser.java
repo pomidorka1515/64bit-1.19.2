@@ -20,6 +20,8 @@ import java.util.function.ToDoubleFunction;
 import javax.annotation.Nullable;
 import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.advancements.critereon.WrappedMinMaxBounds;
+import net.minecraft.commands.arguments.coordinates.CoordinateExpression;
+import net.minecraft.commands.arguments.coordinates.WorldCoordinate;
 import net.minecraft.commands.arguments.selector.options.EntitySelectorOptions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -79,13 +81,17 @@ public class EntitySelectorParser {
     @Nullable
     private Double x;
     @Nullable
-    private String exactX;
+    private WorldCoordinate exactX;
     @Nullable
     private Double y;
     @Nullable
     private Double z;
     @Nullable
-    private String exactZ;
+    private WorldCoordinate exactZ;
+    @Nullable
+    private CoordinateExpression.Value exactDeltaX;
+    @Nullable
+    private CoordinateExpression.Value exactDeltaZ;
     @Nullable
     private Double deltaX;
     @Nullable
@@ -154,7 +160,7 @@ public class EntitySelectorParser {
         }
 
         return new EntitySelector(this.maxResults, this.includesEntities, this.worldLimited, this.predicate, this.distance, function,
-                this.exactX, this.y, this.exactZ, aabb, this.order, this.currentEntity, this.playerName, this.entityUUID, this.type, this.usesSelectors);
+                this.exactX, this.y, this.exactZ, this.exactDeltaX, this.exactDeltaZ, aabb, this.order, this.currentEntity, this.playerName, this.entityUUID, this.type, this.usesSelectors);
     }
 
     private AABB createAabb(double pSizeX, double pSizeY, double pSizeZ) {
@@ -404,8 +410,8 @@ public class EntitySelectorParser {
     }
 
     public void setExactX(String value) {
-        net.minecraft.commands.arguments.coordinates.WorldCoordinate coordinate = net.minecraft.commands.arguments.coordinates.WorldCoordinate.absoluteDecimal(value, false);
-        this.exactX = value;
+        WorldCoordinate coordinate = WorldCoordinate.absoluteDecimal(value, false);
+        this.exactX = coordinate;
         this.x = coordinate.getValue();
     }
 
@@ -418,13 +424,29 @@ public class EntitySelectorParser {
     }
 
     public void setExactZ(String value) {
-        net.minecraft.commands.arguments.coordinates.WorldCoordinate coordinate = net.minecraft.commands.arguments.coordinates.WorldCoordinate.absoluteDecimal(value, false);
-        this.exactZ = value;
+        WorldCoordinate coordinate = WorldCoordinate.absoluteDecimal(value, false);
+        this.exactZ = coordinate;
         this.z = coordinate.getValue();
     }
 
     public void setDeltaX(double pDeltaX) {
-        this.deltaX = pDeltaX;
+        this.setExactDeltaX(Double.toString(pDeltaX));
+    }
+
+    public void setExactDeltaX(String text) {
+        this.exactDeltaX = parseDelta(text);
+        this.deltaX = this.exactDeltaX.doubleValue();
+    }
+
+    public void setExactDeltaZ(String text) {
+        this.exactDeltaZ = parseDelta(text);
+        this.deltaZ = this.exactDeltaZ.doubleValue();
+    }
+
+    private static CoordinateExpression.Value parseDelta(String text) {
+        var value = CoordinateExpression.parse(text);
+        value.checkBounds();
+        return value;
     }
 
     public void setDeltaY(double pDeltaY) {
@@ -432,7 +454,7 @@ public class EntitySelectorParser {
     }
 
     public void setDeltaZ(double pDeltaZ) {
-        this.deltaZ = pDeltaZ;
+        this.setExactDeltaZ(Double.toString(pDeltaZ));
     }
 
     @Nullable

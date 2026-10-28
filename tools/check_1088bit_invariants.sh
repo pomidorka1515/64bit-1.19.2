@@ -104,8 +104,8 @@ sort -u "$WORK/double.raw" > "$WORK/double"
 # Lossy conversion sites are reviewed by exact fingerprint, not file exemptions.
 search "$WORK/saturated" src/main/java -- -e 'toDoubleSaturated[[:space:]]*\('
 
-# Every production BigInteger/BigDecimal mention is gated unless its exact
-# matched text has a reviewed cold-boundary fingerprint below.
+# Production BigInteger/BigDecimal mentions are gated unless their exact
+# matched text has a reviewed command-evaluation boundary fingerprint below.
 search "$WORK/big.raw" src/main/java -- -e 'BigInteger' -e 'BigDecimal'
 : > "$WORK/big"
 : > "$WORK/big.gate"
@@ -216,7 +216,7 @@ reviewed_filter() {
 : > "$WORK/reviewed"
 reviewed_filter double "$WORK/double"
 reviewed_filter saturated "$WORK/saturated"
-# BigInteger/BigDecimal are unconditionally gated.
+reviewed_filter big "$WORK/big.gate"
 reviewed_filter sentinel "$WORK/sentinel"
 reviewed_filter region "$WORK/region"
 reviewed_filter mirror "$WORK/mirror"
@@ -300,7 +300,7 @@ if [[ "$STRICT" -eq 1 ]]; then
   list_section coordinate-long-mirrors "$WORK/mirror"
 fi
 
-# Gate every category, including all production BigInteger/BigDecimal mentions.
+# Gate every category, including unreviewed production BigInteger/BigDecimal mentions.
 GATE=$((LEGACY + HILO + LOW + WRAPPING + PACKED + DOUBLE + SATURATED + BIG_GATE + SENTINEL + LONGMAP + REGION + SPATIAL + MIRROR))
 echo "gating-findings $GATE"
 

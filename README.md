@@ -4,6 +4,17 @@ minecraft 1.19.2 with signed 1088-bit horizontal coordinates (`Int1088`), not `i
 
 the world border is gone. block X/Z span `-2^1087` through `2^1087 - 1`; Y keeps the usual build height. exact positions, storage, networking, camera-relative math and terrain generation consume the full coordinate.
 
+## command coordinates
+
+world X/Z inputs (including `~` offsets, 2D positions and selector `x/z/dx/dz`) accept either a scientific literal such as `5.123456e+306` / `-223.293E302`, or a no-whitespace arithmetic expression. scientific notation cant be mixed with arithmetic in the same coordinate.
+Y, rotations and local `^` coordinates keep their existing syntax
+
+- expressions support decimal literals, parentheses, unary `+/-`, `+ - * / // ^ ^^`; multiplication must be explicit (`1(10)` is invalid).
+- `/` is exact division; `//` floors toward negative infinity
+- precedence, highest first: parentheses, `^^`, `^`, unary signs, `* / //`, `+ -`. oowers and tetration associate rightward
+- out of bounds final coordinates fail during command parsing, making the command red in chat. Relative destinations are checked again when resolved
+- evaluation is bounded: 4096 characters, 64 recursive parser levels, 1024 syntax operations, and 16384-bit intermediate numerator/denominator storage. oversized powers/towers fail with a complexity error, not an approximate result
+
 ## save break and worldgen boundary
 
 - **new worlds only.** vanilla, old 64-bit fork and legacy 128-bit saves are rejected read-only, not migrated; there is no fallback decoder. matching 1088-bit client/server builds are required.

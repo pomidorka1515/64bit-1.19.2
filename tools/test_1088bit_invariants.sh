@@ -38,6 +38,14 @@ audit
 printf '\nlong another = Long.MAX_VALUE;\n' >> "$fixture"
 if audit; then echo 'changed reviewed fixture accepted' >&2; exit 1; fi
 grep -Eq '^long-min-max-sentinels [1-9]' "$WORK/result"
+# The command-only big-number exception is also an exact matched-text set.
+printf 'java.math.BigInteger commandValue;\n' > "$fixture"
+fingerprint=$(printf 'java.math.BigInteger commandValue;\n' | sha256sum)
+printf 'big\tsrc/main/java/net/minecraft/core/Fixture.java\t%s\treviewed command fixture\n' "${fingerprint%% *}" >> "$WORK/tools/1088bit_audit_allowlist.tsv"
+audit
+printf 'java.math.BigDecimal unreviewed;\n' >> "$fixture"
+if audit; then echo 'changed reviewed big-number fixture accepted' >&2; exit 1; fi
+grep -Eq '^biginteger-bigdecimal [1-9]' "$WORK/result"
 # Report mode is non-gating and saves its report.
 bash "$WORK/tools/check_1088bit_invariants.sh" > "$WORK/result"
 grep -q '^1088bit-invariant-audit' "$WORK/docs/1088bit/invariant-report.txt"

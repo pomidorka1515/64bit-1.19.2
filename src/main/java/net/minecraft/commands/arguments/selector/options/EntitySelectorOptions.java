@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementProgress;
@@ -48,6 +49,19 @@ import net.minecraft.world.scores.Scoreboard;
 import net.minecraft.world.scores.Team;
 
 public class EntitySelectorOptions {
+    private static void readHorizontal(EntitySelectorParser parser, Consumer<String> setter) throws CommandSyntaxException {
+        parser.setWorldLimited();
+        StringReader reader = parser.getReader();
+        int start = reader.getCursor();
+        while (reader.canRead() && reader.peek() != ',' && reader.peek() != ']') reader.skip();
+        try {
+            setter.accept(reader.getString().substring(start, reader.getCursor()).trim());
+        } catch (IllegalArgumentException exception) {
+            reader.setCursor(start);
+            throw new SimpleCommandExceptionType(Component.literal(exception.getMessage())).createWithContext(reader);
+        }
+    }
+
     private static final Map<String, EntitySelectorOptions.Option> OPTIONS = Maps.newHashMap();
     public static final DynamicCommandExceptionType ERROR_UNKNOWN_OPTION = new DynamicCommandExceptionType((p_121520_) -> {
         return Component.translatable("argument.entity.options.unknown", p_121520_);
@@ -113,39 +127,21 @@ public class EntitySelectorOptions {
                throw ERROR_LEVEL_NEGATIVE.createWithContext(p_121417_.getReader());
             } }, (p_121415_) -> { return p_121415_.getLevel().isAny(); }, Component.translatable("argument.entity.options.level.description"));
             register("x", (p_121413_) -> {
-            p_121413_.setWorldLimited();
-            int start = p_121413_.getReader().getCursor();
-            while (p_121413_.getReader().canRead() && p_121413_.getReader().peek() != ',' && p_121413_.getReader().peek() != ']') p_121413_.getReader().skip();
-            String value = p_121413_.getReader().getString().substring(start, p_121413_.getReader().getCursor()).trim();
-            try {
-               p_121413_.setExactX(value);
-             } catch (IllegalArgumentException exception) {
-               p_121413_.getReader().setCursor(start);
-               throw EntitySelectorParser.ERROR_EXPECTED_OPTION_VALUE.createWithContext(p_121413_.getReader(), "x");
-            } }, (p_121411_) -> { return p_121411_.getX() == null; }, Component.translatable("argument.entity.options.x.description"));
+            readHorizontal(p_121413_, p_121413_::setExactX);
+            }, (p_121411_) -> { return p_121411_.getX() == null; }, Component.translatable("argument.entity.options.x.description"));
             register("y", (p_121409_) -> {
             p_121409_.setWorldLimited();
             p_121409_.setY(p_121409_.getReader().readDouble()); }, (p_121407_) -> { return p_121407_.getY() == null; }, Component.translatable("argument.entity.options.y.description"));
             register("z", (p_121405_) -> {
-            p_121405_.setWorldLimited();
-            int start = p_121405_.getReader().getCursor();
-            while (p_121405_.getReader().canRead() && p_121405_.getReader().peek() != ',' && p_121405_.getReader().peek() != ']') p_121405_.getReader().skip();
-            String value = p_121405_.getReader().getString().substring(start, p_121405_.getReader().getCursor()).trim();
-            try {
-               p_121405_.setExactZ(value);
-             } catch (IllegalArgumentException exception) {
-               p_121405_.getReader().setCursor(start);
-               throw EntitySelectorParser.ERROR_EXPECTED_OPTION_VALUE.createWithContext(p_121405_.getReader(), "z");
-            } }, (p_121403_) -> { return p_121403_.getZ() == null; }, Component.translatable("argument.entity.options.z.description"));
+            readHorizontal(p_121405_, p_121405_::setExactZ);
+            }, (p_121403_) -> { return p_121403_.getZ() == null; }, Component.translatable("argument.entity.options.z.description"));
             register("dx", (p_121401_) -> {
-            p_121401_.setWorldLimited();
-            p_121401_.setDeltaX(p_121401_.getReader().readDouble()); }, (p_121399_) -> { return p_121399_.getDeltaX() == null; }, Component.translatable("argument.entity.options.dx.description"));
+            readHorizontal(p_121401_, p_121401_::setExactDeltaX); }, (p_121399_) -> { return p_121399_.getDeltaX() == null; }, Component.translatable("argument.entity.options.dx.description"));
             register("dy", (p_121397_) -> {
             p_121397_.setWorldLimited();
             p_121397_.setDeltaY(p_121397_.getReader().readDouble()); }, (p_121395_) -> { return p_121395_.getDeltaY() == null; }, Component.translatable("argument.entity.options.dy.description"));
             register("dz", (p_121562_) -> {
-            p_121562_.setWorldLimited();
-            p_121562_.setDeltaZ(p_121562_.getReader().readDouble()); }, (p_121560_) -> { return p_121560_.getDeltaZ() == null; }, Component.translatable("argument.entity.options.dz.description"));
+            readHorizontal(p_121562_, p_121562_::setExactDeltaZ); }, (p_121560_) -> { return p_121560_.getDeltaZ() == null; }, Component.translatable("argument.entity.options.dz.description"));
             register("x_rotation", (p_121558_) -> { p_121558_.setRotX(WrappedMinMaxBounds.fromReader(p_121558_.getReader(), true, Mth::wrapDegrees)); }, (p_121556_) -> { return p_121556_.getRotX() == WrappedMinMaxBounds.ANY; }, Component.translatable("argument.entity.options.x_rotation.description"));
             register("y_rotation", (p_121554_) -> { p_121554_.setRotY(WrappedMinMaxBounds.fromReader(p_121554_.getReader(), true, Mth::wrapDegrees)); }, (p_121552_) -> { return p_121552_.getRotY() == WrappedMinMaxBounds.ANY; }, Component.translatable("argument.entity.options.y_rotation.description"));
             register("limit", (p_121550_) -> {

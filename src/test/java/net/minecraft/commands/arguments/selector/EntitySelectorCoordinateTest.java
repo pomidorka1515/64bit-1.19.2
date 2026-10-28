@@ -101,6 +101,18 @@ class EntitySelectorCoordinateTest {
     }
 
     @Test
+    void expressionOriginsAndWideBoxDeltasRetainLowBits() throws Exception {
+        Int1088 wide = Int1088.ONE.shiftLeftSaturated(1024);
+        TestEntity entity = entity(SectorVec3.fromBlockAndFraction(wide.addSaturated(Int1088.fromLong(2)), 0.25D, 64, Int1088.ZERO, 0.25D));
+        assertEquals(List.of(entity), parse("@s[x=0,z=0,dx=2^1024+3,dy=1,dz=1]").findEntities(source(entity)));
+        entity.moveTo(SectorVec3.fromBlockAndFraction(wide.addSaturated(Int1088.fromLong(10)), 0.25D, 64, Int1088.ZERO, 0.25D), 0, 0);
+        assertTrue(parse("@s[x=0,z=0,dx=2^1024+3,dy=1,dz=1]").findEntities(source(entity)).isEmpty());
+        assertEquals(List.of(entity), parse("@s[x=2^1024+10,z=(1/3)*3-1,dx=1,dy=1,dz=1]").findEntities(source(entity)));
+        entity.moveTo(SectorVec3.fromBlockAndFraction(wide.negate().subtractSaturated(Int1088.fromLong(2)), 0.25D, 64, Int1088.ZERO, 0.25D), 0, 0);
+        assertEquals(List.of(entity), parse("@s[x=0,z=0,dx=-(2^1024+3),dy=1,dz=1]").findEntities(source(entity)));
+    }
+
+    @Test
     void wideSelectorsUseFiniteMirrorsAndRejectInvalidLiterals() {
         EntitySelectorParser parser = new EntitySelectorParser(new StringReader(""));
         String wide = BigInteger.ONE.shiftLeft(1024).add(BigInteger.ONE).toString();

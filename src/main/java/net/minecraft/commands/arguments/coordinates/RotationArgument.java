@@ -27,10 +27,10 @@ public class RotationArgument implements ArgumentType<Coordinates> {
         if (!pReader.canRead()) {
             throw ERROR_NOT_COMPLETE.createWithContext(pReader);
         } else {
-            WorldCoordinate worldcoordinate = WorldCoordinate.parseDouble(pReader, false);
+            WorldCoordinate worldcoordinate = WorldCoordinate.parseLegacyDouble(pReader, false);
             if (pReader.canRead() && pReader.peek() == ' ') {
                 pReader.skip();
-                WorldCoordinate worldcoordinate1 = WorldCoordinate.parseDouble(pReader, false);
+                WorldCoordinate worldcoordinate1 = WorldCoordinate.parseLegacyDouble(pReader, false);
                 return new WorldCoordinates(worldcoordinate1, worldcoordinate, new WorldCoordinate(true, 0.0D));
             } else {
                 pReader.setCursor(i);

@@ -13,6 +13,21 @@ import org.junit.jupiter.api.Test;
 
 class ViewAreaTest {
     @Test
+    void everyUpperLimbKeepsContiguousWindowsAndExactPeriodicSlots() {
+        for (int bit = 64; bit <= 1024; bit += 64) {
+            for (int sign : new int[] {-1, 1}) {
+                BigInteger exact = BigInteger.ONE.shiftLeft(bit).multiply(BigInteger.valueOf(sign))
+                        .subtract(BigInteger.ONE);
+                Int1088 center = Int1088.parseDecimal(exact.toString());
+                assertContiguousWindow(center, 33,
+                        Int1088.parseDecimal(exact.subtract(BigInteger.valueOf(16)).toString()));
+                for (int period : new int[] {3, 33, 65})
+                    assertEquals(exact.mod(BigInteger.valueOf(period)).intValue(), ViewArea.floorMod(center, period));
+            }
+        }
+    }
+
+    @Test
     void smallInvalidationsVisitOnlyTheirExactSections() {
         for (Int1088 first : new Int1088[] {Int1088.fromLong(-1), Int1088.of(-1, 7), Int1088.of(-1, -7),
                 WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK.subtract(Int1088.ONE)}) {

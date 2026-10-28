@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Random;
+import java.math.BigInteger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Int1088;
@@ -12,6 +13,26 @@ import net.minecraft.world.level.WorldBounds;
 import org.junit.jupiter.api.Test;
 
 class RenderRegionInt1088Test {
+    @Test
+    void localBlockIndicesMatchIndependentFloorDivisionAcrossEveryLimb() {
+        for (int bit = 64; bit <= 1024; bit += 64) {
+            for (int sign : new int[] {-1, 1}) {
+                BigInteger section = BigInteger.ONE.shiftLeft(bit).multiply(BigInteger.valueOf(sign))
+                        .subtract(BigInteger.ONE).shiftRight(4);
+                Int1088 first = Int1088.parseDecimal(section.toString());
+                for (int offset = -17; offset <= 65; ++offset) {
+                    BigInteger block = section.shiftLeft(4).add(BigInteger.valueOf(offset));
+                    int index = block.shiftRight(4).subtract(section).intValueExact();
+                    int expected = index >= 0 && index < 4 ? index : -1;
+                    assertEquals(expected, RenderChunkRegion.localBlockIndex(
+                            Int1088.parseDecimal(block.toString()), first, 4));
+                }
+                BigInteger remote = section.add(BigInteger.ONE.shiftLeft(bit));
+                assertEquals(-1, RenderChunkRegion.localIndex(Int1088.parseDecimal(remote.toString()), first, 4));
+            }
+        }
+    }
+
     @Test
     void allocationFreeBlockIndexMatchesFullWidthSectionIndex() {
         Random random = new Random(628);

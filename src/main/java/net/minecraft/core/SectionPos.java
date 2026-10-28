@@ -46,8 +46,19 @@ public class SectionPos extends Vec3i {
     /** Full-width comparison without allocating either section or coordinate objects. */
     public boolean contains(BlockPos pos) {
         return this.getY() == (pos.getY() >> 4)
-                && this.getX().equals(pos.getX().shiftRight(4))
-                && this.getZ().equals(pos.getZ().shiftRight(4));
+                && matchesBlockCoordinate(this.getX(), pos, true)
+                && matchesBlockCoordinate(this.getZ(), pos, false);
+    }
+
+    /** Compare an exact section identity with a block's primitive, possibly mutable limb view. */
+    public static boolean matchesBlockCoordinate(Int1088 section, BlockPos block, boolean x) {
+        int length = Math.max(section.limbCount(), x ? block.xLimbCount() : block.zLimbCount());
+        for (int i = 0; i < length; ++i) {
+            long low = x ? block.xLimb(i) : block.zLimb(i);
+            long high = i + 1 < Int1088.LIMBS ? (x ? block.xLimb(i + 1) : block.zLimb(i + 1)) : low >> 63;
+            if (section.limb(i) != ((low >>> 4) | (high << 60))) return false;
+        }
+        return true;
     }
 
     public static SectionPos of(ChunkPos pChunkPos, int pY) {

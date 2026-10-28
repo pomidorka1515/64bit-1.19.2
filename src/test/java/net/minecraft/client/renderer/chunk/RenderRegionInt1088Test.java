@@ -14,6 +14,18 @@ import org.junit.jupiter.api.Test;
 
 class RenderRegionInt1088Test {
     @Test
+    void mutableRegionIndexDoesNotMaterializeCoordinates() {
+        Int1088 coordinate = Int1088.of(-1, 7);
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(coordinate, 64, coordinate) {
+            @Override public Int1088 getX() { throw new AssertionError("materialized X"); }
+            @Override public Int1088 getZ() { throw new AssertionError("materialized Z"); }
+        };
+        Int1088 origin = coordinate.shiftRight(4);
+        assertEquals(0, RenderChunkRegion.localBlockIndex(pos, true, origin, 4));
+        assertEquals(0, RenderChunkRegion.localBlockIndex(pos, false, origin, 4));
+    }
+
+    @Test
     void localBlockIndicesMatchIndependentFloorDivisionAcrossEveryLimb() {
         for (int bit = 64; bit <= 1024; bit += 64) {
             for (int sign : new int[] {-1, 1}) {
@@ -44,6 +56,13 @@ class RenderRegionInt1088Test {
             Int1088 origin = section.addSaturated(Int1088.fromLong(random.nextInt(11) - 5));
             assertEquals(RenderChunkRegion.localIndex(section, origin, 4),
                     RenderChunkRegion.localBlockIndex(block, origin, 4));
+            BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(block, 0, block);
+            for (boolean x : new boolean[]{false, true}) {
+                assertEquals(RenderChunkRegion.localIndex(section, origin, 4),
+                        RenderChunkRegion.localBlockIndex(mutable, x, origin, 4));
+                assertEquals(-1, RenderChunkRegion.localBlockIndex(mutable, x,
+                        section.xor(Int1088.ONE.shiftLeftSaturated(1024)), 4));
+            }
             assertEquals(-1, RenderChunkRegion.localBlockIndex(block, section.xor(Int1088.ONE.shiftLeftSaturated(1024)), 4));
         }
         assertEquals(-1, RenderChunkRegion.localBlockIndex(Int1088.MIN, Int1088.MAX, 4));

@@ -2216,8 +2216,10 @@ public class LevelRenderer implements ResourceManagerReloadListener, AutoCloseab
 
         for (LevelRenderer.RenderChunkInfo levelrenderer$renderchunkinfo : this.renderChunksInFrustum) {
             ChunkRenderDispatcher.RenderChunk chunkrenderdispatcher$renderchunk = levelrenderer$renderchunkinfo.chunk;
-            ChunkPos chunkpos = new ChunkPos(chunkrenderdispatcher$renderchunk.getOrigin());
-            if (chunkrenderdispatcher$renderchunk.isDirty() && this.level.getChunk(chunkpos.x(), chunkpos.z()).isClientLightReady()) {
+            // Most visible sections are clean; avoid materializing wide chunk coordinates for them.
+            if (chunkrenderdispatcher$renderchunk.isDirty()) {
+                ChunkPos chunkpos = new ChunkPos(chunkrenderdispatcher$renderchunk.getOrigin());
+                if (!this.level.getChunk(chunkpos.x(), chunkpos.z()).isClientLightReady()) continue;
                 boolean flag = false;
                 if (this.minecraft.options.prioritizeChunkUpdates().get() != PrioritizeChunkUpdates.NEARBY) {
                     if (this.minecraft.options.prioritizeChunkUpdates().get() == PrioritizeChunkUpdates.PLAYER_AFFECTED) {

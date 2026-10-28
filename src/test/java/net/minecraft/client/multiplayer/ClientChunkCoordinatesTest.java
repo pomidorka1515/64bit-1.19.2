@@ -32,6 +32,25 @@ class ClientChunkCoordinatesTest {
     }
 
     @Test
+    void anchoredRingIndicesRemainAbsoluteAcrossSeamsAndTeleports() {
+        for (Int1088 origin : new Int1088[]{Int1088.ZERO, Int1088.of(-1, 7), Int1088.of(0, -7),
+                Int1088.ONE.shiftLeftSaturated(512), Int1088.MIN, Int1088.MAX}) {
+            for (int range : new int[]{7, 11, 17, 65}) {
+                int residue = ClientChunkCache.storageModulo(origin, range);
+                for (long delta : new long[]{-1048577, -1048576, -65, -1, 0, 1, 65, 1048576, 1048577}) {
+                    Int1088 value = origin.addSaturated(Int1088.fromLong(delta));
+                    assertEquals(ClientChunkCache.storageModulo(value, range),
+                            ClientChunkCache.anchoredStorageModulo(value, origin, residue, range));
+                }
+                for (Int1088 value : new Int1088[]{Int1088.MIN, Int1088.MAX, Int1088.of(0, 8), Int1088.of(0, -8)}) {
+                    assertEquals(ClientChunkCache.storageModulo(value, range),
+                            ClientChunkCache.anchoredStorageModulo(value, origin, residue, range));
+                }
+            }
+        }
+    }
+
+    @Test
     void trackingUsesBothHalvesAndDoesNotWrapAtEdges() {
         for (Int1088 center : new Int1088[] {Int1088.ZERO, Int1088.of(-1, 7), Int1088.of(-1, -7), Int1088.ONE.shiftLeftSaturated(1024),
                 WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK}) {

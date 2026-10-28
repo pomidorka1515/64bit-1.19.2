@@ -139,6 +139,7 @@ public class ClientChunkCache extends ChunkSource {
     }
 
     public void updateViewCenter(net.minecraft.core.Int1088 pX, net.minecraft.core.Int1088 pZ) {
+        this.storage.updateIndexOrigin(pX, pZ);
         this.storage.viewCenterX = pX;
         this.storage.viewCenterZ = pZ;
     }
@@ -150,6 +151,7 @@ public class ClientChunkCache extends ChunkSource {
             ClientChunkCache.Storage clientchunkcache$storage = new ClientChunkCache.Storage(j);
             clientchunkcache$storage.viewCenterX = this.storage.viewCenterX;
             clientchunkcache$storage.viewCenterZ = this.storage.viewCenterZ;
+            clientchunkcache$storage.updateIndexOrigin(clientchunkcache$storage.viewCenterX, clientchunkcache$storage.viewCenterZ);
 
             for (int k = 0; k < this.storage.chunks.length(); ++k) {
                 LevelChunk levelchunk = this.storage.chunks.get(k);
@@ -194,11 +196,27 @@ public class ClientChunkCache extends ChunkSource {
         return Math.floorMod(value.remainder(range), range);
     }
 
+    /** Retains absolute ring indices: changing the anchor never relocates stored chunks. */
+    static int anchoredStorageModulo(Int1088 value, Int1088 origin, int originModulo, int range) {
+        // A few hardware divisions beat validating a local difference at small widths.
+        if (value.limbCount() <= 3) return storageModulo(value, range);
+        long delta = net.minecraft.core.Int1088Math.signedDifferenceAsLong(value, origin);
+        if (delta >= -net.minecraft.core.Int1088Math.MAX_SAFE_LOCAL_SPAN
+                && delta <= net.minecraft.core.Int1088Math.MAX_SAFE_LOCAL_SPAN) {
+            return (int) Math.floorMod(delta + originModulo, (long) range);
+        }
+        return storageModulo(value, range);
+    }
+
+    private record IndexOrigin(Int1088 x, Int1088 z, int xModulo, int zModulo) { }
+
     @OnlyIn(Dist.CLIENT)
     final class Storage {
         final AtomicReferenceArray<LevelChunk> chunks;
         final int chunkRadius;
         private final int viewRange;
+        // Publish coordinates and their residues together for concurrent chunk readers.
+        private volatile IndexOrigin indexOrigin = new IndexOrigin(Int1088.ZERO, Int1088.ZERO, 0, 0);
         volatile net.minecraft.core.Int1088 viewCenterX = net.minecraft.core.Int1088.ZERO;
         volatile net.minecraft.core.Int1088 viewCenterZ = net.minecraft.core.Int1088.ZERO;
         int chunkCount;
@@ -214,18 +232,20 @@ public class ClientChunkCache extends ChunkSource {
         }
 
         int getIndex(net.minecraft.core.Int1088 pX, net.minecraft.core.Int1088 pZ) {
-            long x = floorMod(pX);
-            long z = floorMod(pZ);
-            return (int) (z * (long) this.viewRange + x);
+            IndexOrigin origin = this.indexOrigin;
+            int x = anchoredStorageModulo(pX, origin.x(), origin.xModulo(), this.viewRange);
+            int z = anchoredStorageModulo(pZ, origin.z(), origin.zModulo(), this.viewRange);
+            return z * this.viewRange + x;
         }
 
         int getIndex(ChunkPos pos) {
-            return storageModulo(pos.z(), this.viewRange) * this.viewRange
-                    + storageModulo(pos.x(), this.viewRange);
+            return this.getIndex(pos.x(), pos.z());
         }
 
-        private long floorMod(net.minecraft.core.Int1088 value) {
-            return storageModulo(value, this.viewRange);
+        private void updateIndexOrigin(Int1088 x, Int1088 z) {
+            IndexOrigin previous = this.indexOrigin;
+            if (previous.x().equals(x) && previous.z().equals(z)) return;
+            this.indexOrigin = new IndexOrigin(x, z, storageModulo(x, this.viewRange), storageModulo(z, this.viewRange));
         }
 
         protected void replace(int pChunkIndex, @Nullable LevelChunk pChunk) {

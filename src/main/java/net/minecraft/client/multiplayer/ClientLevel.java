@@ -488,14 +488,23 @@ public class ClientLevel extends Level {
 
     private void playSound(SectorVec3 position, SoundEvent sound, SoundSource source, float volume, float pitch,
             boolean distanceDelay, long seed) {
-        SectorVec3 camera = this.minecraft.gameRenderer.getMainCamera().exactPosition();
-        double distanceSquared = position.relativeTo(camera).lengthSqr();
         SimpleSoundInstance instance = new SimpleSoundInstance(sound, source, volume, pitch, RandomSource.create(seed), position);
-        if (distanceDelay && distanceSquared > 100.0D) {
-            double delay = Math.sqrt(distanceSquared) / 40.0D;
-            this.minecraft.getSoundManager().playDelayed(instance, (int) (delay * 20.0D));
+        int delay = distanceDelay ? SoundDelay.ticks(position, this.minecraft.gameRenderer.getMainCamera().exactPosition()) : 0;
+        if (delay > 0) {
+            this.minecraft.getSoundManager().playDelayed(instance, delay);
         } else {
             this.minecraft.getSoundManager().play(instance);
+        }
+    }
+
+    static final class SoundDelay {
+        static int ticks(SectorVec3 position, @Nullable SectorVec3 camera) {
+            // Level-event packets can arrive before the first camera setup.
+            if (camera == null) {
+                return 0;
+            }
+            double distanceSquared = position.relativeTo(camera).lengthSqr();
+            return distanceSquared > 100.0D ? (int) (Math.sqrt(distanceSquared) / 40.0D * 20.0D) : 0;
         }
     }
 

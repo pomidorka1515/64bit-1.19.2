@@ -1,33 +1,5 @@
 # worldgen overflow values
 
-## 1088-bit coordinate revision — 2026-10-28
-
-horizontal addresses now use signed `Int1088` (`-2^1087 .. 2^1087 - 1`),
-with Y unchanged. the five modes (`32bit`, `32bit-stable-shifts`, `64bit`,
-`64bit-stable-shifts`, `64bit-patched`) and both precisions (`precise`, `lossy`)
-are unchanged. `precise` scales full integers before lattice reduction; `lossy`
-retains absolute floating-point projections and their intentional failures.
-wide seeds fold every significant limb; signed-long seeds keep their old results.
-full-width addressing does not promise unique terrain at every address.
-
-save identity is storage version `0x4C534303`, series `mcp-int1088-coordinates`,
-marker `int1088-coordinates-v1`; protocol `0x4C534303` requires matching builds.
-vanilla, old 64-bit fork and legacy 128-bit saves are rejected read-only, not
-migrated. NBT axes are `LongArray[17]`; wire axes use 1–17 significant limbs.
-nested Anvil region and external-chunk paths require long-path support (over
-600 characters plus the world root) and recursive backup/restore tools.
-
-re-derivation note: storage endpoints change because the address width changed,
-not because a sampler was patched. the endpoint rows below now give the exact
-1088-bit limits. all listed binary64 conversion references lie **inside** the
-new address domain, but remain exact-product conversion references, not measured
-sampler failures. the old survey remains limited to magnitudes below `2^127`;
-it is not a survey of the expanded domain. other numerical tables are retained,
-not silently re-baselined. ported standalone End, Far Lands, shift, pillar and
-scaled-conversion probes pass bounded checks; the ordinary worldgen golden tests
-also pass. this does not claim every catalog row was remeasured or replace live
-render/audio verification and final client/server acceptance.
-
 seed 0. Noise inputs and SurfaceSystem / SurfaceRules tables below contain
 separate measured **32-bit / lossy** and **64-bit / precise** signed
 block-coordinate boundary tables, not nominal

@@ -3,7 +3,6 @@ package net.minecraft.core;
 import com.google.common.base.MoreObjects;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
-import it.unimi.dsi.fastutil.HashCommon;
 import java.util.function.Function;
 import java.util.stream.LongStream;
 
@@ -88,7 +87,7 @@ public class Vec3i implements Comparable<Vec3i> {
     }
 
     public int hashCode() {
-        return (this.getY() + hashZ(this) * 31) * 31 + hashX(this);
+        return (this.getY() + this.zHash() * 31) * 31 + this.xHash();
     }
 
     public int compareTo(Vec3i pOther) {
@@ -479,23 +478,12 @@ public class Vec3i implements Comparable<Vec3i> {
         return result;
     }
 
-    private static int hashX(Vec3i value) {
-        return hashXZ(value, true);
+    protected int xHash() {
+        return this.getX().hashXZ();
     }
 
-    private static int hashZ(Vec3i value) {
-        return hashXZ(value, false);
+    protected int zHash() {
+        return this.getZ().hashXZ();
     }
 
-    /** Mirrors {@link Int1088Math#hashXZ} over the sign-extended limb view, without allocating. */
-    private static int hashXZ(Vec3i value, boolean xAxis) {
-        long hash = 0xcbf29ce484222325L;
-        for (int i = 0; i < Int1088.LIMBS; ++i) {
-            long word = xAxis ? value.xLimb(i) : value.zLimb(i);
-            long mixed = HashCommon.murmurHash3(word + 0x9e3779b97f4a7c15L * (i + 1));
-            hash = (hash ^ mixed) * 0x100000001b3L;
-        }
-        long result = HashCommon.murmurHash3(hash);
-        return (int) (result ^ (result >>> 32));
-    }
 }

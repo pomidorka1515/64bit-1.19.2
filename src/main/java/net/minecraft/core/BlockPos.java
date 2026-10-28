@@ -508,6 +508,8 @@ public class BlockPos extends Vec3i {
         @Override public boolean zFitsLong() { return zLimbCount() == 1; }
         @Override public long xLow() { return this.mutableX[0]; }
         @Override public long zLow() { return this.mutableZ[0]; }
+        @Override protected int xHash() { return Int1088Math.hashXZ(this.mutableX, 0, Int1088.LIMBS); }
+        @Override protected int zHash() { return Int1088Math.hashXZ(this.mutableZ, 0, Int1088.LIMBS); }
 
         private MutableBlockPos setLimbs(long[] x, int y, long[] z) {
             System.arraycopy(x, 0, this.mutableX, 0, Int1088.LIMBS);
@@ -606,9 +608,27 @@ public class BlockPos extends Vec3i {
         }
 
         private void addLongSaturated(long[] source, long offset, long[] out) {
-            this.scratchOther[0] = offset;
-            java.util.Arrays.fill(this.scratchOther, 1, Int1088.LIMBS, offset >> 63);
-            Int1088Math.addSaturated(source, 0, Int1088.LIMBS, this.scratchOther, 0, Int1088.LIMBS, out, 0);
+            // Both arrays are fixed-width. Copy unchanged high limbs instead of
+            // adding seventeen sign-extension words for every neighbor lookup.
+            long previous = source[0];
+            long result = previous + offset;
+            out[0] = result;
+            boolean propagate = offset < 0 ? Long.compareUnsigned(result, previous) > 0
+                    : Long.compareUnsigned(result, previous) < 0;
+            long step = offset < 0 ? -1L : 1L;
+            int i = 1;
+            for (; propagate && i < Int1088.LIMBS; ++i) {
+                previous = source[i];
+                result = previous + step;
+                out[i] = result;
+                propagate = offset < 0 ? previous == 0L : result == 0L;
+            }
+            if (i == Int1088.LIMBS && ((source[i - 1] ^ result) & (offset ^ result)) < 0L) {
+                java.util.Arrays.fill(out, offset < 0 ? 0L : -1L);
+                out[i - 1] = offset < 0 ? Long.MIN_VALUE : Long.MAX_VALUE;
+            } else {
+                System.arraycopy(source, i, out, i, Int1088.LIMBS - i);
+            }
         }
         public BlockPos.MutableBlockPos move(Direction direction) { return move(direction, 1); }
         public BlockPos.MutableBlockPos move(Direction direction, int distance) {

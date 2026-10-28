@@ -13,6 +13,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
@@ -284,6 +285,14 @@ public class ChunkHolder {
         this.chunkToSave = this.chunkToSave.thenCombine(p_200418_, (p_200414_, p_200415_) -> {
             return p_200414_;
         });
+    }
+
+    protected void addSaveDependency(Supplier<String> source, CompletableFuture<?> future) {
+        if (this.chunkToSaveHistory != null) {
+            this.chunkToSaveHistory.push(new ChunkHolder.ChunkSaveDebug(Thread.currentThread(), future, source.get()));
+        }
+
+        this.chunkToSave = this.chunkToSave.thenCombine(future, (chunk, ignored) -> chunk);
     }
 
     private void updateChunkToSave(CompletableFuture<? extends Either<? extends ChunkAccess, ChunkHolder.ChunkLoadingFailure>> p_143018_, String p_143019_) {

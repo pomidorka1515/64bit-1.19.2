@@ -42,15 +42,18 @@ public final class Int1088Math {
 
     /** Exact subtraction followed by signed-long saturation, without allocating a result. */
     public static long signedDifferenceAsLong(Int1088 value, Int1088 origin) {
+        if (value == origin) return 0L;
         if (value.fitsLong() && origin.fitsLong()) {
             return longDifference(value.lowLimb(), origin.lowLimb());
         }
         long low = value.limb(0) - origin.limb(0);
         long borrow = Long.compareUnsigned(value.limb(0), origin.limb(0)) < 0 ? 1 : 0;
+        if (borrow == (low >>> 63) && value.sameUpperLimbs(origin)) return low;
         long extension = low >> 63;
         boolean fits = true;
         long top = low;
-        for (int i = 1; i < N; ++i) {
+        int length = Math.min(N, Math.max(value.limbCount(), origin.limbCount()) + 1);
+        for (int i = 1; i < length; ++i) {
             long a = value.limb(i), b = origin.limb(i);
             long difference = a - b;
             top = difference - borrow;
@@ -73,7 +76,8 @@ public final class Int1088Math {
         long extension = low >> 63;
         boolean fits = true;
         long top = low;
-        for (int i = 1; i < N; ++i) {
+        int length = Math.min(N, Math.max(alen, blen) + 1);
+        for (int i = 1; i < length; ++i) {
             long x = word(a, ao, alen, i), y = word(b, bo, blen, i);
             long difference = x - y;
             top = difference - borrow;
@@ -267,15 +271,16 @@ public final class Int1088Math {
     /** Unsigned 17-word magnitude times an unsigned long; writes 18 words, returns unsigned length. */
     public static int multiplyUnsigned(long[] a, int ao, int alen, long factor, long[] out, int oo) {
         long carry = 0;
-        for (int i = 0; i < N; ++i) {
-            long x = i < alen ? a[ao + i] : 0;
+        for (int i = 0; i < alen; ++i) {
+            long x = a[ao + i];
             long low = x * factor;
             long result = low + carry;
             carry = unsignedHigh(x, factor) + (Long.compareUnsigned(result, low) < 0 ? 1L : 0L);
             out[oo + i] = result;
         }
-        out[oo + N] = carry;
-        int len = N + 1;
+        out[oo + alen] = carry;
+        java.util.Arrays.fill(out, oo + alen + 1, oo + N + 1, 0L);
+        int len = alen + 1;
         while (len > 1 && out[oo + len - 1] == 0) --len;
         return len;
     }

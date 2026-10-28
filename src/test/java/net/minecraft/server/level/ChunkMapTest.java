@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Int1088;
@@ -27,6 +29,22 @@ class ChunkMapTest {
     static void bootstrap() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
+    }
+
+    @Test
+    void saveDependencySkipsDebugFormattingAndStillWaits() {
+        ChunkHolder holder = new ChunkHolder(ChunkPos.ZERO, 31,
+                LevelHeightAccessor.create(-64, 384), null, null, null);
+        CompletableFuture<Void> dependency = new CompletableFuture<>();
+        holder.addSaveDependency(() -> { throw new AssertionError("debug source evaluated"); }, dependency);
+        assertFalse(holder.getChunkToSave().isDone());
+        dependency.complete(null);
+        assertNull(holder.getChunkToSave().join());
+
+        CompletableFuture<Void> failed = new CompletableFuture<>();
+        holder.addSaveDependency(() -> { throw new AssertionError("debug source evaluated"); }, failed);
+        failed.completeExceptionally(new IllegalStateException("failure"));
+        assertThrows(CompletionException.class, () -> holder.getChunkToSave().join());
     }
 
     @Test

@@ -78,7 +78,7 @@ public class ProtoChunk extends ChunkAccess {
             return Blocks.VOID_AIR.defaultBlockState();
         } else {
             LevelChunkSection levelchunksection = this.getSection(this.getSectionIndex(i));
-            return levelchunksection.hasOnlyAir() ? Blocks.AIR.defaultBlockState() : levelchunksection.getBlockState(SectionPos.sectionRelative(pPos.getX()), i & 15, SectionPos.sectionRelative(pPos.getZ()));
+            return levelchunksection.hasOnlyAir() ? Blocks.AIR.defaultBlockState() : levelchunksection.getBlockState(SectionPos.sectionRelative(pPos.xLow()), i & 15, SectionPos.sectionRelative(pPos.zLow()));
         }
     }
 
@@ -88,7 +88,7 @@ public class ProtoChunk extends ChunkAccess {
             return Fluids.EMPTY.defaultFluidState();
         } else {
             LevelChunkSection levelchunksection = this.getSection(this.getSectionIndex(i));
-            return levelchunksection.hasOnlyAir() ? Fluids.EMPTY.defaultFluidState() : levelchunksection.getFluidState(SectionPos.sectionRelative(pPos.getX()), i & 15, SectionPos.sectionRelative(pPos.getZ()));
+            return levelchunksection.hasOnlyAir() ? Fluids.EMPTY.defaultFluidState() : levelchunksection.getFluidState(SectionPos.sectionRelative(pPos.xLow()), i & 15, SectionPos.sectionRelative(pPos.zLow()));
         }
     }
 
@@ -116,9 +116,9 @@ public class ProtoChunk extends ChunkAccess {
 
     @Nullable
     public BlockState setBlockState(BlockPos pPos, BlockState pState, boolean pIsMoving) {
-        long i = pPos.getX().lowLimb();
+        long i = pPos.xLow();
         int j = pPos.getY();
-        long k = pPos.getZ().lowLimb();
+        long k = pPos.zLow();
         if (j >= this.getMinBuildHeight() && j < this.getMaxBuildHeight()) {
             int l = this.getSectionIndex(j);
             if (this.sections[l].hasOnlyAir() && pState.is(Blocks.AIR)) {

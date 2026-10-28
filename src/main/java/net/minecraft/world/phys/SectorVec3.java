@@ -49,6 +49,19 @@ public final class SectorVec3 {
     private record Axis(Int1088 block, double fraction) {}
 
     private static Axis normalize(Int1088 block, double fraction) {
+        // Most physics coordinates are already normalized, or cross a single
+        // block boundary. Avoid constructing full-width saturation thresholds
+        // for these common cases.
+        if (fraction >= 0.0D && fraction < 1.0D)
+            return new Axis(block, fraction == 0.0D ? 0.0D : fraction);
+        if (fraction >= 1.0D && fraction < 2.0D) {
+            if (block.equals(Int1088.MAX)) return new Axis(Int1088.MAX, Math.nextDown(1.0D));
+            return new Axis(block.addSaturated(Int1088.ONE), clampFraction(fraction - 1.0D));
+        }
+        if (fraction >= -1.0D && fraction < 0.0D) {
+            if (block.equals(Int1088.MIN)) return new Axis(Int1088.MIN, 0.0D);
+            return new Axis(block.addSaturated(Int1088.fromLong(-1L)), clampFraction(fraction + 1.0D));
+        }
         double floor = Math.floor(fraction);
         Int1088 carry = Int1088.fromDoubleFloorSaturated(floor);
         if (carry.signum() > 0 && block.compareTo(Int1088.MAX.subtract(carry)) > 0)

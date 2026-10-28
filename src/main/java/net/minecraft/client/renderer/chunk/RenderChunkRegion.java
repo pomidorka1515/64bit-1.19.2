@@ -58,18 +58,39 @@ public class RenderChunkRegion implements BlockAndTintGetter {
 
     @Nullable
     private RenderChunk getChunk(BlockPos pos) {
-        int i = localBlockIndex(pos.getX(), this.minChunkX, this.chunks.length);
+        int i = localBlockIndex(pos, true, this.minChunkX, this.chunks.length);
         if (i < 0 || this.chunks[i] == null) {
             return null;
         }
 
-        int j = localBlockIndex(pos.getZ(), this.minChunkZ, this.chunks[i].length);
+        int j = localBlockIndex(pos, false, this.minChunkZ, this.chunks[i].length);
         return j < 0 ? null : this.chunks[i][j];
     }
 
     static int localIndex(Int1088 section, Int1088 origin, int size) {
         long offset = WorldBounds.signedDifferenceAsLong(section, origin);
         return offset >= 0L && offset < size ? (int) offset : -1;
+    }
+
+    static int localBlockIndex(BlockPos block, boolean x, Int1088 origin, int size) {
+        long first = ((x ? block.xLimb(0) : block.zLimb(0)) >>> 4)
+                | ((x ? block.xLimb(1) : block.zLimb(1)) << 60);
+        long low = first - origin.lowLimb();
+        if (low < 0 || low >= size) return -1;
+        long borrow = Long.compareUnsigned(first, origin.lowLimb()) < 0 ? 1 : 0;
+        int length = Math.min(Int1088.LIMBS,
+                Math.max(x ? block.xLimbCount() : block.zLimbCount(), origin.limbCount()) + 1);
+        for (int i = 1; i < length; ++i) {
+            long word = x ? block.xLimb(i) : block.zLimb(i);
+            long high = i + 1 < Int1088.LIMBS ? (x ? block.xLimb(i + 1) : block.zLimb(i + 1)) : word >> 63;
+            long a = (word >>> 4) | (high << 60);
+            long b = origin.limb(i);
+            long difference = a - b;
+            long result = difference - borrow;
+            borrow = Long.compareUnsigned(a, b) < 0 || Long.compareUnsigned(difference, borrow) < 0 ? 1 : 0;
+            if (result != 0 || i == length - 1 && a < 0 && b >= 0) return -1;
+        }
+        return (int) low;
     }
 
     /** Shift and subtract limb by limb, without allocating a section coordinate per block lookup. */
@@ -85,7 +106,8 @@ public class RenderChunkRegion implements BlockAndTintGetter {
         long low = first - origin.limb(0);
         if (low < 0 || low >= size) return -1;
         long borrow = Long.compareUnsigned(first, origin.limb(0)) < 0 ? 1 : 0;
-        for (int i = 1; i < Int1088.LIMBS; ++i) {
+        int length = Math.min(Int1088.LIMBS, Math.max(block.limbCount(), origin.limbCount()) + 1);
+        for (int i = 1; i < length; ++i) {
             long a = i == Int1088.LIMBS - 1 ? block.limb(i) >> 4
                     : (block.limb(i) >>> 4) | (block.limb(i + 1) << 60);
             long b = origin.limb(i);
@@ -93,7 +115,7 @@ public class RenderChunkRegion implements BlockAndTintGetter {
             long result = difference - borrow;
             borrow = Long.compareUnsigned(a, b) < 0 || Long.compareUnsigned(difference, borrow) < 0 ? 1 : 0;
             if (result != 0) return -1;
-            if (i == Int1088.LIMBS - 1 && a < 0 && b >= 0) return -1;
+            if (i == length - 1 && a < 0 && b >= 0) return -1;
         }
         return (int) low;
     }

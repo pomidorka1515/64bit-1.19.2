@@ -342,8 +342,9 @@ public class ChunkMap extends ChunkStorage implements ChunkHolder.PlayerProvider
             return Either.left(list2);
         });
 
+        java.util.function.Supplier<String> debugSource = () -> "getChunkRangeFuture " + p_140211_ + " " + p_140212_;
         for (ChunkHolder chunkholder1 : list1) {
-            chunkholder1.addSaveDependency("getChunkRangeFuture " + p_140211_ + " " + p_140212_, completablefuture2);
+            chunkholder1.addSaveDependency(debugSource, completablefuture2);
         }
 
         return completablefuture2;

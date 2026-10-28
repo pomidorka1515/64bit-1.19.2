@@ -11,6 +11,32 @@ import org.junit.jupiter.api.Test;
 
 class SectorVec3Test {
     @Test
+    void commonFractionNormalizationMatchesWideArithmeticAtBoundaries() {
+        Int1088 seam = Int1088.ONE.shiftLeftSaturated(127);
+        Int1088[] blocks = {Int1088.MIN, Int1088.MIN.addSaturated(Int1088.ONE),
+                Int1088.fromLong(-1), Int1088.ZERO, seam, seam.negate(),
+                Int1088.MAX.subtractSaturated(Int1088.ONE), Int1088.MAX};
+        double[] fractions = {-1.0D, Math.nextUp(-1.0D), -0.5D, -Double.MIN_VALUE,
+                -0.0D, 0.0D, Double.MIN_VALUE, Math.nextDown(1.0D), 1.0D,
+                Math.nextUp(1.0D), Math.nextDown(2.0D), 2.0D};
+        for (Int1088 block : blocks) for (double fraction : fractions) {
+            double floor = Math.floor(fraction);
+            Int1088 carry = Int1088.fromDoubleFloorSaturated(floor);
+            boolean above = carry.signum() > 0 && block.compareTo(Int1088.MAX.subtract(carry)) > 0;
+            boolean below = carry.signum() < 0 && block.compareTo(Int1088.MIN.subtract(carry)) < 0;
+            Int1088 expected = above ? Int1088.MAX : below ? Int1088.MIN : block.addSaturated(carry);
+            double remainder = fraction - floor;
+            double expectedFraction = above ? Math.nextDown(1.0D) : below ? 0.0D
+                    : remainder >= 1.0D ? Math.nextDown(1.0D) : remainder == 0.0D ? 0.0D : remainder;
+            SectorVec3 result = SectorVec3.fromBlockAndFraction(block, fraction, 0, block, fraction);
+            assertEquals(expected, result.blockX());
+            assertEquals(expectedFraction, result.subX());
+            assertEquals(expected, result.blockZ());
+            assertEquals(expectedFraction, result.subZ());
+        }
+    }
+
+    @Test
     void movementCarriesUseAllLimbsThroughTheLargestFiniteDouble() {
         java.math.BigInteger min = new java.math.BigInteger(Int1088.MIN.toString());
         java.math.BigInteger max = new java.math.BigInteger(Int1088.MAX.toString());

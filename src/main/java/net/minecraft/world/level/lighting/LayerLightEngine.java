@@ -33,8 +33,8 @@ public abstract class LayerLightEngine<M extends DataLayerStorageMap<M>, S exten
         long xFirst = (pos.xLimb(0) >>> 4) | (pos.xLimb(1) << 60);
         long zFirst = (pos.zLimb(0) >>> 4) | (pos.zLimb(1) << 60);
         int slot = (int) (xFirst + 3 * zFirst) & 3;
-        if (this.cacheChunks && this.chunks[slot] != null && matchesChunk(this.chunkX[slot], pos.getX())
-                && matchesChunk(this.chunkZ[slot], pos.getZ())) {
+        if (this.cacheChunks && this.chunks[slot] != null && matchesChunk(this.chunkX[slot], pos, true)
+                && matchesChunk(this.chunkZ[slot], pos, false)) {
             return this.chunks[slot];
         }
         Int1088 x = pos.getX().shiftRight(4);
@@ -48,13 +48,8 @@ public abstract class LayerLightEngine<M extends DataLayerStorageMap<M>, S exten
         return chunk;
     }
 
-    private static boolean matchesChunk(Int1088 chunk, Int1088 block) {
-        for (int i = 0; i < Int1088.LIMBS; ++i) {
-            long shifted = i == Int1088.LIMBS - 1 ? block.limb(i) >> 4
-                    : (block.limb(i) >>> 4) | (block.limb(i + 1) << 60);
-            if (chunk.limb(i) != shifted) return false;
-        }
-        return true;
+    private static boolean matchesChunk(Int1088 chunk, BlockPos block, boolean x) {
+        return SectionPos.matchesBlockCoordinate(chunk, block, x);
     }
 
     protected LayerLightEngine(LightChunkGetter chunkSource, LightLayer layer, S storage) {

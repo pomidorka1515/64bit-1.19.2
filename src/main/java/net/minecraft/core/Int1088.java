@@ -35,6 +35,7 @@ public final class Int1088 implements Comparable<Int1088> {
     private final long l1;
     // Wide values retain a canonical primitive view for the arithmetic layer.
     private final long[] rest;
+    private volatile long cachedHash;
 
     private Int1088(long[] ownedCanonicalLimbs) {
         this.length = (byte) ownedCanonicalLimbs.length;
@@ -91,6 +92,14 @@ public final class Int1088 implements Comparable<Int1088> {
         return fromLimbs(words, 0, length);
     }
 
+    /** Takes ownership of a newly allocated result, avoiding a second wide-array copy. */
+    private static Int1088 ownedResult(long[] words) {
+        int length = Int1088Math.canonicalLength(words, 0, words.length);
+        if (length == 1) return fromLong(words[0]);
+        if (length == 2) return new Int1088(words[0], words[1]);
+        return new Int1088(length == words.length ? words : Arrays.copyOf(words, length));
+    }
+
     public int limbCount() {
         return this.length;
     }
@@ -119,6 +128,13 @@ public final class Int1088 implements Comparable<Int1088> {
         return this.l0;
     }
 
+    /** Common local-distance case; compare the immutable high words in bulk. */
+    boolean sameUpperLimbs(Int1088 other) {
+        return this.length == other.length && this.l1 == other.l1
+                && (this.rest == other.rest || this.rest != null
+                && Arrays.equals(this.rest, 2, this.length, other.rest, 2, other.length));
+    }
+
     public Int1088 copy() {
         return this.fitsLong() ? new Int1088(this.l0) : this.length == 2 ? new Int1088(this.l0, this.l1)
                 : new Int1088(this.rest.clone());
@@ -137,12 +153,38 @@ public final class Int1088 implements Comparable<Int1088> {
     }
 
     public Int1088 addSaturated(Int1088 other) {
+        if (other.fitsLong() && other.l0 == 0L) return this;
+        if (this.fitsLong() && this.l0 == 0L) return other;
         if (this.fitsLong() && other.fitsLong()) {
             long a = this.lowLimb(), b = other.lowLimb(), r = a + b;
             if (((a ^ r) & (b ^ r)) >= 0) return fromLong(r);
         }
+        if (!this.fitsLong() && other.fitsLong()) return this.addLongSaturated(other.l0);
+        if (this.fitsLong() && !other.fitsLong()) return other.addLongSaturated(this.l0);
         long[] out = new long[LIMBS];
         return result(out, Int1088Math.addSaturated(this.words(), 0, this.limbCount(), other.words(), 0, other.limbCount(), out, 0));
+    }
+
+    private Int1088 addLongSaturated(long offset) {
+        long[] out = this.words().clone();
+        long previous = out[0];
+        out[0] = previous + offset;
+        // Adding a negative offset propagates a borrow, a positive one a carry.
+        boolean propagate = offset < 0 ? Long.compareUnsigned(out[0], previous) > 0
+                : Long.compareUnsigned(out[0], previous) < 0;
+        long step = offset < 0 ? -1L : 1L;
+        for (int i = 1; propagate && i < out.length; ++i) {
+            previous = out[i];
+            out[i] = previous + step;
+            propagate = offset < 0 ? previous == 0L : out[i] == 0L;
+        }
+        long top = this.limb(this.length - 1);
+        if (((top ^ out[out.length - 1]) & (offset ^ out[out.length - 1])) < 0L) {
+            if (this.length == LIMBS) return offset < 0 ? MIN : MAX;
+            out = Arrays.copyOf(out, out.length + 1);
+            out[out.length - 1] = top >> 63;
+        }
+        return ownedResult(out);
     }
 
     /** Internal wrapping arithmetic modulo 2^1088. */
@@ -174,8 +216,15 @@ public final class Int1088 implements Comparable<Int1088> {
         if (bits < 0) throw new IllegalArgumentException("Negative shift count: " + bits);
         if (bits == 0) return this;
         if (this.fitsLong()) return fromLong(bits >= 64 ? this.lowLimb() >> 63 : this.lowLimb() >> bits);
-        long[] out = new long[LIMBS];
-        return result(out, Int1088Math.shiftRight(this.words(), 0, this.limbCount(), bits, out, 0));
+        if (bits >= this.length * 64) return fromLong(this.signum() < 0 ? -1L : 0L);
+        int words = bits >>> 6, shift = bits & 63;
+        long[] out = new long[this.length - words];
+        for (int i = 0; i < out.length; ++i) {
+            long lo = this.limb(i + words);
+            long hi = i + words + 1 < this.length ? this.limb(i + words + 1) : lo >> 63;
+            out[i] = shift == 0 ? lo : (lo >>> shift) | (hi << (64 - shift));
+        }
+        return ownedResult(out);
     }
 
     public Int1088 shiftLeftSaturated(int bits) {
@@ -319,7 +368,18 @@ public final class Int1088 implements Comparable<Int1088> {
 
     public int remainder(int divisor) {
         if (divisor <= 0) throw new IllegalArgumentException("Divisor must be positive");
-        return this.fitsLong() ? (int) (this.l0 % divisor) : Int1088Math.remainder(this.words(), 0, this.limbCount(), divisor);
+        if (this.fitsLong()) return (int) (this.l0 % divisor);
+        boolean negative = this.signum() < 0;
+        int firstNonzero = 0;
+        if (negative) while (this.limb(firstNonzero) == 0L) ++firstNonzero;
+        long remainder = 0L;
+        for (int i = this.length - 1; i >= 0; --i) {
+            long word = this.limb(i);
+            if (negative) word = ~word + (i <= firstNonzero ? 1L : 0L);
+            remainder = ((remainder << 32) | (word >>> 32)) % divisor;
+            remainder = ((remainder << 32) | (word & 0xffffffffL)) % divisor;
+        }
+        return (int) (negative ? -remainder : remainder);
     }
 
     private long[] magnitude() {
@@ -407,9 +467,11 @@ public final class Int1088 implements Comparable<Int1088> {
 
     @Override
     public int compareTo(Int1088 other) {
+        if (this == other) return 0;
         if (this.fitsLong() && other.fitsLong()) return Long.compare(this.lowLimb(), other.lowLimb());
         int sign = Integer.compare(this.signum(), other.signum());
         if (sign != 0) return sign;
+        if (this.length != other.length) return this.signum() * Integer.compare(this.length, other.length);
         for (int i = Math.max(this.length, other.length) - 1; i >= 0; --i) {
             int comparison = Long.compareUnsigned(this.limb(i), other.limb(i));
             if (comparison != 0) return comparison;
@@ -427,6 +489,14 @@ public final class Int1088 implements Comparable<Int1088> {
     }
 
     public long hash() {
+        long cached = this.cachedHash;
+        if (cached != 0L) return cached;
+        long computed = this.computeHash();
+        this.cachedHash = computed;
+        return computed;
+    }
+
+    private long computeHash() {
         if (this.fitsLong()) return Int1088Math.hash(this.l0);
         if (this.rest != null) return Int1088Math.hash(this.rest, 0, this.length);
         long h = 0xcbf29ce484222325L;

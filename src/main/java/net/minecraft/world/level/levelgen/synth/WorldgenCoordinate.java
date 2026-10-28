@@ -2,11 +2,19 @@ package net.minecraft.world.level.levelgen.synth;
 
 import net.minecraft.core.Int1088;
 import net.minecraft.core.Int1088Math;
-import net.minecraft.core.Int1088Scratch;
 import net.minecraft.world.level.levelgen.RandomSupport;
 
 /** Allocation-free signed horizontal coordinate operations for generation. */
 public final class WorldgenCoordinate {
+    // Scaling is a leaf operation: no callbacks or nested scaling occur while
+    // these buffers are in use. Each thread owns its complete working set.
+    private static final ThreadLocal<ScalingScratch> SCALING = ThreadLocal.withInitial(ScalingScratch::new);
+
+    private static final class ScalingScratch {
+        final long[] magnitude = new long[Int1088.LIMBS];
+        final long[] product = new long[Int1088.LIMBS + 1];
+    }
+
     private WorldgenCoordinate() {
     }
 
@@ -37,7 +45,7 @@ public final class WorldgenCoordinate {
     public static long seedCoordinate(Int1088 value) {
         if (value.fitsLong()) return value.lowLimb();
         long seed = value.limb(0);
-        for (int i = 1; i < Int1088.LIMBS; ++i) {
+        for (int i = 1; i < value.limbCount(); ++i) {
             long extra = value.limb(i) ^ (value.limb(i - 1) >> 63);
             if (extra != 0) seed ^= RandomSupport.mixStafford13(extra + i * 0x9e3779b97f4a7c15L);
         }
@@ -61,10 +69,10 @@ public final class WorldgenCoordinate {
             scale(v, scale, octave, out);
             return;
         }
-        try (Int1088Scratch magnitude = Int1088Scratch.acquire(); Int1088Scratch product = Int1088Scratch.acquire()) {
-            value.copyFixed(magnitude.limbs(), 0);
-            scaleWide(magnitude.limbs(), value.signum() < 0, scale, octave, product.limbs(), out);
-        }
+        ScalingScratch scratch = SCALING.get();
+        int length = value.limbCount();
+        for (int i = 0; i < length; ++i) scratch.magnitude[i] = value.limb(i);
+        scaleWide(scratch.magnitude, length, value.signum() < 0, scale, octave, scratch.product, out);
     }
 
     public static void scale(long[] limbs, int offset, int length, double scale, int octave, PreciseNoiseCoordinate.Split out) {
@@ -75,18 +83,17 @@ public final class WorldgenCoordinate {
             return;
         }
         if (canonical > Int1088.LIMBS) throw new IllegalArgumentException("Coordinate exceeds 1088 bits");
-        try (Int1088Scratch magnitude = Int1088Scratch.acquire(); Int1088Scratch product = Int1088Scratch.acquire()) {
-            magnitude.copyFrom(limbs, offset, length);
-            scaleWide(magnitude.limbs(), limbs[offset + length - 1] < 0, scale, octave, product.limbs(), out);
-        }
+        ScalingScratch scratch = SCALING.get();
+        System.arraycopy(limbs, offset, scratch.magnitude, 0, canonical);
+        scaleWide(scratch.magnitude, canonical, limbs[offset + length - 1] < 0, scale, octave, scratch.product, out);
     }
 
-    private static void scaleWide(long[] magnitude, boolean coordinateNegative, double scale, int octave, long[] product, PreciseNoiseCoordinate.Split out) {
+    private static void scaleWide(long[] magnitude, int length, boolean coordinateNegative, double scale, int octave, long[] product, PreciseNoiseCoordinate.Split out) {
         out.failureMagnitude = Double.NaN;
         if (!Double.isFinite(scale) || scale == 0.0D) { out.lattice = 0; out.fraction = 0; return; }
         if (coordinateNegative) {
             long carry = 1;
-            for (int i = 0; i < Int1088.LIMBS; ++i) {
+            for (int i = 0; i < length; ++i) {
                 long v = ~magnitude[i] + carry;
                 carry = carry != 0 && v == 0 ? 1 : 0;
                 magnitude[i] = v;
@@ -97,7 +104,7 @@ public final class WorldgenCoordinate {
         long mantissa = (bits & 0xfffffffffffffL) | (exponent == 0 ? 0 : 0x10000000000000L);
         long power = (long)(exponent == 0 ? -1074 : exponent - 1075) + octave;
         boolean negative = coordinateNegative ^ (bits < 0);
-        int len = Int1088Math.multiplyUnsigned(magnitude, 0, Int1088.LIMBS, mantissa, product, 0);
+        int len = Int1088Math.multiplyUnsigned(magnitude, 0, length, mantissa, product, 0);
         int productBits = (len - 1) * 64 + 64 - Long.numberOfLeadingZeros(product[len - 1]);
         if (productBits + power > 63 && GenerationContext.current().mode() != GeneratorMode.PATCHED) {
             double result = 0;
@@ -142,25 +149,32 @@ public final class WorldgenCoordinate {
     }
 
     private static double fractionRounded(long[] words, long shift) {
-        int top = 1151;
-        while (top >= 0 && (words[top >>> 6] & (1L << (top & 63))) == 0) --top;
-        if (top < 0) return 0;
+        int topWord = words.length - 1;
+        while (topWord >= 0 && words[topWord] == 0L) --topWord;
+        if (topWord < 0) return 0;
+        int top = topWord * 64 + 63 - Long.numberOfLeadingZeros(words[topWord]);
         int keep = (int)Math.min(Math.min(53, top + 1), Math.max(0, 1075L + top - shift));
         if (keep == 0) {
             if (1075L + top - shift < 0) return 0;
-            boolean sticky = false;
-            for (int bit = top - 1; bit >= 0 && !sticky; --bit) sticky = (words[bit >>> 6] & (1L << (bit & 63))) != 0;
-            return sticky ? Double.MIN_VALUE : 0;
+            return anyBitsBelow(words, top) ? Double.MIN_VALUE : 0;
         }
-        long significand = 0;
-        for (int bit = top; bit > top - keep; --bit) significand = (significand << 1) | ((words[bit >>> 6] >>> (bit & 63)) & 1);
+        int bottom = top - keep + 1;
+        int word = bottom >>> 6, bit = bottom & 63;
+        long significand = words[word] >>> bit;
+        if (bit != 0 && word + 1 < words.length) significand |= words[word + 1] << (64 - bit);
+        significand = maskBelow(significand, keep);
         int guard = top - keep;
         if (guard >= 0 && (words[guard >>> 6] & (1L << (guard & 63))) != 0) {
-            boolean sticky = false;
-            for (int bit = guard - 1; bit >= 0 && !sticky; --bit) sticky = (words[bit >>> 6] & (1L << (bit & 63))) != 0;
-            if (sticky || (significand & 1) != 0) ++significand;
+            if ((significand & 1) != 0 || anyBitsBelow(words, guard)) ++significand;
         }
         return Math.scalb((double)significand, (int)Math.max(-2099, top - keep + 1L - shift));
+    }
+
+    private static boolean anyBitsBelow(long[] words, int bit) {
+        int word = bit >>> 6;
+        if (maskBelow(words[word], bit & 63) != 0L) return true;
+        for (int i = 0; i < word; ++i) if (words[i] != 0L) return true;
+        return false;
     }
 
 

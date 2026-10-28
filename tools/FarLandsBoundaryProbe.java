@@ -2,6 +2,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.Locale;
+import net.minecraft.core.Int1088;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.synth.ImprovedNoise;
@@ -31,7 +32,7 @@ public final class FarLandsBoundaryProbe {
 
     private static PreciseNoiseCoordinate.Split routed(BigInteger block, double scale, double factor, double octave, double offset) {
         var split = new PreciseNoiseCoordinate.Split();
-        WorldgenCoordinate.scale(block.shiftRight(64).longValue(), block.longValue(),
+        WorldgenCoordinate.scale(Int1088.parseDecimal(block.toString()),
                 scale * factor, Math.getExponent(octave), split);
         try {
             ROUTE.invoke(null, split, offset);
@@ -72,7 +73,7 @@ public final class FarLandsBoundaryProbe {
     }
 
     private static double sample64(BigInteger block, double scale, double factor, double octave, double offset) {
-        double coordinate = WorldgenCoordinate.toDouble(block.shiftRight(64).longValue(), block.longValue());
+        double coordinate = WorldgenCoordinate.toDouble(Int1088.parseDecimal(block.toString()));
         return ((coordinate * scale) * factor) * octave + offset;
     }
 
@@ -83,7 +84,7 @@ public final class FarLandsBoundaryProbe {
                 return split.fraction < 0.0 || split.fraction >= 1.0;
             }
             var split = new PreciseNoiseCoordinate.Split();
-            WorldgenCoordinate.scale(block.shiftRight(64).longValue(), block.longValue(),
+            WorldgenCoordinate.scale(Int1088.parseDecimal(block.toString()),
                     scale * factor, Math.getExponent(octave), split);
             long carry = (long) Math.floor(split.fraction + offset);
             long cell = split.lattice + carry;
@@ -123,9 +124,9 @@ public final class FarLandsBoundaryProbe {
                 for (int dx = -7; dx <= 5; ++dx) {
                     BigInteger x = edge.add(BigInteger.valueOf(dx));
                     var context = new net.minecraft.world.level.levelgen.DensityFunction.SinglePointContext(
-                            x.shiftRight(64).longValue(), x.longValue(), y, 0L, z);
-                    double raw = cheese.getValueScaled(context.blockXHi(), context.blockX(), 1.0, y,
-                            2.0 / 3.0, 0L, z);
+                            Int1088.parseDecimal(x.toString()), y, Int1088.fromLong(z));
+                    double raw = cheese.getValueScaled(context.blockX(), 1.0, y,
+                            2.0 / 3.0, context.blockZ());
                     System.out.printf("density x=%s y=%d z=%d cheese=%.9g final=%.9g%n",
                             x, y, z, raw, state.router().finalDensity().compute(context));
                 }
@@ -294,7 +295,7 @@ public final class FarLandsBoundaryProbe {
                             BigInteger b = boundary64(sign, scale, factor, octave, offset);
                             if (precise) {
                                 var split = new PreciseNoiseCoordinate.Split();
-                                WorldgenCoordinate.scale(b.shiftRight(64).longValue(), b.longValue(),
+                                WorldgenCoordinate.scale(Int1088.parseDecimal(b.toString()),
                                         scale * factor, Math.getExponent(octave), split);
                                 System.out.printf("  %s%s %,d adjacent=%,d pre-route-cell=%d fraction=%.17g failure=%s%n",
                                         sign > 0 ? "+" : "-", axis == 0 ? "X" : "Z", b,
@@ -309,9 +310,9 @@ public final class FarLandsBoundaryProbe {
                                 BigInteger x = axis == 0 ? at : BigInteger.ZERO;
                                 BigInteger z = axis == 1 ? at : BigInteger.ZERO;
                                 System.out.printf("    distance=16384 y=64 raw=%.9g%n", normal.getValueScaled(
-                                        x.shiftRight(64).longValue(), x.longValue(), scale, 64,
+                                        Int1088.parseDecimal(x.toString()), scale, 64,
                                         name.equals("pillar") ? .3 : name.equals("cave_cheese") ? 2.0 / 3.0 : 1.0,
-                                        z.shiftRight(64).longValue(), z.longValue()));
+                                        Int1088.parseDecimal(z.toString())));
                                 continue;
                             }
                             double point = sample64(b, scale, factor, octave, offset);
@@ -320,7 +321,7 @@ public final class FarLandsBoundaryProbe {
                                     b.subtract(BigInteger.valueOf(sign)), Double.toHexString(point), Mth.lfloor(point));
                             if (stack.equals("second") && (name.equals("pillar") || name.equals("cave_cheese"))) {
                                 BigInteger at = b.add(BigInteger.valueOf(sign * 16384L));
-                                double coordinate = WorldgenCoordinate.toDouble(at.shiftRight(64).longValue(), at.longValue());
+                                double coordinate = WorldgenCoordinate.toDouble(Int1088.parseDecimal(at.toString()));
                                 double yScale = name.equals("pillar") ? .3 : 2.0 / 3.0;
                                 System.out.printf("    distance=16384 y=64 raw=%.9g%n", normal.getValue(
                                         axis == 0 ? coordinate * scale : 0, 64 * yScale, axis == 1 ? coordinate * scale : 0));

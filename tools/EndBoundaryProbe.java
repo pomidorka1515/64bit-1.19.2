@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.Locale;
 import java.util.function.Predicate;
 import net.minecraft.SharedConstants;
+import net.minecraft.core.Int1088;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.*;
@@ -96,7 +97,7 @@ public final class EndBoundaryProbe {
                             BigInteger edge = first(ONE.shiftLeft(70), n -> {
                                 BigInteger block = n.multiply(BigInteger.valueOf(sign));
                                 var split = new PreciseNoiseCoordinate.Split();
-                                WorldgenCoordinate.scale(block.shiftRight(64).longValue(), block.longValue(), scale, 0, split);
+                                WorldgenCoordinate.scale(Int1088.parseDecimal(block.toString()), scale, 0, split);
                                 try { route.invoke(null, split, offset); }
                                 catch (ReflectiveOperationException e) { throw new RuntimeException(e); }
                                 return split.fraction < 0 || split.fraction >= 1;
@@ -171,7 +172,7 @@ public final class EndBoundaryProbe {
         for (int exponent : new int[] {31, 53, 63, 64, 100, 123}) {
             for (int sign : new int[] {1, -1}) {
                 BigInteger n = ONE.shiftLeft(exponent).multiply(BigInteger.valueOf(sign)).add(BigInteger.valueOf(123));
-                double value = simplex.getValueAt(n.shiftRight(64).longValue(), n.longValue(), 0, 0);
+                double value = simplex.getValueAt(Int1088.parseDecimal(n.toString()), Int1088.ZERO);
                 if (!Double.isFinite(value) || Math.abs(value) > 1) throw new AssertionError("Precise simplex " + n);
             }
         }

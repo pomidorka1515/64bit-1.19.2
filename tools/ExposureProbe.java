@@ -3,7 +3,7 @@ package net.minecraft.world.level.levelgen;
 import java.math.BigInteger;
 import java.util.Locale;
 import net.minecraft.SharedConstants;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.resources.ResourceKey;
@@ -17,14 +17,14 @@ import net.minecraft.world.level.levelgen.synth.*;
 public final class ExposureProbe {
     private static DensityFunction.SinglePointContext axisPoint(BigInteger n, int y, int other, boolean alongX) {
         BigInteger x = alongX ? n : BigInteger.valueOf(other), z = alongX ? BigInteger.valueOf(other) : n;
-        return new DensityFunction.SinglePointContext(x.shiftRight(64).longValue(), x.longValue(), y, z.shiftRight(64).longValue(), z.longValue());
+        return new DensityFunction.SinglePointContext(Int1088.parseDecimal(x.toString()), y, Int1088.parseDecimal(z.toString()));
     }
 
     private static int[] column(RandomState state, BigInteger n, boolean alongX) {
         BigInteger x = alongX ? n : BigInteger.ZERO, z = alongX ? BigInteger.ZERO : n;
         BigInteger ox = x.shiftRight(4).shiftLeft(4), oz = z.shiftRight(4).shiftLeft(4);
         var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getOrThrow(NoiseGeneratorSettings.OVERWORLD);
-        var chunk = new NoiseChunk(4, state, Int128.parseDecimal(ox.toString()), Int128.parseDecimal(oz.toString()),
+        var chunk = new NoiseChunk(4, state, Int1088.parseDecimal(ox.toString()), Int1088.parseDecimal(oz.toString()),
                 settings.noiseSettings(), DensityFunctions.BeardifierMarker.INSTANCE, settings,
                 (px,py,pz) -> py < -54 ? new Aquifer.FluidStatus(-54, Blocks.LAVA.defaultBlockState())
                         : new Aquifer.FluidStatus(63, Blocks.WATER.defaultBlockState()), Blender.empty());
@@ -38,8 +38,8 @@ public final class ExposureProbe {
             for(int dy=7;dy>=0;dy--) {
                 int y=-64+cy*8+dy;
                 chunk.updateForY(y,dy/8.0);
-                chunk.updateForX(x.longValue(),(lx%4)/4.0);
-                chunk.updateForZ(z.longValue(),(lz%4)/4.0);
+                chunk.updateForX(Int1088.parseDecimal(x.toString()),(lx%4)/4.0);
+                chunk.updateForZ(Int1088.parseDecimal(z.toString()),(lz%4)/4.0);
                 if(Double.isNaN(density.compute(chunk))) nan++;
                 var block=chunk.getInterpolatedState();
                 if(block==null) block=settings.defaultBlock();
@@ -77,14 +77,14 @@ public final class ExposureProbe {
         }
     }
     private static DensityFunction.SinglePointContext point(BigInteger x, int y, long z) {
-        return new DensityFunction.SinglePointContext(x.shiftRight(64).longValue(), x.longValue(), y, z < 0 ? -1 : 0, z);
+        return new DensityFunction.SinglePointContext(Int1088.parseDecimal(x.toString()), y, Int1088.fromLong(z));
     }
 
     private static int[][] strip(RandomState state, BigInteger x, long z) {
         var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getOrThrow(NoiseGeneratorSettings.OVERWORLD);
         BigInteger origin = x.shiftRight(4).shiftLeft(4);
         long oz = Math.floorDiv(z, 16) * 16;
-        var chunk = new NoiseChunk(4, state, Int128.parseDecimal(origin.toString()), Int128.of(oz < 0 ? -1 : 0, oz),
+        var chunk = new NoiseChunk(4, state, Int1088.parseDecimal(origin.toString()), Int1088.fromLong(oz),
                 settings.noiseSettings(), DensityFunctions.BeardifierMarker.INSTANCE, settings,
                 (px, py, pz) -> py < -54 ? new Aquifer.FluidStatus(-54, Blocks.LAVA.defaultBlockState())
                         : new Aquifer.FluidStatus(63, Blocks.WATER.defaultBlockState()), Blender.empty());
@@ -102,7 +102,7 @@ public final class ExposureProbe {
                     chunk.updateForY(y, dy / 8.0);
                     for (int dx = 0; dx < 4; dx++) {
                         int lx = cx * 4 + dx;
-                        chunk.updateForX(origin.longValue() + lx, dx / 4.0);
+                        chunk.updateForX(Int1088.parseDecimal(origin.toString()).addSaturated(Int1088.fromLong(lx)), dx / 4.0);
                         chunk.updateForZ(z, (lz % 4) / 4.0);
                         double value = density.compute(chunk);
                         if (Double.isNaN(value)) nan[lx]++;

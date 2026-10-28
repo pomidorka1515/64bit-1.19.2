@@ -1,7 +1,7 @@
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-/** Exact scaled-integer conversion references, not executable Int128 world boundaries.
+/** Exact scaled-integer conversion references, not measured sampler/world failures.
  * Run: java tools/ScaledDoubleOverflowProbe.java
  */
 public final class ScaledDoubleOverflowProbe {

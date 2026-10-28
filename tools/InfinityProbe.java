@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import net.minecraft.SharedConstants;
+import net.minecraft.core.Int1088;
 import net.minecraft.core.Registry;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.resources.ResourceKey;
@@ -34,7 +35,7 @@ public final class InfinityProbe {
                     // Raw unit-scale references, not the call-site world-coordinate scales.
                     nodes.put("raw/" + key.getPath(), new DensityFunction.SimpleFunction() {
                         public double compute(DensityFunction.FunctionContext p) {
-                            return noise.getValueScaled(p.blockXHi(), p.blockX(), 1, p.blockY(), 1, p.blockZHi(), p.blockZ());
+                            return noise.getValueScaled(ContextCoordinates.copy(p, true), 1, p.blockY(), 1, ContextCoordinates.copy(p, false));
                         }
                         public double minValue() { return Double.NEGATIVE_INFINITY; }
                         public double maxValue() { return Double.POSITIVE_INFINITY; }
@@ -65,9 +66,9 @@ public final class InfinityProbe {
                     BigInteger magnitude = BigInteger.ONE.shiftLeft(70);
                     for (int axis = 0; axis < 2; axis++) for (int sign : new int[]{1, -1}) {
                         BigInteger n = magnitude.multiply(BigInteger.valueOf(sign));
-                        long hi = n.shiftRight(64).longValue(), lo = n.longValue();
-                        var p = new DensityFunction.SinglePointContext(axis == 0 ? hi : 0, axis == 0 ? lo : 0, 64,
-                                axis == 1 ? hi : 0, axis == 1 ? lo : 0);
+                        Int1088 coordinate = Int1088.parseDecimal(n.toString());
+                        var p = new DensityFunction.SinglePointContext(axis == 0 ? coordinate : Int1088.ZERO, 64,
+                                axis == 1 ? coordinate : Int1088.ZERO);
                         for (String field : new String[]{"overworld/offset", "overworld/depth", "overworld/sloped_cheese"})
                             System.out.printf("%s %s%s %s N=%s value=%s%n", mode, sign > 0 ? "+" : "-",
                                     axis == 0 ? "X" : "Z", field, magnitude, nodes.get(field).compute(p));
@@ -81,9 +82,9 @@ public final class InfinityProbe {
                         BigInteger n = BigInteger.ONE.shiftLeft(exponent - 4).multiply(BigInteger.valueOf(16 + step));
                         if (n.bitLength() > 127) continue;
                         n = n.multiply(BigInteger.valueOf(sign));
-                        long hi = n.shiftRight(64).longValue(), lo = n.longValue();
-                        var p = new DensityFunction.SinglePointContext(axis == 0 ? hi : 0, axis == 0 ? lo : 0, 64,
-                                axis == 1 ? hi : 0, axis == 1 ? lo : 0);
+                        Int1088 coordinate = Int1088.parseDecimal(n.toString());
+                        var p = new DensityFunction.SinglePointContext(axis == 0 ? coordinate : Int1088.ZERO, 64,
+                                axis == 1 ? coordinate : Int1088.ZERO);
                         for (var entry : nodes.entrySet()) {
                             double value = entry.getValue().compute(p);
                             String kind = Double.isNaN(value) ? "NaN" : Double.isInfinite(value) ? "Infinity" : null;

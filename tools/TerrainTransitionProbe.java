@@ -5,7 +5,7 @@ import java.util.Locale;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import net.minecraft.core.Registry;
-import net.minecraft.core.Int128;
+import net.minecraft.core.Int1088;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -64,8 +64,8 @@ public final class TerrainTransitionProbe {
         return result;
     }
     private static DensityFunction.SinglePointContext point(BigInteger x, int y, BigInteger z) {
-        return new DensityFunction.SinglePointContext(x.shiftRight(64).longValue(), x.longValue(), y,
-                z.shiftRight(64).longValue(), z.longValue());
+        return new DensityFunction.SinglePointContext(Int1088.parseDecimal(x.toString()), y,
+                Int1088.parseDecimal(z.toString()));
     }
 
     private static ResourceKey<DensityFunction> key(String name) {
@@ -85,7 +85,7 @@ public final class TerrainTransitionProbe {
         int minY = settings.noiseSettings().minY();
         int maxY = minY + settings.noiseSettings().height() - 1;
         BigInteger ox = x.shiftRight(4).shiftLeft(4), oz = z.shiftRight(4).shiftLeft(4);
-        var chunk = new NoiseChunk(16 / width,state,Int128.parseDecimal(ox.toString()),Int128.parseDecimal(oz.toString()),
+        var chunk = new NoiseChunk(16 / width,state,Int1088.parseDecimal(ox.toString()),Int1088.parseDecimal(oz.toString()),
                 settings.noiseSettings(),DensityFunctions.BeardifierMarker.INSTANCE,settings,
                 (px,py,pz) -> endDimension ? new Aquifer.FluidStatus(settings.seaLevel(), settings.defaultFluid())
                         : py < -54 ? new Aquifer.FluidStatus(-54,Blocks.LAVA.defaultBlockState())
@@ -100,8 +100,8 @@ public final class TerrainTransitionProbe {
         for (int y = maxY; y >= minY; y--) {
             chunk.selectCellYZ((y-minY)/height,lz/width);
             chunk.updateForY(y,Math.floorMod(y, height)/(double)height);
-            chunk.updateForX(x.longValue(),(lx%width)/(double)width);
-            chunk.updateForZ(z.longValue(),(lz%width)/(double)width);
+            chunk.updateForX(Int1088.parseDecimal(x.toString()),(lx%width)/(double)width);
+            chunk.updateForZ(Int1088.parseDecimal(z.toString()),(lz%width)/(double)width);
             var block = chunk.getInterpolatedState();
             if (block == null) block = settings.defaultBlock();
             if (!block.isAir() && block.getFluidState().isEmpty()) solids.set(y + 64);
@@ -336,7 +336,7 @@ public final class TerrainTransitionProbe {
                 }
                 BigInteger originX = x.shiftRight(4).shiftLeft(4), originZ = z.shiftRight(4).shiftLeft(4);
                 var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getOrThrow(NoiseGeneratorSettings.OVERWORLD);
-                var chunk = new NoiseChunk(4, state, Int128.parseDecimal(originX.toString()), Int128.parseDecimal(originZ.toString()),
+                var chunk = new NoiseChunk(4, state, Int1088.parseDecimal(originX.toString()), Int1088.parseDecimal(originZ.toString()),
                         settings.noiseSettings(), DensityFunctions.BeardifierMarker.INSTANCE, settings,
                          (px,py,pz) -> py < -54 ? new Aquifer.FluidStatus(-54, Blocks.LAVA.defaultBlockState())
                                  : new Aquifer.FluidStatus(63, Blocks.WATER.defaultBlockState()), Blender.empty());
@@ -352,8 +352,8 @@ public final class TerrainTransitionProbe {
                 for (int y = -64; y <= 319; y++) {
                     chunk.selectCellYZ((y+64)/8,localZ/4);
                     chunk.updateForY(y,(y&7)/8.0);
-                    chunk.updateForX(x.longValue(),(localX&3)/4.0);
-                    chunk.updateForZ(z.longValue(),(localZ&3)/4.0);
+                    chunk.updateForX(Int1088.parseDecimal(x.toString()),(localX&3)/4.0);
+                    chunk.updateForZ(Int1088.parseDecimal(z.toString()),(localZ&3)/4.0);
                     double density = interpolated.compute(chunk);
                     if (blocks) {
                         var material = chunk.getInterpolatedState();

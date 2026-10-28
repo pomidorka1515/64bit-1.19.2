@@ -2,6 +2,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.Locale;
+import net.minecraft.core.Int1088;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.*;
@@ -30,7 +31,7 @@ public final class ShiftCollapseProbe {
             return (double) Mth.floor(point) != Math.floor(point);
         }
         var split = new PreciseNoiseCoordinate.Split();
-        WorldgenCoordinate.scale(n.shiftRight(64).longValue(), n.longValue(), .25 * factor, octave, split);
+        WorldgenCoordinate.scale(Int1088.parseDecimal(n.toString()), .25 * factor, octave, split);
         ROUTE.invoke(null, split, offset);
         return split.fraction < 0 || split.fraction >= 1;
     }
@@ -49,8 +50,9 @@ public final class ShiftCollapseProbe {
     }
 
     private static DensityFunction.SinglePointContext context(BigInteger n, boolean x) {
-        return new DensityFunction.SinglePointContext(x ? n.shiftRight(64).longValue() : 0,
-                x ? n.longValue() : 0, 64, x ? 0 : n.shiftRight(64).longValue(), x ? 0 : n.longValue());
+        Int1088 coordinate = Int1088.parseDecimal(n.toString());
+        return new DensityFunction.SinglePointContext(x ? coordinate : Int1088.ZERO,
+                64, x ? Int1088.ZERO : coordinate);
     }
 
     public static void main(String[] args) throws Exception {
@@ -93,11 +95,11 @@ public final class ShiftCollapseProbe {
                 for (long d : new long[]{-4, 0, 4, 16, 256, 16384}) {
                     BigInteger n = plane.add(BigInteger.valueOf(d)).multiply(BigInteger.valueOf(sign));
                     var c = context(n, axis == 0);
-                    double sx = shift.getValueScaledAxes(c.blockXHi(), c.blockX(), 0, 0, c.blockZHi(), c.blockZ(), .25) * 4;
-                    double sz = shift.getValueScaledAxes(c.blockZHi(), c.blockZ(), c.blockXHi(), c.blockX(), 0, 0, .25) * 4;
+                    double sx = shift.getValueScaledAxes(c.blockX(), Int1088.ZERO, c.blockZ(), .25) * 4;
+                    double sz = shift.getValueScaledAxes(c.blockZ(), c.blockX(), Int1088.ZERO, .25) * 4;
                     if (!precise) {
-                        double x = WorldgenCoordinate.toDouble(c.blockXHi(), c.blockX()) * .25;
-                        double z = WorldgenCoordinate.toDouble(c.blockZHi(), c.blockZ()) * .25;
+                        double x = WorldgenCoordinate.toDouble(c.blockX()) * .25;
+                        double z = WorldgenCoordinate.toDouble(c.blockZ()) * .25;
                         sx = shift.getValue(x, 0, z) * 4;
                         sz = shift.getValue(z, x, 0) * 4;
                     }

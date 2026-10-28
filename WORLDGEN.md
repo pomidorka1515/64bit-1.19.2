@@ -1,5 +1,33 @@
 # worldgen overflow values
 
+## 1088-bit coordinate revision — 2026-10-28
+
+horizontal addresses now use signed `Int1088` (`-2^1087 .. 2^1087 - 1`),
+with Y unchanged. the five modes (`32bit`, `32bit-stable-shifts`, `64bit`,
+`64bit-stable-shifts`, `64bit-patched`) and both precisions (`precise`, `lossy`)
+are unchanged. `precise` scales full integers before lattice reduction; `lossy`
+retains absolute floating-point projections and their intentional failures.
+wide seeds fold every significant limb; signed-long seeds keep their old results.
+full-width addressing does not promise unique terrain at every address.
+
+save identity is storage version `0x4C534303`, series `mcp-int1088-coordinates`,
+marker `int1088-coordinates-v1`; protocol `0x4C534303` requires matching builds.
+vanilla, old 64-bit fork and legacy 128-bit saves are rejected read-only, not
+migrated. NBT axes are `LongArray[17]`; wire axes use 1–17 significant limbs.
+nested Anvil region and external-chunk paths require long-path support (over
+600 characters plus the world root) and recursive backup/restore tools.
+
+re-derivation note: storage endpoints change because the address width changed,
+not because a sampler was patched. the endpoint rows below now give the exact
+1088-bit limits. all listed binary64 conversion references lie **inside** the
+new address domain, but remain exact-product conversion references, not measured
+sampler failures. the old survey remains limited to magnitudes below `2^127`;
+it is not a survey of the expanded domain. other numerical tables are retained,
+not silently re-baselined. ported standalone End, Far Lands, shift, pillar and
+scaled-conversion probes pass bounded checks; the ordinary worldgen golden tests
+also pass. this does not claim every catalog row was remeasured or replace live
+render/audio verification and final client/server acceptance.
+
 seed 0. Noise inputs and SurfaceSystem / SurfaceRules tables below contain
 separate measured **32-bit / lossy** and **64-bit / precise** signed
 block-coordinate boundary tables, not nominal
@@ -657,7 +685,7 @@ long-square NaN but not the lossy simplex, size or candidate-gate issues
 ## Shift-driven slicing and lava collapse
 
 `64bit-stable-shifts` patches only `ShiftA` / `shift_x` and `ShiftB` / `shift_z`,
-in both NormalNoise stacks. Their scaled inputs retain all 128 coordinate bits,
+in both NormalNoise stacks. Their scaled inputs retain all 1088 coordinate bits,
 including world X rotated into noise Y by ShiftB. All other samplers keep the
 ordinary `64bit` overflow behavior, including shifted climate noise itself;
 this removes shift extrapolation, not every possible distant terrain failure.
@@ -1108,7 +1136,7 @@ evidence labels:
 
 - **S**: expanded `tools/InfinityProbe.java` survey, seed 0, precise, Y=64,
   other axis=0; 16 samples per power-of-two interval through the positive
-  signed-128-bit range. **first observed sample of that result kind**, not an
+  range below `2^127` (the historical survey cap). **first observed sample of that result kind**, not an
   exact first block. raw noise, registered overworld functions, shift functions,
   router outputs, cave-branch nodes and pre-clamp `4*cave_layer²` are checked.
 - **L**: locally verified adjacent-coordinate boundary; conditions specified
@@ -1128,8 +1156,8 @@ unless an exact expression is supplied; the full column is the magnitude N.
 scaled-input conversion references below use **one rounding of the exact product
 `N * scale` to binary64**, with `T = 2^1024 − 2^970` and first integer
 `N = ceil(T / scale)`. `tools/ScaledDoubleOverflowProbe.java` verifies both
-signs and their inward neighbors. these are mathematical references **outside
-the Int128 world range**, not measured sampler/world failures: converting N to
+signs and their inward neighbors. these are mathematical references **inside
+the 1088-bit address domain**, not measured sampler/world failures: converting N to
 double before multiplying, the second NormalNoise stack, octave scaling and
 added climate shifts are different operations. the scales are from
 `NoiseRouterData`: jagged has Y scale 0, spaghetti modulator/thickness/rarity
@@ -1181,14 +1209,14 @@ converted input, not the returned noise or density.
 | cave cheese_layer sum (layer plus clamped cheese terms) | both widths, stable only | ±Z | +Infinity | S | ≈2^92.9542 | 9,594,035,304,461,697,130,468,212,736 |
 | pre-clamp cave layer: `4*cave_layer²` | both widths / both | ±X | +Infinity | S | ≈2^93.1699 | 11,141,460,353,568,422,474,092,118,016 |
 | cave cheese_layer sum (layer plus clamped cheese terms) | both widths, stable only | ±X | +Infinity | S | ≈2^93.1699 | 11,141,460,353,568,422,474,092,118,016 |
-| positive world-coordinate storage limit, **still finite** | signed Int128, all modes | any positive axis | not an Infinity event | E | 2^127 − 1 | 170,141,183,460,469,231,731,687,303,715,884,105,727 |
-| negative world-coordinate storage limit, **still finite** | signed Int128, all modes | any negative axis | not an Infinity event | E | 2^127 | 170,141,183,460,469,231,731,687,303,715,884,105,728 |
-| jagged scaled-input conversion reference, **outside world range** | IEEE-754 round-to-nearest, ties-to-even | scale 1500.0, ±X / ±Z; exact product then convert | ±Infinity | E | ≈2^1013.4493; exact ceil(T / 1500) | 119846208990821053862485980936868943386622755140025217957449185986963312195176500631099345318391471397553524277795258607297703698567960268420438325781003880454605934667138922450849236563878474354509650486846713237047577973081895276546573889957650195146049445629577007136228474373133005395361920118602782999 |
-| ore_vein_a / b scaled-input conversion reference, **outside world range** | IEEE-754 round-to-nearest, ties-to-even | scale 4.0, any axis, either sign; exact product then convert | ±Infinity | E | 2^1022 − 2^968 | 44942328371557895198432242851325853769983533177509456734043444745111242073191187736662254494396801774082571604173221977736638886962985100657664372167876455170477225500177095919068463711454427882941118932567517463892841739905710728704965208734118823179768542111091377676085677889924877023260720044476043624448 |
-| noodle_ridge_a / b scaled-input conversion reference, **outside world range** | IEEE-754 round-to-nearest, ties-to-even | scale 2.6666666666666665 (stored binary64), any axis, either sign; exact product then convert | ±Infinity | E | ≈2^1022.5850; exact ceil(T · 2^51 / 6004799503160661) | 67413492557336846539848944654588427510674136710336496477536280434149753427062861174765678995902826007920042704951772509122046163305406233434817786489802796641662960034324556978613332350467285294794906107031877163314306505878423580552717416452810213936256441506719861839980217226929893614313258623609084051456 |
-| spaghetti modulator/thickness/rarity scaled-input conversion reference, **outside world range** | IEEE-754 round-to-nearest, ties-to-even | scale 2.0, ±X / ±Z; exact product then convert | ±Infinity | E | 2^1023 − 2^969 | 89884656743115790396864485702651707539967066355018913468086889490222484146382375473324508988793603548165143208346443955473277773925970201315328744335752910340954451000354191838136927422908855765882237865135034927785683479811421457409930417468237646359537084222182755352171355779849754046521440088952087248896 |
-| ore_veininess scaled-input conversion reference, **outside world range** | IEEE-754 round-to-nearest, ties-to-even | scale 1.5 (3/2), any axis, either sign; exact product then convert | ±Infinity | E | ≈2^1023.4150; exact ceil(2T / 3) | 119846208990821053862485980936868943386622755140025217957449185986963312195176500631099345318391471397553524277795258607297703698567960268420438325781003880454605934667138922450849236563878474354509650486846713237047577973081895276546573889957650195146049445629577007136228474373133005395361920118602782998528 |
+| positive world-coordinate storage limit | signed Int1088, all modes | any positive axis | not a sampler Infinity onset; absolute binary64 projection overflows | E | 2^1087 − 1 | exact `(1 << 1087) - 1` |
+| negative world-coordinate storage limit (magnitude) | signed Int1088, all modes | any negative axis | not a sampler Infinity onset; absolute binary64 projection overflows | E | 2^1087 | exact `1 << 1087` |
+| jagged scaled-input conversion reference, **inside address domain** | IEEE-754 round-to-nearest, ties-to-even | scale 1500.0, ±X / ±Z; exact product then convert | ±Infinity | E | ≈2^1013.4493; exact ceil(T / 1500) | 119846208990821053862485980936868943386622755140025217957449185986963312195176500631099345318391471397553524277795258607297703698567960268420438325781003880454605934667138922450849236563878474354509650486846713237047577973081895276546573889957650195146049445629577007136228474373133005395361920118602782999 |
+| ore_vein_a / b scaled-input conversion reference, **inside address domain** | IEEE-754 round-to-nearest, ties-to-even | scale 4.0, any axis, either sign; exact product then convert | ±Infinity | E | 2^1022 − 2^968 | 44942328371557895198432242851325853769983533177509456734043444745111242073191187736662254494396801774082571604173221977736638886962985100657664372167876455170477225500177095919068463711454427882941118932567517463892841739905710728704965208734118823179768542111091377676085677889924877023260720044476043624448 |
+| noodle_ridge_a / b scaled-input conversion reference, **inside address domain** | IEEE-754 round-to-nearest, ties-to-even | scale 2.6666666666666665 (stored binary64), any axis, either sign; exact product then convert | ±Infinity | E | ≈2^1022.5850; exact ceil(T · 2^51 / 6004799503160661) | 67413492557336846539848944654588427510674136710336496477536280434149753427062861174765678995902826007920042704951772509122046163305406233434817786489802796641662960034324556978613332350467285294794906107031877163314306505878423580552717416452810213936256441506719861839980217226929893614313258623609084051456 |
+| spaghetti modulator/thickness/rarity scaled-input conversion reference, **inside address domain** | IEEE-754 round-to-nearest, ties-to-even | scale 2.0, ±X / ±Z; exact product then convert | ±Infinity | E | 2^1023 − 2^969 | 89884656743115790396864485702651707539967066355018913468086889490222484146382375473324508988793603548165143208346443955473277773925970201315328744335752910340954451000354191838136927422908855765882237865135034927785683479811421457409930417468237646359537084222182755352171355779849754046521440088952087248896 |
+| ore_veininess scaled-input conversion reference, **inside address domain** | IEEE-754 round-to-nearest, ties-to-even | scale 1.5 (3/2), any axis, either sign; exact product then convert | ±Infinity | E | ≈2^1023.4150; exact ceil(2T / 3) | 119846208990821053862485980936868943386622755140025217957449185986963312195176500631099345318391471397553524277795258607297703698567960268420438325781003880454605934667138922450849236563878474354509650486846713237047577973081895276546573889957650195146049445629577007136228474373133005395361920118602782998528 |
 | largest finite binary64 value, **not a world boundary** | IEEE-754 double | either sign; axes irrelevant | finite ±Double.MAX_VALUE | E | ≈2^1024; exact 2^1024 − 2^971 | 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368 |
-| first exact integer magnitude converting to binary64 Infinity | IEEE-754 round-to-nearest, ties-to-even | ±, axes irrelevant; outside Int128 world range | ±Infinity | E | ≈2^1024; exact **2^1024 − 2^970** | 179769313486231580793728971405303415079934132710037826936173778980444968292764750946649017977587207096330286416692887910946555547851940402630657488671505820681908902000708383676273854845817711531764475730270069855571366959622842914819860834936475292719074168444365510704342711559699508093042880177904174497792 |
-| cave_entrance scaled-input conversion reference, **outside world range** | IEEE-754 round-to-nearest, ties-to-even | scale 0.75 (3/4), ±X / ±Z; exact product then convert | ±Infinity | E | ≈2^1024.4150; exact (2^1026 − 2^972 + 1) / 3 | 239692417981642107724971961873737886773245510280050435914898371973926624390353001262198690636782942795107048555590517214595407397135920536840876651562007760909211869334277844901698473127756948709019300973693426474095155946163790553093147779915300390292098891259154014272456948746266010790723840237205565997056 |
-| zero-shift climate scaled-input conversion reference, **outside world range** | IEEE-754 round-to-nearest, ties-to-even | scale 0.25, ±X / ±Z; exact product then convert | ±Infinity | E | 2^1026 − 2^972 | 719077253944926323174915885621213660319736530840151307744695115921779873171059003786596071910348828385321145666771551643786222191407761610522629954686023282727635608002833534705095419383270846127057902921080279422285467838491371659279443339745901170876296673777462042817370846238798032372171520711616697991168 |
+| first exact integer magnitude converting to binary64 Infinity | IEEE-754 round-to-nearest, ties-to-even | ±, axes irrelevant; inside 1088-bit address domain | ±Infinity | E | ≈2^1024; exact **2^1024 − 2^970** | 179769313486231580793728971405303415079934132710037826936173778980444968292764750946649017977587207096330286416692887910946555547851940402630657488671505820681908902000708383676273854845817711531764475730270069855571366959622842914819860834936475292719074168444365510704342711559699508093042880177904174497792 |
+| cave_entrance scaled-input conversion reference, **inside address domain** | IEEE-754 round-to-nearest, ties-to-even | scale 0.75 (3/4), ±X / ±Z; exact product then convert | ±Infinity | E | ≈2^1024.4150; exact (2^1026 − 2^972 + 1) / 3 | 239692417981642107724971961873737886773245510280050435914898371973926624390353001262198690636782942795107048555590517214595407397135920536840876651562007760909211869334277844901698473127756948709019300973693426474095155946163790553093147779915300390292098891259154014272456948746266010790723840237205565997056 |
+| zero-shift climate scaled-input conversion reference, **inside address domain** | IEEE-754 round-to-nearest, ties-to-even | scale 0.25, ±X / ±Z; exact product then convert | ±Infinity | E | 2^1026 − 2^972 | 719077253944926323174915885621213660319736530840151307744695115921779873171059003786596071910348828385321145666771551643786222191407761610522629954686023282727635608002833534705095419383270846127057902921080279422285467838491371659279443339745901170876296673777462042817370846238798032372171520711616697991168 |

@@ -1,22 +1,24 @@
-# 128-bit minecraft
+# 1088-bit minecraft
 
-minecraft 1.19.2 with signed 128-bit horizontal coordinates (`Int128`), not `int`, `long`, or a lossy `double`. this branch is undergoing the 128-bit migration; main compilation is green, but test conversion and final acceptance are still pending.
+minecraft 1.19.2 with signed 1088-bit horizontal coordinates (`Int1088`), not `int`, `long`, or a lossy `double`. compilation and automated coordinate gates pass; live wide-client rendering/audio verification and final acceptance are still pending.
 
-the world border is gone. block X/Z span `-2^127` through `2^127 - 1`; Y keeps the usual build height. exact positions, storage, networking, camera-relative math and terrain generation consume the full coordinate.
+the world border is gone. block X/Z span `-2^1087` through `2^1087 - 1`; Y keeps the usual build height. exact positions, storage, networking, camera-relative math and terrain generation consume the full coordinate.
 
 ## save break and worldgen boundary
 
-- **new worlds only.** the save format is strictly incompatible with vanilla worlds and worlds from the old 64-bit fork. old or foreign saves are rejected, not migrated; there is no old-world support or fallback decoder. matching 128-bit client/server builds are required.
-- exact horizontal positions use an `Int128` block coordinate plus a normalized double fraction in `[0, 1)`. chunk/section keys, region files and persisted placement identity retain the full 128 bits.
-- worldgen carries primitive high/low horizontal limbs through density sampling, biomes, surfaces, aquifers and positional seeds. the precise mode scales full-width integers before reducing noise lattice indices; other modes retain their floating-point and Far Lands behavior.
+- **new worlds only.** vanilla, old 64-bit fork and legacy 128-bit saves are rejected read-only, not migrated; there is no fallback decoder. matching 1088-bit client/server builds are required.
+- save identity: storage version `0x4C534303`, series `mcp-int1088-coordinates`, marker `int1088-coordinates-v1`. the network protocol is `0x4C534303`; older clients are rejected.
+- exact horizontal positions use an `Int1088` block coordinate plus a normalized double fraction in `[0, 1)`. chunk/section keys, region files and persisted placement identity retain all 17 sign-extended limbs. NBT stores a fixed `LongArray[17]` per axis; network coordinates use a significant-limb count (1–17) and zig-zag VarLongs.
+- worldgen carries full-width horizontal limb views through density sampling, biomes, surfaces, aquifers and positional seeds. the precise mode scales full-width integers before reducing noise lattice indices; other modes retain their floating-point and Far Lands behavior.
 - the five modes keep their existing signed-long sampling results. full-width sampling does not imply unique terrain at every address: noise permutations, finite seed spaces, deliberate clamps, floating-point precision loss and Far Lands arithmetic still apply.
-- full-width addresses do not wrap into their low-word aliases. address arithmetic saturates at the signed-128 endpoints. no old-save migration or new generator mode is introduced.
+- full-width addresses do not wrap into their low-word aliases. address arithmetic saturates at the signed-1088 endpoints. no old-save migration or new generator mode is introduced.
+- **long-path support required.** Anvil paths use nested hexadecimal components (up to 32 characters each per axis), ending in `r.mca`; oversized chunks use the independent `chunks/` tree ending in `c.mcc`. paths can exceed 600 characters plus the world root. enable Windows long paths and use backup/restore tools that preserve the entire directory tree, including external chunks; flat `region/*.mca` scans are insufficient.
 
 the original unfinished mod was written by mckuhei, whose sites are dead now. code before the fork is commit `f1b40fcf28655ebf01aa5dd77bc8e0cdc9dc97af` (it barely works)
 
 ## highlights
 
-- a world addressed by `Int128`. block X/Z span the signed 128-bit domain, Y keeps the usual build height. coordinate arithmetic saturates instead of wrapping around to the far side of the world.
+- a world addressed by `Int1088`. block X/Z span the signed 1088-bit domain, Y keeps the usual build height. coordinate arithmetic saturates instead of wrapping around to the far side of the world.
 - positions stay lossless past the double limit. `SectorVec3` keeps X/Z as a block coordinate plus a fraction in `[0, 1)`, so physics never subtracts two gigantic world doubles.
 - collision still works out there. movement gets solved in a tiny local frame, then applied back to the real position — including on the last representable block, not just "pretty far out".
 - every entity and block entity keeps a true position: players, mobs, vehicles, projectiles, all of them. spawning, AI, pathfinding, riding and dismounting use it.
@@ -24,8 +26,8 @@ the original unfinished mod was written by mckuhei, whose sites are dead now. co
 - independent generator mode and coordinate precision, both stored in world NBT. `/generator mode ...` or `/generator precision ...` stages a change; `/generator confirm` applies and saves it.
   - `32bit` — how the original mod behaved. far lands at 12,550,824.
   - `64bit` — 64-bit generator with intentional Far Lands arithmetic.
-  - `32bit-stable-shifts` — same as `32bit`, except `shift_x`/`shift_z` use overflow-safe, full-128-bit sampling in both stacks (including the rotated noise Y axis). The protected shifts always retain exact coordinates; all other samplers retain 32-bit Far Lands arithmetic and follow the selected precision.
-  - `64bit-stable-shifts` — same as `64bit`, except `shift_x`/`shift_z` use overflow-safe, full-128-bit sampling in both stacks (including the rotated noise Y axis). All other noise overflow remains. The protected shifts always retain exact coordinates; other samplers still follow the selected precision.
+  - `32bit-stable-shifts` — same as `32bit`, except `shift_x`/`shift_z` use overflow-safe, full-1088-bit sampling in both stacks (including the rotated noise Y axis). The protected shifts always retain exact coordinates; all other samplers retain 32-bit Far Lands arithmetic and follow the selected precision.
+  - `64bit-stable-shifts` — same as `64bit`, except `shift_x`/`shift_z` use overflow-safe, full-1088-bit sampling in both stacks (including the rotated noise Y axis). All other noise overflow remains. The protected shifts always retain exact coordinates; other samplers still follow the selected precision.
   - `64bit-patched` — same generator with the Far Lands arithmetic patched out.
   - precision: `precise` retains exact integer positions; `lossy` uses absolute doubles. Precision is independent of mode and does not patch intentional generator limits.
 - outer end rings are optional. `/endrings` flips them on or off; turning them off asks for `/endrings confirm`.
@@ -37,18 +39,18 @@ vanilla's `int` positions and `double` physics couldn't be patched in one spot. 
 
 ### coords and world limits
 
-- `Vec3i`, `BlockPos`, `ChunkPos`, `SectionPos`: X/Z are `Int128`, Y stays `int`.
+- `Vec3i`, `BlockPos`, `ChunkPos`, `SectionPos`: X/Z are `Int1088`, Y stays `int`.
 - `WorldBounds`: one set of block, chunk and region limits, with saturating add/multiply so an edge request can't overflow into the other side of the world.
 - chunk tickets, chunk cache, region-file indexing, "chunk out of bounds" handling.
 - the world border — removed, not just pushed further out.
-- level save/load. true positions are stored as split coordinates; they used to be written back from the lossy doubles.
+- level save/load. horizontal block addresses use fixed 17-limb NBT arrays, with separate entity fractions; they are never reconstructed from lossy doubles.
 
 ### movement and collision
 
 - `SectorVec3`, `SectorAABB`, `SectorPhysicsOrigin`: lossless position, lossless box, one fixed local origin per collision solve.
 - `SectorBlockCollisions`: block shapes get shifted by a small origin-relative offset, not by a global double.
 - entity `move()`, stepping, fluids, suffocation, edge back-off for sector entities.
-- `SectorClipper`: block raycasts walk exact 128-bit block addresses, hit positions stay true.
+- `SectorClipper`: block raycasts walk exact 1088-bit block addresses, hit positions stay true.
 - block placing, breaking, outlines, the break animation.
 - boundary collision uses exact split coordinates and bounded local frames rather than global doubles.
 
@@ -72,7 +74,7 @@ vanilla's `int` positions and `double` physics couldn't be patched in one spot. 
 ### terrain
 
 - the noise itself: improved, perlin, simplex, blended and normal noise, plus the noise router and density functions.
-- `PreciseNoiseCoordinate` retains the established long path; `WorldgenCoordinate` supplies primitive 128-by-53-bit scaling, carries and full-width conversion for distant samples.
+- `PreciseNoiseCoordinate` retains the established long path; `WorldgenCoordinate` supplies primitive 1088-by-53-bit scaling with 18-limb product scratch, carries and full-width conversion for distant samples.
 - `FarlandsMode` retains all five existing arithmetic policies; legacy world saves are not supported.
 - surface rules and `SurfaceSystem`.
 - ores, ore veins, heightmaps.
@@ -130,6 +132,8 @@ it also disables gradle's incompatible linux native services and file watching,
 and limits gradle to two workers and a 1536 MiB heap.
 an explicit `JAVA_HOME` still takes precedence. 
 compilation and tests do not require client assets or the `setup` / `runclient` tasks.
+
+`./gradlew test` runs the default suite. the slow full-height worldgen generation/reload matrix is separate: `./gradlew worldgenMatrixTest`. final automated acceptance requires both tasks and `bash tools/check_1088bit_invariants.sh --strict`; passing them does not replace live client/server acceptance.
 
 ### building the client and dedicated server
 

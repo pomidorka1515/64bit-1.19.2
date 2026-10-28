@@ -15,6 +15,8 @@ class SoundPositionInt1088Test {
     @Test
     void worldSourcesSubtractBeforeConversionAndRebaseImmutableSnapshots() {
         for (Int1088 base : new Int1088[] {Int1088.ZERO, Int1088.of(-1, 123),
+                Int1088.ONE.shiftLeftSaturated(127), Int1088.ONE.shiftLeftSaturated(127).negate(),
+                Int1088.ONE.shiftLeftSaturated(1024), Int1088.ONE.shiftLeftSaturated(1024).negate(),
                 Int1088.of(Long.MAX_VALUE, -123), Int1088.MIN.add(Int1088.fromLong(8)),
                 Int1088.MAX.subtract(Int1088.fromLong(8))}) {
             SectorVec3 listener = SectorVec3.fromBlockAndFraction(base, 0.75D, 64, base, 0.25D);

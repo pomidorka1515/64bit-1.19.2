@@ -22,6 +22,8 @@ class EntityRenderCoordinatesTest {
     @Test
     void shadowVerticesPreserveFractionsAcrossHighHalvesAndLowWordSeams() {
         for (Int1088 origin : new Int1088[] {Int1088.ZERO, Int1088.of(-1, 123),
+                Int1088.ONE.shiftLeftSaturated(127), Int1088.ONE.shiftLeftSaturated(127).negate(),
+                Int1088.ONE.shiftLeftSaturated(1024), Int1088.ONE.shiftLeftSaturated(1024).negate(),
                 Int1088.of(Long.MAX_VALUE, -123), Int1088.MIN.add(Int1088.fromLong(8)),
                 Int1088.MAX.subtract(Int1088.fromLong(8))}) {
             for (int offset = -4; offset <= 4; ++offset) {
@@ -34,6 +36,8 @@ class EntityRenderCoordinatesTest {
     @Test
     void interpolatedBeamAndHitboxGeometryIsTranslationInvariant() {
         for (Int1088 origin : new Int1088[] {Int1088.ZERO, Int1088.of(-1, 123),
+                Int1088.ONE.shiftLeftSaturated(127), Int1088.ONE.shiftLeftSaturated(127).negate(),
+                Int1088.ONE.shiftLeftSaturated(1024), Int1088.ONE.shiftLeftSaturated(1024).negate(),
                 Int1088.of(Long.MAX_VALUE, -123)}) {
             SectorVec3 old = SectorVec3.fromBlockAndFraction(origin, 0.75D, 64.0D, origin, 0.25D);
             SectorVec3 current = old.add(1.0D, 2.0D, -1.0D);

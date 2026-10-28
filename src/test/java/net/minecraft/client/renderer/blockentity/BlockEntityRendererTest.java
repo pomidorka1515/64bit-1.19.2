@@ -1,9 +1,13 @@
 package net.minecraft.client.renderer.blockentity;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Vector4f;
 import net.minecraft.SharedConstants;
+import net.minecraft.client.renderer.CameraRelativePosition;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Int1088;
 import net.minecraft.server.Bootstrap;
@@ -52,6 +56,28 @@ class BlockEntityRendererTest {
 
         assertTrue(RENDERER.shouldRender(blockEntity, nearbyCamera));
         assertFalse(RENDERER.shouldRender(blockEntity, distantCamera));
+    }
+
+    @Test
+    void wideMatrixKeepsBlockEntityRangeAndLocalPoseOffsetsFinite() {
+        for (int bit : new int[] {127, 1024}) {
+            for (int sign : new int[] {-1, 1}) {
+                Int1088 base = Int1088.ONE.shiftLeftSaturated(bit).multiplySaturated(sign);
+                BlockPos block = new BlockPos(base, 64, base.negate());
+                BlockEntity blockEntity = new BlockEntity(BlockEntityType.CHEST, block, Blocks.CHEST.defaultBlockState()) {};
+                SectorVec3 camera = SectorVec3.fromBlockAndFraction(base, 0.75D, 64.5D, base.negate(), 0.25D);
+                assertTrue(RENDERER.shouldRender(blockEntity, camera));
+                assertFalse(RENDERER.shouldRender(blockEntity, camera.add(65, 0, 0)));
+                var local = CameraRelativePosition.of(camera);
+                var pose = new PoseStack();
+                pose.translate(local.relativeX(block.getX()), local.relativeY(block.getY()), local.relativeZ(block.getZ()));
+                var vertex = new Vector4f(0.5F, 0.5F, 0.5F, 1);
+                vertex.transform(pose.last().pose());
+                assertEquals(-0.25F, vertex.x());
+                assertEquals(0.0F, vertex.y());
+                assertEquals(0.25F, vertex.z());
+            }
+        }
     }
 
     @Test

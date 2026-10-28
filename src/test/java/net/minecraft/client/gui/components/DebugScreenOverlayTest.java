@@ -24,6 +24,8 @@ class DebugScreenOverlayTest {
     @Test
     void exactPositionLinesMatchDecimalOracleThroughEveryLimbAndBothEdges() {
         List<BigInteger> blocks = new ArrayList<>(List.of(BigInteger.ZERO, BigInteger.valueOf(-1)));
+        blocks.add(BigInteger.ONE.shiftLeft(127));
+        blocks.add(BigInteger.ONE.shiftLeft(127).negate());
         for (int bit = 64; bit <= 1024; bit += 64) {
             var value = BigInteger.ONE.shiftLeft(bit).add(BigInteger.ONE);
             blocks.add(value);

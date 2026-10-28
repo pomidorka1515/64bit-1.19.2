@@ -2,10 +2,12 @@ package net.minecraft.client.renderer.debug;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.math.BigInteger;
 import net.minecraft.client.renderer.CameraRelativePosition;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Int1088;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.gameevent.PositionSource;
 import net.minecraft.world.level.gameevent.PositionSourceType;
 import net.minecraft.world.phys.SectorVec3;
@@ -14,6 +16,33 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class DebugCoordinatesInt1088Test {
+    @Test
+    void chunkBorderOriginsKeepTheirLocalOffsetsAcrossWideChunkSeams() {
+        for (int bit : new int[] {127, 1024}) {
+            for (int sign : new int[] {-1, 1}) {
+                BigInteger origin = BigInteger.ONE.shiftLeft(bit).multiply(BigInteger.valueOf(sign));
+                for (int offset : new int[] {-17, -16, -1, 0, 1, 15, 16, 17}) {
+                    BigInteger x = origin.add(BigInteger.valueOf(offset));
+                    BigInteger z = origin.negate().subtract(BigInteger.valueOf(offset));
+                    SectorVec3 camera = SectorVec3.fromBlockAndFraction(Int1088.parseDecimal(x.toString()),
+                            0.75D, 80.5D, Int1088.parseDecimal(z.toString()), 0.25D);
+                    ChunkPos chunk = new ChunkPos(camera.blockPosition());
+                    // ChunkBorderRenderer uses this exact origin before emitting
+                    // its local -16..32 line offsets. This does not invoke OpenGL.
+                    SectorVec3 chunkOrigin = SectorVec3.fromBlockAndFraction(chunk.getMinBlockX(), 0, 0,
+                            chunk.getMinBlockZ(), 0);
+                    Vec3 relative = chunkOrigin.relativeTo(camera);
+                    assertEquals(x.shiftRight(4).shiftLeft(4).subtract(x).doubleValue() - 0.75D, relative.x);
+                    assertEquals(-80.5D, relative.y);
+                    assertEquals(z.shiftRight(4).shiftLeft(4).subtract(z).doubleValue() - 0.25D, relative.z);
+                    Vec3 center = DebugRenderer.localPosition(CameraRelativePosition.of(camera),
+                            camera.blockPosition(), 0.5D, 0.5D, 0.5D);
+                    assertEquals(new Vec3(-0.25D, 0, 0.25D), center);
+                }
+            }
+        }
+    }
+
     @Test
     void localOffsetsSurviveHighHalvesAndLowWordCarry() {
         Int1088 x = Int1088.of(-1L, 123L);

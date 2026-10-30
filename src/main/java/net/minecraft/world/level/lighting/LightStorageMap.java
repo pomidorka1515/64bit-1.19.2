@@ -4,10 +4,11 @@ import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import net.minecraft.core.Vec3i;
 
 /**
  * Single-writer, bucket-copy-on-write map for published light snapshots. A copy
@@ -16,13 +17,13 @@ import java.util.Set;
  */
 final class LightStorageMap<K, V> extends AbstractMap<K, V> {
     private static final int BUCKET_COUNT = 256;
-    private final Map<K, V>[] buckets;
+    private final Bucket<K, V>[] buckets;
     private final boolean[] owned = new boolean[BUCKET_COUNT];
     private int size;
 
     @SuppressWarnings("unchecked")
     LightStorageMap(Map<K, V> initial) {
-        this.buckets = new Map[BUCKET_COUNT];
+        this.buckets = new Bucket[BUCKET_COUNT];
         this.putAll(initial);
     }
 
@@ -36,17 +37,26 @@ final class LightStorageMap<K, V> extends AbstractMap<K, V> {
         return new LightStorageMap<>(this);
     }
 
-    private int bucket(Object key) {
-        int hash = key == null ? 0 : key.hashCode();
+    private static int hash(Object key) {
+        // Vec3i's additive hash has systematic collisions across section grids.
+        // Mix each full-width axis separately; never truncate world coordinates.
+        int hash;
+        if (key instanceof Vec3i pos) {
+            hash = pos.getX().hashCode() * 0x9e3779b9;
+            hash = Integer.rotateLeft(hash, 13) ^ pos.getZ().hashCode() * 0x85ebca6b;
+            hash = Integer.rotateLeft(hash, 11) ^ pos.getY() * 0xc2b2ae35;
+        } else {
+            hash = Objects.hashCode(key);
+        }
         hash ^= hash >>> 16;
         hash *= 0x7feb352d;
-        return (hash ^ (hash >>> 15)) & (BUCKET_COUNT - 1);
+        return hash ^ (hash >>> 15);
     }
 
-    private Map<K, V> writable(int index) {
+    private Bucket<K, V> writable(int index) {
         if (!this.owned[index]) {
-            Map<K, V> previous = this.buckets[index];
-            this.buckets[index] = previous == null ? new HashMap<>() : new HashMap<>(previous);
+            Bucket<K, V> previous = this.buckets[index];
+            this.buckets[index] = previous == null ? new Bucket<>() : new Bucket<>(previous);
             this.owned[index] = true;
         }
         return this.buckets[index];
@@ -54,31 +64,56 @@ final class LightStorageMap<K, V> extends AbstractMap<K, V> {
 
     @Override
     public V get(Object key) {
-        Map<K, V> bucket = this.buckets[this.bucket(key)];
-        return bucket == null ? null : bucket.get(key);
+        return this.getOrDefault(key, null);
+    }
+
+    @Override
+    public V getOrDefault(Object key, V defaultValue) {
+        int hash = hash(key);
+        Bucket<K, V> bucket = this.buckets[hash & (BUCKET_COUNT - 1)];
+        if (bucket == null) return defaultValue;
+        int slot = bucket.find(key, hash);
+        return slot < 0 ? defaultValue : bucket.value(slot);
     }
 
     @Override
     public boolean containsKey(Object key) {
-        Map<K, V> bucket = this.buckets[this.bucket(key)];
-        return bucket != null && bucket.containsKey(key);
+        int hash = hash(key);
+        Bucket<K, V> bucket = this.buckets[hash & (BUCKET_COUNT - 1)];
+        return bucket != null && bucket.find(key, hash) >= 0;
     }
 
     @Override
     public V put(K key, V value) {
-        Map<K, V> bucket = this.writable(this.bucket(key));
-        boolean present = bucket.containsKey(key);
-        V previous = bucket.put(key, value);
-        if (!present) ++this.size;
-        return previous;
+        int hash = hash(key);
+        Bucket<K, V> bucket = this.writable(hash & (BUCKET_COUNT - 1));
+        int slot = bucket.find(key, hash);
+        if (slot >= 0) {
+            V previous = bucket.value(slot);
+            bucket.values[slot] = value;
+            return previous;
+        }
+        bucket.insert(key, value, hash);
+        ++this.size;
+        return null;
     }
 
     @Override
     public V remove(Object key) {
-        int index = this.bucket(key);
-        if (this.buckets[index] == null || !this.buckets[index].containsKey(key)) return null;
-        V previous = this.writable(index).remove(key);
+        int hash = hash(key);
+        int index = hash & (BUCKET_COUNT - 1);
+        Bucket<K, V> bucket = this.buckets[index];
+        if (bucket == null) return null;
+        int slot = bucket.find(key, hash);
+        if (slot < 0) return null;
+        bucket = this.writable(index);
+        V previous = bucket.value(slot);
+        bucket.keys[slot] = Bucket.DELETED;
+        bucket.values[slot] = null;
+        --bucket.size;
         --this.size;
+        if (bucket.size == 0) this.buckets[index] = null;
+        if (this.buckets[index] == null) this.owned[index] = false;
         return previous;
     }
 
@@ -107,18 +142,103 @@ final class LightStorageMap<K, V> extends AbstractMap<K, V> {
 
                     public boolean hasNext() {
                         while (!this.entries.hasNext() && this.index < BUCKET_COUNT) {
-                            Map<K, V> bucket = buckets[this.index++];
-                            if (bucket != null) this.entries = bucket.entrySet().iterator();
+                            Bucket<K, V> bucket = buckets[this.index++];
+                            if (bucket != null) this.entries = bucket.iterator();
                         }
                         return this.entries.hasNext();
                     }
 
                     public Entry<K, V> next() {
                         if (!this.hasNext()) throw new java.util.NoSuchElementException();
-                        return new SimpleImmutableEntry<>(this.entries.next());
+                        return this.entries.next();
                     }
                 };
             }
         };
+    }
+
+    /** Flat tables keep lookups and snapshot detachment free of per-entry nodes. */
+    private static final class Bucket<K, V> {
+        private static final Object NULL_KEY = new Object();
+        private static final Object DELETED = new Object();
+        private Object[] keys;
+        private Object[] values;
+        private int[] hashes;
+        private int size;
+        private int used;
+
+        Bucket() {
+            this.keys = new Object[8];
+            this.values = new Object[8];
+            this.hashes = new int[8];
+        }
+
+        Bucket(Bucket<K, V> source) {
+            this.keys = source.keys.clone();
+            this.values = source.values.clone();
+            this.hashes = source.hashes.clone();
+            this.size = source.size;
+            this.used = source.used;
+        }
+
+        int find(Object key, int hash) {
+            Object masked = key == null ? NULL_KEY : key;
+            int mask = this.keys.length - 1;
+            // Low bits selected the bucket; use independent bits within it.
+            int slot = (hash >>> 8) & mask;
+            Object stored;
+            while ((stored = this.keys[slot]) != null) {
+                if (stored == masked || (stored != DELETED && this.hashes[slot] == hash
+                        && masked.equals(stored))) return slot;
+                slot = (slot + 1) & mask;
+            }
+            return -1;
+        }
+
+        @SuppressWarnings("unchecked")
+        V value(int slot) { return (V) this.values[slot]; }
+
+        void insert(Object key, Object value, int hash) {
+            if ((this.used + 1) * 3 >= this.keys.length * 2) {
+                this.rehash((this.size + 1) * 3 >= this.keys.length * 2 ? this.keys.length * 2 : this.keys.length);
+            }
+            int mask = this.keys.length - 1;
+            int slot = (hash >>> 8) & mask;
+            while (this.keys[slot] != null && this.keys[slot] != DELETED) slot = (slot + 1) & mask;
+            if (this.keys[slot] == null) ++this.used;
+            this.keys[slot] = key == null ? NULL_KEY : key;
+            this.values[slot] = value;
+            this.hashes[slot] = hash;
+            ++this.size;
+        }
+
+        private void rehash(int capacity) {
+            Object[] oldKeys = this.keys;
+            Object[] oldValues = this.values;
+            int[] oldHashes = this.hashes;
+            this.keys = new Object[capacity];
+            this.values = new Object[capacity];
+            this.hashes = new int[capacity];
+            this.size = this.used = 0;
+            for (int i = 0; i < oldKeys.length; ++i) {
+                if (oldKeys[i] != null && oldKeys[i] != DELETED) this.insert(oldKeys[i], oldValues[i], oldHashes[i]);
+            }
+        }
+
+        Iterator<Entry<K, V>> iterator() {
+            return new Iterator<>() {
+                private int slot;
+                public boolean hasNext() {
+                    while (this.slot < keys.length && (keys[this.slot] == null || keys[this.slot] == DELETED)) ++this.slot;
+                    return this.slot < keys.length;
+                }
+                @SuppressWarnings("unchecked")
+                public Entry<K, V> next() {
+                    if (!this.hasNext()) throw new java.util.NoSuchElementException();
+                    int index = this.slot++;
+                    return new SimpleImmutableEntry<>(keys[index] == NULL_KEY ? null : (K) keys[index], value(index));
+                }
+            };
+        }
     }
 }

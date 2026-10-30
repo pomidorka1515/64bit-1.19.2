@@ -34,14 +34,17 @@ public final class SkyLightEngine extends LayerLightEngine<SkyLightSectionStorag
         if (direction == null)
             return level;
 
+        return this.computeLevelFromNeighbor(source, target, level, targetState, opacity.intValue(), direction);
+    }
+
+    private int computeLevelFromNeighbor(BlockPos source, BlockPos target, int level, BlockState targetState, int opacity, Direction direction) {
         BlockState sourceState = this.getStateAndOpacity(source, null);
         VoxelShape sourceShape = this.getShape(sourceState, source, direction);
         VoxelShape targetShape = this.getShape(targetState, target, direction.getOpposite());
         if (Shapes.faceShapeOccludes(sourceShape, targetShape))
             return 15;
 
-        boolean vertical = source.getX().equals(target.getX()) && source.getZ().equals(target.getZ());
-        return vertical && source.getY() > target.getY() && level == 0 && opacity.getValue() == 0 ? 0 : level + Math.max(1, opacity.getValue());
+        return direction == Direction.DOWN && level == 0 && opacity == 0 ? 0 : level + Math.max(1, opacity);
     }
 
     protected void checkNeighborsAfterUpdate(BlockPos blockPos, int level, boolean decreasing) {
@@ -64,20 +67,26 @@ public final class SkyLightEngine extends LayerLightEngine<SkyLightSectionStorag
             this.checkNeighbor(blockPos, above, level, decreasing);
 
         for (Direction direction : HORIZONTALS) {
-            for (int distance = 0;; ++distance) {
+            for (int distance = 0; distance <= emptySectionsBelow * 16 + 1;) {
                 BlockPos neighbor = blockPos.offset(direction.getStepX(), -distance, direction.getStepZ());
                 if (sectionPos.contains(neighbor)) {
                     if (!neighbor.equals(blockPos))
                         this.checkNeighbor(blockPos, neighbor, level, decreasing);
                     break;
                 }
-                if (this.storage.storingLightForSection(SectionPos.of(neighbor))) {
-                    BlockPos source = blockPos.below(distance);
-                    if (!neighbor.equals(source))
-                        this.checkNeighbor(source, neighbor, level, decreasing);
+                // A whole 16-block span has the same section identity. In sparse
+                // sky columns, do not allocate/query every absent block in it.
+                int end = Math.min(emptySectionsBelow * 16 + 1, distance + (neighbor.getY() & 15));
+                if (this.storage.storingLightForSection(this.storage.updatingSectionData.sectionForBlock(neighbor))) {
+                    for (; distance <= end; ++distance) {
+                        BlockPos source = blockPos.below(distance);
+                        BlockPos target = source.relative(direction);
+                        if (!target.equals(source))
+                            this.checkNeighbor(source, target, level, decreasing);
+                    }
+                } else {
+                    distance = end + 1;
                 }
-                if (distance > emptySectionsBelow * 16)
-                    break;
             }
         }
     }
@@ -86,6 +95,8 @@ public final class SkyLightEngine extends LayerLightEngine<SkyLightSectionStorag
         int computedLevel = level;
         SectionPos sectionPos = this.storage.updatingSectionData.sectionForBlock(blockPos);
         DataLayer layer = this.storage.getDataLayer(sectionPos, true);
+        BlockState targetState = null;
+        MutableInt opacity = new MutableInt();
         for (Direction direction : DIRECTIONS) {
             BlockPos neighbor = blockPos.relative(direction);
             if (!neighbor.equals(blockPos) && !neighbor.equals(excludedNeighbor)) {
@@ -98,7 +109,24 @@ public final class SkyLightEngine extends LayerLightEngine<SkyLightSectionStorag
                         continue;
                     neighborLevel = 15 - this.storage.getLightValue(neighbor, true);
                 }
-                int candidate = this.computeLevelFromNeighbor(neighbor, blockPos, neighborLevel);
+                if (neighborLevel >= 15)
+                    continue;
+                if (targetState == null) {
+                    targetState = this.getStateAndOpacity(blockPos, opacity);
+                    if (opacity.intValue() >= 15)
+                        return Math.min(computedLevel, 15);
+                }
+                Direction incoming = direction.getOpposite();
+                // Y is an int: retain the actual direction even at wraparound.
+                if (direction.getAxis() == Direction.Axis.Y)
+                    incoming = blockPos.getY() > neighbor.getY() ? Direction.UP : Direction.DOWN;
+                int minimum = incoming == Direction.DOWN && neighborLevel == 0 && opacity.intValue() == 0
+                        ? 0 : neighborLevel + Math.max(1, opacity.intValue());
+                // Occlusion can only increase this bound. Avoid source state and
+                // shape queries for edges that cannot improve the current result.
+                if (Math.min(15, minimum) >= computedLevel)
+                    continue;
+                int candidate = this.computeLevelFromNeighbor(neighbor, blockPos, neighborLevel, targetState, opacity.intValue(), incoming);
                 if (computedLevel > candidate)
                     computedLevel = candidate;
                 if (computedLevel == 0)

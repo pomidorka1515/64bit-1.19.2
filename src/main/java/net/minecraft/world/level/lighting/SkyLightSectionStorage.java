@@ -29,22 +29,20 @@ public class SkyLightSectionStorage extends LayerLightSectionStorage<SkyLightSec
     }
 
     protected int getLightValue(BlockPos blockPos, boolean updating) {
-        SectionPos sectionPos = SectionPos.of(blockPos);
-        int sectionY = sectionPos.y();
         SkyDataLayerStorageMap data = updating ? this.updatingSectionData : this.visibleSectionData;
+        SectionPos sectionPos = data.sectionForBlock(blockPos);
+        int sectionY = sectionPos.y();
         int topSection = data.topSections.getOrDefault(SectionPos.getZeroNode(sectionPos), data.currentLowestY);
         if (topSection != data.currentLowestY && sectionY < topSection) {
             DataLayer layer = this.getDataLayer(data, sectionPos);
-            BlockPos currentPos = blockPos;
             while (layer == null) {
                 ++sectionY;
                 if (sectionY >= topSection)
                     return 15;
-                currentPos = currentPos.above(16);
                 sectionPos = sectionPos.offset(Direction.UP);
                 layer = this.getDataLayer(data, sectionPos);
             }
-            return layer.get(SectionPos.sectionRelative(currentPos.xLimb(0)), SectionPos.sectionRelative(currentPos.getY()), SectionPos.sectionRelative(currentPos.zLimb(0)));
+            return layer.get(SectionPos.sectionRelative(blockPos.xLimb(0)), SectionPos.sectionRelative(blockPos.getY()), SectionPos.sectionRelative(blockPos.zLimb(0)));
         }
         return updating && !this.lightOnInSection(sectionPos) ? 0 : 15;
     }

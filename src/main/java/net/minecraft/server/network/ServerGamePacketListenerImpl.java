@@ -233,10 +233,14 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
     }
 
     private boolean worldgenDebugSubscribed;
+    private int worldgenDebugTicksUntilSample;
 
     public void tick() {
-        if (this.worldgenDebugSubscribed) {
+        // Full worldgen diagnostics evaluate many noise functions; refresh at most
+        // once per 20 server ticks instead of charging every tick for the F3 overlay.
+        if (this.worldgenDebugSubscribed && this.worldgenDebugTicksUntilSample-- <= 0) {
             this.send(net.minecraft.network.protocol.game.WorldgenDebug.sample(this.player));
+            this.worldgenDebugTicksUntilSample = 19;
         }
         if (this.ackBlockChangesUpTo > -1) {
             this.send(new ClientboundBlockChangedAckPacket(this.ackBlockChangesUpTo));
@@ -1721,6 +1725,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
         if (net.minecraft.network.protocol.game.WorldgenDebug.CHANNEL.equals(pPacket.getIdentifier())) {
             PacketUtils.ensureRunningOnSameThread(pPacket, this, this.player.getLevel());
             this.worldgenDebugSubscribed = pPacket.getData().readBoolean();
+            this.worldgenDebugTicksUntilSample = 0;
         }
     }
 

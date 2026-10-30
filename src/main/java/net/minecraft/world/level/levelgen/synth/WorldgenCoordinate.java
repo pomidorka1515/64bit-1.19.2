@@ -72,7 +72,7 @@ public final class WorldgenCoordinate {
         ScalingScratch scratch = SCALING.get();
         int length = value.limbCount();
         for (int i = 0; i < length; ++i) scratch.magnitude[i] = value.limb(i);
-        scaleWide(scratch.magnitude, length, value.signum() < 0, scale, octave, scratch.product, out);
+        scaleWide(scratch.magnitude, length, value.limb(length - 1) >> 63, scale, octave, scratch.product, out);
     }
 
     public static void scale(long[] limbs, int offset, int length, double scale, int octave, PreciseNoiseCoordinate.Split out) {
@@ -85,25 +85,23 @@ public final class WorldgenCoordinate {
         if (canonical > Int1088.LIMBS) throw new IllegalArgumentException("Coordinate exceeds 1088 bits");
         ScalingScratch scratch = SCALING.get();
         System.arraycopy(limbs, offset, scratch.magnitude, 0, canonical);
-        scaleWide(scratch.magnitude, canonical, limbs[offset + length - 1] < 0, scale, octave, scratch.product, out);
+        scaleWide(scratch.magnitude, canonical, limbs[offset + length - 1] >> 63, scale, octave, scratch.product, out);
     }
 
-    private static void scaleWide(long[] magnitude, int length, boolean coordinateNegative, double scale, int octave, long[] product, PreciseNoiseCoordinate.Split out) {
+    private static void scaleWide(long[] magnitude, int length, long signMask, double scale, int octave, long[] product, PreciseNoiseCoordinate.Split out) {
         out.failureMagnitude = Double.NaN;
         if (!Double.isFinite(scale) || scale == 0.0D) { out.lattice = 0; out.fraction = 0; return; }
-        if (coordinateNegative) {
-            long carry = 1;
-            for (int i = 0; i < length; ++i) {
-                long v = ~magnitude[i] + carry;
-                carry = carry != 0 && v == 0 ? 1 : 0;
-                magnitude[i] = v;
-            }
+        long magnitudeCarry = signMask & 1L;
+        for (int i = 0; i < length; ++i) {
+            long v = (magnitude[i] ^ signMask) + magnitudeCarry;
+            magnitudeCarry &= ((v | -v) >>> 63) ^ 1L;
+            magnitude[i] = v;
         }
         long bits = Double.doubleToRawLongBits(scale);
         int exponent = (int)((bits >>> 52) & 2047);
         long mantissa = (bits & 0xfffffffffffffL) | (exponent == 0 ? 0 : 0x10000000000000L);
         long power = (long)(exponent == 0 ? -1074 : exponent - 1075) + octave;
-        boolean negative = coordinateNegative ^ (bits < 0);
+        boolean negative = (signMask ^ bits) < 0;
         int len = Int1088Math.multiplyUnsigned(magnitude, 0, length, mantissa, product, 0);
         int productBits = (len - 1) * 64 + 64 - Long.numberOfLeadingZeros(product[len - 1]);
         if (productBits + power > 63 && GenerationContext.current().mode() != GeneratorMode.PATCHED) {

@@ -1,0 +1,20 @@
+allprojects {
+    afterEvaluate {
+        if (project == rootProject && plugins.hasPlugin('java')) {
+            def probe = tasks.register('compileBlendedTransitionProbe', JavaCompile) {
+                dependsOn classes
+                source = project.files('tools/DistantTerrainProbe.java', 'tools/BlendedTransitionProbe.java')
+                classpath = sourceSets.main.runtimeClasspath
+                destinationDirectory = layout.projectDirectory.dir('tools/.blended-transition-classes')
+                javaCompiler = javaToolchains.compilerFor { languageVersion = JavaLanguageVersion.of(17) }
+            }
+            tasks.register('blendedTransitionProbe', JavaExec) {
+                dependsOn probe
+                classpath = project.files(probe.flatMap { it.destinationDirectory }) + sourceSets.main.runtimeClasspath
+                mainClass = 'net.minecraft.world.level.levelgen.BlendedTransitionProbe'
+                javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(17) }
+                args = (findProperty('transitionArgs') ?: '').toString().tokenize()
+            }
+        }
+    }
+}

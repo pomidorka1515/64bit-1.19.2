@@ -20,7 +20,8 @@ import net.minecraft.world.level.levelgen.synth.*;
  * | edge AXIS OTHER SOLID_N EMPTY_N (local bracket, then exhaustive +/-16 verification)
  * | nan-edge AXIS OTHER PARTIAL_N ALL_NAN_N (same, for all 384 interpolated heights)
  * | chunk X Z (real biome/noise/surface stages; no structures, carvers or features)
- * | chunks AXIS OTHER MIN_EXP MAX_EXP STEPS (AXIS can be X, Z, -X, -Z).
+ * | chunks AXIS OTHER MIN_EXP MAX_EXP STEPS (AXIS can be X, Z, -X, -Z)
+ * | verify-collapse (stable-shifts climate infinity and surface-only ice regression).
  */
 public final class DistantTerrainProbe {
     private static Int1088 wide(BigInteger n) { return Int1088.parseDecimal(n.toString()); }
@@ -69,7 +70,11 @@ public final class DistantTerrainProbe {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
         try (var ignored = GenerationContext.open(new GeneratorConfig(GeneratorMode.valueOf(args[0]), CoordinatePrecision.PRECISE))) {
-            var state = RandomState.create(BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getOrThrow(NoiseGeneratorSettings.OVERWORLD), BuiltinRegistries.NOISE, 0);
+             var state = RandomState.create(BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getOrThrow(NoiseGeneratorSettings.OVERWORLD), BuiltinRegistries.NOISE, 0);
+             if (args[1].equals("verify-collapse")) {
+                 verifyCollapse(state);
+                 return;
+             }
             if (args[1].equals("verify")) {
                 if (!args[0].equals("BIT_64_STABLE_SHIFTS")) throw new IllegalArgumentException("Verification requires BIT_64_STABLE_SHIFTS");
                 verify(state);
@@ -79,8 +84,17 @@ public final class DistantTerrainProbe {
                 chunk(state, new BigInteger(args[2]), new BigInteger(args[3]));
                 return;
             }
-            if (args[1].equals("point")) {
-                var p = new DensityFunction.SinglePointContext(wide(new BigInteger(args[2])), Integer.parseInt(args[3]), wide(new BigInteger(args[4])));
+             if (args[1].equals("point")) {
+                 var p = new DensityFunction.SinglePointContext(wide(new BigInteger(args[2])), Integer.parseInt(args[3]), wide(new BigInteger(args[4])));
+                 // Compare the actual shifted climate call with an unshifted call at
+                 // the SAME scale. Unit-scale raw-noise surveys are not comparable.
+                 for (var key : java.util.List.of(Noises.CONTINENTALNESS, Noises.EROSION, Noises.TEMPERATURE)) {
+                     var noise = state.getOrCreateNoise(key);
+                     var sample = NoiseSampling.sampleWithExtrapolation(() -> noise.getValueScaled(
+                             p.blockX(), 0.25D, 0L, 0.0D, p.blockZ()));
+                     System.out.printf("ZERO_SHIFT %s scale=0.25 value=%s extrapolated=%s%n",
+                             key.location(), sample.value(), sample.extrapolated());
+                 }
                 Map<String, DensityFunction> nodes = new LinkedHashMap<>();
                 for (var key : BuiltinRegistries.DENSITY_FUNCTION.keySet())
                     if (key.getPath().startsWith("overworld/") || key.getPath().startsWith("shift_"))
@@ -91,14 +105,23 @@ public final class DistantTerrainProbe {
                 DensityFunction[] fields = {r.barrierNoise(), r.fluidLevelFloodednessNoise(), r.fluidLevelSpreadNoise(), r.lavaNoise(),
                         r.temperature(), r.vegetation(), r.continents(), r.erosion(), r.depth(), r.ridges(),
                         r.initialDensityWithoutJaggedness(), r.finalDensity(), r.veinToggle(), r.veinRidged(), r.veinGap()};
-                int nan = 0;
+                 String[] names = {"barrier", "floodedness", "spread", "lava", "temperature", "vegetation",
+                         "continentalness", "erosion", "depth", "ridges", "initial", "final", "vein_toggle", "vein_ridged", "vein_gap"};
+                 int nan = 0;
                 for (int i = 0; i < fields.length; i++) {
                     double v = fields[i].compute(p); if (Double.isNaN(v)) nan++;
-                    System.out.printf("ROUTER %d=%s%n", i, v);
+                     System.out.printf("ROUTER %s=%s%n", names[i], v);
                 }
-                System.out.println("ROUTER_NAN=" + nan + "/15");
-                nodes.forEach((k,v) -> System.out.println(k + "=" + v.compute(p)));
-                return;
+                 System.out.println("ROUTER_NAN=" + nan + "/15");
+                 nodes.forEach((k,v) -> System.out.println(k + "=" + v.compute(p)));
+                 for (var key : java.util.List.of(Noises.ICEBERG_SURFACE, Noises.ICEBERG_PILLAR, Noises.ICEBERG_PILLAR_ROOF)) {
+                     double scale = key.equals(Noises.ICEBERG_PILLAR) ? 1.28D
+                             : key.equals(Noises.ICEBERG_PILLAR_ROOF) ? 1.17D : 1.0D;
+                     double raw = SurfaceSystem.sampleNoise(state.getOrCreateNoise(key), p.blockX(), scale, p.blockZ());
+                     System.out.printf("SURFACE %s raw=%s clamped=%s%n", key.location(), raw,
+                             net.minecraft.world.level.WorldBounds.clampNoise(raw));
+                 }
+                 return;
             }
             boolean alongX = args[2].endsWith("X");
             int direction = args[2].startsWith("-") ? -1 : 1;
@@ -157,11 +180,28 @@ public final class DistantTerrainProbe {
         generator.createBiomes(BuiltinRegistries.BIOME, Runnable::run, state, Blender.empty(), null, chunk).join();
         generator.fillFromNoise(Runnable::run, Blender.empty(), state, null, chunk).join();
         int[] noiseCounts = chunkCounts(chunk, "NOISE");
-        var manager = new net.minecraft.world.level.biome.BiomeManager(
-                (qx, qy, qz) -> biomes.getNoiseBiome(qx, qy, qz, state.sampler()),
-                net.minecraft.world.level.biome.BiomeManager.obfuscateSeed(0));
-        state.surfaceSystem().buildSurface(state, manager, BuiltinRegistries.BIOME, false,
-                new WorldGenerationContext(generator, height), chunk, noiseChunk, settings.value().surfaceRule());
+         Map<String, Integer> surfaceBiomes = new LinkedHashMap<>();
+         boolean[] recordedColumn = new boolean[256];
+         var manager = new net.minecraft.world.level.biome.BiomeManager(
+                 (qx, qy, qz) -> biomes.getNoiseBiome(qx, qy, qz, state.sampler()),
+                 net.minecraft.world.level.biome.BiomeManager.obfuscateSeed(0)) {
+             @Override
+             public net.minecraft.core.Holder<net.minecraft.world.level.biome.Biome> getBiome(net.minecraft.core.BlockPos p) {
+                 var biome = super.getBiome(p);
+                 // Observe the first query per column (the extension's biome),
+                 // never issue extra searches: overflowed biome search is cached
+                 // and an additional diagnostic query could change its next result.
+                 int index = ((int)p.getX().lowLimb() & 15) * 16 + ((int)p.getZ().lowLimb() & 15);
+                 if (!recordedColumn[index]) {
+                     recordedColumn[index] = true;
+                     surfaceBiomes.merge(biome.unwrapKey().orElseThrow().location().toString(), 1, Integer::sum);
+                 }
+                 return biome;
+             }
+         };
+         state.surfaceSystem().buildSurface(state, manager, BuiltinRegistries.BIOME, false,
+                 new WorldGenerationContext(generator, height), chunk, noiseChunk, settings.value().surfaceRule());
+         System.out.println("SURFACE_BIOMES columns=" + surfaceBiomes);
         return new int[][]{noiseCounts, chunkCounts(chunk, "SURFACE")};
     }
 
@@ -185,6 +225,39 @@ public final class DistantTerrainProbe {
         if (solid > 0) System.out.printf("LAST_IN_CHUNK stage=%s blockX=%s y=%d blockZ=%s (lexicographic Z,X,Y; not global)%n",
                 stage, chunk.getPos().getBlockX(lastX), lastY, chunk.getPos().getBlockZ(lastZ));
         return new int[]{solid, top, materials.getOrDefault("minecraft:packed_ice", 0), materials.getOrDefault("minecraft:snow_block", 0)};
+    }
+
+    private static void verifyCollapse(RandomState state) {
+        if (GenerationContext.current().mode() != GeneratorMode.BIT_64_STABLE_SHIFTS)
+            throw new IllegalArgumentException("Verification requires BIT_64_STABLE_SHIFTS");
+        int[] interpolated = column(state, BigInteger.ONE.shiftLeft(160), false, BigInteger.valueOf(131), true);
+        if (!java.util.Arrays.equals(interpolated, new int[]{1, -64, 280, 0}))
+            throw new AssertionError("Finite direct density must not conceal interpolated NaN");
+        for (int exponent : new int[]{170, 174}) {
+            var z = wide(BigInteger.ONE.shiftLeft(exponent));
+            var p = new DensityFunction.SinglePointContext(Int1088.fromLong(131), 136, z);
+            double zeroShift = state.getOrCreateNoise(Noises.CONTINENTALNESS)
+                    .getValueScaled(p.blockX(), 0.25D, 0L, 0.0D, z);
+            double actual = state.router().continents().compute(p);
+            if (exponent == 170 ? !Double.isFinite(zeroShift) || !Double.isFinite(actual)
+                    : zeroShift != Double.POSITIVE_INFINITY || actual != Double.POSITIVE_INFINITY)
+                throw new AssertionError("Continentalness classification at 2^" + exponent);
+            for (String name : new String[]{"shift_x", "shift_z"}) {
+                double shift = state.debugFunction(ResourceKey.create(Registry.DENSITY_FUNCTION_REGISTRY,
+                        new ResourceLocation(name))).compute(p);
+                if (!Double.isFinite(shift) || Math.abs(shift) > 4)
+                    throw new AssertionError("Stable shift was not bounded");
+            }
+            if (!Double.isFinite(state.router().temperature().compute(p))
+                    || !Double.isNaN(state.router().finalDensity().compute(p)))
+                throw new AssertionError("Climate/density contrast");
+            int[][] counts = chunk(state, BigInteger.valueOf(131), BigInteger.ONE.shiftLeft(exponent));
+            if (counts[0][0] != 0) throw new AssertionError("Noise stage should contain no solids");
+            if (exponent == 170 ? counts[1][0] == 0 || counts[1][1] != 134
+                    || counts[1][0] != counts[1][2] + counts[1][3] : counts[1][0] != 0)
+                throw new AssertionError("Surface-only ice/empty contrast");
+        }
+        System.out.println("PASS: direct/interpolated contrast, bounded shifts, finite/infinite same-scale continentalness, NaN density, surface-only ice and empty chunk");
     }
 
     private static void verify(RandomState state) {

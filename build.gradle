@@ -204,6 +204,27 @@ test {
     }
 }
 
+// Read-only worldgen diagnostics, kept outside the shipped game sources.
+def compileDistantTerrainProbe = tasks.register('compileDistantTerrainProbe', JavaCompile) {
+    dependsOn classes
+    source = files('tools/DistantTerrainProbe.java')
+    classpath = sourceSets.main.runtimeClasspath
+    destinationDirectory = layout.buildDirectory.dir('classes/java/worldgenProbe')
+    javaCompiler = javaToolchains.compilerFor { languageVersion = JavaLanguageVersion.of(17) }
+}
+
+tasks.register('distantTerrainProbe', JavaExec) {
+    group = 'verification'
+    description = 'Read-only seed-0 terrain diagnostics; pass -PprobeArgs="MODE OPERATION ..." (see WORLDGEN.md)'
+    dependsOn compileDistantTerrainProbe
+    classpath = files(compileDistantTerrainProbe.flatMap { it.destinationDirectory }) + sourceSets.main.runtimeClasspath
+    mainClass = 'net.minecraft.world.level.levelgen.DistantTerrainProbe'
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(17) }
+    doFirst {
+        args = (project.findProperty('probeArgs') ?: 'BIT_64_STABLE_SHIFTS verify-collapse').toString().trim().split(/\s+/).toList()
+    }
+}
+
 // Full-height generation + disk reload at every mode/precision/address pair is
 // an acceptance gate, not a fast unit test. Keep all cases available explicitly.
 tasks.register('worldgenMatrixTest', Test) {

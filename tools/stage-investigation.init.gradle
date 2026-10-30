@@ -1,0 +1,20 @@
+allprojects {
+    afterEvaluate {
+        if (project == rootProject && plugins.hasPlugin('java')) {
+            def probe = tasks.register('compileStageInvestigation', JavaCompile) {
+                dependsOn classes
+                source = project.files(project.file('tools/DistantTerrainProbe.java'), project.file('tools/StageInvestigation.java'))
+                classpath = sourceSets.main.runtimeClasspath
+                destinationDirectory = layout.projectDirectory.dir('tools/.stage-classes')
+                javaCompiler = javaToolchains.compilerFor { languageVersion = JavaLanguageVersion.of(17) }
+            }
+            tasks.register('stageInvestigation', JavaExec) {
+                dependsOn probe
+                classpath = project.files(probe.flatMap { it.destinationDirectory }) + sourceSets.main.runtimeClasspath
+                mainClass = 'net.minecraft.world.level.levelgen.StageInvestigation'
+                javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(17) }
+                args = (findProperty('stageArgs') ?: 'base').toString().trim().split(/\s+/).toList()
+            }
+        }
+    }
+}

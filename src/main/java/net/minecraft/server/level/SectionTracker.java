@@ -23,21 +23,23 @@ public abstract class SectionTracker extends DynamicGraphMinFixedPoint<SectionPo
         if (!isValidSection(sectionPos))
             return;
 
+        Int1088 negativeZ = WorldBounds.tryAddChunkOffset(sectionPos.z(), -1);
+        Int1088 positiveZ = WorldBounds.tryAddChunkOffset(sectionPos.z(), 1);
         for (int x = -1; x <= 1; ++x) {
-            Int1088 neighborX = WorldBounds.tryAddChunkOffset(sectionPos.x(), x);
+            Int1088 neighborX = x == 0 ? sectionPos.x() : WorldBounds.tryAddChunkOffset(sectionPos.x(), x);
             if (neighborX == null)
                 continue;
 
             for (int y = -1; y <= 1; ++y) {
                 for (int z = -1; z <= 1; ++z) {
-                    Int1088 neighborZ = WorldBounds.tryAddChunkOffset(sectionPos.z(), z);
+                    if (x == 0 && y == 0 && z == 0)
+                        continue;
+                    Int1088 neighborZ = z == 0 ? sectionPos.z() : z < 0 ? negativeZ : positiveZ;
                     if (neighborZ == null)
                         continue;
 
                     SectionPos neighbor = SectionPos.of(neighborX, sectionPos.y() + y, neighborZ);
-                    if (!neighbor.equals(sectionPos)) {
-                        this.checkNeighbor(sectionPos, neighbor, level, decreasing);
-                    }
+                    this.checkNeighbor(sectionPos, neighbor, level, decreasing);
                 }
             }
         }
@@ -48,21 +50,21 @@ public abstract class SectionTracker extends DynamicGraphMinFixedPoint<SectionPo
             return level;
 
         int computedLevel = level;
+        Int1088 negativeZ = WorldBounds.tryAddChunkOffset(sectionPos.z(), -1);
+        Int1088 positiveZ = WorldBounds.tryAddChunkOffset(sectionPos.z(), 1);
         for (int x = -1; x <= 1; ++x) {
-            Int1088 neighborX = WorldBounds.tryAddChunkOffset(sectionPos.x(), x);
+            Int1088 neighborX = x == 0 ? sectionPos.x() : WorldBounds.tryAddChunkOffset(sectionPos.x(), x);
             if (neighborX == null)
                 continue;
 
             for (int y = -1; y <= 1; ++y) {
                 for (int z = -1; z <= 1; ++z) {
-                    Int1088 neighborZ = WorldBounds.tryAddChunkOffset(sectionPos.z(), z);
+                    Int1088 neighborZ = z == 0 ? sectionPos.z() : z < 0 ? negativeZ : positiveZ;
                     if (neighborZ == null)
                         continue;
 
-                    SectionPos neighbor = SectionPos.of(neighborX, sectionPos.y() + y, neighborZ);
-                    if (neighbor.equals(sectionPos)) {
-                        neighbor = null;
-                    }
+                    SectionPos neighbor = x == 0 && y == 0 && z == 0 ? null
+                            : SectionPos.of(neighborX, sectionPos.y() + y, neighborZ);
 
                     if (neighbor == null ? excludedNeighbor != null : !neighbor.equals(excludedNeighbor)) {
                         int neighborLevel = this.computeLevelFromNeighbor(neighbor, sectionPos, neighbor == null ? 0 : this.getLevel(neighbor));

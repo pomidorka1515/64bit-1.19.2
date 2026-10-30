@@ -106,6 +106,45 @@ public abstract class LayerLightSectionStorage<M extends DataLayerStorageMap<M>>
         }
     }
 
+    @Override
+    protected int getComputedLevel(SectionPos section, SectionPos excludedNeighbor, int level) {
+        if (!WorldBounds.isValidChunk(section.x(), section.z()))
+            return level;
+
+        // Only sources produce level 0. Check ours before allocating any neighbors.
+        int computedLevel = excludedNeighbor == null ? level : Math.min(level, this.getLevelFromSource(section));
+        if (computedLevel <= LIGHT_ONLY)
+            return computedLevel;
+
+        // In this three-level graph only a data section can improve EMPTY to
+        // LIGHT_ONLY. Light-only neighbors cannot improve the result, so avoid
+        // getLevel's removal-set and data-layer lookups entirely.
+        Int1088 negativeZ = WorldBounds.tryAddChunkOffset(section.z(), -1);
+        Int1088 positiveZ = WorldBounds.tryAddChunkOffset(section.z(), 1);
+        for (int x = -1; x <= 1; ++x) {
+            Int1088 neighborX = x == 0 ? section.x() : WorldBounds.tryAddChunkOffset(section.x(), x);
+            if (neighborX == null)
+                continue;
+            boolean excludedX = excludedNeighbor != null && neighborX.equals(excludedNeighbor.x());
+            for (int z = -1; z <= 1; ++z) {
+                Int1088 neighborZ = z == 0 ? section.z() : z < 0 ? negativeZ : positiveZ;
+                if (neighborZ == null)
+                    continue;
+                boolean excludedColumn = excludedX && neighborZ.equals(excludedNeighbor.z());
+                for (int y = -1; y <= 1; ++y) {
+                    if (x == 0 && y == 0 && z == 0)
+                        continue;
+                    int neighborY = section.y() + y;
+                    if (excludedColumn && neighborY == excludedNeighbor.y())
+                        continue;
+                    if (this.dataSectionSet.contains(SectionPos.of(neighborX, neighborY, neighborZ)))
+                        return LIGHT_ONLY;
+                }
+            }
+        }
+        return computedLevel;
+    }
+
     protected void setLevel(SectionPos pSectionPos, int pLevel) {
         int i = this.getLevel(pSectionPos);
         if (i != 0 && pLevel == 0) {

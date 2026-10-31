@@ -103,6 +103,10 @@ public class HashMapPalette<T> implements Palette<T> {
     }
 
     public Palette<T> copy() {
-        return new HashMapPalette<>(this.registry, this.bits, this.resizeHandler, this.values.copy());
+        return this.copy(this.resizeHandler);
+    }
+
+    public Palette<T> copy(PaletteResize<T> pResizeHandler) {
+        return new HashMapPalette<>(this.registry, this.bits, pResizeHandler, this.values.copy());
     }
 }

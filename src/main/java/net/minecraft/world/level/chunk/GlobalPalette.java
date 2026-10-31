@@ -51,4 +51,8 @@ public class GlobalPalette<T> implements Palette<T> {
     public Palette<T> copy() {
         return this;
     }
+
+    public Palette<T> copy(PaletteResize<T> pResizeHandler) {
+        return this;
+    }
 }

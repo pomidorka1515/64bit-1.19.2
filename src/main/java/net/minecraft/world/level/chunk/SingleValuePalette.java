@@ -76,10 +76,14 @@ public class SingleValuePalette<T> implements Palette<T> {
     }
 
     public Palette<T> copy() {
+        return this.copy(this.resizeHandler);
+    }
+
+    public Palette<T> copy(PaletteResize<T> pResizeHandler) {
         if (this.value == null) {
             throw new IllegalStateException("Use of an uninitialized palette");
         } else {
-            return this;
+            return new SingleValuePalette<>(this.registry, pResizeHandler, List.of(this.value));
         }
     }
 }

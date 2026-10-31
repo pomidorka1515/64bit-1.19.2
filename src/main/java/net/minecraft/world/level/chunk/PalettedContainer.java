@@ -71,7 +71,8 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
     private PalettedContainer(IdMap<T> pRegistry, PalettedContainer.Strategy pStrategy, PalettedContainer.Data<T> pData) {
         this.registry = pRegistry;
         this.strategy = pStrategy;
-        this.data = pData;
+        // Copied palettes must resize this container, not the source of the snapshot.
+        this.data = pData.copy(this);
     }
 
     public PalettedContainer(IdMap<T> pRegistry, T pPalette, PalettedContainer.Strategy pStrategy) {
@@ -266,7 +267,7 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
     }
 
     public PalettedContainer<T> copy() {
-        return new PalettedContainer<>(this.registry, this.strategy, this.data.copy());
+        return new PalettedContainer<>(this.registry, this.strategy, this.data);
     }
 
     public PalettedContainer<T> recreate() {
@@ -320,6 +321,10 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
 
         public PalettedContainer.Data<T> copy() {
             return new PalettedContainer.Data<>(this.configuration, this.storage.copy(), this.palette.copy());
+        }
+
+        public PalettedContainer.Data<T> copy(PaletteResize<T> pResizeHandler) {
+            return new PalettedContainer.Data<>(this.configuration, this.storage.copy(), this.palette.copy(pResizeHandler));
         }
     }
 

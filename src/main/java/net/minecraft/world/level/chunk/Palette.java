@@ -22,6 +22,9 @@ public interface Palette<T> {
 
     Palette<T> copy();
 
+    // Copies mutable palette state and binds growth to the destination owner.
+    Palette<T> copy(PaletteResize<T> pResizeHandler);
+
     public interface Factory {
         <A> Palette<A> create(int pBits, IdMap<A> pRegistry, PaletteResize<A> pResizeHandler, List<A> pValues);
     }

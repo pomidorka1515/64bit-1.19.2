@@ -6,12 +6,54 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.SharedConstants;
 import net.minecraft.client.renderer.CameraRelativePosition;
 import net.minecraft.core.Int1088;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.server.Bootstrap;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityDimensions;
+import net.minecraft.world.entity.EntityLoadingTestLevel;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.phys.SectorVec3;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class CameraOffsetTest {
+    @BeforeAll
+    static void bootstrap() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+    }
+
+    @Test
+    void crouchAndSwimCameraTransitionsInterpolateAtLowAndWideCoordinates() {
+        PoseEntity entity = new PoseEntity();
+        for (BigInteger origin : origins()) {
+            SectorVec3 feet = SectorVec3.fromBlockAndFraction(value(origin), 0.25D, 64,
+                    value(origin.negate()), 0.75D);
+            entity.moveTo(feet, 0, 0);
+            Camera camera = new Camera();
+            float height = 0;
+            camera.setup(null, entity, false, false, 0);
+            for (Pose pose : new Pose[] {Pose.STANDING, Pose.CROUCHING, Pose.SWIMMING, Pose.STANDING}) {
+                entity.setPose(pose);
+                for (int tick = 0; tick < 24; ++tick) {
+                    float oldHeight = height;
+                    height += (entity.getEyeHeight() - height) * 0.5F;
+                    camera.tick();
+                    for (float partialTick : new float[] {0, 0.25F, 0.75F, 1}) {
+                        camera.setup(null, entity, false, false, partialTick);
+                        double expectedY = feet.y() + (double) (oldHeight + partialTick * (height - oldHeight));
+                        assertEquals(feet.withY(expectedY), camera.getExactPosition(), pose.toString());
+                    }
+                }
+            }
+        }
+    }
+
     @Test
     void localOffsetsMatchIndependentSubtractionAtEveryLimbSeam() {
         BigInteger min = BigInteger.ONE.shiftLeft(1087).negate();
@@ -79,4 +121,18 @@ class CameraOffsetTest {
     }
 
     private static final class TestCamera extends Camera {}
+
+    private static final class PoseEntity extends Entity {
+        PoseEntity() { super(EntityType.PLAYER, EntityLoadingTestLevel.create()); }
+        @Override public EntityDimensions getDimensions(Pose pose) {
+            return EntityDimensions.scalable(0.6F, pose == Pose.SWIMMING ? 0.6F : pose == Pose.CROUCHING ? 1.5F : 1.8F);
+        }
+        @Override protected float getEyeHeight(Pose pose, EntityDimensions dimensions) {
+            return pose == Pose.SWIMMING ? 0.4F : pose == Pose.CROUCHING ? 1.27F : 1.62F;
+        }
+        @Override protected void defineSynchedData() {}
+        @Override protected void readAdditionalSaveData(CompoundTag tag) {}
+        @Override protected void addAdditionalSaveData(CompoundTag tag) {}
+        @Override public Packet<?> getAddEntityPacket() { throw new UnsupportedOperationException(); }
+    }
 }

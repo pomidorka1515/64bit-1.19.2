@@ -50,7 +50,9 @@ public class Camera {
         this.playerThirdPerson = pDetached && pEntity == Minecraft.getInstance().player;
         this.setRotation(pEntity.getViewYRot(pPartialTick), pEntity.getViewXRot(pPartialTick));
         SectorVec3 interpolated = pEntity.interpolatedExactPosition(pPartialTick);
-        this.setPosition(interpolated.withY(interpolated.y() + (double) pEntity.getEyeHeight()));
+        // Preserve the tick-smoothed pose transition without projecting exact X/Z to doubles.
+        this.setPosition(interpolated.withY(interpolated.y()
+                + (double) Mth.lerp(pPartialTick, this.eyeHeightOld, this.eyeHeight)));
         if (pDetached) {
             if (pThirdPersonReverse) {
                 this.setRotation(this.yRot + 180.0F, -this.xRot);

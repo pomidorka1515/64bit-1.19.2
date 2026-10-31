@@ -1,0 +1,20 @@
+allprojects {
+    afterEvaluate {
+        if (project == rootProject && plugins.hasPlugin('java')) {
+            def probe = tasks.register('compileCornerTerrainProbe', JavaCompile) {
+                dependsOn classes
+                source = project.files('tools/CornerTerrainProbe.java')
+                classpath = sourceSets.main.runtimeClasspath
+                destinationDirectory = layout.buildDirectory.dir('classes/java/cornerTerrainProbe')
+                javaCompiler = javaToolchains.compilerFor { languageVersion = JavaLanguageVersion.of(17) }
+            }
+            tasks.register('cornerTerrainProbe', JavaExec) {
+                dependsOn probe
+                classpath = project.files(probe.flatMap { it.destinationDirectory }) + sourceSets.main.runtimeClasspath
+                mainClass = 'net.minecraft.world.level.levelgen.CornerTerrainProbe'
+                javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(17) }
+                args = (findProperty('cornerArgs') ?: '').toString().tokenize()
+            }
+        }
+    }
+}

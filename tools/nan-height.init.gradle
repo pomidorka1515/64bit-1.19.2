@@ -1,0 +1,27 @@
+allprojects {
+    afterEvaluate {
+        if (project == rootProject && plugins.hasPlugin('java')) {
+            def probe = tasks.register('compileNaNHeightProbe', JavaCompile) {
+                dependsOn classes
+                source = project.files('tools/NaNHeightProbe.java', 'tools/DistantTerrainProbe.java', 'tools/ZTerrainStagesProbe.java')
+                classpath = sourceSets.main.runtimeClasspath
+                destinationDirectory = layout.buildDirectory.dir('classes/java/nanHeightProbe')
+                javaCompiler = javaToolchains.compilerFor { languageVersion = JavaLanguageVersion.of(17) }
+            }
+            tasks.register('nanHeightProbe', JavaExec) {
+                dependsOn probe
+                classpath = project.files(probe.flatMap { it.destinationDirectory }) + sourceSets.main.runtimeClasspath
+                mainClass = 'net.minecraft.world.level.levelgen.NaNHeightProbe'
+                javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(17) }
+                args = (findProperty('nanArgs') ?: 'survey').toString().tokenize()
+            }
+            tasks.register('zTerrainStagesProbe', JavaExec) {
+                dependsOn probe
+                classpath = project.files(probe.flatMap { it.destinationDirectory }) + sourceSets.main.runtimeClasspath
+                mainClass = 'net.minecraft.world.level.levelgen.ZTerrainStagesProbe'
+                javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(17) }
+                args = (findProperty('stageArgs') ?: '').toString().tokenize()
+            }
+        }
+    }
+}

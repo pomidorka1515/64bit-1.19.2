@@ -314,6 +314,30 @@ shared shift blowout eclipsing the later large-biome sampler boundaries.
 | min/max limits | 12,550,825 | 53,905,378,846,979,746 |
 | main selector | 1,004,065,925 | 4,312,430,307,758,379,258 |
 
+### Later NaN heights and local terrain cutoffs
+
+these are later floating-point arithmetic failures, not the initial lattice
+extrapolation boundaries above. player coordinate fractions such as `.40`
+are not fractional density-grid inputs
+
+#### Local terrain cutoff corresponding to the supplied +X reference
+
+first outward column with no solid noise-fill blocks, other axis=0:
+
+| Direction | Coordinate | Solid blocks inward → cutoff | Interpolated NaN heights inward → cutoff |
+| --- | --- | --- | --- |
+| +X | `9176239949795123527441911776336772611302372340732` | 24 → 0 | 296 → 320 |
+| −X | `-9176239949795123527441911776336772611302372340733` | 24 → 0 | 296 → 320 |
+
+all **132 columns** in the four +/-16-block windows were checked through actual
+interpolation and aquifer block selection. every inward column in those windows
+retains solid blocks; every cutoff/outward column has none. this excludes
+surface features and structures. terrain can disappear without all 384 heights
+being NaN.
+
+**Z is different.** it loses solid noise-fill blocks gradually over time instead of a
+sharp edge like with X.
+
 ## SurfaceSystem / SurfaceRules noise inputs
 
 seed 0 as always.

@@ -511,6 +511,31 @@ public class BlockPos extends Vec3i {
         @Override protected int xHash() { return Int1088Math.hashXZ(this.mutableX, 0, Int1088.LIMBS); }
         @Override protected int zHash() { return Int1088Math.hashXZ(this.mutableZ, 0, Int1088.LIMBS); }
 
+        // Never materialize Int1088 values when either side of equality is mutable.
+        @Override protected boolean sameX(Vec3i other) {
+            int count = Math.max(this.xLimbCount(), other.xLimbCount());
+            for (int i = 0; i < count; ++i) if (this.mutableX[i] != other.xLimb(i)) return false;
+            return true;
+        }
+
+        @Override protected boolean sameZ(Vec3i other) {
+            int count = Math.max(this.zLimbCount(), other.zLimbCount());
+            for (int i = 0; i < count; ++i) if (this.mutableZ[i] != other.zLimb(i)) return false;
+            return true;
+        }
+
+        @Override protected boolean hasX(Int1088 value) {
+            int count = Math.max(this.xLimbCount(), value.limbCount());
+            for (int i = 0; i < count; ++i) if (this.mutableX[i] != value.limb(i)) return false;
+            return true;
+        }
+
+        @Override protected boolean hasZ(Int1088 value) {
+            int count = Math.max(this.zLimbCount(), value.limbCount());
+            for (int i = 0; i < count; ++i) if (this.mutableZ[i] != value.limb(i)) return false;
+            return true;
+        }
+
         private MutableBlockPos setLimbs(long[] x, int y, long[] z) {
             System.arraycopy(x, 0, this.mutableX, 0, Int1088.LIMBS);
             System.arraycopy(z, 0, this.mutableZ, 0, Int1088.LIMBS);

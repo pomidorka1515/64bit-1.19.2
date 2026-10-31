@@ -20,6 +20,70 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LightingOptimizationTest {
     @Test
+    void equalityPreservesMutableAndImmutableIdentity() {
+        for (int limb = 0; limb < Int1088.LIMBS; ++limb) {
+            Int1088 coordinate = Int1088.ONE.shiftLeftSaturated(limb * 64);
+            for (Int1088 x : new Int1088[] {coordinate, coordinate.negate()}) {
+                BlockPos pos = new BlockPos(x, -17, x.negate());
+                BlockPos.MutableBlockPos mutable = pos.mutable();
+                assertEquals(pos, mutable);
+                assertEquals(mutable, pos);
+                assertEquals(pos.hashCode(), mutable.hashCode());
+                assertEquals(mutable, pos.mutable());
+                assertEquals(pos, new BlockPos(x, -17, x.negate()));
+                assertNotEquals(pos, new BlockPos(Int1088.ZERO, -17, x.negate()));
+                assertNotEquals(pos, new BlockPos(x, -17, Int1088.ZERO));
+                mutable.setX(Int1088.ZERO);
+                assertNotEquals(pos, mutable);
+                assertNotEquals(mutable, pos);
+                mutable.setX(x);
+                mutable.setZ(Int1088.ZERO);
+                assertNotEquals(pos, mutable);
+                assertNotEquals(mutable, pos);
+                mutable.setZ(x.negate());
+                mutable.setY(16);
+                assertNotEquals(pos, mutable);
+                assertNotEquals(mutable, pos);
+            }
+        }
+    }
+
+    @Test
+    void sectionMatchingHandlesMutableCoordinatesAndSignedLongBoundaries() {
+        for (Int1088 coordinate : new Int1088[] {Int1088.fromLong(Long.MIN_VALUE),
+                Int1088.fromLong(Long.MAX_VALUE), Int1088.of(Long.MIN_VALUE, 0),
+                Int1088.of(Long.MAX_VALUE, -1), Int1088.fromLong(-17), Int1088.fromLong(-1),
+                Int1088.ZERO, Int1088.fromLong(16), Int1088.MIN, Int1088.MAX}) {
+            BlockPos.MutableBlockPos block = new BlockPos.MutableBlockPos(coordinate, -17, coordinate);
+            SectionPos section = SectionPos.of(block);
+            assertTrue(section.contains(block));
+            long step = section.getX().signum() > 0 ? -1 : 1;
+            assertFalse(SectionPos.of(section.getX().addSaturated(step), section.getY(), section.getZ()).contains(block));
+            assertFalse(SectionPos.of(section.getX(), section.getY(), section.getZ().addSaturated(step)).contains(block));
+            block.set(Int1088.ZERO, 16, Int1088.fromLong(-1));
+            assertTrue(SectionPos.of(0, 1, -1).contains(block));
+        }
+    }
+
+    @Test
+    void mutableEqualityAndSectionMatchingDoNotMaterializeCoordinates() {
+        Int1088 high = Int1088.ONE.shiftLeftSaturated(1024);
+        BlockPos pos = new BlockPos(high, -17, high.negate());
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(high, -17, high.negate()) {
+            @Override public Int1088 getX() { throw new AssertionError("Mutable X materialized"); }
+            @Override public Int1088 getZ() { throw new AssertionError("Mutable Z materialized"); }
+        };
+        assertEquals(pos, mutable);
+        assertEquals(mutable, pos);
+        assertEquals(mutable, pos.mutable());
+        assertTrue(SectionPos.of(pos).contains(mutable));
+        mutable.setX(Int1088.ZERO);
+        assertNotEquals(pos, mutable);
+        assertNotEquals(mutable, pos);
+        assertFalse(SectionPos.of(pos).contains(mutable));
+    }
+
+    @Test
     void skylightSourcesPropagateAtWorldEdges() {
         net.minecraft.SharedConstants.tryDetectVersion();
         net.minecraft.server.Bootstrap.bootStrap();
@@ -99,6 +163,7 @@ class LightingOptimizationTest {
                 assertEquals(expected.x(), actual.x());
                 assertEquals(expected.z(), actual.z());
                 assertTrue(actual.contains(block));
+                assertTrue(actual.contains(block.mutable()));
                 assertEquals(expected.equals(SectionPos.of(block.offset(1, 1, -1))), actual.contains(block.offset(1, 1, -1)));
                 List<SectionPos> reference = new ArrayList<>();
                 List<SectionPos> primitive = new ArrayList<>();

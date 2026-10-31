@@ -52,11 +52,29 @@ public class SectionPos extends Vec3i {
 
     /** Compare an exact section identity with a block's primitive, possibly mutable limb view. */
     public static boolean matchesBlockCoordinate(Int1088 section, BlockPos block, boolean x) {
+        // Immutable positions already own canonical coordinates. Read them once,
+        // rather than dispatching through BlockPos for every sign-extended limb.
+        // MutableBlockPos must retain its primitive path: getX/getZ would allocate.
+        if (!(block instanceof BlockPos.MutableBlockPos)) {
+            return matchesBlockCoordinate(section, x ? block.getX() : block.getZ());
+        }
         int length = Math.max(section.limbCount(), x ? block.xLimbCount() : block.zLimbCount());
         for (int i = 0; i < length; ++i) {
             long low = x ? block.xLimb(i) : block.zLimb(i);
             long high = i + 1 < Int1088.LIMBS ? (x ? block.xLimb(i + 1) : block.zLimb(i + 1)) : low >> 63;
             if (section.limb(i) != ((low >>> 4) | (high << 60))) return false;
+        }
+        return true;
+    }
+
+    private static boolean matchesBlockCoordinate(Int1088 section, Int1088 block) {
+        if (block.fitsLong()) return section.fitsLong() && section.lowLimb() == (block.lowLimb() >> SECTION_BITS);
+        int length = Math.max(section.limbCount(), block.limbCount());
+        long low = block.lowLimb();
+        for (int i = 0; i < length; ++i) {
+            long high = i + 1 < Int1088.LIMBS ? block.limb(i + 1) : low >> 63;
+            if (section.limb(i) != ((low >>> SECTION_BITS) | (high << (64 - SECTION_BITS)))) return false;
+            low = high;
         }
         return true;
     }

@@ -82,7 +82,7 @@ public class Vec3i implements Comparable<Vec3i> {
             return false;
         } else {
             Vec3i vec3i = (Vec3i) pOther;
-            return this.getY() == vec3i.getY() && sameX(this, vec3i) && sameZ(this, vec3i);
+            return this.getY() == vec3i.getY() && this.sameX(vec3i) && this.sameZ(vec3i);
         }
     }
 
@@ -446,20 +446,21 @@ public class Vec3i implements Comparable<Vec3i> {
         return this.getX() + ", " + this.getY() + ", " + this.getZ();
     }
 
-    private static boolean sameX(Vec3i first, Vec3i second) {
-        int count = Math.max(first.xLimbCount(), second.xLimbCount());
-        for (int i = 0; i < count; ++i) {
-            if (first.xLimb(i) != second.xLimb(i)) return false;
-        }
-        return true;
+    /** Double dispatch keeps immutable comparisons on Int1088's identity/array fast path. */
+    protected boolean sameX(Vec3i other) {
+        return other.hasX(this.getX());
     }
 
-    private static boolean sameZ(Vec3i first, Vec3i second) {
-        int count = Math.max(first.zLimbCount(), second.zLimbCount());
-        for (int i = 0; i < count; ++i) {
-            if (first.zLimb(i) != second.zLimb(i)) return false;
-        }
-        return true;
+    protected boolean sameZ(Vec3i other) {
+        return other.hasZ(this.getZ());
+    }
+
+    protected boolean hasX(Int1088 value) {
+        return this.getX().equals(value);
+    }
+
+    protected boolean hasZ(Int1088 value) {
+        return this.getZ().equals(value);
     }
 
     private static int compareX(Vec3i first, Vec3i second) {

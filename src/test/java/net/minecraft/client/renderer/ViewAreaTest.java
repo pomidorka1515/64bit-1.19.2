@@ -8,10 +8,55 @@ import java.util.HashSet;
 import java.util.Set;
 import java.math.BigInteger;
 import net.minecraft.core.Int1088;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.WorldBounds;
 import org.junit.jupiter.api.Test;
 
 class ViewAreaTest {
+    @Test
+    void mutableWindowLookupDoesNotMaterializeCoordinates() {
+        Int1088 first = Int1088.ONE.shiftLeftSaturated(1024).negate();
+        ViewArea.AxisIndex axis = new ViewArea.AxisIndex(first, 33);
+        Int1088 block = axis.blocks[16].addSaturated(15);
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(block, 64, block) {
+            @Override public Int1088 getX() { throw new AssertionError("Mutable X materialized"); }
+            @Override public Int1088 getZ() { throw new AssertionError("Mutable Z materialized"); }
+        };
+        assertEquals(16, axis.blockOffset(pos, true));
+        assertEquals(16, axis.blockOffset(pos, false));
+    }
+
+    @Test
+    void windowIndexMatchesFullRemaindersAndRejectsDistantAliases() {
+        for (Int1088 center : new Int1088[] {Int1088.ZERO, Int1088.fromLong(-1),
+                Int1088.of(-1, 7), Int1088.of(0, -7), WorldBounds.MIN_CHUNK, WorldBounds.MAX_CHUNK,
+                Int1088.ONE.shiftLeftSaturated(1024)}) {
+            for (int size : new int[] {1, 3, 33, 65}) {
+                Int1088 first = ViewArea.firstChunkInView(center, size);
+                ViewArea.AxisIndex axis = new ViewArea.AxisIndex(first, size);
+                for (int i = 0; i < size; ++i) {
+                    assertEquals(ViewArea.floorMod(axis.sections[i], size), axis.slot(i));
+                    assertEquals(axis.slot(i), axis.sectionSlot(axis.sections[i]));
+                    for (int local : new int[] {0, 15}) {
+                        Int1088 block = WorldBounds.addBlockOffset(axis.blocks[i], local);
+                        BlockPos pos = new BlockPos(block, 10, block);
+                        assertEquals(i, axis.blockOffset(pos, true));
+                        assertEquals(i, axis.blockOffset(pos.mutable(), false));
+                    }
+                }
+                Int1088 middle = axis.blocks[size / 2];
+                Int1088 alias = middle.add(Int1088.ONE.shiftLeftSaturated(128));
+                if (!alias.equals(middle))
+                    assertEquals(-1, axis.blockOffset(new BlockPos(alias, 0, alias), true));
+                assertEquals(ViewArea.floorMod(alias, size), axis.sectionSlot(alias));
+                if (!first.equals(WorldBounds.MIN_CHUNK)) {
+                    Int1088 before = WorldBounds.chunkToBlock(first.subtract(Int1088.ONE));
+                    assertEquals(-1, axis.blockOffset(new BlockPos(before, 0, before), true));
+                }
+            }
+        }
+    }
+
     @Test
     void everyUpperLimbKeepsContiguousWindowsAndExactPeriodicSlots() {
         for (int bit = 64; bit <= 1024; bit += 64) {

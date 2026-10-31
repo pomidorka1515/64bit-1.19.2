@@ -98,8 +98,11 @@ public final class ImprovedNoise {
             debugCellOffset = x.fraction;
             debugSmoothedOffset = Mth.smoothstep(x.fraction);
         }
-        return sampleAndLerp(x.vertexIndex(0), x.vertexIndex(1), y.vertexIndex(0), y.vertexIndex(1),
-                z.vertexIndex(0), z.vertexIndex(1), x.fraction, y.fraction - smear, z.fraction, y.fraction);
+        x.computeVertices();
+        y.computeVertices();
+        z.computeVertices();
+        return sampleAndLerp(x.vertex0, x.vertex1, y.vertex0, y.vertex1,
+                z.vertex0, z.vertex1, x.fraction, y.fraction - smear, z.fraction, y.fraction);
     }
 
     /** Precise split-coordinate variant retaining the legacy vertical smear operation. */

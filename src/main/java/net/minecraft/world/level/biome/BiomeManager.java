@@ -37,6 +37,14 @@ public class BiomeManager {
         Int1088 l = i.shiftRight(2);
         int i1 = j >> 2;
         Int1088 j1 = k.shiftRight(2);
+        // The eight corners use only two coordinates on each horizontal axis.
+        // In particular, do not re-hash every upper limb four times per corner.
+        Int1088 nextX = WorldBounds.addBlockOffset(l, 1);
+        Int1088 nextZ = WorldBounds.addBlockOffset(j1, 1);
+        long seedX = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(l);
+        long seedNextX = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(nextX);
+        long seedZ = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(j1);
+        long seedNextZ = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(nextZ);
         double d0 = (double) (i.lowLimb() & 3) / 4.0D;
         double d1 = (double) (j & 3) / 4.0D;
         double d2 = (double) (k.lowLimb() & 3) / 4.0D;
@@ -47,24 +55,21 @@ public class BiomeManager {
             boolean flag = (l1 & 4) == 0;
             boolean flag1 = (l1 & 2) == 0;
             boolean flag2 = (l1 & 1) == 0;
-            Int1088 i2 = flag ? l : WorldBounds.addBlockOffset(l, 1);
             int j2 = flag1 ? i1 : i1 + 1;
-            Int1088 k2 = flag2 ? j1 : WorldBounds.addBlockOffset(j1, 1);
             double d4 = flag ? d0 : d0 - 1.0D;
             double d5 = flag1 ? d1 : d1 - 1.0D;
             double d6 = flag2 ? d2 : d2 - 1.0D;
             double d7 = getFiddledDistance(this.biomeZoomSeed,
-                    net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(i2), j2,
-                    net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.seedCoordinate(k2), d4, d5, d6);
+                    flag ? seedX : seedNextX, j2, flag2 ? seedZ : seedNextZ, d4, d5, d6);
             if (d3 > d7) {
                 k1 = l1;
                 d3 = d7;
             }
         }
 
-        Int1088 l2 = (k1 & 4) == 0 ? l : WorldBounds.addBlockOffset(l, 1);
+        Int1088 l2 = (k1 & 4) == 0 ? l : nextX;
         int i3 = (k1 & 2) == 0 ? i1 : i1 + 1;
-        Int1088 j3 = (k1 & 1) == 0 ? j1 : WorldBounds.addBlockOffset(j1, 1);
+        Int1088 j3 = (k1 & 1) == 0 ? j1 : nextZ;
         return this.noiseBiomeSource.getNoiseBiome(l2, i3, j3);
     }
 

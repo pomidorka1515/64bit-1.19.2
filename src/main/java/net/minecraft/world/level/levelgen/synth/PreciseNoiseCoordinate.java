@@ -198,6 +198,39 @@ public final class PreciseNoiseCoordinate {
         // Retained separately so the public modulo-2^64 arithmetic stays unchanged.
         long[] extendedLattice = new long[35];
         int extendedLength;
+        long vertex0;
+        long vertex1;
+
+        /** Compute adjoining vertices together; their upper words usually match. */
+        void computeVertices() {
+            if (extendedLength == 0) {
+                vertex0 = lattice;
+                vertex1 = lattice + 1;
+                return;
+            }
+            // A carry or a change in the low word's sign changes the upper-word
+            // hash. Keep the general path for both seams.
+            if (lattice == -1L || lattice == Long.MAX_VALUE) {
+                vertex0 = vertexIndex(0);
+                vertex1 = vertexIndex(1);
+                return;
+            }
+            long upperHash = 0;
+            long previous = lattice;
+            boolean wide = false;
+            for (int i = 1; i < extendedLength; ++i) {
+                long word = extendedLattice[i];
+                long extra = word ^ (previous >> 63);
+                if (extra != 0) {
+                    wide = true;
+                    upperHash ^= net.minecraft.world.level.levelgen.RandomSupport.mixStafford13(
+                            extra + i * 0x9e3779b97f4a7c15L);
+                }
+                previous = word;
+            }
+            vertex0 = wide ? net.minecraft.world.level.levelgen.RandomSupport.mixStafford13(lattice ^ upperHash) : lattice;
+            vertex1 = wide ? net.minecraft.world.level.levelgen.RandomSupport.mixStafford13((lattice + 1) ^ upperHash) : lattice + 1;
+        }
 
         void addExtended(long offset) {
             if (extendedLength == 0 || offset == 0) return;

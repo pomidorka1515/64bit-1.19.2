@@ -175,7 +175,10 @@ public final class SectorBlockCollisions implements Iterator<VoxelShape>, AutoCl
         int span = (int) WorldBounds.signedDifferenceAsLong(max, min);
         for (int i = 0; i <= span; ++i) {
             blocks[i] = WorldBounds.addBlockOffset(min, i);
-            chunks[i] = blocks[i].shiftRight(4);
+            // Adjacent blocks share their immutable chunk identity until the
+            // next 16-block boundary, including negative coordinates and carries.
+            chunks[i] = i == 0 || (blocks[i].lowLimb() & 15L) == 0L
+                    ? blocks[i].shiftRight(4) : chunks[i - 1];
         }
     }
 

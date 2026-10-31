@@ -19,6 +19,28 @@ import org.junit.jupiter.params.provider.MethodSource;
 class PreciseNoiseCoordinateTest {
     private static final MathContext MC = new MathContext(80);
 
+    @Test
+    void pairedVerticesMatchIndependentHashesIncludingCarriesAndSignSeams() {
+        Random random = new Random(0xaddcafe);
+        PreciseNoiseCoordinate.Split split = new PreciseNoiseCoordinate.Split();
+        for (int length = 0; length <= split.extendedLattice.length; ++length) {
+            split.extendedLength = length;
+            for (int trial = 0; trial < 100; ++trial) {
+                for (int i = 0; i < length; ++i)
+                    split.extendedLattice[i] = trial % 3 == 0 ? -1L : random.nextLong();
+                for (long low : new long[] {random.nextLong(), -1, 0, Long.MIN_VALUE, Long.MAX_VALUE}) {
+                    split.lattice = low;
+                    if (length > 0) split.extendedLattice[0] = low;
+                    long first = split.vertexIndex(0);
+                    long next = split.vertexIndex(1);
+                    split.computeVertices();
+                    assertEquals(first, split.vertex0);
+                    assertEquals(next, split.vertex1);
+                }
+            }
+        }
+    }
+
     @org.junit.jupiter.api.BeforeAll
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();

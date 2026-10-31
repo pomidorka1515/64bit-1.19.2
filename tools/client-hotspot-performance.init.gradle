@@ -1,0 +1,38 @@
+allprojects {
+    afterEvaluate {
+        if (project == rootProject && plugins.hasPlugin('java')) {
+            def probe = tasks.register('compileClientHotspotPerformanceProbe', JavaCompile) {
+                dependsOn classes
+                source = project.files('tools/ClientHotspotPerformanceProbe.java',
+                        'tools/NoiseVertexPerformanceProbe.java', 'tools/RenderPerformanceProbe.java',
+                        'tools/BiomeLookupPerformanceProbe.java')
+                classpath = sourceSets.main.runtimeClasspath
+                destinationDirectory = layout.buildDirectory.dir('classes/java/clientHotspotPerformance')
+                javaCompiler = javaToolchains.compilerFor { languageVersion = JavaLanguageVersion.of(17) }
+            }
+            [clientHotspotPerformanceProbe: 'net.minecraft.client.renderer.ClientHotspotPerformanceProbe',
+             noiseVertexPerformanceProbe: 'net.minecraft.world.level.levelgen.synth.NoiseVertexPerformanceProbe',
+             biomeLookupPerformanceProbe: 'net.minecraft.client.renderer.BiomeLookupPerformanceProbe',
+             frustumPerformanceProbe: 'net.minecraft.client.renderer.RenderPerformanceProbe'].each { name, entry ->
+                tasks.register(name, JavaExec) {
+                    dependsOn probe
+                    classpath = project.files(probe.flatMap { it.destinationDirectory }) +
+                            (findProperty('baselineClasses') ? project.files(findProperty('baselineClasses')) : project.files()) +
+                            sourceSets.main.runtimeClasspath
+                    mainClass = entry
+                    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(17) }
+                    maxHeapSize = '512M'
+                }
+            }
+            tasks.register('compileClientHotspotBaseline', JavaCompile) {
+                dependsOn classes
+                source = fileTree(findProperty('baselineSources') ?: '/tmp/opencode/client-hotspot-baseline/src') {
+                    include '**/*.java'
+                }
+                classpath = sourceSets.main.runtimeClasspath
+                destinationDirectory = layout.buildDirectory.dir('classes/java/clientHotspotBaseline')
+                javaCompiler = javaToolchains.compilerFor { languageVersion = JavaLanguageVersion.of(17) }
+            }
+        }
+    }
+}

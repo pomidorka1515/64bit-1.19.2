@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Int1088;
+import net.minecraft.core.SectionPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldBounds;
@@ -20,6 +21,7 @@ public class ViewArea {
     protected int chunkGridSizeX;
     protected int chunkGridSizeZ;
     public ChunkRenderDispatcher.RenderChunk[] chunks;
+    private volatile GridIndex gridIndex;
 
     public ViewArea(ChunkRenderDispatcher pChunkRenderDispatcher, Level pLevel, int pViewDistance, LevelRenderer pLevelRenderer) {
         this.levelRenderer = pLevelRenderer;
@@ -53,12 +55,14 @@ public class ViewArea {
     }
 
     private int getChunkIndex(long pX, int pY, long pZ) {
-        return this.getChunkIndex(Int1088.fromLong(pX), pY, Int1088.fromLong(pZ));
+        return ((int) Math.floorMod(pZ, this.chunkGridSizeZ) * this.chunkGridSizeY + pY)
+                * this.chunkGridSizeX + (int) Math.floorMod(pX, this.chunkGridSizeX);
     }
 
     private int getChunkIndex(Int1088 pX, int pY, Int1088 pZ) {
-        int x = floorMod(pX, this.chunkGridSizeX);
-        int z = floorMod(pZ, this.chunkGridSizeZ);
+        GridIndex grid = this.gridIndex;
+        int x = grid == null ? floorMod(pX, this.chunkGridSizeX) : grid.x.sectionSlot(pX);
+        int z = grid == null ? floorMod(pZ, this.chunkGridSizeZ) : grid.z.sectionSlot(pZ);
         return (z * this.chunkGridSizeY + pY) * this.chunkGridSizeX + x;
     }
 
@@ -67,7 +71,49 @@ public class ViewArea {
         return Math.floorMod(coordinate.remainder(period), period);
     }
 
+    /** Immutable view-window identity table, safe to read from rebuild workers. */
+    static final class AxisIndex {
+        final Int1088[] sections;
+        final Int1088[] blocks;
+        private final int firstSlot;
+
+        AxisIndex(Int1088 first, int size) {
+            this.sections = new Int1088[size];
+            this.blocks = new Int1088[size];
+            this.firstSlot = floorMod(first, size);
+            for (int i = 0; i < size; ++i) {
+                this.sections[i] = WorldBounds.addChunkOffset(first, i);
+                this.blocks[i] = WorldBounds.chunkToBlock(this.sections[i]);
+            }
+        }
+
+        int slot(int offset) {
+            int slot = this.firstSlot + offset;
+            return slot >= this.sections.length ? slot - this.sections.length : slot;
+        }
+
+        int sectionSlot(Int1088 section) {
+            long offset = section.lowLimb() - this.sections[0].lowLimb();
+            return offset >= 0 && offset < this.sections.length && this.sections[(int) offset].equals(section)
+                    ? this.slot((int) offset) : floorMod(section, this.sections.length);
+        }
+
+        int blockOffset(BlockPos pos, boolean x) {
+            long low = x ? pos.xLimb(0) : pos.zLimb(0);
+            long high = x ? pos.xLimb(1) : pos.zLimb(1);
+            // Low-word subtraction is only a candidate: the full-width match
+            // rejects distant aliases, even if every low bit happens to agree.
+            long offset = ((low >>> 4) | (high << 60)) - this.sections[0].lowLimb();
+            return offset >= 0 && offset < this.sections.length
+                    && SectionPos.matchesBlockCoordinate(this.sections[(int) offset], pos, x)
+                    ? (int) offset : -1;
+        }
+    }
+
+    private record GridIndex(AxisIndex x, AxisIndex z) {}
+
     protected void setViewDistance(int pRenderDistanceChunks) {
+        this.gridIndex = null;
         int i = pRenderDistanceChunks * 2 + 1;
         this.chunkGridSizeX = i;
         this.chunkGridSizeY = this.level.getSectionsCount();
@@ -84,18 +130,27 @@ public class ViewArea {
     public void repositionCamera(SectorVec3 exactCamera) {
         Int1088 firstChunkX = firstChunkInView(exactCamera.blockX().shiftRight(4), this.chunkGridSizeX);
         Int1088 firstChunkZ = firstChunkInView(exactCamera.blockZ().shiftRight(4), this.chunkGridSizeZ);
+        GridIndex previous = this.gridIndex;
+        if (previous != null && previous.x.sections[0].equals(firstChunkX)
+                && previous.z.sections[0].equals(firstChunkZ)) return;
+        AxisIndex xAxis = previous != null && previous.x.sections[0].equals(firstChunkX)
+                ? previous.x : new AxisIndex(firstChunkX, this.chunkGridSizeX);
+        AxisIndex zAxis = previous != null && previous.z.sections[0].equals(firstChunkZ)
+                ? previous.z : new AxisIndex(firstChunkZ, this.chunkGridSizeZ);
+        int minBuildHeight = this.level.getMinBuildHeight();
 
         for (int xIndex = 0; xIndex < this.chunkGridSizeX; ++xIndex) {
-            Int1088 chunkX = WorldBounds.addChunkOffset(firstChunkX, xIndex);
-            Int1088 blockX = WorldBounds.chunkToBlock(chunkX);
+            Int1088 blockX = xAxis.blocks[xIndex];
+            int xSlot = xAxis.slot(xIndex);
 
             for (int zIndex = 0; zIndex < this.chunkGridSizeZ; ++zIndex) {
-                Int1088 chunkZ = WorldBounds.addChunkOffset(firstChunkZ, zIndex);
-                Int1088 blockZ = WorldBounds.chunkToBlock(chunkZ);
+                Int1088 blockZ = zAxis.blocks[zIndex];
+                int columnIndex = zAxis.slot(zIndex) * this.chunkGridSizeY * this.chunkGridSizeX + xSlot;
 
                 for (int yIndex = 0; yIndex < this.chunkGridSizeY; ++yIndex) {
-                    int blockY = this.level.getMinBuildHeight() + yIndex * 16;
-                    ChunkRenderDispatcher.RenderChunk chunk = this.chunks[this.getChunkIndex(chunkX, yIndex, chunkZ)];
+                    int blockY = minBuildHeight + yIndex * 16;
+                    int index = columnIndex + yIndex * this.chunkGridSizeX;
+                    ChunkRenderDispatcher.RenderChunk chunk = this.chunks[index];
                     BlockPos origin = chunk.getOrigin();
                     if (!blockX.equals(origin.getX()) || blockY != origin.getY() || !blockZ.equals(origin.getZ())) {
                         chunk.setOrigin(blockX, blockY, blockZ);
@@ -103,6 +158,7 @@ public class ViewArea {
                 }
             }
         }
+        this.gridIndex = new GridIndex(xAxis, zAxis);
     }
 
     public void repositionCamera(double x, double z) {
@@ -162,6 +218,23 @@ public class ViewArea {
 
     @Nullable
     protected ChunkRenderDispatcher.RenderChunk getRenderChunkAt(BlockPos pPos) {
+        GridIndex grid = this.gridIndex;
+        if (grid != null) {
+            int y = Mth.intFloorDiv(pPos.getY() - this.level.getMinBuildHeight(), 16);
+            if (y < 0 || y >= this.chunkGridSizeY) return null;
+            int x = grid.x.blockOffset(pPos, true);
+            int z = grid.z.blockOffset(pPos, false);
+            if (x >= 0 && z >= 0) {
+                ChunkRenderDispatcher.RenderChunk chunk = this.chunks[
+                        (grid.z.slot(z) * this.chunkGridSizeY + y) * this.chunkGridSizeX + grid.x.slot(x)];
+                BlockPos origin = chunk.getOrigin();
+                // Origins can move while a worker holds an older immutable index.
+                return origin.getX().equals(grid.x.blocks[x]) && origin.getZ().equals(grid.z.blocks[z])
+                        && origin.getY() == this.level.getMinBuildHeight() + y * 16 ? chunk : null;
+            }
+            // During repositioning, newly moved chunks can already be available
+            // outside this older published window. Preserve the exact fallback.
+        }
         Int1088 i = pPos.getX().shiftRight(4);
         int j = Mth.intFloorDiv(pPos.getY() - this.level.getMinBuildHeight(), 16);
         Int1088 k = pPos.getZ().shiftRight(4);

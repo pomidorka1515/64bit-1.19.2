@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.CameraRelativePosition;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Int1088;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.WorldBounds;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.SectorAABB;
 import net.minecraft.world.phys.SectorVec3;
@@ -134,10 +135,12 @@ public class Frustum {
             throw new NullPointerException("blockPos");
         if (localShape == null)
             throw new NullPointerException("localShape");
+        double x = this.cameraRelativePosition.relativeX(blockPos.getX());
+        double y = relativeY(blockPos.getY());
+        double z = this.cameraRelativePosition.relativeZ(blockPos.getZ());
         return this.cubeInFrustumLocal(
-                relativeX(blockPos.getX(), localShape.minX), relativeY(blockPos.getY()) + localShape.minY,
-                relativeZ(blockPos.getZ(), localShape.minZ), relativeX(blockPos.getX(), localShape.maxX),
-                relativeY(blockPos.getY()) + localShape.maxY, relativeZ(blockPos.getZ(), localShape.maxZ));
+                x + localShape.minX, y + localShape.minY, z + localShape.minZ,
+                x + localShape.maxX, y + localShape.maxY, z + localShape.maxZ);
     }
 
     public boolean isChunkVisible(Int1088 chunkX, int originBlockY, Int1088 chunkZ) {
@@ -153,14 +156,16 @@ public class Frustum {
 
     private boolean isRenderSectionVisible(Int1088 blockMinX, int originBlockY, Int1088 blockMinZ) {
 
-        if (net.minecraft.world.level.WorldBounds.localSpanExceeds(blockMinX, this.cameraRelativePosition.baseX())
-                || net.minecraft.world.level.WorldBounds.localSpanExceeds(blockMinZ, this.cameraRelativePosition.baseZ())) {
+        long dx = WorldBounds.signedDifferenceAsLong(blockMinX, this.cameraRelativePosition.baseX());
+        long dz = WorldBounds.signedDifferenceAsLong(blockMinZ, this.cameraRelativePosition.baseZ());
+        if (dx < -WorldBounds.MAX_SAFE_LOCAL_SPAN || dx > WorldBounds.MAX_SAFE_LOCAL_SPAN
+                || dz < -WorldBounds.MAX_SAFE_LOCAL_SPAN || dz > WorldBounds.MAX_SAFE_LOCAL_SPAN) {
             return false;
         }
 
-        double minX = this.cameraRelativePosition.relativeX(blockMinX);
+        double minX = (double) dx - this.cameraRelativePosition.fractionX();
         double minY = this.cameraRelativePosition.relativeY(originBlockY);
-        double minZ = this.cameraRelativePosition.relativeZ(blockMinZ);
+        double minZ = (double) dz - this.cameraRelativePosition.fractionZ();
 
         double maxX = minX + 16.0D;
         double maxY = minY + 16.0D;
@@ -198,19 +203,33 @@ public class Frustum {
     private boolean cubeInFrustum(float pMinX, float pMinY, float pMinZ, float pMaxX, float pMaxY, float pMaxZ) {
         for (int i = 0; i < 6; ++i) {
             Vector4f vector4f = this.frustumData[i];
-            if (!(dotPoint(vector4f, pMinX, pMinY, pMinZ) > 0.0F)
-                    && !(dotPoint(vector4f, pMaxX, pMinY, pMinZ) > 0.0F)
-                    && !(dotPoint(vector4f, pMinX, pMaxY, pMinZ) > 0.0F)
-                    && !(dotPoint(vector4f, pMaxX, pMaxY, pMinZ) > 0.0F)
-                    && !(dotPoint(vector4f, pMinX, pMinY, pMaxZ) > 0.0F)
-                    && !(dotPoint(vector4f, pMaxX, pMinY, pMaxZ) > 0.0F)
-                    && !(dotPoint(vector4f, pMinX, pMaxY, pMaxZ) > 0.0F)
-                    && !(dotPoint(vector4f, pMaxX, pMaxY, pMaxZ) > 0.0F)) {
-                return false;
-            }
+            // Keep the common fully-visible case small enough for JIT inlining.
+            if (dotPoint(vector4f, pMinX, pMinY, pMinZ) > 0.0F) continue;
+            if (planeIntersectsBox(vector4f, pMinX, pMinY, pMinZ, pMaxX, pMaxY, pMaxZ)) continue;
+            return false;
         }
-
         return true;
+    }
+
+    static boolean planeIntersectsBox(Vector4f plane, float minX, float minY, float minZ,
+            float maxX, float maxY, float maxZ) {
+        // The support vertex maximizes the dot product. Retain the eight-corner
+        // path for non-finite inputs/NaN arithmetic and inverted legacy boxes.
+        if (minX <= maxX && minY <= maxY && minZ <= maxZ
+                && Float.isFinite(minX) && Float.isFinite(minY) && Float.isFinite(minZ)
+                && Float.isFinite(maxX) && Float.isFinite(maxY) && Float.isFinite(maxZ)) {
+            float distance = dotPoint(plane, plane.x() >= 0 ? maxX : minX,
+                    plane.y() >= 0 ? maxY : minY, plane.z() >= 0 ? maxZ : minZ);
+            if (!Float.isNaN(distance)) return distance > 0.0F;
+        }
+        return dotPoint(plane, minX, minY, minZ) > 0.0F
+                || dotPoint(plane, maxX, minY, minZ) > 0.0F
+                || dotPoint(plane, minX, maxY, minZ) > 0.0F
+                || dotPoint(plane, maxX, maxY, minZ) > 0.0F
+                || dotPoint(plane, minX, minY, maxZ) > 0.0F
+                || dotPoint(plane, maxX, minY, maxZ) > 0.0F
+                || dotPoint(plane, minX, maxY, maxZ) > 0.0F
+                || dotPoint(plane, maxX, maxY, maxZ) > 0.0F;
     }
 
     private static float dotPoint(Vector4f plane, float x, float y, float z) {

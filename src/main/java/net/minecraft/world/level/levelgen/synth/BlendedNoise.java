@@ -253,7 +253,7 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
 
     public static String getDebugString() {
         if (Double.isNaN(debugScaledX)) return "Not evaluated at this position";
-        return "Scaled X: " + (debugScaledXSplit != null ? debugScaledXSplit : String.format(Locale.ROOT, "%.0f", debugScaledX))
+        return "Scaled X: " + (debugScaledXSplit != null ? debugScaledXSplit : formatDebugCoordinate(debugScaledX, 0))
                 + " Selector lerp: " + formatDebugValue(debugSelectorLerp);
     }
 
@@ -261,12 +261,21 @@ public class BlendedNoise implements DensityFunction.SimpleFunction {
         return String.format(Locale.ROOT, "BlendedNoise min: %s max: %s density: %s", formatDebugValue(debugMinLimit), formatDebugValue(debugMaxLimit), formatDebugValue(debugBlendedDensity));
     }
 
-    /** Display-only decimal addition; retain every lattice digit before rounding the fraction. */
+    /** Display-only decimal addition; retain lattice precision for ordinary coordinates. */
     static String formatSplitDebugValue(long lattice, double fraction, int digits) {
         if (!Double.isFinite(fraction)) return formatDebugValue(fraction);
-        String text = net.minecraft.world.phys.SectorVec3.formatCoordinate(lattice, fraction, digits);
-        return lattice > 1_000_000_000L || lattice == 1_000_000_000L && fraction > 0.0D || lattice < -1_000_000_000L
-                ? "\247c" + text + "\247r" : text;
+        if (lattice > 1_000_000_000L || lattice < -1_000_000_001L
+                || lattice == 1_000_000_000L && fraction > 0.0D
+                || lattice == -1_000_000_001L && fraction < 1.0D) {
+            return formatScientific((double) lattice + fraction);
+        }
+        return net.minecraft.world.phys.SectorVec3.formatCoordinate(lattice, fraction, digits);
+    }
+
+    static String formatDebugCoordinate(double value, int digits) {
+        if (!Double.isFinite(value)) return formatDebugValue(value);
+        return Math.abs(value) > 1_000_000_000.0D ? formatScientific(value)
+                : String.format(Locale.ROOT, "%." + digits + "f", value);
     }
 
     public static String formatDebugValue(double value) {

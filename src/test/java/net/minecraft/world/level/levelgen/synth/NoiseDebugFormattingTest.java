@@ -4,18 +4,28 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeAll;
 
 class NoiseDebugFormattingTest {
+    @BeforeAll
+    static void bootstrap() {
+        net.minecraft.SharedConstants.tryDetectVersion();
+        net.minecraft.server.Bootstrap.bootStrap();
+    }
+
     @Test
-    void splitDisplaysRetainLatticeDigitsAndFractionsBeyondDoublePrecision() {
-        assertEquals("\247c9223372036854775807.25\247r", BlendedNoise.formatSplitDebugValue(Long.MAX_VALUE, .25D, 2));
-        assertEquals("\247c-9223372036854775807.75\247r", BlendedNoise.formatSplitDebugValue(Long.MIN_VALUE, .25D, 2));
-        assertEquals("\247c9223372036854775808\247r", BlendedNoise.formatSplitDebugValue(Long.MAX_VALUE, .75D, 0));
+    void splitCoordinatesUseScientificNotationWithoutFalseWarnings() {
+        assertEquals("9.22e18", BlendedNoise.formatSplitDebugValue(Long.MAX_VALUE, .25D, 2));
+        assertEquals("-9.22e18", BlendedNoise.formatSplitDebugValue(Long.MIN_VALUE, .25D, 2));
+        assertEquals("9.22e18", BlendedNoise.formatSplitDebugValue(Long.MAX_VALUE, .75D, 0));
         assertEquals("1.25", BlendedNoise.formatSplitDebugValue(1L, .25D, 2));
         assertEquals("1000000000.00", BlendedNoise.formatSplitDebugValue(1_000_000_000L, 0.0D, 2));
-        assertEquals("\247c1000000000.00\247r", BlendedNoise.formatSplitDebugValue(1_000_000_000L, Double.MIN_VALUE, 2));
+        assertEquals("1.00e9", BlendedNoise.formatSplitDebugValue(1_000_000_000L, Double.MIN_VALUE, 2));
         assertEquals("-1000000000.00", BlendedNoise.formatSplitDebugValue(-1_000_000_000L, 0.0D, 2));
-        assertEquals("\247c-1000000000.00\247r", BlendedNoise.formatSplitDebugValue(-1_000_000_001L, Math.nextDown(1.0D), 2));
+        assertEquals("-1.00e9", BlendedNoise.formatSplitDebugValue(-1_000_000_001L, Math.nextDown(1.0D), 2));
+        assertEquals("-1000000000.00", BlendedNoise.formatSplitDebugValue(-1_000_000_001L, 1.0D, 2));
+        assertEquals("1.23e12", BlendedNoise.formatDebugCoordinate(1.23456e12D, 0));
+        assertEquals("\247cInfinity\247r", BlendedNoise.formatDebugCoordinate(Double.POSITIVE_INFINITY, 2));
     }
 
     @Test
@@ -28,7 +38,7 @@ class NoiseDebugFormattingTest {
         ImprovedNoise.beginDebugCapture();
         try {
             noise.sampleRouted(x, yz, yz, 0.0D, 0.0D);
-            assertEquals("Grid Sample point: \247c9223372036854775807.25\247r index: \247c9223372036854775807\247r",
+            assertEquals("Grid Sample point: 9.22e18 index: 9.22e18",
                     ImprovedNoise.getDebugString());
             noise.noise(0.0D, 0.0D, 0.0D);
             assertTrue(ImprovedNoise.getDebugString().matches("Grid Sample point: -?\\d+\\.\\d{2} index: -?\\d+"));
@@ -61,9 +71,9 @@ class NoiseDebugFormattingTest {
         try {
             noise.noise(0.0D, 0.0D, 0.0D);
             assertTrue(ImprovedNoise.getDebugString().matches("Grid Sample point: -?\\d+\\.\\d{2} index: -?\\d+"));
-            noise.noise(1.0e12D, 0.0D, 0.0D);
-            assertTrue(ImprovedNoise.getDebugString().contains("Sample point: \247c"));
-            assertTrue(ImprovedNoise.getDebugString().contains("index: \247c"));
+            noise.noise(1.0e12D, 0.0D, 0.0D, 0.0D, 0.0D, false);
+            assertTrue(ImprovedNoise.getDebugString().contains("Sample point: 1.00e12"));
+            assertTrue(ImprovedNoise.getDebugString().contains("index: 1.00e12"));
             noise.noise(Double.POSITIVE_INFINITY, 0.0D, 0.0D);
             assertTrue(ImprovedNoise.getDebugString2().contains("Cell Offset raw: \247c"));
             assertTrue(ImprovedNoise.getDebugString2().contains("smoothed: \247c"));

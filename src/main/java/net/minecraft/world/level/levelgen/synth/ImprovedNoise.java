@@ -158,11 +158,9 @@ public final class ImprovedNoise {
 
     public static String getDebugString() {
         if (Double.isNaN(debugSamplePoint)) return "Not evaluated at this position";
-        String gridIndex = Long.toString(debugGridIndex);
-        if (debugGridIndex < -1_000_000_000L || debugGridIndex > 1_000_000_000L)
-            gridIndex = "\247c" + gridIndex + "\247r";
+        String gridIndex = BlendedNoise.formatSplitDebugValue(debugGridIndex, 0.0D, 0);
         String sample = debugSplitSample ? BlendedNoise.formatSplitDebugValue(debugGridIndex, debugSamplePoint, 2)
-                : BlendedNoise.formatDebugValue(debugSamplePoint);
+                : BlendedNoise.formatDebugCoordinate(debugSamplePoint, 2);
         return String.format(Locale.ROOT, "Grid Sample point: %s index: %s", sample, gridIndex);
     }
 

@@ -118,7 +118,7 @@ vanilla's `int` positions and `double` physics couldn't be patched in one spot. 
 ### commands
 
 - teleport and the other position commands move sector positions instead of adding to `getX()` / `getZ()`.
-- `/generator`, `/endrings`, `/wraprouter`.
+- `/generator`, `/endrings`, `/wraprouter`, `/coords`.
 
 ## installing
 

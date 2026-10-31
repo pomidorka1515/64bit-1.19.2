@@ -46,6 +46,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.FrameTimer;
+import net.minecraft.util.CoordinateFormat;
 import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.Entity;
@@ -229,8 +230,8 @@ public class DebugScreenOverlay extends GuiComponent {
 
             if (!containsBlock(this.lastPos, blockpos)) {
                 this.lastPos = new ChunkPos(blockpos);
-                this.chunkXLine = "Chunk X: " + this.lastPos.x();
-                this.chunkZLine = "Chunk Z: " + this.lastPos.z();
+                this.chunkXLine = "Chunk X: " + CoordinateFormat.overlayInteger(this.lastPos.x());
+                this.chunkZLine = "Chunk Z: " + CoordinateFormat.overlayInteger(this.lastPos.z());
                 this.clearChunkCache();
             }
 
@@ -242,6 +243,7 @@ public class DebugScreenOverlay extends GuiComponent {
             list.add("");
             SectorVec3 exact = entity.exactPosition();
             this.positionDisplay.update(exact != null ? exact : entity.sectorPosition());
+            if (this.positionDisplay.abbreviated) list.add("/coords for full info");
             list.add(this.positionDisplay.xLine);
             list.add(this.positionDisplay.yLine);
             list.add(this.positionDisplay.zLine);
@@ -446,6 +448,7 @@ public class DebugScreenOverlay extends GuiComponent {
         private double subZ = Double.NaN;
         private double y = Double.NaN;
         String xLine, yLine, zLine, subLine;
+        boolean abbreviated;
 
         void update(SectorVec3 position) {
             boolean xChanged = !position.blockX().equals(this.x);
@@ -460,8 +463,12 @@ public class DebugScreenOverlay extends GuiComponent {
             if (zChanged) {
                 this.z = position.blockZ();
             }
-            if (xChanged || xFractionChanged) this.xLine = "X: " + formatCoordinate(this.x, position.subX());
-            if (zChanged || zFractionChanged) this.zLine = "Z: " + formatCoordinate(this.z, position.subZ());
+            this.abbreviated = CoordinateFormat.abbreviated(this.x, position.subX())
+                    || CoordinateFormat.abbreviated(this.z, position.subZ());
+            if (xChanged || xFractionChanged) this.xLine = "X: " + (CoordinateFormat.abbreviated(this.x, position.subX())
+                    ? CoordinateFormat.overlayCoordinate(this.x, position.subX()) : formatCoordinate(this.x, position.subX()));
+            if (zChanged || zFractionChanged) this.zLine = "Z: " + (CoordinateFormat.abbreviated(this.z, position.subZ())
+                    ? CoordinateFormat.overlayCoordinate(this.z, position.subZ()) : formatCoordinate(this.z, position.subZ()));
             if (yChanged) this.yLine = "Y: " + fixed(position.y(), 5);
             if (fractionsChanged) this.subLine = formatSubPosition(position);
             this.subX = position.subX();
@@ -494,8 +501,8 @@ public class DebugScreenOverlay extends GuiComponent {
             if (!x.equals(this.regionX) || !z.equals(this.regionZ)) {
                 this.regionX = x;
                 this.regionZ = z;
-                String decimalX = x.toDecimalString();
-                String decimalZ = z.toDecimalString();
+                String decimalX = CoordinateFormat.overlayInteger(x);
+                String decimalZ = CoordinateFormat.overlayInteger(z);
                 this.firstLine = "Region X: " + decimalX;
                 this.secondLine = "Region Z: " + decimalZ;
                 this.thirdLine = " in " + RegionPaths.displayRegionPath(new RegionPos(x, z));
@@ -570,9 +577,7 @@ public class DebugScreenOverlay extends GuiComponent {
                 BlockState blockstate = this.minecraft.level.getBlockState(blockpos);
                 list.add("");
                 list.add(ChatFormatting.UNDERLINE + "Targeted Block");
-                list.add("X: " + blockpos.getX());
-                list.add("Y: " + blockpos.getY());
-                list.add("Z: " + blockpos.getZ());
+                addTargetPositionLines(list, blockpos);
                 list.add(String.valueOf((Object) Registry.BLOCK.getKey(blockstate.getBlock())));
 
                 for (Map.Entry<Property<?>, Comparable<?>> entry : blockstate.getValues().entrySet()) {
@@ -591,9 +596,7 @@ public class DebugScreenOverlay extends GuiComponent {
                 if (!fluidstate.isEmpty()) {
                     list.add("");
                     list.add(ChatFormatting.UNDERLINE + "Targeted Fluid");
-                    list.add("X: " + blockpos1.getX());
-                    list.add("Y: " + blockpos1.getY());
-                    list.add("Z: " + blockpos1.getZ());
+                    addTargetPositionLines(list, blockpos1);
                     list.add(String.valueOf((Object) Registry.FLUID.getKey(fluidstate.getType())));
 
                     for (Map.Entry<Property<?>, Comparable<?>> entry1 : fluidstate.getValues().entrySet()) {
@@ -616,6 +619,12 @@ public class DebugScreenOverlay extends GuiComponent {
 
             return list;
         }
+    }
+
+    static void addTargetPositionLines(List<String> lines, BlockPos position) {
+        lines.add("X: " + CoordinateFormat.overlayInteger(position.getX()));
+        lines.add("Y: " + position.getY());
+        lines.add("Z: " + CoordinateFormat.overlayInteger(position.getZ()));
     }
 
     private String getPropertyValueString(Map.Entry<Property<?>, Comparable<?>> pEntry) {

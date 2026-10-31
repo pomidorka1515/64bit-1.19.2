@@ -3,6 +3,7 @@ package net.minecraft.client.gui.components;
 import java.util.Random;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Int1088;
+import net.minecraft.util.CoordinateFormat;
 import net.minecraft.world.phys.SectorVec3;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,18 +31,18 @@ class DebugOverlayOptimizationTest {
     @Test
     void unchangedPositionReusesStringsAndChangesInvalidateOnlyRelevantAxes() {
         DebugScreenOverlay.PositionDisplayCache cache = new DebugScreenOverlay.PositionDisplayCache();
-        SectorVec3 position = SectorVec3.fromBlockAndFraction(Int1088.MAX, 0.125, 10.25, Int1088.MIN, 0.5);
+        SectorVec3 position = SectorVec3.fromBlockAndFraction(Int1088.ONE, 0.125, 10.25, Int1088.MIN, 0.5);
         cache.update(position);
         String x = cache.xLine;
         String z = cache.zLine;
         String y = cache.yLine;
         String sub = cache.subLine;
-        cache.update(SectorVec3.fromBlockAndFraction(Int1088.MAX, 0.125, 10.25, Int1088.MIN, 0.5));
+        cache.update(SectorVec3.fromBlockAndFraction(Int1088.ONE, 0.125, 10.25, Int1088.MIN, 0.5));
         assertSame(x, cache.xLine);
         assertSame(z, cache.zLine);
         assertSame(y, cache.yLine);
         assertSame(sub, cache.subLine);
-        cache.update(SectorVec3.fromBlockAndFraction(Int1088.MAX, 0.25, 11.5, Int1088.MIN, 0.5));
+        cache.update(SectorVec3.fromBlockAndFraction(Int1088.ONE, 0.25, 11.5, Int1088.MIN, 0.5));
         assertNotEquals(x, cache.xLine);
         assertSame(z, cache.zLine);
         assertEquals("Y: 11.50000", cache.yLine);
@@ -60,8 +61,8 @@ class DebugOverlayOptimizationTest {
         cache.update(new BlockPos(-513, 0, -513));
         assertEquals("Region X: -2", cache.firstLine);
         cache.update(new BlockPos(Int1088.MAX, 0, Int1088.MIN));
-        assertEquals("Region X: " + Int1088.MAX.shiftRight(9), cache.firstLine);
-        assertEquals("Region Z: " + Int1088.MIN.shiftRight(9), cache.secondLine);
+        assertEquals("Region X: " + CoordinateFormat.overlayInteger(Int1088.MAX.shiftRight(9)), cache.firstLine);
+        assertEquals("Region Z: " + CoordinateFormat.overlayInteger(Int1088.MIN.shiftRight(9)), cache.secondLine);
     }
 
     @Test

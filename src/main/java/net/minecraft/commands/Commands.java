@@ -127,6 +127,7 @@ public class Commands {
         ExecuteCommand.register(this.dispatcher, pContext);
         BossBarCommands.register(this.dispatcher);
         ClearInventoryCommands.register(this.dispatcher, pContext);
+        net.minecraft.server.commands.CoordsCommand.register(this.dispatcher);
         CloneCommands.register(this.dispatcher, pContext);
         DataCommands.register(this.dispatcher);
         DataPackCommand.register(this.dispatcher);

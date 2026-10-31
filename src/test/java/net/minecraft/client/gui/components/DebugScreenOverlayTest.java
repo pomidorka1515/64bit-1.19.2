@@ -47,13 +47,14 @@ class DebugScreenOverlayTest {
     }
 
     @Test
-    void positionCacheDoesNotAliasUpperLimbsEvenWhenDoubleProjectionsMatch() {
+    void positionCacheFormatsAndReusesAbbreviatedUpperLimbs() {
         var base = BigInteger.ONE.shiftLeft(1024);
         var cache = new DebugScreenOverlay.PositionDisplayCache();
         for (var value : List.of(base, base.add(BigInteger.ONE), base.negate(), base.negate().subtract(BigInteger.ONE))) {
             var coordinate = Int1088.parseDecimal(value.toString());
             cache.update(SectorVec3.fromBlockAndFraction(coordinate, 0.25, 80, coordinate, 0.25));
-            String expected = new BigDecimal(value).add(new BigDecimal("0.25")).setScale(3).toPlainString();
+            String expected = String.format(java.util.Locale.ROOT, "%.7e", new BigDecimal(value).add(new BigDecimal("0.25")))
+                    .replace("e+", "e");
             assertEquals("X: " + expected, cache.xLine);
             assertEquals("Z: " + expected, cache.zLine);
             var rebuilt = Int1088.parseDecimal(value.toString());

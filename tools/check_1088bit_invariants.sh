@@ -105,7 +105,7 @@ sort -u "$WORK/double.raw" > "$WORK/double"
 search "$WORK/saturated" src/main/java -- -e 'toDoubleSaturated[[:space:]]*\('
 
 # Production BigInteger/BigDecimal mentions are gated unless their exact
-# matched text has a reviewed command-evaluation boundary fingerprint below.
+# matched text has a reviewed command-evaluation or display-only fingerprint below.
 search "$WORK/big.raw" src/main/java -- -e 'BigInteger' -e 'BigDecimal'
 : > "$WORK/big"
 : > "$WORK/big.gate"

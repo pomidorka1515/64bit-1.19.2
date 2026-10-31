@@ -25,7 +25,8 @@ final class DebugTextRenderer implements AutoCloseable {
     private final Map<Object, Text> texts = new HashMap<>();
     private final Map<WrapKey, Wrapped> wrapped = new HashMap<>();
     private long frame;
-    private long resourceVersion = Long.MIN_VALUE;
+    // The initially null language already invalidates the cache on the first frame.
+    private long resourceVersion;
     private Language language;
 
     DebugTextRenderer(Font font) {

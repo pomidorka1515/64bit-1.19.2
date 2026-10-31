@@ -9,6 +9,26 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class DebugTextRendererTest {
     @Test
+    void resourceVersionsUseTheEntireLongDomain() {
+        CountingFont font = new CountingFont();
+        font.version = Long.MIN_VALUE;
+        try (DebugTextRenderer renderer = new DebugTextRenderer(font)) {
+            renderer.beginFrame();
+            var first = renderer.wrap("hardware", 100);
+            renderer.endFrame();
+            renderer.beginFrame();
+            assertSame(first, renderer.wrap("hardware", 100));
+            renderer.endFrame();
+
+            font.version = 0;
+            renderer.beginFrame();
+            assertNotSame(first, renderer.wrap("hardware", 100));
+            renderer.endFrame();
+            assertEquals(2, font.splits);
+        }
+    }
+
+    @Test
     void unchangedLinesAreMeasuredOnceAndUnusedLinesAreEvicted() {
         CountingFont font = new CountingFont();
         try (DebugTextRenderer renderer = new DebugTextRenderer(font)) {

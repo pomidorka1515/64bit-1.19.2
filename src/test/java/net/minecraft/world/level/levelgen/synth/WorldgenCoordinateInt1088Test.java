@@ -75,6 +75,24 @@ class WorldgenCoordinateInt1088Test {
     }
 
     @Test
+    void pairedVerticesMatchGeneralHashAtCarryAndSignSeams() {
+        var split = new PreciseNoiseCoordinate.Split();
+        try (GenerationContext ignored = GenerationContext.open(new GeneratorConfig(GeneratorMode.PATCHED, CoordinatePrecision.PRECISE))) {
+            for (int bit : new int[]{128, 512, 1086}) {
+                for (long low : new long[]{Long.MAX_VALUE - 1, Long.MAX_VALUE, Long.MIN_VALUE, -2, -1, 0, 1}) {
+                    BigInteger coordinate = BigInteger.ONE.shiftLeft(bit).add(BigInteger.valueOf(low));
+                    for (int sign : new int[]{-1, 1}) {
+                        WorldgenCoordinate.scale(Int1088.parseDecimal(coordinate.multiply(BigInteger.valueOf(sign)).toString()), 1, 0, split);
+                        split.computeVertices();
+                        assertEquals(split.vertexIndex(0), split.vertex0);
+                        assertEquals(split.vertexIndex(1), split.vertex1);
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     void intentionalOverflowModesDoNotUsePatchedCornerHashes() {
         Int1088 coordinate = Int1088.ONE.shiftLeftSaturated(1030).add(Int1088.fromLong(7));
         var out = new PreciseNoiseCoordinate.Split();

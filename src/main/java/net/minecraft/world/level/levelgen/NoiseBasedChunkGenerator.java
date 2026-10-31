@@ -445,8 +445,9 @@ public final class NoiseBasedChunkGenerator extends ChunkGenerator {
                                 blockstate = this.debugPreliminarySurfaceLevel(noisechunk, k3, k2, j4, blockstate);
                                 if (blockstate != AIR && !voidTerrain) {
                                     if (blockstate.getLightEmission() != 0 && pChunk instanceof ProtoChunk) {
-                                        blockpos$mutableblockpos.set(k3, k2, j4);
-                                        ((ProtoChunk) pChunk).addLight(blockpos$mutableblockpos);
+                                        // Retain the already immutable column coordinates; a mutable
+                                        // position would reconstruct both limb values on immutable().
+                                        ((ProtoChunk) pChunk).addLight(new BlockPos(k3, k2, j4));
                                     }
 
                                     levelchunksection.setBlockState(l3, l2, k4, blockstate, false);

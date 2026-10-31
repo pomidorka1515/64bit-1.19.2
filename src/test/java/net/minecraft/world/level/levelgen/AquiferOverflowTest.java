@@ -166,4 +166,29 @@ class AquiferOverflowTest {
         chunk.forIndex(index & 63);
         sink = aquifer.computeSubstance(chunk, -1);
     }
+
+    @Test
+    void localCoordinateIdentityCacheRejectsMatchingLowWordAliases() throws Exception {
+        var settings = BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getHolderOrThrow(NoiseGeneratorSettings.OVERWORLD).value();
+        var random = RandomState.create(settings, BuiltinRegistries.NOISE, 0L);
+        var water = new Aquifer.FluidStatus(63, Blocks.WATER.defaultBlockState());
+        Aquifer.FluidPicker picker = (x, y, z) -> water;
+        Method local = Aquifer.NoiseBasedAquifer.class.getDeclaredMethod("localCoordinate", Int1088.class, boolean.class);
+        local.setAccessible(true);
+        Int1088 origin = Int1088.ONE.shiftLeftSaturated(1024);
+        var chunk = new NoiseChunk(4, random, origin, origin, settings.noiseSettings(),
+                DensityFunctions.BeardifierMarker.INSTANCE, settings, picker, Blender.empty());
+        var aquifer = new Aquifer.NoiseBasedAquifer(chunk, new ChunkPos(origin.shiftRight(4), origin.shiftRight(4)),
+                random.router(), random.aquiferRandom(), -64, 384, picker);
+        for (boolean x : new boolean[] {true, false}) {
+            for (int offset = 0; offset < 16; ++offset) {
+                Int1088 actual = origin.addSaturated(offset);
+                assertEquals((long) offset, local.invoke(aquifer, actual, x));
+                assertEquals((long) offset, local.invoke(aquifer, actual, x));
+                Int1088 alias = actual.addSaturated(Int1088.ONE.shiftLeftSaturated(160));
+                assertNotEquals((long) offset, local.invoke(aquifer, alias, x));
+                assertEquals((long) offset, local.invoke(aquifer, actual, x));
+            }
+        }
+    }
 }

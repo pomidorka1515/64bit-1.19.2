@@ -121,12 +121,12 @@ public final class WorldBounds {
 
     /** Adds a chunk offset, saturating to the representable chunk interval. */
     public static Int1088 addChunkOffset(Int1088 chunk, long offset) {
-        return clampChunk(chunk.addSaturated(Int1088.fromLong(offset)));
+        return clampChunk(chunk.addSaturated(offset));
     }
 
     /** Returns null when the offset would leave the representable chunk range. */
     public static Int1088 tryAddChunkOffset(Int1088 chunk, long offset) {
-        Int1088 result = chunk.addSaturated(Int1088.fromLong(offset));
+        Int1088 result = chunk.addSaturated(offset);
         return result.compareTo(MIN_CHUNK) < 0 || result.compareTo(MAX_CHUNK) > 0 ? null : result;
     }
 
@@ -137,7 +137,7 @@ public final class WorldBounds {
 
     /** Adds a block offset, saturating only at the signed 1088-bit edges. */
     public static Int1088 addBlockOffset(Int1088 block, long offset) {
-        return addBlockOffset(block, Int1088.fromLong(offset));
+        return block.addSaturated(offset);
     }
 
     public static Int1088 addBlockOffset(Int1088 block, int offset) {

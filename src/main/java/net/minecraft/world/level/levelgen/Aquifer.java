@@ -2,7 +2,6 @@ package net.minecraft.world.level.levelgen;
 
 import java.util.Arrays;
 import javax.annotation.Nullable;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Int1088;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.Mth;
@@ -15,7 +14,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.synth.WorldgenCoordinate;
 import net.minecraft.world.level.levelgen.synth.NoiseSampling;
-import org.apache.commons.lang3.mutable.MutableDouble;
 
 public interface Aquifer {
     static Aquifer create(NoiseChunk pChunk, ChunkPos pChunkPos, NoiseRouter pNoiseRouter, PositionalRandomFactory pPositionalRandomFactory, int pMinY, int pHeight, Aquifer.FluidPicker pGlobalFluidPicker) {
@@ -89,7 +87,12 @@ public interface Aquifer {
         private final PositionalRandomFactory positionalRandomFactory;
         private final Aquifer.FluidStatus[] aquiferCache;
         private final java.util.Set<Aquifer.FluidStatus> extrapolatedWater = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
-        private final BlockPos[] aquiferLocationCache;
+        // Centers are bounded chunk-local coordinates, not world positions.
+        private final int[] centerX;
+        private final int[] centerY;
+        private final int[] centerZ;
+        // Like interpolation and fluid-update state, this scratch is chunk-thread confined.
+        private double pressureNoise;
         private final Aquifer.FluidPicker globalFluidPicker;
         private final DensityFunction erosion;
         private final DensityFunction depth;
@@ -100,6 +103,8 @@ public interface Aquifer {
         private final Int1088 originGridZ;
         private final Int1088[] columnX = new Int1088[16];
         private final Int1088[] columnZ = new Int1088[16];
+        private final Int1088[] localX = new Int1088[16];
+        private final Int1088[] localZ = new Int1088[16];
         private final long minGridX;
         private final int minGridY;
         private final long minGridZ;
@@ -123,6 +128,8 @@ public interface Aquifer {
             for (int offset = 0; offset < 16; ++offset) {
                 this.columnX[offset] = pChunkPos.getBlockX(offset);
                 this.columnZ[offset] = pChunkPos.getBlockZ(offset);
+                this.localX[offset] = this.columnX[offset];
+                this.localZ[offset] = this.columnZ[offset];
             }
             // Geometry is chunk-local; noise, random and picker inputs stay absolute.
             long minGridBlockX = 0L;
@@ -141,14 +148,16 @@ public interface Aquifer {
             this.gridSizeZ = (int) (WorldBounds.signedDifferenceAsLong(l, this.minGridZ) + 1L);
             int i1 = this.gridSizeX * k * this.gridSizeZ;
             this.aquiferCache = new Aquifer.FluidStatus[i1];
-            this.aquiferLocationCache = new BlockPos[i1];
-            Arrays.fill(this.aquiferLocationCache, null);
+            this.centerX = new int[i1];
+            this.centerY = new int[i1];
+            this.centerZ = new int[i1];
+            Arrays.fill(this.centerY, Integer.MIN_VALUE);
         }
 
         private int getIndex(long pGridX, int pGridY, long pGridZ) {
-            long i = WorldBounds.signedDifferenceAsLong(pGridX, this.minGridX);
+            long i = pGridX - this.minGridX;
             int j = pGridY - this.minGridY;
-            long k = WorldBounds.signedDifferenceAsLong(pGridZ, this.minGridZ);
+            long k = pGridZ - this.minGridZ;
             return (int) ((j * this.gridSizeZ + k) * this.gridSizeX + i);
         }
 
@@ -162,8 +171,8 @@ public interface Aquifer {
                 int j = pContext.blockY();
                 Int1088 globalZ = this.columnCoordinate(pContext, false);
                 // Full-width geometry stays local; noise/random/surface sampling translate to global limbs.
-                long i = WorldBounds.signedDifferenceAsLong(globalX, this.originX);
-                long k = WorldBounds.signedDifferenceAsLong(globalZ, this.originZ);
+                long i = this.localCoordinate(globalX, true);
+                long k = this.localCoordinate(globalZ, false);
                 Aquifer.FluidStatus aquifer$fluidstatus = this.globalFluidPicker.computeFluid(globalX, j, globalZ);
                 if (aquifer$fluidstatus.at(j).is(Blocks.LAVA)) {
                     this.shouldScheduleFluidUpdate = false;
@@ -175,9 +184,9 @@ public interface Aquifer {
                     double k1 = Double.POSITIVE_INFINITY;
                     double l1 = Double.POSITIVE_INFINITY;
                     double i2 = Double.POSITIVE_INFINITY;
-                    BlockPos j2 = null;
-                    BlockPos k2 = null;
-                    BlockPos l2 = null;
+                    int j2 = -1;
+                    int k2 = -1;
+                    int l2 = -1;
 
                     for (int i3 = 0; i3 <= 1; ++i3) {
                         for (int j3 = -1; j3 <= 1; ++j3) {
@@ -186,35 +195,32 @@ public interface Aquifer {
                                 int i4 = i1 + j3;
                                 long j4 = WorldBounds.addChunkOffset(j1, k3);
                                 int k4 = this.getIndex(l3, i4, j4);
-                                BlockPos i5 = this.aquiferLocationCache[k4];
-                                BlockPos l4;
-                                if (i5 != null) {
-                                    l4 = i5;
-                                } else {
+                                if (this.centerY[k4] == Integer.MIN_VALUE) {
                                     RandomSource randomsource = this.positionalRandomFactory.at(WorldBounds.addChunkOffset(this.originGridX, l3), i4, WorldBounds.addChunkOffset(this.originGridZ, j4));
-                                    l4 = new BlockPos(WorldBounds.addBlockOffset(WorldBounds.chunkToBlock(l3), randomsource.nextInt(10)), i4 * 12 + randomsource.nextInt(9), WorldBounds.addBlockOffset(WorldBounds.chunkToBlock(j4), randomsource.nextInt(10)));
-                                    this.aquiferLocationCache[k4] = l4;
+                                    this.centerX[k4] = (int) (l3 * 16 + randomsource.nextInt(10));
+                                    this.centerY[k4] = i4 * 12 + randomsource.nextInt(9);
+                                    this.centerZ[k4] = (int) (j4 * 16 + randomsource.nextInt(10));
                                 }
 
                                 // Both centers and query offsets are bounded chunk-local longs.
-                                double i6 = WorldBounds.signedDifference(l4.getX().lowLimb(), i);
-                                int j5 = l4.getY() - j;
-                                double k5 = WorldBounds.signedDifference(l4.getZ().lowLimb(), k);
+                                double i6 = this.centerX[k4] - i;
+                                int j5 = this.centerY[k4] - j;
+                                double k5 = this.centerZ[k4] - k;
                                 double l5 = i6 * i6 + (double) j5 * j5 + k5 * k5;
                                 if (k1 >= l5) {
                                     l2 = k2;
                                     k2 = j2;
-                                    j2 = l4;
+                                    j2 = k4;
                                     i2 = l1;
                                     l1 = k1;
                                     k1 = l5;
                                 } else if (l1 >= l5) {
                                     l2 = k2;
-                                    k2 = l4;
+                                    k2 = k4;
                                     i2 = l1;
                                     l1 = l5;
                                 } else if (i2 >= l5) {
-                                    l2 = l4;
+                                    l2 = k4;
                                     i2 = l5;
                                 }
                             }
@@ -231,42 +237,57 @@ public interface Aquifer {
                         this.shouldScheduleFluidUpdate = true;
                         return this.filterWaterOutput(aquifer$fluidstatus1, blockstate);
                     } else {
-                        MutableDouble mutabledouble = new MutableDouble(Double.NaN);
-                        Aquifer.FluidStatus aquifer$fluidstatus2 = this.getAquiferStatus(k2);
-                        double d2 = d1 * this.calculatePressure(pContext, mutabledouble, aquifer$fluidstatus1, aquifer$fluidstatus2);
-                        if (pSubstance + d2 > 0.0D) {
-                            this.shouldScheduleFluidUpdate = false;
-                            return null;
-                        } else {
-                            Aquifer.FluidStatus aquifer$fluidstatus3 = this.getAquiferStatus(l2);
-                            double d0 = similarity(k1, i2);
-                            if (d0 > 0.0D) {
-                                double d3 = d1 * d0 * this.calculatePressure(pContext, mutabledouble, aquifer$fluidstatus1, aquifer$fluidstatus3);
-                                if (pSubstance + d3 > 0.0D) {
-                                    this.shouldScheduleFluidUpdate = false;
-                                    return null;
-                                }
-                            }
-
-                            double d4 = similarity(l1, i2);
-                            if (d4 > 0.0D) {
-                                double d5 = d1 * d4 * this.calculatePressure(pContext, mutabledouble, aquifer$fluidstatus2, aquifer$fluidstatus3);
-                                if (pSubstance + d5 > 0.0D) {
-                                    this.shouldScheduleFluidUpdate = false;
-                                    return null;
-                                }
-                            }
-
-                            this.shouldScheduleFluidUpdate = true;
-                            return this.filterWaterOutput(aquifer$fluidstatus1, blockstate);
-                        }
+                        return this.computePressureSubstance(pContext, pSubstance, aquifer$fluidstatus1,
+                                blockstate, k2, l2, d1, k1, l1, i2);
                     }
                 }
             }
         }
 
+        @Nullable
+        private BlockState computePressureSubstance(DensityFunction.FunctionContext context, double substance,
+                Aquifer.FluidStatus first, BlockState state, int secondIndex, int thirdIndex,
+                double firstSecondSimilarity, double firstDistance, double secondDistance, double thirdDistance) {
+            this.pressureNoise = Double.NaN;
+            Aquifer.FluidStatus second = this.getAquiferStatus(secondIndex);
+            double pressure = firstSecondSimilarity * this.calculatePressure(context, first, second);
+            if (substance + pressure > 0.0D) {
+                this.shouldScheduleFluidUpdate = false;
+                return null;
+            }
+            Aquifer.FluidStatus third = this.getAquiferStatus(thirdIndex);
+            double firstThirdSimilarity = similarity(firstDistance, thirdDistance);
+            if (firstThirdSimilarity > 0.0D) {
+                pressure = firstSecondSimilarity * firstThirdSimilarity * this.calculatePressure(context, first, third);
+                if (substance + pressure > 0.0D) {
+                    this.shouldScheduleFluidUpdate = false;
+                    return null;
+                }
+            }
+            double secondThirdSimilarity = similarity(secondDistance, thirdDistance);
+            if (secondThirdSimilarity > 0.0D) {
+                pressure = firstSecondSimilarity * secondThirdSimilarity * this.calculatePressure(context, second, third);
+                if (substance + pressure > 0.0D) {
+                    this.shouldScheduleFluidUpdate = false;
+                    return null;
+                }
+            }
+            this.shouldScheduleFluidUpdate = true;
+            return this.filterWaterOutput(first, state);
+        }
+
         public boolean shouldScheduleFluidUpdate() {
             return this.shouldScheduleFluidUpdate;
+        }
+
+        private long localCoordinate(Int1088 coordinate, boolean x) {
+            int offset = (int) (coordinate.lowLimb() & 15L);
+            Int1088[] local = x ? this.localX : this.localZ;
+            // Identity, not low bits alone, proves membership in this aligned chunk.
+            if (coordinate == local[offset]) return offset;
+            long difference = WorldBounds.signedDifferenceAsLong(coordinate, x ? this.originX : this.originZ);
+            if (difference == offset) local[offset] = coordinate;
+            return difference;
         }
 
         private Int1088 columnCoordinate(DensityFunction.FunctionContext context, boolean x) {
@@ -301,7 +322,7 @@ public interface Aquifer {
             return 1.0D - Math.abs(l1 - k1) / 25.0D;
         }
 
-        private double calculatePressure(DensityFunction.FunctionContext pContext, MutableDouble pSubstance, Aquifer.FluidStatus pFirstFluid, Aquifer.FluidStatus pSecondFluid) {
+        private double calculatePressure(DensityFunction.FunctionContext pContext, Aquifer.FluidStatus pFirstFluid, Aquifer.FluidStatus pSecondFluid) {
             int i = pContext.blockY();
             BlockState blockstate = pFirstFluid.at(i);
             BlockState blockstate1 = pSecondFluid.at(i);
@@ -340,10 +361,10 @@ public interface Aquifer {
                     double d16 = 2.0D;
                     double d12;
                     if (!(d10 < -2.0D) && !(d10 > 2.0D)) {
-                        double d13 = pSubstance.getValue();
+                        double d13 = this.pressureNoise;
                         if (Double.isNaN(d13)) {
                             double d14 = this.barrierNoise.compute(pContext);
-                            pSubstance.setValue(d14);
+                            this.pressureNoise = d14;
                             d12 = d14;
                         } else {
                             d12 = d13;
@@ -371,19 +392,12 @@ public interface Aquifer {
             return Math.floorDiv(pZ, 16);
         }
 
-        private Aquifer.FluidStatus getAquiferStatus(BlockPos j2) {
-            long i = j2.getX().limb(0); // Cached centers are chunk-local, bounded to a few cells.
-            int j = j2.getY();
-            long k = j2.getZ().limb(0);
-            long l = this.gridX(i);
-            int i1 = this.gridY(j);
-            long j1 = this.gridZ(k);
-            int k1 = this.getIndex(l, i1, j1);
+        private Aquifer.FluidStatus getAquiferStatus(int k1) {
             Aquifer.FluidStatus aquifer$fluidstatus = this.aquiferCache[k1];
             if (aquifer$fluidstatus != null) {
                 return aquifer$fluidstatus;
             } else {
-                Aquifer.FluidStatus aquifer$fluidstatus1 = this.computeFluid(i, j, k);
+                Aquifer.FluidStatus aquifer$fluidstatus1 = this.computeFluid(this.centerX[k1], this.centerY[k1], this.centerZ[k1]);
                 this.aquiferCache[k1] = aquifer$fluidstatus1;
                 return aquifer$fluidstatus1;
             }

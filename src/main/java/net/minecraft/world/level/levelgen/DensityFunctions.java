@@ -294,11 +294,14 @@ public final class DensityFunctions {
             this.argument1.fillArray(p_208414_, p_208415_);
             switch (this.type) {
                 case ADD:
-                    double[] adouble = new double[p_208414_.length];
-                    this.argument2.fillArray(adouble, p_208415_);
-
-                    for (int k = 0; k < p_208414_.length; ++k) {
-                        p_208414_[k] += adouble[k];
+                    double[] adouble = DensityArrayScratch.acquire(p_208414_.length);
+                    try {
+                        this.argument2.fillArray(adouble, p_208415_);
+                        for (int k = 0; k < p_208414_.length; ++k) {
+                            p_208414_[k] += adouble[k];
+                        }
+                    } finally {
+                        DensityArrayScratch.release(adouble);
                     }
                     break;
                 case MAX:

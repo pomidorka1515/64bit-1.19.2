@@ -153,16 +153,30 @@ public final class Int1088 implements Comparable<Int1088> {
     }
 
     public Int1088 addSaturated(Int1088 other) {
-        if (other.fitsLong() && other.l0 == 0L) return this;
-        if (this.fitsLong() && this.l0 == 0L) return other;
-        if (this.fitsLong() && other.fitsLong()) {
-            long a = this.lowLimb(), b = other.lowLimb(), r = a + b;
-            if (((a ^ r) & (b ^ r)) >= 0) return fromLong(r);
-        }
-        if (!this.fitsLong() && other.fitsLong()) return this.addLongSaturated(other.l0);
-        if (this.fitsLong() && !other.fitsLong()) return other.addLongSaturated(this.l0);
+        if (other.fitsLong()) return this.addSaturated(other.l0);
+        if (this.fitsLong()) return other.addSaturated(this.l0);
         long[] out = new long[LIMBS];
         return result(out, Int1088Math.addSaturated(this.words(), 0, this.limbCount(), other.words(), 0, other.limbCount(), out, 0));
+    }
+
+    /** Adds a local offset without first boxing it as a coordinate. */
+    public Int1088 addSaturated(long offset) {
+        if (offset == 0) return this;
+        if (this.fitsLong()) {
+            long r = this.l0 + offset;
+            if (((this.l0 ^ r) & (offset ^ r)) >= 0) return fromLong(r);
+            return new Int1088(r, this.l0 < 0 ? -1L : 0L);
+        }
+        if (this.length == 2) {
+            long low = this.l0 + offset;
+            long high = this.l1;
+            if (offset < 0 ? Long.compareUnsigned(low, this.l0) > 0
+                    : Long.compareUnsigned(low, this.l0) < 0) high += offset < 0 ? -1 : 1;
+            if (((this.l1 ^ high) & (offset ^ high)) >= 0) {
+                return high == (low >> 63) ? fromLong(low) : new Int1088(low, high);
+            }
+        }
+        return this.addLongSaturated(offset);
     }
 
     private Int1088 addLongSaturated(long offset) {
@@ -218,13 +232,24 @@ public final class Int1088 implements Comparable<Int1088> {
         if (this.fitsLong()) return fromLong(bits >= 64 ? this.lowLimb() >> 63 : this.lowLimb() >> bits);
         if (bits >= this.length * 64) return fromLong(this.signum() < 0 ? -1L : 0L);
         int words = bits >>> 6, shift = bits & 63;
-        long[] out = new long[this.length - words];
+        int length = this.length - words;
+        // A sub-word shift can discard at most one canonical sign word.
+        if (length > 1 && this.rightShiftWord(this.length - 1, shift)
+                == (this.rightShiftWord(this.length - 2, shift) >> 63)) --length;
+        if (length == 1) return fromLong(this.rightShiftWord(words, shift));
+        if (length == 2) return new Int1088(this.rightShiftWord(words, shift), this.rightShiftWord(words + 1, shift));
+        long[] out = new long[length];
         for (int i = 0; i < out.length; ++i) {
-            long lo = this.limb(i + words);
-            long hi = i + words + 1 < this.length ? this.limb(i + words + 1) : lo >> 63;
-            out[i] = shift == 0 ? lo : (lo >>> shift) | (hi << (64 - shift));
+            out[i] = this.rightShiftWord(i + words, shift);
         }
-        return ownedResult(out);
+        return new Int1088(out);
+    }
+
+    private long rightShiftWord(int index, int shift) {
+        long lo = this.limb(index);
+        if (shift == 0) return lo;
+        long hi = index + 1 < this.length ? this.limb(index + 1) : lo >> 63;
+        return (lo >>> shift) | (hi << (64 - shift));
     }
 
     public Int1088 shiftLeftSaturated(int bits) {

@@ -12,6 +12,14 @@ public final class Int1088Math {
     /** Shared physics-local precision guard, independent of the world-coordinate domain. */
     public static final long MAX_SAFE_LOCAL_SPAN = 1L << 20;
     private static final int N = Int1088.LIMBS;
+    private static final long[] POSITIVE_HASH_EXTENSION = hashExtension(0L);
+    private static final long[] NEGATIVE_HASH_EXTENSION = hashExtension(-1L);
+
+    private static long[] hashExtension(long sign) {
+        long[] mixed = new long[N];
+        for (int i = 0; i < N; ++i) mixed[i] = HashCommon.murmurHash3(sign + 0x9e3779b97f4a7c15L * (i + 1));
+        return mixed;
+    }
 
     private Int1088Math() {
     }
@@ -439,10 +447,11 @@ public final class Int1088Math {
 
     public static long hash(long[] a, int ao, int alen) {
         long h = 0xcbf29ce484222325L;
+        long[] extension = a[ao + alen - 1] < 0 ? NEGATIVE_HASH_EXTENSION : POSITIVE_HASH_EXTENSION;
         // Avalanche each word before folding: raw FNV folding preserves structured
         // high-bit differences, which can also disappear when folded to 32 bits.
         for (int i = 0; i < N; ++i) {
-            long mixed = HashCommon.murmurHash3(word(a, ao, alen, i) + 0x9e3779b97f4a7c15L * (i + 1));
+            long mixed = i < alen ? HashCommon.murmurHash3(a[ao + i] + 0x9e3779b97f4a7c15L * (i + 1)) : extension[i];
             h = (h ^ mixed) * 0x100000001b3L;
         }
         return HashCommon.murmurHash3(h);
@@ -460,11 +469,10 @@ public final class Int1088Math {
 
     /** The same full sign-extension fold as the primitive limb view. */
     public static long hash(long value) {
-        long h = 0xcbf29ce484222325L;
-        for (int i = 0; i < N; ++i) {
-            long word = i == 0 ? value : value >> 63;
-            long mixed = HashCommon.murmurHash3(word + 0x9e3779b97f4a7c15L * (i + 1));
-            h = (h ^ mixed) * 0x100000001b3L;
+        long h = (0xcbf29ce484222325L ^ HashCommon.murmurHash3(value + 0x9e3779b97f4a7c15L)) * 0x100000001b3L;
+        long[] extension = value < 0 ? NEGATIVE_HASH_EXTENSION : POSITIVE_HASH_EXTENSION;
+        for (int i = 1; i < N; ++i) {
+            h = (h ^ extension[i]) * 0x100000001b3L;
         }
         h = HashCommon.murmurHash3(h);
         return h;

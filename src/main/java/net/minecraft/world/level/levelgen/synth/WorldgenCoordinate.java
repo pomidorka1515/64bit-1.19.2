@@ -24,7 +24,7 @@ public final class WorldgenCoordinate {
     public static float toFloat(long[] limbs, int offset, int length) { return fitsLong(limbs, offset, length) ? (float)limbs[offset] : (float)toDouble(limbs, offset, length); }
     public static double toDouble(Int1088 value) { return value.fitsLong() ? (double)value.lowLimb() : value.toDoubleRounded(); }
     public static float toFloat(Int1088 value) { return value.fitsLong() ? (float)value.lowLimb() : (float)value.toDoubleRounded(); }
-    public static Int1088 add(Int1088 value, long offset) { return value.addSaturated(Int1088.fromLong(offset)); }
+    public static Int1088 add(Int1088 value, long offset) { return value.addSaturated(offset); }
     public static Int1088 add(Int1088 a, Int1088 b) { return a.addSaturated(b); }
     public static Int1088 subtract(Int1088 a, Int1088 b) { return a.subtractSaturated(b); }
     public static Int1088 shiftRight(Int1088 value, int bits) { return value.shiftRight(bits); }

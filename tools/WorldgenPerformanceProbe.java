@@ -25,8 +25,9 @@ public final class WorldgenPerformanceProbe {
             var biomes = MultiNoiseBiomeSource.Preset.OVERWORLD.biomeSource(BuiltinRegistries.BIOME);
             var generator = new NoiseBasedChunkGenerator(BuiltinRegistries.STRUCTURE_SETS, BuiltinRegistries.NOISE, biomes, settings);
             int repetitions = args.length == 0 ? 8 : Integer.parseInt(args[0]);
-            // Warm all address-width branches before measuring.
-            for (int i = 0; i < 3; ++i) for (int bits : new int[]{0, 160, 1024}) generate(generator, state, bits, i);
+            // An optional longer warmup separates steady-state work from JIT startup.
+            int warmup = args.length > 2 ? Integer.parseInt(args[2]) : 3;
+            for (int i = 0; i < warmup; ++i) for (int bits : new int[]{0, 160, 1024}) generate(generator, state, bits, i);
             try (var recording = new jdk.jfr.Recording(jdk.jfr.Configuration.getConfiguration("profile"))) {
                 recording.start();
                 var memory = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();

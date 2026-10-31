@@ -302,7 +302,7 @@ public class PalettedContainer<T> implements PaletteResize<T>, PalettedContainer
 
     static record Data<T>(PalettedContainer.Configuration<T> configuration, BitStorage storage, Palette<T> palette) {
         public void copyFrom(Palette<T> pPalette, BitStorage pBitStorage) {
-            for (int i = 0; i < pBitStorage.getSize(); ++i) {
+            for (int i = 0, size = pBitStorage.getSize(); i < size; ++i) {
                 T t = pPalette.valueFor(pBitStorage.get(i));
                 this.storage.set(i, this.palette.idFor(t));
             }

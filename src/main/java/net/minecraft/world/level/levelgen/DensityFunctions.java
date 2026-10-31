@@ -26,8 +26,10 @@ import net.minecraft.util.ToFloatFunction;
 import net.minecraft.util.VisibleForDebug;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.synth.BlendedNoise;
+import net.minecraft.world.level.levelgen.synth.CoordinatePrecision;
 import net.minecraft.world.level.levelgen.synth.FarlandsMode;
 import net.minecraft.world.level.levelgen.synth.GenerationContext;
+import net.minecraft.world.level.levelgen.synth.GeneratorConfig;
 import net.minecraft.world.level.levelgen.synth.GeneratorMode;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
 import net.minecraft.world.level.levelgen.synth.PreciseNoiseCoordinate;
@@ -1017,7 +1019,8 @@ public final class DensityFunctions {
             boolean stable = rotation != 0 && GenerationContext.current().mode().usesStableShifts();
             if (stable || FarlandsMode.usesPreciseCoordinates()) {
                 try (Int1088Scratch x = axis(context, true); Int1088Scratch z = axis(context, false); Int1088Scratch y = Int1088Scratch.acquire();
-                        GenerationContext ignored = GenerationContext.open(stable ? GenerationContext.current().withMode(GeneratorMode.PATCHED) : GenerationContext.current())) {
+                        GenerationContext ignored = GenerationContext.open(stable
+                                ? new GeneratorConfig(GeneratorMode.PATCHED, CoordinatePrecision.PRECISE) : GenerationContext.current())) {
                     y.copyFrom(Int1088.fromLong(rotation == 0 ? context.blockY() : 0));
                     return (rotation == 2
                             ? this.offsetNoise().getValueScaledAxes(z.limbs(), 0, z.length(), x.limbs(), 0, x.length(), y.limbs(), 0, y.length(), 0.25D)

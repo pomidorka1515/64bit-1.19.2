@@ -194,5 +194,49 @@ public final class PreciseNoiseCoordinate {
         public double fraction;
         /** Only populated after exact arithmetic classifies a signed-long overflow. */
         public double failureMagnitude = Double.NaN;
+        // Enough for an Int1088 times any finite double at ordinary noise octaves.
+        // Retained separately so the public modulo-2^64 arithmetic stays unchanged.
+        long[] extendedLattice = new long[35];
+        int extendedLength;
+
+        void addExtended(long offset) {
+            if (extendedLength == 0 || offset == 0) return;
+            long old = extendedLattice[0];
+            long sum = old + offset;
+            extendedLattice[0] = sum;
+            long carry = Long.compareUnsigned(sum, old) < 0 ? 1 : 0;
+            long extension = offset >> 63;
+            for (int i = 1; i < extendedLength; ++i) {
+                old = extendedLattice[i];
+                sum = old + extension + carry;
+                carry = carry == 0 ? (Long.compareUnsigned(sum, old) < 0 ? 1 : 0)
+                        : (Long.compareUnsigned(sum, old) <= 0 ? 1 : 0);
+                extendedLattice[i] = sum;
+            }
+        }
+
+        /** Hash each vertex, not each sample region, so adjoining cells share gradients. */
+        long vertexIndex(int step) {
+            long low = lattice + step;
+            if (extendedLength == 0) return low;
+            long hash = low;
+            long previous = low;
+            long carry = step != 0 && low == 0 ? 1 : 0;
+            boolean wide = false;
+            for (int i = 1; i < extendedLength; ++i) {
+                long word = extendedLattice[i] + carry;
+                carry = carry != 0 && word == 0 ? 1 : 0;
+                long extra = word ^ (previous >> 63);
+                if (extra != 0) {
+                    wide = true;
+                    hash ^= net.minecraft.world.level.levelgen.RandomSupport.mixStafford13(
+                            extra + i * 0x9e3779b97f4a7c15L);
+                }
+                previous = word;
+            }
+            // Keep the established signed-long domain, but do not introduce a
+            // new 256-cell period within each distant high-word region.
+            return wide ? net.minecraft.world.level.levelgen.RandomSupport.mixStafford13(hash) : low;
+        }
     }
 }

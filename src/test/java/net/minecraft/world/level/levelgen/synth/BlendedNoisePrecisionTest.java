@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Method;
+import net.minecraft.core.Int1088;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.levelgen.DensityFunction;
@@ -28,6 +29,25 @@ class BlendedNoisePrecisionTest {
 
     private static BlendedNoise netherNoise() {
         return new BlendedNoise(new LegacyRandomSource(1234L), 0.25D, 0.375D, 80.0D, 60.0D, 8.0D);
+    }
+
+    @Test
+    void fullWidthBaseTerrainDoesNotRepeatWithoutAnyClimateShifts() {
+        BlendedNoise noise = netherNoise();
+        try (GenerationContext ignored = GenerationContext.open(new GeneratorConfig(GeneratorMode.PATCHED, CoordinatePrecision.PRECISE))) {
+            for (int sign : new int[]{-1, 1}) for (boolean zAxis : new boolean[]{false, true}) {
+                boolean differs = false;
+                for (int offset = 0; offset < 256; offset += 17) {
+                    Int1088 a = Int1088.ONE.shiftLeftSaturated(1030).multiplySaturated(sign).add(Int1088.fromLong(offset));
+                    Int1088 b = Int1088.ONE.shiftLeftSaturated(1036).multiplySaturated(sign).add(Int1088.fromLong(offset));
+                    double first = noise.compute(new DensityFunction.SinglePointContext(zAxis ? Int1088.ZERO : a, 64, zAxis ? a : Int1088.ZERO));
+                    double second = noise.compute(new DensityFunction.SinglePointContext(zAxis ? Int1088.ZERO : b, 64, zAxis ? b : Int1088.ZERO));
+                    assertTrue(Double.isFinite(first) && Double.isFinite(second));
+                    differs |= first != second;
+                }
+                assertTrue(differs, "Repeated base terrain: sign=" + sign + ", Z=" + zAxis);
+            }
+        }
     }
 
     @Test

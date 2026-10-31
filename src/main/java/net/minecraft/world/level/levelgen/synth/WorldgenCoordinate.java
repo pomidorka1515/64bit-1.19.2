@@ -90,6 +90,7 @@ public final class WorldgenCoordinate {
 
     private static void scaleWide(long[] magnitude, int length, long signMask, double scale, int octave, long[] product, PreciseNoiseCoordinate.Split out) {
         out.failureMagnitude = Double.NaN;
+        out.extendedLength = 0;
         if (!Double.isFinite(scale) || scale == 0.0D) { out.lattice = 0; out.fraction = 0; return; }
         long magnitudeCarry = signMask & 1L;
         for (int i = 0; i < length; ++i) {
@@ -104,6 +105,7 @@ public final class WorldgenCoordinate {
         boolean negative = (signMask ^ bits) < 0;
         int len = Int1088Math.multiplyUnsigned(magnitude, 0, length, mantissa, product, 0);
         int productBits = (len - 1) * 64 + 64 - Long.numberOfLeadingZeros(product[len - 1]);
+        retainExtendedLattice(product, len, productBits, power, negative, out);
         if (productBits + power > 63 && GenerationContext.current().mode() != GeneratorMode.PATCHED) {
             double result = 0;
             for (int i = 0; i < len; ++i) {
@@ -143,9 +145,40 @@ public final class WorldgenCoordinate {
         }
         double fraction = fractionRounded(product, shift, fractionLength);
         if (negative && remainder && shift > 1152) fraction = 1.0D - fraction;
-        if (fraction >= 1.0D) { ++lattice; fraction = 0; }
+        if (fraction >= 1.0D) { ++lattice; out.addExtended(1); fraction = 0; }
         out.lattice = lattice;
         out.fraction = fraction;
+    }
+
+    private static void retainExtendedLattice(long[] product, int length, int productBits, long power,
+            boolean negative, PreciseNoiseCoordinate.Split out) {
+        GeneratorConfig config = GenerationContext.current();
+        if (productBits + power < 63 || config.mode() != GeneratorMode.PATCHED
+                || config.precision() != CoordinatePrecision.PRECISE) return;
+        // Include a sign word and room for the noise offset/corner carry.
+        int count = Math.toIntExact((productBits + power + 64) / 64 + 1);
+        if (count > out.extendedLattice.length) out.extendedLattice = new long[count];
+        out.extendedLength = count;
+        boolean remainder = false;
+        if (power < 0) {
+            for (int i = 0; i < length; ++i) {
+                if (maskBelow(product[i], (int)Math.max(0, Math.min(64, -power - 64L * i))) != 0) remainder = true;
+            }
+        }
+        long carry = negative && !remainder ? 1 : 0;
+        for (int i = 0; i < count; ++i) {
+            long sourceBit = 64L * i - power;
+            long sourceWord = Math.floorDiv(sourceBit, 64);
+            int bit = (int)sourceBit & 63;
+            long word = sourceWord >= 0 && sourceWord < length ? product[(int)sourceWord] >>> bit : 0;
+            if (bit != 0 && sourceWord + 1 >= 0 && sourceWord + 1 < length)
+                word |= product[(int)(sourceWord + 1)] << (64 - bit);
+            if (negative) {
+                word = ~word + carry;
+                carry = carry != 0 && word == 0 ? 1 : 0;
+            }
+            out.extendedLattice[i] = word;
+        }
     }
 
     private static double fractionRounded(long[] words, long shift, int length) {
@@ -203,6 +236,7 @@ public final class WorldgenCoordinate {
     /** Narrow path: retain the established 64-by-53-bit arithmetic. */
     public static void scale(long coordinate, double scale, int octave, PreciseNoiseCoordinate.Split out) {
         out.failureMagnitude = Double.NaN;
+        out.extendedLength = 0;
         if (!Double.isFinite(scale) || scale == 0.0D) {
             out.lattice = 0L;
             out.fraction = 0.0D;
@@ -218,6 +252,12 @@ public final class WorldgenCoordinate {
         long p0 = magnitude * mantissa;
         long p1 = multiplyHigh(magnitude, mantissa);
         int productBits = p1 != 0L ? 128 - Long.numberOfLeadingZeros(p1) : 64 - Long.numberOfLeadingZeros(p0);
+        if (productBits + (long)power >= 63 && GenerationContext.current().mode() == GeneratorMode.PATCHED) {
+            long[] product = SCALING.get().product;
+            product[0] = p0;
+            product[1] = p1;
+            retainExtendedLattice(product, 2, productBits, power, negative, out);
+        }
         if (productBits + power > 63 && GenerationContext.current().mode() != GeneratorMode.PATCHED) {
             double failure = Math.scalb(unsignedDouble(p0), power) + Math.scalb(unsignedDouble(p1), power + 64);
             out.failureMagnitude = negative ? -failure : failure;
@@ -242,14 +282,14 @@ public final class WorldgenCoordinate {
             double fraction = Math.scalb(unsignedDouble(r0), -shift)
                     + Math.scalb(unsignedDouble(r1), 64 - shift)
                     + Math.scalb(unsignedDouble(maskBelow(c2, shift - 128)), 128 - shift);
-            if (fraction >= 1.0D) { ++lattice; fraction = 0.0D; }
+            if (fraction >= 1.0D) { ++lattice; out.addExtended(1); fraction = 0.0D; }
             out.lattice = lattice;
             out.fraction = fraction;
             return;
         }
         double fraction = Math.scalb(unsignedDouble(r0), -shift) + Math.scalb(unsignedDouble(r1), 64 - shift);
         if (negative && remainder && shift > 192) fraction = 1.0D - fraction;
-        if (fraction >= 1.0D) { ++lattice; fraction = 0.0D; }
+        if (fraction >= 1.0D) { ++lattice; out.addExtended(1); fraction = 0.0D; }
         out.lattice = lattice;
         out.fraction = fraction;
     }

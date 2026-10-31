@@ -98,7 +98,8 @@ public final class ImprovedNoise {
             debugCellOffset = x.fraction;
             debugSmoothedOffset = Mth.smoothstep(x.fraction);
         }
-        return sampleAndLerp(x.lattice, y.lattice, z.lattice, x.fraction, y.fraction - smear, z.fraction, y.fraction);
+        return sampleAndLerp(x.vertexIndex(0), x.vertexIndex(1), y.vertexIndex(0), y.vertexIndex(1),
+                z.vertexIndex(0), z.vertexIndex(1), x.fraction, y.fraction - smear, z.fraction, y.fraction);
     }
 
     /** Precise split-coordinate variant retaining the legacy vertical smear operation. */
@@ -177,21 +178,27 @@ public final class ImprovedNoise {
     }
 
     private double sampleAndLerp(long pGridX, long pGridY, long pGridZ, double pDeltaX, double pWeirdDeltaY, double pDeltaZ, double pDeltaY) {
+        return sampleAndLerp(pGridX, pGridX + 1, pGridY, pGridY + 1, pGridZ, pGridZ + 1,
+                pDeltaX, pWeirdDeltaY, pDeltaZ, pDeltaY);
+    }
+
+    private double sampleAndLerp(long pGridX, long nextX, long pGridY, long nextY, long pGridZ, long nextZ,
+            double pDeltaX, double pWeirdDeltaY, double pDeltaZ, double pDeltaY) {
         NoiseSampling.observeFractions(pDeltaX, pDeltaY, pDeltaZ);
         int i = this.p(pGridX);
-        int j = this.p(pGridX + 1);
+        int j = this.p(nextX);
         int k = this.p(i + pGridY);
-        int l = this.p(i + pGridY + 1);
+        int l = this.p(i + nextY);
         int i1 = this.p(j + pGridY);
-        int j1 = this.p(j + pGridY + 1);
+        int j1 = this.p(j + nextY);
         double d0 = gradDot(this.p(k + pGridZ), pDeltaX, pWeirdDeltaY, pDeltaZ);
         double d1 = gradDot(this.p(i1 + pGridZ), pDeltaX - 1.0D, pWeirdDeltaY, pDeltaZ);
         double d2 = gradDot(this.p(l + pGridZ), pDeltaX, pWeirdDeltaY - 1.0D, pDeltaZ);
         double d3 = gradDot(this.p(j1 + pGridZ), pDeltaX - 1.0D, pWeirdDeltaY - 1.0D, pDeltaZ);
-        double d4 = gradDot(this.p(k + pGridZ + 1), pDeltaX, pWeirdDeltaY, pDeltaZ - 1.0D);
-        double d5 = gradDot(this.p(i1 + pGridZ + 1), pDeltaX - 1.0D, pWeirdDeltaY, pDeltaZ - 1.0D);
-        double d6 = gradDot(this.p(l + pGridZ + 1), pDeltaX, pWeirdDeltaY - 1.0D, pDeltaZ - 1.0D);
-        double d7 = gradDot(this.p(j1 + pGridZ + 1), pDeltaX - 1.0D, pWeirdDeltaY - 1.0D, pDeltaZ - 1.0D);
+        double d4 = gradDot(this.p(k + nextZ), pDeltaX, pWeirdDeltaY, pDeltaZ - 1.0D);
+        double d5 = gradDot(this.p(i1 + nextZ), pDeltaX - 1.0D, pWeirdDeltaY, pDeltaZ - 1.0D);
+        double d6 = gradDot(this.p(l + nextZ), pDeltaX, pWeirdDeltaY - 1.0D, pDeltaZ - 1.0D);
+        double d7 = gradDot(this.p(j1 + nextZ), pDeltaX - 1.0D, pWeirdDeltaY - 1.0D, pDeltaZ - 1.0D);
         double d8 = Mth.smoothstep(pDeltaX);
         double d9 = Mth.smoothstep(pDeltaY);
         double d10 = Mth.smoothstep(pDeltaZ);

@@ -10,6 +10,41 @@ import static org.junit.jupiter.api.Assertions.*;
 class WideNoiseEntryPointTest {
     @BeforeAll
     static void bootstrap() { net.minecraft.server.Bootstrap.bootStrap(); }
+
+    @Test
+    void distantUnshiftedTerrainDoesNotAliasAtPowersOfTwo() {
+        NormalNoise noise = NormalNoise.create(RandomSource.create(0), -9, 1, 1, 1);
+        try (GenerationContext ignored = GenerationContext.open(new GeneratorConfig(GeneratorMode.PATCHED, CoordinatePrecision.PRECISE))) {
+            for (int sign : new int[]{-1, 1}) {
+                for (boolean zAxis : new boolean[]{false, true}) {
+                    double[] first = new double[32], second = new double[32];
+                    for (int i = 0; i < first.length; ++i) {
+                        Int1088 a = Int1088.ONE.shiftLeftSaturated(1030).multiplySaturated(sign).add(Int1088.fromLong(i * 17));
+                        Int1088 b = Int1088.ONE.shiftLeftSaturated(1036).multiplySaturated(sign).add(Int1088.fromLong(i * 17));
+                        first[i] = noise.getValueScaled(zAxis ? Int1088.ZERO : a, .25, 64, .25, zAxis ? a : Int1088.ZERO);
+                        second[i] = noise.getValueScaled(zAxis ? Int1088.ZERO : b, .25, 64, .25, zAxis ? b : Int1088.ZERO);
+                    }
+                    assertFalse(java.util.Arrays.equals(first, second), "Repeated unshifted terrain: sign=" + sign + ", Z=" + zAxis);
+                }
+            }
+        }
+    }
+
+    @Test
+    void distantUnshiftedNoiseDoesNotRepeatInsideOneHighWordRegion() {
+        PerlinNoise noise = PerlinNoise.create(RandomSource.create(0), 0, 1);
+        try (GenerationContext ignored = GenerationContext.open(new GeneratorConfig(GeneratorMode.PATCHED, CoordinatePrecision.PRECISE))) {
+            Int1088 origin = Int1088.ONE.shiftLeftSaturated(1030);
+            boolean differs = false;
+            for (int i = 0; i < 32; ++i) {
+                Int1088 a = origin.add(Int1088.fromLong(i));
+                Int1088 b = a.add(Int1088.fromLong(256));
+                differs |= noise.getValueScaled(a, 1, 0, Int1088.ZERO, 1, .3, Int1088.ZERO, .4)
+                        != noise.getValueScaled(b, 1, 0, Int1088.ZERO, 1, .3, Int1088.ZERO, .4);
+            }
+            assertTrue(differs, "Discarding low-word bits above bit 7 creates a 256-cell repeat");
+        }
+    }
     @Test
     void narrowPathsPreserveExistingValues() {
         NormalNoise normal = NormalNoise.create(RandomSource.create(4), -2, 1, 1);

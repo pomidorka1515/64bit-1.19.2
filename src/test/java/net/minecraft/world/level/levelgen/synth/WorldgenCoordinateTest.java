@@ -88,4 +88,35 @@ class WorldgenCoordinateTest {
         }
         assertTrue(bean.getThreadAllocatedBytes(id) - before < 1024L);
     }
+
+    @Test
+    void patchedFullWidthCornerLookupDoesNotAllocateAfterWarmup() {
+        var bean = (com.sun.management.ThreadMXBean) java.lang.management.ManagementFactory.getThreadMXBean();
+        org.junit.jupiter.api.Assumptions.assumeTrue(bean.isThreadAllocatedMemorySupported());
+        bean.setThreadAllocatedMemoryEnabled(true);
+        var out = new PreciseNoiseCoordinate.Split();
+        long[] limbs = new long[Int1088.LIMBS];
+        limbs[16] = 1L << 6;
+        try (GenerationContext ignored = GenerationContext.open(new GeneratorConfig(GeneratorMode.PATCHED, CoordinatePrecision.PRECISE))) {
+            for (int i = 0; i < 100000; ++i) {
+                limbs[0] = i;
+                WorldgenCoordinate.scale(limbs, 0, limbs.length, 684.412D, -7, out);
+                out.addExtended(255);
+                out.lattice += 255;
+                out.vertexIndex(0);
+                out.vertexIndex(1);
+            }
+            long id = Thread.currentThread().getId();
+            long before = bean.getThreadAllocatedBytes(id);
+            for (int i = 0; i < 10000; ++i) {
+                limbs[0] = i;
+                WorldgenCoordinate.scale(limbs, 0, limbs.length, 684.412D, -7, out);
+                out.addExtended(255);
+                out.lattice += 255;
+                out.vertexIndex(0);
+                out.vertexIndex(1);
+            }
+            assertTrue(bean.getThreadAllocatedBytes(id) - before < 1024L);
+        }
+    }
 }

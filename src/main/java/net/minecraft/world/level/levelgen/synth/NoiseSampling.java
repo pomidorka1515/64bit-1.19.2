@@ -108,6 +108,7 @@ public final class NoiseSampling {
             axis.lattice = floor;
             axis.fraction = failure - (double) floor;
         } else {
+            axis.addExtended(carry);
             axis.lattice = cell;
             axis.fraction = local - Math.floor(local);
         }

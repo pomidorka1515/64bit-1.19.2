@@ -69,13 +69,13 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class DebugScreenOverlay extends GuiComponent {
-    private static final int COLOR_GREY = 14737632;
     private static final int MARGIN_RIGHT = 2;
     private static final int MARGIN_LEFT = 2;
     private static final int MARGIN_TOP = 2;
     private final Minecraft minecraft;
     private final DebugScreenOverlay.AllocationRateCalculator allocationRateCalculator;
     private final Font font;
+    private final DebugTextRenderer textRenderer;
     private HitResult block;
     private HitResult liquid;
     @Nullable
@@ -105,6 +105,7 @@ public class DebugScreenOverlay extends GuiComponent {
         this.minecraft = pMinecraft;
         this.allocationRateCalculator = new DebugScreenOverlay.AllocationRateCalculator();
         this.font = pMinecraft.font;
+        this.textRenderer = new DebugTextRenderer(this.font);
     }
 
     public void clearChunkCache() {
@@ -113,12 +114,14 @@ public class DebugScreenOverlay extends GuiComponent {
     }
 
     public void render(PoseStack pPoseStack) {
+        this.textRenderer.beginFrame();
         this.minecraft.getProfiler().push("debug");
         Entity entity = this.minecraft.getCameraEntity();
         this.block = entity.pick(20.0D, 0.0F, false);
         this.liquid = entity.pick(20.0D, 0.0F, true);
         this.drawGameInformation(pPoseStack);
         this.drawSystemInformation(pPoseStack);
+        this.textRenderer.endFrame();
         if (this.minecraft.options.renderFpsChart) {
             int i = this.minecraft.getWindow().getGuiScaledWidth();
             this.drawChart(pPoseStack, this.minecraft.getFrameTimer(), 0, i / 2, true);
@@ -129,6 +132,10 @@ public class DebugScreenOverlay extends GuiComponent {
         }
 
         this.minecraft.getProfiler().pop();
+    }
+
+    public void releaseTextCache() {
+        this.textRenderer.close();
     }
 
     protected void drawGameInformation(PoseStack pPoseStack) {
@@ -145,7 +152,7 @@ public class DebugScreenOverlay extends GuiComponent {
         int divider = informationDivider(window.getWidth());
         if (!right) {
             int widestLine = 0;
-            for (String line : lines) widestLine = Math.max(widestLine, this.font.width(line));
+            for (String line : lines) widestLine = Math.max(widestLine, this.textRenderer.width(line));
             float pixelScale = DebugInformationLayout.singleColumnScale(widestLine, lines.size(),
                     divider, window.getHeight(), window.getGuiScale());
             float scale = (float) (pixelScale / window.getGuiScale());
@@ -154,11 +161,11 @@ public class DebugScreenOverlay extends GuiComponent {
             pPoseStack.scale(scale, scale, 1.0F);
             for (int i = 0; i < lines.size(); ++i) {
                 String text = lines.get(i);
-                int textWidth = this.font.width(text);
+                int textWidth = this.textRenderer.width(text);
                 int y = 2 + i * 9;
                 if (textWidth == 0) continue;
                 fill(pPoseStack, 1, y - 1, textWidth + 3, y + 8, -1873784752);
-                this.font.draw(pPoseStack, text, 2.0F, (float) y, COLOR_GREY);
+                this.textRenderer.draw(pPoseStack, text, 2, y);
             }
             pPoseStack.popPose();
             return;
@@ -166,20 +173,18 @@ public class DebugScreenOverlay extends GuiComponent {
         int origin = right ? divider : 0;
         int width = right ? window.getWidth() - divider : divider;
         var layout = DebugInformationLayout.arrange(lines, width, window.getHeight(),
-                (int) window.getGuiScale(), (text, wrapWidth) -> text.isEmpty()
-                        ? List.of(net.minecraft.util.FormattedCharSequence.EMPTY)
-                        : this.font.split(net.minecraft.network.chat.Component.literal(text), wrapWidth));
+                (int) window.getGuiScale(), this.textRenderer::wrap);
         float scale = (float) (layout.pixelScale() / window.getGuiScale());
         pPoseStack.pushPose();
         pPoseStack.scale(scale, scale, 1.0F);
         for (int i = 0; i < layout.lines().size(); ++i) {
             var text = layout.lines().get(i);
-            int textWidth = this.font.width(text);
+            int textWidth = this.textRenderer.width(text);
             int x = origin / layout.pixelScale() + layout.textX(i, textWidth, right);
             int y = 2 + (i % layout.rows()) * 9;
             if (textWidth == 0) continue;
             fill(pPoseStack, x - 1, y - 1, x + textWidth + 1, y + 8, -1873784752);
-            this.font.draw(pPoseStack, text, (float) x, (float) y, 14737632);
+            this.textRenderer.draw(pPoseStack, text, x, y);
         }
         pPoseStack.popPose();
     }

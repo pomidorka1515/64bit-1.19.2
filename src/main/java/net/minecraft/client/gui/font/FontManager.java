@@ -38,6 +38,7 @@ public class FontManager implements AutoCloseable {
     final Map<ResourceLocation, FontSet> fontSets = Maps.newHashMap();
     final TextureManager textureManager;
     private Map<ResourceLocation, ResourceLocation> renames = ImmutableMap.of();
+    private long resourceVersion;
     private final PreparableReloadListener reloadListener = new SimplePreparableReloadListener<Map<ResourceLocation, List<GlyphProvider>>>() {
         protected Map<ResourceLocation, List<GlyphProvider>> prepare(ResourceManager p_95024_, ProfilerFiller p_95025_) {
             p_95025_.startTick();
@@ -132,6 +133,7 @@ public class FontManager implements AutoCloseable {
         }
 
         protected void apply(Map<ResourceLocation, List<GlyphProvider>> p_95036_, ResourceManager p_95037_, ProfilerFiller p_95038_) {
+            ++FontManager.this.resourceVersion;
             p_95038_.startTick();
             p_95038_.push("closing");
             FontManager.this.fontSets.values().forEach(FontSet::close);
@@ -160,18 +162,19 @@ public class FontManager implements AutoCloseable {
 
     public void setRenames(Map<ResourceLocation, ResourceLocation> pUnicodeForcedMap) {
         this.renames = pUnicodeForcedMap;
+        ++this.resourceVersion;
     }
 
     public Font createFont() {
         return new Font((p_95014_) -> {
             return this.fontSets.getOrDefault(this.renames.getOrDefault(p_95014_, p_95014_), this.missingFontSet);
-        }, false);
+        }, false, () -> this.resourceVersion);
     }
 
     public Font createFontFilterFishy() {
         return new Font((p_243145_) -> {
             return this.fontSets.getOrDefault(this.renames.getOrDefault(p_243145_, p_243145_), this.missingFontSet);
-        }, true);
+        }, true, () -> this.resourceVersion);
     }
 
     public PreparableReloadListener getReloadListener() {

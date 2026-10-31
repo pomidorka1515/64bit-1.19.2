@@ -124,7 +124,12 @@ public class FontSet implements AutoCloseable {
     }
 
     public GlyphInfo getGlyphInfo(int pCharacter, boolean pFilterFishyGlyphs) {
-        return this.glyphInfos.computeIfAbsent(pCharacter, this::computeGlyphInfo).select(pFilterFishyGlyphs);
+        FontSet.GlyphInfoFilter info = this.glyphInfos.get(pCharacter);
+        if (info == null) {
+            info = this.computeGlyphInfo(pCharacter);
+            this.glyphInfos.put(pCharacter, info);
+        }
+        return info.select(pFilterFishyGlyphs);
     }
 
     private BakedGlyph computeBakedGlyph(int p_232565_) {
@@ -139,7 +144,12 @@ public class FontSet implements AutoCloseable {
     }
 
     public BakedGlyph getGlyph(int pCharacter) {
-        return this.glyphs.computeIfAbsent(pCharacter, this::computeBakedGlyph);
+        BakedGlyph glyph = this.glyphs.get(pCharacter);
+        if (glyph == null) {
+            glyph = this.computeBakedGlyph(pCharacter);
+            this.glyphs.put(pCharacter, glyph);
+        }
+        return glyph;
     }
 
     private BakedGlyph stitch(SheetGlyphInfo p_232557_) {

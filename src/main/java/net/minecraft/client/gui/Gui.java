@@ -244,6 +244,8 @@ public class Gui extends GuiComponent {
         this.renderEffects(pPoseStack);
         if (this.minecraft.options.renderDebug) {
             this.debugScreen.render(pPoseStack);
+        } else {
+            this.debugScreen.releaseTextCache();
         }
 
         if (!this.minecraft.options.hideGui) {
@@ -1214,6 +1216,7 @@ public class Gui extends GuiComponent {
     }
 
     public void onDisconnected() {
+        this.debugScreen.releaseTextCache();
         this.tabList.reset();
         this.bossOverlay.reset();
         this.minecraft.getToasts().clear();

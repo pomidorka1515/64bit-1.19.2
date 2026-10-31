@@ -13,6 +13,7 @@ import com.mojang.math.Transformation;
 import com.mojang.math.Vector3f;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.LongSupplier;
 import javax.annotation.Nullable;
 import net.minecraft.client.StringSplitter;
 import net.minecraft.client.gui.font.FontSet;
@@ -43,9 +44,15 @@ public class Font {
     private final Function<ResourceLocation, FontSet> fonts;
     final boolean filterFishyGlyphs;
     private final StringSplitter splitter;
+    private final LongSupplier resourceVersion;
 
     public Font(Function<ResourceLocation, FontSet> pFonts, boolean pFilterFishyGlyphs) {
+        this(pFonts, pFilterFishyGlyphs, () -> 0L);
+    }
+
+    public Font(Function<ResourceLocation, FontSet> pFonts, boolean pFilterFishyGlyphs, LongSupplier resourceVersion) {
         this.fonts = pFonts;
+        this.resourceVersion = resourceVersion;
         this.filterFishyGlyphs = pFilterFishyGlyphs;
         this.splitter = new StringSplitter((p_92722_, p_92723_) -> {
             return this.getFontSet(p_92723_.getFont()).getGlyphInfo(p_92722_, this.filterFishyGlyphs).getAdvance(p_92723_.isBold());
@@ -54,6 +61,11 @@ public class Font {
 
     FontSet getFontSet(ResourceLocation pFontLocation) {
         return this.fonts.apply(pFontLocation);
+    }
+
+    /** Changes when the managed glyph atlases or font aliases are replaced. */
+    public long resourceVersion() {
+        return this.resourceVersion.getAsLong();
     }
 
     public int drawShadow(PoseStack pPoseStack, String pText, float pX, float pY, int pColor) {
@@ -166,8 +178,9 @@ public class Font {
         }
 
         pColor = adjustColor(pColor);
-        Matrix4f matrix4f = pMatrix.copy();
+        Matrix4f matrix4f = pMatrix;
         if (pDropShadow) {
+            matrix4f = pMatrix.copy();
             this.renderText(pText, pX, pY, pColor, true, pMatrix, pBuffer, pTransparent, pColorBackground, pPackedLight);
             matrix4f.translate(SHADOW_OFFSET);
         }
@@ -178,8 +191,9 @@ public class Font {
 
     private int drawInternal(FormattedCharSequence pProcessor, float pX, float pY, int pColor, boolean pDrawShadow, Matrix4f pMatrix, MultiBufferSource pBuffer, boolean pTransparent, int pColorBackground, int pPackedLight) {
         pColor = adjustColor(pColor);
-        Matrix4f matrix4f = pMatrix.copy();
+        Matrix4f matrix4f = pMatrix;
         if (pDrawShadow) {
+            matrix4f = pMatrix.copy();
             this.renderText(pProcessor, pX, pY, pColor, true, pMatrix, pBuffer, pTransparent, pColorBackground, pPackedLight);
             matrix4f.translate(SHADOW_OFFSET);
         }
@@ -279,6 +293,8 @@ public class Font {
         private final Matrix4f pose;
         private final Font.DisplayMode mode;
         private final int packedLightCoords;
+        private ResourceLocation lastFontLocation;
+        private FontSet lastFontSet;
         float x;
         float y;
         @Nullable
@@ -312,7 +328,12 @@ public class Font {
         }
 
         public boolean accept(int pPositionInCurrentSequence, Style pStyle, int pCodePoint) {
-            FontSet fontset = Font.this.getFontSet(pStyle.getFont());
+            ResourceLocation fontLocation = pStyle.getFont();
+            if (!fontLocation.equals(this.lastFontLocation)) {
+                this.lastFontLocation = fontLocation;
+                this.lastFontSet = Font.this.getFontSet(fontLocation);
+            }
+            FontSet fontset = this.lastFontSet;
             GlyphInfo glyphinfo = fontset.getGlyphInfo(pCodePoint, Font.this.filterFishyGlyphs);
             BakedGlyph bakedglyph = pStyle.isObfuscated() && pCodePoint != 32 ? fontset.getRandomGlyph(glyphinfo) : fontset.getGlyph(pCodePoint);
             boolean flag = pStyle.isBold();

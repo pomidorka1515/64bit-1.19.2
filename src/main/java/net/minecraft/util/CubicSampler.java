@@ -18,7 +18,10 @@ public class CubicSampler {
         double d1 = p_130039_.y() - (double) j;
         double d2 = p_130039_.z() - (double) k;
         double d3 = 0.0D;
-        Vec3 vec3 = Vec3.ZERO;
+        double sumX = 0.0D;
+        double sumY = 0.0D;
+        double sumZ = 0.0D;
+        Vec3 customSum = null;
 
         for (int l = 0; l < 6; ++l) {
             double d4 = Mth.lerp(d0, GAUSSIAN_SAMPLE_KERNEL[l + 1], GAUSSIAN_SAMPLE_KERNEL[l]);
@@ -33,12 +36,23 @@ public class CubicSampler {
                     long i2 = k - 2L + (long) l1;
                     double d7 = d4 * d5 * d6;
                     d3 += d7;
-                    vec3 = vec3.add(p_130040_.fetch(i1, k1, i2).scale(d7));
+                    Vec3 sample = p_130040_.fetch(i1, k1, i2);
+                    if (sample.getClass() == Vec3.class && customSum == null) {
+                        // Match scale followed by add, without two temporary vectors.
+                        sumX += sample.x * d7;
+                        sumY += sample.y * d7;
+                        sumZ += sample.z * d7;
+                    } else {
+                        // Preserve virtual scale/add behavior for specialized vectors.
+                        Vec3 sum = customSum == null ? new Vec3(sumX, sumY, sumZ) : customSum;
+                        customSum = sum.add(sample.scale(d7));
+                    }
                 }
             }
         }
 
-        return vec3.scale(1.0D / d3);
+        double scale = 1.0D / d3;
+        return customSum == null ? new Vec3(sumX * scale, sumY * scale, sumZ * scale) : customSum.scale(scale);
     }
 
     @FunctionalInterface

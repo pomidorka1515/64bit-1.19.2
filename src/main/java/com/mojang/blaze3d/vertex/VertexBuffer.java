@@ -13,6 +13,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class VertexBuffer implements AutoCloseable {
+    private static final String[] SAMPLER_NAMES = {
+        "Sampler0", "Sampler1", "Sampler2", "Sampler3", "Sampler4", "Sampler5",
+        "Sampler6", "Sampler7", "Sampler8", "Sampler9", "Sampler10", "Sampler11"
+    };
     private int vertexBufferId;
     private int indexBufferId;
     private int arrayObjectId;
@@ -119,7 +123,7 @@ public class VertexBuffer implements AutoCloseable {
     private void _drawWithShader(Matrix4f pModelViewMatrix, Matrix4f pProjectionMatrix, ShaderInstance pShaderInstance) {
         for (int i = 0; i < 12; ++i) {
             int j = RenderSystem.getShaderTexture(i);
-            pShaderInstance.setSampler("Sampler" + i, j);
+            pShaderInstance.setSampler(SAMPLER_NAMES[i], j);
         }
 
         if (pShaderInstance.MODEL_VIEW_MATRIX != null) {

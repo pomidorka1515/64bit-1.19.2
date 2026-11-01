@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 @OnlyIn(Dist.CLIENT)
 public class BufferBuilder extends DefaultedVertexConsumer implements BufferVertexConsumer {
     private static final int GROWTH_SIZE = 2097152;
+    private static final int MAX_SORT_SCRATCH_QUADS = 16384;
     private static final Logger LOGGER = LogUtils.getLogger();
     private ByteBuffer buffer;
     private int renderedBufferCount;
@@ -41,6 +42,12 @@ public class BufferBuilder extends DefaultedVertexConsumer implements BufferVert
     private boolean building;
     @Nullable
     private Vector3f[] sortingPoints;
+    @Nullable
+    private float[] sortingDistances;
+    @Nullable
+    private int[] sortingIndices;
+    @Nullable
+    private int[] sortingSupport;
     private float sortX = Float.NaN;
     private float sortY = Float.NaN;
     private float sortZ = Float.NaN;
@@ -182,22 +189,45 @@ public class BufferBuilder extends DefaultedVertexConsumer implements BufferVert
     }
 
     private void putSortedQuadIndices(VertexFormat.IndexType pIndexType) {
-        float[] afloat = new float[this.sortingPoints.length];
-        int[] aint = new int[this.sortingPoints.length];
+        int count = this.sortingPoints.length;
+        float[] afloat;
+        int[] aint;
+        int[] support;
+        if (count <= MAX_SORT_SCRATCH_QUADS) {
+            if (this.sortingDistances == null || this.sortingDistances.length < count) {
+                int capacity = Integer.highestOneBit(Math.max(1, count) - 1) << 1;
+                capacity = Math.max(1, capacity);
+                this.sortingDistances = new float[capacity];
+                this.sortingIndices = new int[capacity];
+                this.sortingSupport = new int[capacity];
+            }
+            afloat = this.sortingDistances;
+            aint = this.sortingIndices;
+            support = this.sortingSupport;
+        } else {
+            // Unusually large batches must not permanently enlarge every builder.
+            afloat = new float[count];
+            aint = new int[count];
+            support = new int[count];
+        }
 
-        for (int i = 0; i < this.sortingPoints.length; aint[i] = i++) {
+        for (int i = 0; i < count; i++) {
             float f = this.sortingPoints[i].x() - this.sortX;
             float f1 = this.sortingPoints[i].y() - this.sortY;
             float f2 = this.sortingPoints[i].z() - this.sortZ;
             afloat[i] = f * f + f1 * f1 + f2 * f2;
+            // Merge sort alternates source/destination; both need fresh indices.
+            aint[i] = i;
+            support[i] = i;
         }
 
-        IntArrays.mergeSort(aint, (p_166784_, p_166785_) -> {
+        IntArrays.mergeSort(aint, 0, count, (p_166784_, p_166785_) -> {
             return Floats.compare(afloat[p_166785_], afloat[p_166784_]);
-        });
+        }, support);
         IntConsumer intconsumer = this.intConsumer(this.nextElementByte, pIndexType);
 
-        for (int j : aint) {
+        for (int index = 0; index < count; index++) {
+            int j = aint[index];
             intconsumer.accept(j * this.mode.primitiveStride + 0);
             intconsumer.accept(j * this.mode.primitiveStride + 1);
             intconsumer.accept(j * this.mode.primitiveStride + 2);

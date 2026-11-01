@@ -417,7 +417,62 @@ public final class Matrix4f {
     }
 
     public void multiply(Quaternion pQuaternion) {
-        this.multiply(new Matrix4f(pQuaternion));
+        float x = pQuaternion.i();
+        float y = pQuaternion.j();
+        float z = pQuaternion.k();
+        float w = pQuaternion.r();
+        float xx = 2.0F * x * x;
+        float yy = 2.0F * y * y;
+        float zz = 2.0F * z * z;
+        float xy = x * y;
+        float yz = y * z;
+        float zx = z * x;
+        float xw = x * w;
+        float yw = y * w;
+        float zw = z * w;
+        float r00 = 1.0F - yy - zz;
+        float r11 = 1.0F - zz - xx;
+        float r22 = 1.0F - xx - yy;
+        float r10 = 2.0F * (xy + zw);
+        float r01 = 2.0F * (xy - zw);
+        float r20 = 2.0F * (zx - yw);
+        float r02 = 2.0F * (zx + yw);
+        float r21 = 2.0F * (yz + xw);
+        float r12 = 2.0F * (yz - xw);
+
+        // Zero/one terms are intentional: preserve signed-zero and non-finite behavior.
+        float f = this.m00 * r00 + this.m01 * r10 + this.m02 * r20 + this.m03 * 0.0F;
+        float f1 = this.m00 * r01 + this.m01 * r11 + this.m02 * r21 + this.m03 * 0.0F;
+        float f2 = this.m00 * r02 + this.m01 * r12 + this.m02 * r22 + this.m03 * 0.0F;
+        float f3 = this.m00 * 0.0F + this.m01 * 0.0F + this.m02 * 0.0F + this.m03 * 1.0F;
+        float f4 = this.m10 * r00 + this.m11 * r10 + this.m12 * r20 + this.m13 * 0.0F;
+        float f5 = this.m10 * r01 + this.m11 * r11 + this.m12 * r21 + this.m13 * 0.0F;
+        float f6 = this.m10 * r02 + this.m11 * r12 + this.m12 * r22 + this.m13 * 0.0F;
+        float f7 = this.m10 * 0.0F + this.m11 * 0.0F + this.m12 * 0.0F + this.m13 * 1.0F;
+        float f8 = this.m20 * r00 + this.m21 * r10 + this.m22 * r20 + this.m23 * 0.0F;
+        float f9 = this.m20 * r01 + this.m21 * r11 + this.m22 * r21 + this.m23 * 0.0F;
+        float f10 = this.m20 * r02 + this.m21 * r12 + this.m22 * r22 + this.m23 * 0.0F;
+        float f11 = this.m20 * 0.0F + this.m21 * 0.0F + this.m22 * 0.0F + this.m23 * 1.0F;
+        float f12 = this.m30 * r00 + this.m31 * r10 + this.m32 * r20 + this.m33 * 0.0F;
+        float f13 = this.m30 * r01 + this.m31 * r11 + this.m32 * r21 + this.m33 * 0.0F;
+        float f14 = this.m30 * r02 + this.m31 * r12 + this.m32 * r22 + this.m33 * 0.0F;
+        float f15 = this.m30 * 0.0F + this.m31 * 0.0F + this.m32 * 0.0F + this.m33 * 1.0F;
+        this.m00 = f;
+        this.m01 = f1;
+        this.m02 = f2;
+        this.m03 = f3;
+        this.m10 = f4;
+        this.m11 = f5;
+        this.m12 = f6;
+        this.m13 = f7;
+        this.m20 = f8;
+        this.m21 = f9;
+        this.m22 = f10;
+        this.m23 = f11;
+        this.m30 = f12;
+        this.m31 = f13;
+        this.m32 = f14;
+        this.m33 = f15;
     }
 
     public void multiply(float pMultiplier) {

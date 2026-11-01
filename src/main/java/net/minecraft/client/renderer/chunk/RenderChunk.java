@@ -1,8 +1,6 @@
 package net.minecraft.client.renderer.chunk;
 
 import com.google.common.collect.ImmutableMap;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 import net.minecraft.CrashReport;
@@ -24,24 +22,33 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 class RenderChunk {
     private final Map<BlockPos, BlockEntity> blockEntities;
     @Nullable
-    private final List<PalettedContainer<BlockState>> sections;
+    private final PalettedContainer<BlockState>[] sections;
+    private final int minSection;
     private final boolean debug;
     private final LevelChunk wrapped;
 
     RenderChunk(LevelChunk pWrapped) {
         this.wrapped = pWrapped;
+        this.minSection = pWrapped.getMinSection();
         this.debug = pWrapped.getLevel().isDebug();
         this.blockEntities = ImmutableMap.copyOf(pWrapped.getBlockEntities());
         if (pWrapped instanceof EmptyLevelChunk) {
             this.sections = null;
         } else {
-            LevelChunkSection[] alevelchunksection = pWrapped.getSections();
-            this.sections = new ArrayList<>(alevelchunksection.length);
-
-            for (LevelChunkSection levelchunksection : alevelchunksection) {
-                this.sections.add(levelchunksection.hasOnlyAir() ? null : levelchunksection.getStates().copy());
-            }
+            this.sections = copySections(pWrapped.getSections());
         }
+    }
+
+    static PalettedContainer<BlockState>[] copySections(LevelChunkSection[] sections) {
+        PalettedContainer<BlockState>[] copies = new PalettedContainer[sections.length];
+        for (int i = 0; i < sections.length; ++i) {
+            copies[i] = sections[i].hasOnlyAir() ? null : sections[i].getStates().copy();
+        }
+        return copies;
+    }
+
+    static int sectionIndex(int blockY, int minSection) {
+        return (blockY >> 4) - minSection;
     }
 
     @Nullable
@@ -70,9 +77,9 @@ class RenderChunk {
             return Blocks.AIR.defaultBlockState();
         } else {
             try {
-                int l = this.wrapped.getSectionIndex(j);
-                if (l >= 0 && l < this.sections.size()) {
-                    PalettedContainer<BlockState> palettedcontainer = this.sections.get(l);
+                int l = sectionIndex(j, this.minSection);
+                if (l >= 0 && l < this.sections.length) {
+                    PalettedContainer<BlockState> palettedcontainer = this.sections[l];
                     if (palettedcontainer != null) {
                         return palettedcontainer.get((int) (i & 15), j & 15, (int) (k & 15));
                     }

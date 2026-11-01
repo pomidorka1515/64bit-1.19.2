@@ -49,7 +49,7 @@ public class ClientChunkCache extends ChunkSource {
     }
 
     private static boolean isValidChunk(@Nullable LevelChunk pChunk, long pX, long pZ) {
-        return isValidChunk(pChunk, net.minecraft.core.Int1088.fromLong(pX), net.minecraft.core.Int1088.fromLong(pZ));
+        return pChunk != null && pChunk.getPos().equals(pX, pZ);
     }
 
     private static boolean isValidChunk(@Nullable LevelChunk pChunk, net.minecraft.core.Int1088 pX, net.minecraft.core.Int1088 pZ) {
@@ -57,7 +57,7 @@ public class ClientChunkCache extends ChunkSource {
             return false;
         } else {
             ChunkPos chunkpos = pChunk.getPos();
-            return chunkpos.x().equals(pX) && chunkpos.z().equals(pZ);
+            return chunkpos.equals(pX, pZ);
         }
     }
 

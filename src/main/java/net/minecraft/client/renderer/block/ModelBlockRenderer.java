@@ -584,7 +584,7 @@ public class ModelBlockRenderer {
 
         public float getShadeBrightness(BlockState pState, BlockAndTintGetter pLevel, BlockPos pPos) {
             if (this.enabled) {
-                float f = this.brightnessCache.get(pPos);
+                float f = this.brightnessCache.getFloat(pPos);
                 if (!Float.isNaN(f)) {
                     return f;
                 }

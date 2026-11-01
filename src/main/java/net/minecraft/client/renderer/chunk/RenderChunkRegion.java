@@ -73,6 +73,13 @@ public class RenderChunkRegion implements BlockAndTintGetter {
     }
 
     static int localBlockIndex(BlockPos block, boolean x, Int1088 origin, int size) {
+        if ((x ? block.xFitsLong() : block.zFitsLong()) && origin.fitsLong()) {
+            long section = (x ? block.xLow() : block.zLow()) >> 4;
+            long base = origin.lowLimb();
+            long difference = section - base;
+            if (((section ^ base) & (section ^ difference)) < 0) return -1;
+            return difference >= 0 && difference < size ? (int) difference : -1;
+        }
         long first = ((x ? block.xLimb(0) : block.zLimb(0)) >>> 4)
                 | ((x ? block.xLimb(1) : block.zLimb(1)) << 60);
         long low = first - origin.lowLimb();

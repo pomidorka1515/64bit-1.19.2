@@ -26,6 +26,7 @@ out/
 *.md
 !README.md
 !WORLDGEN.md
+docs
 .claude
 
 .classpath

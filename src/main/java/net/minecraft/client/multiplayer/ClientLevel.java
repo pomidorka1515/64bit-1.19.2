@@ -704,8 +704,18 @@ public class ClientLevel extends Level {
         Vec3 local = new Vec3(((position.blockX().lowLimb() & 3L) + position.subX() - 2.0D) * 0.25D,
                 (position.y() - 2.0D) * 0.25D,
                 ((position.blockZ().lowLimb() & 3L) + position.subZ() - 2.0D) * 0.25D);
+        // Each of the six coordinates is revisited 36 times by the cubic kernel.
+        // Keep reuse within this call so sampling is reentrant and retains no world state.
+        long firstX = Mth.lfloor(local.x()) - 2L;
+        long firstZ = Mth.lfloor(local.z()) - 2L;
+        Int1088[] samplesX = new Int1088[6];
+        Int1088[] samplesZ = new Int1088[6];
+        for (int i = 0; i < 6; ++i) {
+            samplesX[i] = quartX.addSaturated(firstX + i);
+            samplesZ[i] = quartZ.addSaturated(firstZ + i);
+        }
         return CubicSampler.gaussianSampleVec3(local, (x, y, z) -> fetcher.fetch(
-                quartX.addSaturated(Int1088.fromLong(x)), y, quartZ.addSaturated(Int1088.fromLong(z))));
+                samplesX[(int) (x - firstX)], y, samplesZ[(int) (z - firstZ)]));
     }
 
     @FunctionalInterface

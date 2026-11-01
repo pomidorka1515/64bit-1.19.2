@@ -374,12 +374,14 @@ public class BlockPos extends Vec3i {
 
                 private void prepare() {
                     // Only a sign transition changes the implicit upper limbs.
-                    if (this.cursor.mutableX[16] != this.x >> 63)
+                    if (this.cursor.mutableXLength != 1 || this.cursor.mutableX[16] != this.x >> 63)
                         java.util.Arrays.fill(this.cursor.mutableX, 1, Int1088.LIMBS, this.x >> 63);
-                    if (this.cursor.mutableZ[16] != this.z >> 63)
+                    if (this.cursor.mutableZLength != 1 || this.cursor.mutableZ[16] != this.z >> 63)
                         java.util.Arrays.fill(this.cursor.mutableZ, 1, Int1088.LIMBS, this.z >> 63);
                     this.cursor.mutableX[0] = this.x;
                     this.cursor.mutableZ[0] = this.z;
+                    this.cursor.mutableXLength = 1;
+                    this.cursor.mutableZLength = 1;
                     this.cursor.setY(this.y);
                     this.ready = true;
                 }
@@ -414,6 +416,8 @@ public class BlockPos extends Vec3i {
                 }
 
                 this.range.copyPosition(this.cursor.mutableX, this.cursor.mutableZ);
+                this.cursor.mutableXLength = Int1088Math.canonicalLength(this.cursor.mutableX, 0, Int1088.LIMBS);
+                this.cursor.mutableZLength = Int1088Math.canonicalLength(this.cursor.mutableZ, 0, Int1088.LIMBS);
                 this.cursor.setY(this.range.nextY());
                 return this.cursor;
             }
@@ -475,9 +479,19 @@ public class BlockPos extends Vec3i {
     public static class MutableBlockPos extends BlockPos {
         private final long[] mutableX = new long[Int1088.LIMBS];
         private final long[] mutableZ = new long[Int1088.LIMBS];
-        private final long[] scratchX = new long[Int1088.LIMBS];
-        private final long[] scratchZ = new long[Int1088.LIMBS];
-        private final long[] scratchOther = new long[Int1088.LIMBS];
+        private long[] scratchX;
+        private long[] scratchZ;
+        private long[] scratchOther;
+        private int mutableXLength = 1;
+        private int mutableZLength = 1;
+
+        private void ensureScratch() {
+            if (this.scratchX == null) {
+                this.scratchX = new long[Int1088.LIMBS];
+                this.scratchZ = new long[Int1088.LIMBS];
+                this.scratchOther = new long[Int1088.LIMBS];
+            }
+        }
 
         public MutableBlockPos() {
             this(0, 0, 0);
@@ -498,18 +512,18 @@ public class BlockPos extends Vec3i {
             this.set(pX, pY, pZ);
         }
 
-        @Override public Int1088 getX() { return Int1088.fromFixedLimbs(this.mutableX); }
-        @Override public Int1088 getZ() { return Int1088.fromFixedLimbs(this.mutableZ); }
+        @Override public Int1088 getX() { return Int1088.fromLimbs(this.mutableX, 0, this.mutableXLength); }
+        @Override public Int1088 getZ() { return Int1088.fromLimbs(this.mutableZ, 0, this.mutableZLength); }
         @Override public long xLimb(int index) { return this.mutableX[java.util.Objects.checkIndex(index, Int1088.LIMBS)]; }
         @Override public long zLimb(int index) { return this.mutableZ[java.util.Objects.checkIndex(index, Int1088.LIMBS)]; }
-        @Override public int xLimbCount() { return Int1088Math.canonicalLength(this.mutableX, 0, Int1088.LIMBS); }
-        @Override public int zLimbCount() { return Int1088Math.canonicalLength(this.mutableZ, 0, Int1088.LIMBS); }
+        @Override public int xLimbCount() { return this.mutableXLength; }
+        @Override public int zLimbCount() { return this.mutableZLength; }
         @Override public boolean xFitsLong() { return xLimbCount() == 1; }
         @Override public boolean zFitsLong() { return zLimbCount() == 1; }
         @Override public long xLow() { return this.mutableX[0]; }
         @Override public long zLow() { return this.mutableZ[0]; }
-        @Override protected int xHash() { return Int1088Math.hashXZ(this.mutableX, 0, Int1088.LIMBS); }
-        @Override protected int zHash() { return Int1088Math.hashXZ(this.mutableZ, 0, Int1088.LIMBS); }
+        @Override protected int xHash() { return Int1088Math.hashXZ(this.mutableX, 0, this.mutableXLength); }
+        @Override protected int zHash() { return Int1088Math.hashXZ(this.mutableZ, 0, this.mutableZLength); }
 
         // Never materialize Int1088 values when either side of equality is mutable.
         @Override protected boolean sameX(Vec3i other) {
@@ -539,6 +553,8 @@ public class BlockPos extends Vec3i {
         private MutableBlockPos setLimbs(long[] x, int y, long[] z) {
             System.arraycopy(x, 0, this.mutableX, 0, Int1088.LIMBS);
             System.arraycopy(z, 0, this.mutableZ, 0, Int1088.LIMBS);
+            this.mutableXLength = Int1088Math.canonicalLength(this.mutableX, 0, Int1088.LIMBS);
+            this.mutableZLength = Int1088Math.canonicalLength(this.mutableZ, 0, Int1088.LIMBS);
             this.setY(y);
             return this;
         }
@@ -594,6 +610,10 @@ public class BlockPos extends Vec3i {
         }
 
         public BlockPos.MutableBlockPos set(Vec3i vector) {
+            if (vector.xFitsLong() && vector.zFitsLong()) {
+                return this.set(vector.xLow(), vector.getY(), vector.zLow());
+            }
+            this.ensureScratch();
             for (int i = 0; i < Int1088.LIMBS; ++i) {
                 this.scratchX[i] = vector.xLimb(i);
                 this.scratchZ[i] = vector.zLimb(i);
@@ -610,6 +630,16 @@ public class BlockPos extends Vec3i {
         }
 
         public BlockPos.MutableBlockPos setWithOffset(Vec3i vector, long x, int y, long z) {
+            if (vector.xFitsLong() && vector.zFitsLong()) {
+                long oldX = vector.xLow();
+                long oldZ = vector.zLow();
+                long newX = oldX + x;
+                long newZ = oldZ + z;
+                if (((oldX ^ newX) & (x ^ newX)) >= 0 && ((oldZ ^ newZ) & (z ^ newZ)) >= 0) {
+                    return this.set(newX, WorldBounds.addSaturated(vector.getY(), y), newZ);
+                }
+            }
+            this.ensureScratch();
             for (int i = 0; i < Int1088.LIMBS; ++i) {
                 this.scratchX[i] = vector.xLimb(i);
                 this.scratchZ[i] = vector.zLimb(i);
@@ -617,17 +647,23 @@ public class BlockPos extends Vec3i {
             int newY = WorldBounds.addSaturated(vector.getY(), y);
             addLongSaturated(this.scratchX, x, this.mutableX);
             addLongSaturated(this.scratchZ, z, this.mutableZ);
+            this.mutableXLength = Int1088Math.canonicalLength(this.mutableX, 0, Int1088.LIMBS);
+            this.mutableZLength = Int1088Math.canonicalLength(this.mutableZ, 0, Int1088.LIMBS);
             this.setY(newY);
             return this;
         }
         public BlockPos.MutableBlockPos setWithOffset(Vec3i pos, Vec3i offset) {
+            if (offset.xFitsLong() && offset.zFitsLong()) {
+                return this.setWithOffset(pos, offset.xLow(), offset.getY(), offset.zLow());
+            }
+            this.ensureScratch();
             int y = WorldBounds.addSaturated(pos.getY(), offset.getY());
             for (int i = 0; i < Int1088.LIMBS; ++i) this.scratchX[i] = pos.xLimb(i);
             for (int i = 0; i < Int1088.LIMBS; ++i) this.scratchOther[i] = offset.xLimb(i);
             for (int i = 0; i < Int1088.LIMBS; ++i) this.scratchZ[i] = pos.zLimb(i);
-            Int1088Math.addSaturated(this.scratchX, 0, Int1088.LIMBS, this.scratchOther, 0, Int1088.LIMBS, this.mutableX, 0);
+            this.mutableXLength = Int1088Math.addSaturated(this.scratchX, 0, Int1088.LIMBS, this.scratchOther, 0, Int1088.LIMBS, this.mutableX, 0);
             for (int i = 0; i < Int1088.LIMBS; ++i) this.scratchOther[i] = offset.zLimb(i);
-            Int1088Math.addSaturated(this.scratchZ, 0, Int1088.LIMBS, this.scratchOther, 0, Int1088.LIMBS, this.mutableZ, 0);
+            this.mutableZLength = Int1088Math.addSaturated(this.scratchZ, 0, Int1088.LIMBS, this.scratchOther, 0, Int1088.LIMBS, this.mutableZ, 0);
             this.setY(y);
             return this;
         }
@@ -681,11 +717,13 @@ public class BlockPos extends Vec3i {
         public BlockPos.MutableBlockPos setX(long pX) {
             this.mutableX[0] = pX;
             java.util.Arrays.fill(this.mutableX, 1, Int1088.LIMBS, pX >> 63);
+            this.mutableXLength = 1;
             return this;
         }
 
         public BlockPos.MutableBlockPos setX(Int1088 pX) {
             pX.copyFixed(this.mutableX, 0);
+            this.mutableXLength = pX.limbCount();
             return this;
         }
 
@@ -697,11 +735,13 @@ public class BlockPos extends Vec3i {
         public BlockPos.MutableBlockPos setZ(long pZ) {
             this.mutableZ[0] = pZ;
             java.util.Arrays.fill(this.mutableZ, 1, Int1088.LIMBS, pZ >> 63);
+            this.mutableZLength = 1;
             return this;
         }
 
         public BlockPos.MutableBlockPos setZ(Int1088 pZ) {
             pZ.copyFixed(this.mutableZ, 0);
+            this.mutableZLength = pZ.limbCount();
             return this;
         }
 

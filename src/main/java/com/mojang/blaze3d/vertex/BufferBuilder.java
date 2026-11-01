@@ -4,12 +4,17 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Floats;
 import com.mojang.blaze3d.platform.MemoryTracker;
 import com.mojang.logging.LogUtils;
+import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
+import com.mojang.math.Vector4f;
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.ints.IntConsumer;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import javax.annotation.Nullable;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.core.Vec3i;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -351,6 +356,84 @@ public class BufferBuilder extends DefaultedVertexConsumer implements BufferVert
             this.endVertex();
         } else {
             super.vertex(pX, pY, pZ, pRed, pGreen, pBlue, pAlpha, pTexU, pTexV, pOverlayUV, pLightmapUV, pNormalX, pNormalY, pNormalZ);
+        }
+    }
+
+    @Override
+    public void putBulkData(PoseStack.Pose pPoseEntry, BakedQuad pQuad, float pRed, float pGreen, float pBlue, int pCombinedLight, int pCombinedOverlay) {
+        if (!this.canWriteBulkQuad(pQuad)) {
+            super.putBulkData(pPoseEntry, pQuad, pRed, pGreen, pBlue, pCombinedLight, pCombinedOverlay);
+            return;
+        }
+
+        this.putBulkQuad(pPoseEntry, pQuad, 1.0F, 1.0F, 1.0F, 1.0F, pRed, pGreen, pBlue,
+            pCombinedLight, pCombinedLight, pCombinedLight, pCombinedLight, pCombinedOverlay, false);
+    }
+
+    @Override
+    public void putBulkData(PoseStack.Pose pPoseEntry, BakedQuad pQuad, float[] pColorMuls, float pRed, float pGreen, float pBlue, int[] pCombinedLights, int pCombinedOverlay, boolean pMulColor) {
+        if (!this.canWriteBulkQuad(pQuad)) {
+            super.putBulkData(pPoseEntry, pQuad, pColorMuls, pRed, pGreen, pBlue, pCombinedLights, pCombinedOverlay, pMulColor);
+            return;
+        }
+
+        // Snapshot all entries before accessing the pose or emitting any vertices,
+        // just as the inherited implementation does with temporary arrays.
+        this.putBulkQuad(pPoseEntry, pQuad, pColorMuls[0], pColorMuls[1], pColorMuls[2], pColorMuls[3], pRed, pGreen, pBlue,
+            pCombinedLights[0], pCombinedLights[1], pCombinedLights[2], pCombinedLights[3], pCombinedOverlay, pMulColor);
+    }
+
+    private boolean canWriteBulkQuad(@Nullable BakedQuad pQuad) {
+        // Preserve virtual callbacks, malformed-input behavior and unusual layouts
+        // on the reference path. No new bulk-writer contract is exposed.
+        return this.getClass() == BufferBuilder.class && this.fastFormat && !this.defaultColorSet
+            && pQuad != null && pQuad.getClass() == BakedQuad.class
+            && pQuad.getVertices() != null && pQuad.getVertices().length == 32;
+    }
+
+    private void putBulkQuad(PoseStack.Pose pPoseEntry, BakedQuad pQuad, float pBrightness0, float pBrightness1, float pBrightness2, float pBrightness3,
+                             float pRed, float pGreen, float pBlue, int pLight0, int pLight1, int pLight2, int pLight3, int pOverlay, boolean pMulColor) {
+        int[] data = pQuad.getVertices();
+        Vec3i face = pQuad.getDirection().getNormal();
+        Vector3f normal = new Vector3f((float) face.getX().toDoubleRounded(), (float) face.getY(), (float) face.getZ().toDoubleRounded());
+        Matrix4f matrix = pPoseEntry.pose();
+        normal.transform(pPoseEntry.normal());
+        Vector4f position = new Vector4f();
+
+        for (int vertex = 0; vertex < 4; ++vertex) {
+            int offset = vertex * 8;
+            float brightness;
+            int light;
+            switch (vertex) {
+                case 0 -> { brightness = pBrightness0; light = pLight0; }
+                case 1 -> { brightness = pBrightness1; light = pLight1; }
+                case 2 -> { brightness = pBrightness2; light = pLight2; }
+                default -> { brightness = pBrightness3; light = pLight3; }
+            }
+
+            float red;
+            float green;
+            float blue;
+            if (pMulColor) {
+                // Match bytes 12..14 of the native-order stack buffer, including
+                // on big-endian hosts. Keep division and multiplication order.
+                int color = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? data[offset + 3] : Integer.reverseBytes(data[offset + 3]);
+                float sourceRed = (float) (color & 255) / 255.0F;
+                float sourceGreen = (float) (color >>> 8 & 255) / 255.0F;
+                float sourceBlue = (float) (color >>> 16 & 255) / 255.0F;
+                red = sourceRed * brightness * pRed;
+                green = sourceGreen * brightness * pGreen;
+                blue = sourceBlue * brightness * pBlue;
+            } else {
+                red = brightness * pRed;
+                green = brightness * pGreen;
+                blue = brightness * pBlue;
+            }
+
+            position.set(Float.intBitsToFloat(data[offset]), Float.intBitsToFloat(data[offset + 1]), Float.intBitsToFloat(data[offset + 2]), 1.0F);
+            position.transform(matrix);
+            this.vertex(position.x(), position.y(), position.z(), red, green, blue, 1.0F,
+                Float.intBitsToFloat(data[offset + 4]), Float.intBitsToFloat(data[offset + 5]), pOverlay, light, normal.x(), normal.y(), normal.z());
         }
     }
 

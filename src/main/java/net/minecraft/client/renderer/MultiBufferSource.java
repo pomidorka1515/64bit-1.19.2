@@ -1,9 +1,9 @@
 package net.minecraft.client.renderer;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,7 +28,7 @@ public interface MultiBufferSource {
         protected final BufferBuilder builder;
         protected final Map<RenderType, BufferBuilder> fixedBuffers;
         protected Optional<RenderType> lastState = Optional.empty();
-        protected final Set<BufferBuilder> startedBuffers = Sets.newHashSet();
+        protected final Set<BufferBuilder> startedBuffers = new ObjectOpenHashSet<>();
 
         protected BufferSource(BufferBuilder pBuilder, Map<RenderType, BufferBuilder> pFixedBuffers) {
             this.builder = pBuilder;

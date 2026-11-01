@@ -1020,9 +1020,10 @@ public final class DensityFunctions {
         /** Retain every limb, including ShiftB's rotated horizontal Y input. */
         default double computeAxes(DensityFunction.FunctionContext context, int rotation) {
             boolean stable = rotation != 0 && GenerationContext.current().mode().usesStableShifts();
-            if (stable || FarlandsMode.usesPreciseCoordinates()) {
+            boolean patched = GenerationContext.current().mode() == GeneratorMode.PATCHED;
+            if (stable || patched || FarlandsMode.usesPreciseCoordinates()) {
                 try (Int1088Scratch x = axis(context, true); Int1088Scratch z = axis(context, false); Int1088Scratch y = Int1088Scratch.acquire();
-                        GenerationContext ignored = GenerationContext.open(stable
+                        GenerationContext ignored = GenerationContext.open(stable || patched
                                 ? new GeneratorConfig(GeneratorMode.PATCHED, CoordinatePrecision.PRECISE) : GenerationContext.current())) {
                     y.copyFrom(Int1088.fromLong(rotation == 0 ? context.blockY() : 0));
                     return (rotation == 2

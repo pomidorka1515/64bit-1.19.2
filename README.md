@@ -40,7 +40,7 @@ the original unfinished mod was written by mckuhei, whose sites are dead now. co
   - `32bit-stable-shifts` — same as `32bit`, except `shift_x`/`shift_z` use overflow-safe, full-1088-bit sampling in both stacks (including the rotated noise Y axis). The protected shifts always retain exact coordinates; all other samplers retain 32-bit Far Lands arithmetic and follow the selected precision.
   - `64bit-stable-shifts` — same as `64bit`, except `shift_x`/`shift_z` use overflow-safe, full-1088-bit sampling in both stacks (including the rotated noise Y axis). All other noise overflow remains. The protected shifts always retain exact coordinates; other samplers still follow the selected precision.
   - `64bit-patched` — same generator with the Far Lands arithmetic patched out.
-  - precision: `precise` retains exact integer positions; `lossy` uses absolute doubles. Precision is independent of mode and does not patch intentional generator limits.
+  - precision: `precise` retains exact integer positions; `lossy` uses absolute doubles. Precision is independent of mode and does not patch intentional generator limits. (patched-mode shifts are an exception: they use exact coordinates even in `lossy` to avoid overflow)
 - outer end rings are optional. `/endrings` flips them on or off; turning them off asks for `/endrings confirm`.
 - debug that isn't lying to you at range. F3 shows precision, splits block vs region coords, and prints the generator mode. `/wraprouter` dumps NoiseRouter overflow.
 

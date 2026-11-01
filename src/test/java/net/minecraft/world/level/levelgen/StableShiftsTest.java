@@ -63,6 +63,51 @@ class StableShiftsTest {
         }
     }
 
+    @Test void patchedLossyShiftsRemainBoundedAcrossFullCoordinateDomain() {
+        var parameters = new NormalNoise.NoiseParameters(-2, 1.0D, 1.0D, 1.0D, 1.0D);
+        var holder = new DensityFunction.NoiseHolder(Holder.direct(parameters),
+                NormalNoise.create(new LegacyRandomSource(42L), parameters));
+        var shifts = new DensityFunction[] {new DensityFunctions.Shift(holder),
+                new DensityFunctions.ShiftA(holder), new DensityFunctions.ShiftB(holder)};
+        Int1088 boundary = Int1088.ONE.shiftLeftSaturated(65);
+        Int1088[] coordinates = {Int1088.ZERO, Int1088.fromLong(30_000_000L),
+                Int1088.fromLong(Long.MAX_VALUE), Int1088.fromLong(Long.MIN_VALUE),
+                boundary.subtract(Int1088.ONE), boundary, boundary.add(Int1088.ONE),
+                Int1088.ZERO.subtract(boundary), Int1088.ONE.shiftLeftSaturated(1024),
+                Int1088.MIN, Int1088.MAX};
+        for (var shift : shifts) {
+            for (var coordinate : coordinates) {
+                for (boolean xAxis : new boolean[] {true, false}) {
+                    var point = new DensityFunction.SinglePointContext(xAxis ? coordinate : Int1088.ZERO, 80,
+                            xAxis ? Int1088.ZERO : coordinate);
+                    double expected = sample(shift, point, GeneratorMode.PATCHED, CoordinatePrecision.PRECISE);
+                    try (var ignored = GenerationContext.open(new GeneratorConfig(GeneratorMode.PATCHED, CoordinatePrecision.LOSSY))) {
+                        var result = NoiseSampling.sampleWithExtrapolation(() -> shift.compute(point));
+                        assertTrue(Double.isFinite(result.value()), shift + " at " + coordinate);
+                        assertTrue(Math.abs(result.value()) <= shift.maxValue(), shift + " at " + coordinate);
+                        assertFalse(result.extrapolated(), shift + " at " + coordinate);
+                        assertEquals(expected, result.value());
+                        assertEquals(CoordinatePrecision.LOSSY, GenerationContext.current().precision());
+                    }
+                }
+            }
+        }
+    }
+
+    @Test void ordinaryLossy64BitShiftsKeepDoubleSampling() {
+        var parameters = new NormalNoise.NoiseParameters(-2, 1.0D, 1.0D, 1.0D);
+        var holder = new DensityFunction.NoiseHolder(Holder.direct(parameters),
+                NormalNoise.create(new LegacyRandomSource(42L), parameters));
+        var shifts = new DensityFunctions.ShiftNoise[] {new DensityFunctions.Shift(holder),
+                new DensityFunctions.ShiftA(holder), new DensityFunctions.ShiftB(holder)};
+        var point = new DensityFunction.SinglePointContext(30_000_001L, 80, -20_000_003L);
+        try (var ignored = GenerationContext.open(new GeneratorConfig(GeneratorMode.BIT_64, CoordinatePrecision.LOSSY))) {
+            assertEquals(shifts[0].compute(30_000_001D, 80D, -20_000_003D), shifts[0].compute(point));
+            assertEquals(shifts[1].compute(30_000_001D, 0D, -20_000_003D), shifts[1].compute(point));
+            assertEquals(shifts[2].compute(-20_000_003D, 30_000_001D, 0D), shifts[2].compute(point));
+        }
+    }
+
     @Test void unrelatedNoiseRetains64BitOverflowAndShiftCollapseIsRemoved() {
         try (var ignored = GenerationContext.open(new GeneratorConfig(GeneratorMode.BIT_64_STABLE_SHIFTS, CoordinatePrecision.PRECISE))) {
             var state = RandomState.create(BuiltinRegistries.NOISE_GENERATOR_SETTINGS.getOrThrow(NoiseGeneratorSettings.OVERWORLD),

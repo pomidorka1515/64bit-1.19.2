@@ -50,6 +50,11 @@ public final class ImprovedNoise {
         double d0 = pX + this.xo;
         double d1 = pY + this.yo;
         double d2 = pZ + this.zo;
+        if (FarlandsMode.usesNoFarlandsSafeguards()) {
+            d0 = patchedCoordinate(d0);
+            d1 = patchedCoordinate(d1);
+            d2 = patchedCoordinate(d2);
+        }
         long i = FarlandsMode.floor(d0, useLegacy32BitFloor);
         long j = FarlandsMode.floor(d1, useLegacy32BitFloor);
         long k = FarlandsMode.floor(d2, useLegacy32BitFloor);
@@ -135,6 +140,11 @@ public final class ImprovedNoise {
         double d0 = pX + this.xo;
         double d1 = pY + this.yo;
         double d2 = pZ + this.zo;
+        if (FarlandsMode.usesNoFarlandsSafeguards()) {
+            d0 = patchedCoordinate(d0);
+            d1 = patchedCoordinate(d1);
+            d2 = patchedCoordinate(d2);
+        }
         boolean farlands = FarlandsMode.isEnabled();
         long i = FarlandsMode.floor(d0, farlands);
         long j = FarlandsMode.floor(d1, farlands);
@@ -143,6 +153,17 @@ public final class ImprovedNoise {
         double d4 = d1 - (double) j;
         double d5 = d2 - (double) k;
         return this.sampleWithDerivative(i, j, k, d3, d4, d5, pValues);
+    }
+
+    /**
+     * Direct double callers (including lossy cave and surface samplers) must not
+     * saturate the long floor and turn the local fraction into extrapolation.
+     * The permutation repeats every 256 cells. Reduce only outside the floor's
+     * range, after adding the origin, to retain ordinary lossy double rounding.
+     */
+    private static double patchedCoordinate(double value) {
+        if (!Double.isFinite(value)) return 0.0D;
+        return value < -0x1p63 || value >= 0x1p63 ? value % 256.0D : value;
     }
 
     public static void beginDebugCapture() {

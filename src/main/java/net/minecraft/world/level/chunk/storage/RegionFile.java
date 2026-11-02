@@ -273,28 +273,32 @@ public class RegionFile implements AutoCloseable {
         int l = getNumSectors(j);
         int i1 = pChunkData.remaining();
         int j1 = sizeToSectors(i1);
-        int k1;
-        RegionFile.CommitOp regionfile$commitop;
-        if (j1 >= 256) {
-            Path path = this.getExternalChunkPath(pChunkPos);
-            LOGGER.warn("Saving oversized chunk {} ({} bytes} to external file {}", pChunkPos, i1, path);
+        boolean external = j1 >= 256;
+        if (external) {
             j1 = 1;
-            k1 = this.usedSectors.allocate(j1);
-            regionfile$commitop = this.writeToExternalFile(path, pChunkData);
-            ByteBuffer bytebuffer = this.createExternalStub();
-            this.file.write(bytebuffer, (long) (k1 * 4096));
-        } else {
-            k1 = this.usedSectors.allocate(j1);
-            regionfile$commitop = () -> {
-                Files.deleteIfExists(this.getExternalChunkPath(pChunkPos));
-            };
-            this.file.write(pChunkData, (long) (k1 * 4096));
+        }
+        int k1 = this.usedSectors.allocate(j1);
+        try {
+            if (external) {
+                Path path = this.getExternalChunkPath(pChunkPos);
+                LOGGER.warn("Saving oversized chunk {} ({} bytes) to external file {}", pChunkPos, i1, path);
+                ByteBuffer bytebuffer = this.createExternalStub();
+                this.file.write(bytebuffer, (long) (k1 * 4096));
+                this.writeToExternalFile(path, pChunkData).run();
+            } else {
+                this.file.write(pChunkData, (long) (k1 * 4096));
+            }
+        } catch (IOException e) {
+            this.usedSectors.free(k1, j1);
+            throw e;
         }
 
         this.offsets.put(i, this.packSectorOffset(k1, j1));
         this.timestamps.put(i, getTimestamp());
         this.writeHeader();
-        regionfile$commitop.run();
+        if (!external) {
+            Files.deleteIfExists(this.getExternalChunkPath(pChunkPos));
+        }
         if (k != 0) {
             this.usedSectors.free(k, l);
         }
@@ -336,6 +340,11 @@ public class RegionFile implements AutoCloseable {
             try {
                 Files.move(path, pExternalChunkFile, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
+                try {
+                    Files.deleteIfExists(path);
+                } catch (IOException cleanup) {
+                    e.addSuppressed(cleanup);
+                }
                 throw new IOException("Cannot install external chunk " + pExternalChunkFile + "; long-path support is required", e);
             }
         };

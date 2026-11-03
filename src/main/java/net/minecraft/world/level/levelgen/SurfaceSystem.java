@@ -367,10 +367,14 @@ public class SurfaceSystem {
             return sampleNoise(noise, xValue.limb(0), scale, zValue.limb(0));
         if (FarlandsMode.usesPreciseCoordinates())
             return noise.getValueScaled(xValue, scale, 0L, 0.0D, zValue);
-        double x = WorldgenCoordinate.toDouble(xValue) * scale;
-        double z = WorldgenCoordinate.toDouble(zValue) * scale;
-        x = Double.isNaN(x) ? 0.0D : Math.max(-0x1p63, Math.min(Math.nextDown(0x1p63), x));
-        z = Double.isNaN(z) ? 0.0D : Math.max(-0x1p63, Math.min(Math.nextDown(0x1p63), z));
+        double absoluteX = WorldgenCoordinate.toDouble(xValue);
+        double absoluteZ = WorldgenCoordinate.toDouble(zValue);
+        double x = absoluteX * scale;
+        double z = absoluteZ * scale;
+        if (Double.isFinite(absoluteX))
+            x = Double.isNaN(x) ? 0.0D : Math.max(-0x1p63, Math.min(Math.nextDown(0x1p63), x));
+        if (Double.isFinite(absoluteZ))
+            z = Double.isNaN(z) ? 0.0D : Math.max(-0x1p63, Math.min(Math.nextDown(0x1p63), z));
         return noise.getValue(x, 0.0D, z);
     }
 

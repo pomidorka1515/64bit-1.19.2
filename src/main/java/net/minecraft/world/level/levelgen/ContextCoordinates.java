@@ -60,6 +60,8 @@ public final class ContextCoordinates {
     private static double scaledWide(double coordinate, double scale, double shift) {
         double value = coordinate * scale;
         if (GenerationPolicy.usesNoFarlandsSafeguards() && !GenerationPolicy.usesPreciseCoordinates()) {
+            // Keep finite-coordinate protection, but expose actual absolute-double overflow.
+            if (!Double.isFinite(coordinate)) return value + shift;
             value = Double.isNaN(value) ? 0 : Math.max(-0x1.0p63, Math.min(Math.nextDown(0x1.0p63), value));
             return WorldBounds.clampAbsoluteDouble(value + shift);
         }

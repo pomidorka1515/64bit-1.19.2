@@ -2,6 +2,7 @@ package net.minecraft.world.level.levelgen.synth;
 
 import net.minecraft.core.Int1088;
 import net.minecraft.core.Int1088Math;
+import net.minecraft.core.Int1088Scratch;
 import net.minecraft.world.level.levelgen.RandomSupport;
 
 /** Allocation-free signed horizontal coordinate operations for generation. */
@@ -20,9 +21,18 @@ public final class WorldgenCoordinate {
 
     public static boolean fitsLong(Int1088 value) { return value.fitsLong(); }
     public static boolean fitsLong(long[] limbs, int offset, int length) { return Int1088Math.fitsLong(limbs, offset, length); }
-    public static double toDouble(long[] limbs, int offset, int length) { return Int1088Math.toDoubleRounded(limbs, offset, length); }
+    public static double toDouble(long[] limbs, int offset, int length) {
+        return GenerationPolicy.usesPreciseCoordinates() ? Int1088Math.toDoubleRounded(limbs, offset, length)
+                : Int1088Math.toDoubleWithOverflow(limbs, offset, length);
+    }
     public static float toFloat(long[] limbs, int offset, int length) { return fitsLong(limbs, offset, length) ? (float)limbs[offset] : (float)toDouble(limbs, offset, length); }
-    public static double toDouble(Int1088 value) { return value.fitsLong() ? (double)value.lowLimb() : value.toDoubleRounded(); }
+    public static double toDouble(Int1088 value) {
+        if (value.fitsLong()) return (double) value.lowLimb();
+        try (Int1088Scratch scratch = Int1088Scratch.acquire()) {
+            scratch.copyFrom(value);
+            return toDouble(scratch.limbs(), 0, scratch.length());
+        }
+    }
     public static float toFloat(Int1088 value) { return value.fitsLong() ? (float)value.lowLimb() : (float)value.toDoubleRounded(); }
     public static Int1088 add(Int1088 value, long offset) { return value.addSaturated(offset); }
     public static Int1088 add(Int1088 a, Int1088 b) { return a.addSaturated(b); }

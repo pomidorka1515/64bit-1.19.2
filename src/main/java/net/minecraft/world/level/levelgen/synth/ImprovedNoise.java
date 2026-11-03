@@ -160,9 +160,10 @@ public final class ImprovedNoise {
      * saturate the long floor and turn the local fraction into extrapolation.
      * The permutation repeats every 256 cells. Reduce only outside the floor's
      * range, after adding the origin, to retain ordinary lossy double rounding.
+     * Lossy absolute-double overflow deliberately remains non-finite.
      */
     private static double patchedCoordinate(double value) {
-        if (!Double.isFinite(value)) return 0.0D;
+        if (!Double.isFinite(value)) return FarlandsMode.usesPreciseCoordinates() ? 0.0D : value;
         return value < -0x1p63 || value >= 0x1p63 ? value % 256.0D : value;
     }
 

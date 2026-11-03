@@ -366,6 +366,10 @@ public final class Int1088Math {
     }
 
     private static double rounded(long[] a, int ao, int alen, int precision, int maxExponent) {
+        return rounded(a, ao, alen, precision, maxExponent, true);
+    }
+
+    private static double rounded(long[] a, int ao, int alen, int precision, int maxExponent, boolean saturate) {
         if (alen == 1 && precision == 53) return (double) a[ao];
         int length = magnitudeBits(a, ao, alen);
         if (length == 0) return 0;
@@ -384,12 +388,17 @@ public final class Int1088Math {
         }
         double magnitude = Math.scalb((double) significant, discard);
         double maximum = maxExponent == 1023 ? Double.MAX_VALUE : Float.MAX_VALUE;
-        magnitude = Math.min(magnitude, maximum);
+        if (saturate) magnitude = Math.min(magnitude, maximum);
         return a[ao + alen - 1] < 0 ? -magnitude : magnitude;
     }
 
     public static double toDoubleRounded(long[] a, int ao, int alen) {
         return rounded(a, ao, alen, 53, 1023);
+    }
+
+    /** IEEE-754 rounding, including signed infinity on overflow; for lossy worldgen. */
+    public static double toDoubleWithOverflow(long[] a, int ao, int alen) {
+        return rounded(a, ao, alen, 53, 1023, false);
     }
 
     public static double toDoubleSaturated(long[] a, int ao, int alen) {

@@ -259,9 +259,11 @@ class DensityTerrainPipelineTest {
                 || PreciseNoiseCoordinate.needsPrecisePath(x.lowLimb()) || PreciseNoiseCoordinate.needsPrecisePath(z.lowLimb()))) {
             return noise.getValueScaled(x, 1, 0, 0, z);
         }
-        // The existing surface projection has its own signed-long guard, even in legacy modes.
-        double dx = Math.max(-0x1p63, Math.min(Math.nextDown(0x1p63), x.toDoubleRounded()));
-        double dz = Math.max(-0x1p63, Math.min(Math.nextDown(0x1p63), z.toDoubleRounded()));
+        // Finite absolute doubles retain the surface guard; actual overflow propagates.
+        double dx = integer(x).doubleValue();
+        double dz = integer(z).doubleValue();
+        if (Double.isFinite(dx)) dx = Math.max(-0x1p63, Math.min(Math.nextDown(0x1p63), dx));
+        if (Double.isFinite(dz)) dz = Math.max(-0x1p63, Math.min(Math.nextDown(0x1p63), dz));
         return noise.getValue(dx, 0, dz);
     }
 

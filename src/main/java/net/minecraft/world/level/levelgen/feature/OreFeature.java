@@ -47,8 +47,10 @@ public class OreFeature extends Feature<OreConfiguration> {
             d2 = Math.cos((double) f) * (double) f1;
             d3 = -d2;
         } else {
-            double absoluteX = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(blockpos.getX());
-            double absoluteZ = net.minecraft.world.level.levelgen.synth.WorldgenCoordinate.toDouble(blockpos.getZ());
+            // Placement geometry keeps a saturated mirror; intentional double overflow
+            // belongs to terrain noise, not the exact-anchor/local-frame subtraction.
+            double absoluteX = blockpos.getX().toDoubleRounded();
+            double absoluteZ = blockpos.getZ().toDoubleRounded();
             d0 = WorldBounds.clampAbsoluteDouble(absoluteX + Math.sin((double) f) * (double) f1);
             d1 = WorldBounds.clampAbsoluteDouble(absoluteX - Math.sin((double) f) * (double) f1);
             d2 = WorldBounds.clampAbsoluteDouble(absoluteZ + Math.cos((double) f) * (double) f1);
